@@ -71,6 +71,7 @@ const HeaderHomeContainer: React.FC<HeaderHomeContainerProps> = props => {
   };
   return (
     <View style={commonStyles.container}>
+      
       <View style={commonStyles.headerRowContainer}>
         <Image source={IMAGE.profileImage} style={styles.icon} />
 
@@ -151,19 +152,17 @@ const getStyles = (colors: IColors) =>
     title: {
       fontSize: fontSizes.large,
       fontFamily: fonts.bold,
-      fontWeight: '600',
       color: colors.title,
     },
     itemContainer: {
       alignItems: 'center',
       flexDirection: 'row',
-      width: "82%"
+      // width: "82%"
     },
     user: {
       fontSize: fontSizes.regularSmall,
-      fontWeight: '700',
-      fontFamily: fonts.regular,
-      color: colors.primary,
+      fontFamily: fonts.medium,
+      color: colors.text,
       marginTop: 2,
     },
     userContainer: {
@@ -179,7 +178,6 @@ const getStyles = (colors: IColors) =>
     buyerTitle: {
       fontSize: fontSizes.medium,
       fontFamily: fonts.bold,
-      fontWeight: '600',
       color: colors.primary,
       paddingHorizontal: 5
     },

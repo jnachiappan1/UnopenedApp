@@ -9,6 +9,7 @@ import { IconName } from '../../assets/svg/iconsSvg';
 import ProductListingCard from '../../components/card/productListingCard';
 import { fontSizes } from '../../utils/utils';
 import colors from '../../utils/colors';
+import fonts from '../../assets/fonts/fonts';
 
 type PHomeScreenProps = NativeStackScreenProps<RootStackParamList, SCREENS.SHomeScreen>;
 
@@ -95,7 +96,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
             contentContainerStyle={styles.list}
           />
         </View>
-        <View style={{marginBottom:100}}>
+        <View style={styles.recentProductView}>
            <View style={styles.header}>
             <Text style={styles.title}>Recently Added Products</Text>
             <Text style={styles.viewAllText}>View All</Text>
@@ -107,11 +108,11 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
             renderItem={({ item }) => (
               <ProductListingCard
                 item={item}
-                cardStyle={{marginHorizontal:5}}
+                cardStyle={{marginHorizontal:5,width:320}}
               />
             )}
             keyExtractor={(item) => item.id}
-            contentContainerStyle={{paddingVertical:10,paddingHorizontal:10}}
+            contentContainerStyle={styles.contentContainerStyle}
           />
         </View>
       {/* </ScrollView> */}
@@ -134,7 +135,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: fontSizes.large,
-    fontWeight: '600',
+    fontFamily:fonts.bold,
   },
   viewAllText: {
     color: colors.primary,
@@ -147,7 +148,7 @@ const styles = StyleSheet.create({
   },
   tab: {
     flexDirection: 'row',
-    paddingVertical: 10,
+    paddingVertical: 8,
     paddingHorizontal: 16,
     marginRight: 16,
     borderRadius: 60,
@@ -184,5 +185,9 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 20,
     marginStart: 5
+  },
+  recentProductView:{marginBottom:100},
+  contentContainerStyle:{
+    paddingVertical:10,paddingHorizontal:10
   }
 })

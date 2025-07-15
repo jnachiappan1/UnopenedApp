@@ -5,14 +5,16 @@ import { fontSizes } from '../../utils/utils';
 import { ProductData } from '../../utils/types';
 import colors from '../../utils/colors';
 import IconsSvg from '../../assets/svg/iconsSvg';
+import fonts from '../../assets/fonts/fonts';
 
 // Define types for the item data passed into the card
 interface ProductListingCardProps {
   item: ProductData;
   cardStyle?: StyleProp<ViewStyle> | undefined;
+  onSelect?: (item: ProductData) => void;
 }
 
-const ProductListingCard: React.FC<ProductListingCardProps> = ({ item,cardStyle }) => {
+const ProductListingCard: React.FC<ProductListingCardProps> = ({ item,cardStyle ,onSelect}) => {
   const getStatusStyle = (status?: string) => {
     switch (status) {
       case 'In Review':
@@ -37,6 +39,10 @@ const ProductListingCard: React.FC<ProductListingCardProps> = ({ item,cardStyle 
         };
     }
   };
+  const handleCardPress = () => {
+    console.log('Product selected:', item);
+    onSelect?.(item);
+  };
   return (
     <View style={[styles.cardContainer,cardStyle]}>
       <View style={styles.productDetailView}>
@@ -53,7 +59,7 @@ const ProductListingCard: React.FC<ProductListingCardProps> = ({ item,cardStyle 
             {item?.status}
           </Text>
         </View>
-        <TouchableOpacity style={styles.viewDetailsBtn}>
+        <TouchableOpacity style={styles.viewDetailsBtn} activeOpacity={0.8}  onPress={handleCardPress}>
           <Text style={styles.viewDetailsText}>View Details</Text>
           <IconsSvg name='viewDetailArrow' />
         </TouchableOpacity>
@@ -91,18 +97,19 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: fontSizes.medium,
-    fontWeight: '600',
+    fontFamily: fonts.bold,
     color: '#1F1F1F',
     paddingVertical: 2
   },
   cardPrice: {
     fontSize: fontSizes.medium,
-    fontWeight: '500',
+    fontFamily:fonts.bold,
     color: colors.black,
     paddingVertical: 2
   },
   cardPosted: {
     fontSize: fontSizes.small,
+    fontFamily: fonts.medium,
     color: '#666666',
     paddingVertical: 2
   },
@@ -115,6 +122,7 @@ const styles = StyleSheet.create({
   viewDetailsText: {
     color: '#333333',
     fontSize: fontSizes.small,
+    fontFamily:fonts.bold,
     paddingEnd:5
   },
   productDetailView: {
@@ -130,7 +138,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   statusText: {
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: fontSizes.small,
+    fontFamily:fonts.bold
   },
 });

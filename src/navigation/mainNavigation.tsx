@@ -12,6 +12,8 @@ import VerifyOTP from '../screens/auth/verifyOTP';
 import LoginScreen from '../screens/auth/loginScreen';
 import SignUpScreen from '../screens/auth/signUpScreen';
 import BottomTabNav from './bottomTabNav';
+import ProductDetailScreen from '../screens/sellerPortal/productDetailScreen';
+import ProductListScreen from '../screens/sellerPortal/productListScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -41,6 +43,8 @@ const MainNavigation: React.FC = () => {
         <Stack.Screen name={SCREENS.VerifyOTP} component={VerifyOTP} />
         <Stack.Screen name={SCREENS.SignUpScreen} component={SignUpScreen} />
         <Stack.Screen name={SCREENS.BottomTab} component={BottomTabNav} />
+        <Stack.Screen name={SCREENS.ProductListScreen} component={ProductListScreen} />
+        <Stack.Screen name={SCREENS.ProductDetailScreen} component={ProductDetailScreen} />
       </Stack.Navigator>
     </View>
   );
@@ -59,6 +63,7 @@ export enum SCREENS {
   ProductListScreen = 'ProductListScreen',
   SalesScreen = 'SalesScreen',
   WalletScreen = 'WalletScreen',
+  ProductDetailScreen = 'ProductDetailScreen',
 }
 
 export type RootStackParamList = {
@@ -72,4 +77,5 @@ export type RootStackParamList = {
   [SCREENS.ProductListScreen]: undefined;
   [SCREENS.SalesScreen]: undefined;
   [SCREENS.WalletScreen]: undefined;
+  [SCREENS.ProductDetailScreen]: {productId: number|string | undefined | null};
 };

@@ -24,13 +24,14 @@ import { IRootState } from '../redux/store';
 import sHomeScreen from '../screens/sellerPortal/sHomeScreen';
 import bHomeScreen from '../screens/buyerPortal/bHomeScreen';
 import AddProductScreen from '../screens/buyerPortal/addProductScreen';
-import ProductListScreen from '../screens/buyerPortal/productListScreen';
+import ProductListScreen from '../screens/sellerPortal/productListScreen';
 import SalesScreen from '../screens/buyerPortal/salesScreen';
 import WalletScreen from '../screens/buyerPortal/walletScreen';
 import IconsSvg, { IconName } from '../assets/svg/iconsSvg';
 import IMAGE from '../assets/images';
 import { RootStackParamList, SCREENS } from './mainNavigation';
-import { OS } from '../utils/utils';
+import { fontSizes, OS } from '../utils/utils';
+import fonts from '../assets/fonts/fonts';
 
 const Tab = createBottomTabNavigator<RootStackParamList>();
 type BottomTabNavProps = NativeStackScreenProps<
@@ -191,9 +192,10 @@ const BuyerTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigati
                   name={icon as IconName}
                   color={isFocused ? c.primary : c.gray}
                 />
-                <Text style={[styles.label, { color: isFocused ? c.primary : c.label }]}>
+                <Text style={isFocused ? styles.activeLabel : styles.label}>
                   {label}
                 </Text>
+
               </View>
             </TouchableOpacity>
           );
@@ -270,12 +272,18 @@ const getCurvedStyles = (c: IColors) =>
     //   justifyContent: 'center',
     // },
     label: {
-      fontSize: 11,
+      fontSize: fontSizes.small,
+      fontFamily: fonts.medium,
       marginTop: 4,
       textAlign: 'center',
-      fontWeight: '500',
-      lineHeight: 14,
-      color:c.text
+      color: c.text
+    },
+    activeLabel: {
+      fontSize: fontSizes.small,
+      fontFamily: fonts.bold,
+      marginTop: 4,
+      textAlign: 'center',
+      color: c.primary
     },
     fabContainer: {
       position: 'absolute',
@@ -306,11 +314,11 @@ const getCurvedStyles = (c: IColors) =>
       justifyContent: 'center',
     },
     fabLabel: {
-      fontSize: 11,
-      fontWeight: '500',
+      fontSize: fontSizes.small,
       color: c.label,
       textAlign: 'center',
       lineHeight: 14,
       marginTop: OS === "android" ? 25 : 15,
+      fontFamily: fonts.medium,
     },
   });

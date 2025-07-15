@@ -4,6 +4,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import IconsSvg, { IconName } from '../../assets/svg/iconsSvg';
 import colors from '../../utils/colors';
 import { fontSizes } from '../../utils/utils';
+import fonts from '../../assets/fonts/fonts';
 
 interface DashboardAnalyticsCardProps {
   title: string;
@@ -47,11 +48,12 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: fontSizes.huge,
-    fontWeight: 'bold',
+    fontFamily: fonts.bold,
     color: colors.black,
   },
   subtitle: {
     fontSize: fontSizes.small,
+    fontFamily: fonts.medium,
     color: colors.black,
     marginTop: 4,
   },

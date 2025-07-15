@@ -30,7 +30,8 @@ export type IconName =
   | 'pendingIcon'
   | 'boxIcon'
   | 'walletPrimaryIcon'
-  | 'viewDetailArrow';
+  | 'viewDetailArrow'
+  | 'backArrow';
 
 export interface IconsSvgProps {
   name: IconName;
@@ -532,6 +533,32 @@ const IconsSvg = (props: IconsSvgProps) => {
         <Defs>
           <ClipPath id="clip0_1_1209">
             <Path fill="#fff" transform="translate(5 5)" d="M0 0H16V16H0z" />
+          </ClipPath>
+        </Defs>
+      </Svg>
+      );
+    case 'backArrow':
+      return (
+        <Svg
+        width={50}
+        height={50}
+        viewBox="0 0 50 50"
+        fill="none"
+        {...props}
+      >
+        <Rect width={50} height={50} rx={25} fill="#fff" />
+        <G
+          clipPath="url(#clip0_1_7626)"
+          stroke="#000"
+          strokeWidth={1.56}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <Path d="M33.25 25h-16.5M23.5 18.25L16.75 25l6.75 6.75" />
+        </G>
+        <Defs>
+          <ClipPath id="clip0_1_7626">
+            <Path fill="#fff" transform="translate(13 13)" d="M0 0H24V24H0z" />
           </ClipPath>
         </Defs>
       </Svg>

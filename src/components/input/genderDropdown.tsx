@@ -106,7 +106,6 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   label: {
-    fontWeight: '500',
     fontSize: 12,
     color: '#666',
   },

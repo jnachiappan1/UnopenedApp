@@ -29,7 +29,7 @@ function App() {
   React.useEffect(() => {
     setTimeout(() => {
       SplashScreen.hide();
-    }, 500);
+    }, 1000);
   }, []);
   return (
     <SafeAreaProvider>

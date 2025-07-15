@@ -1,4 +1,4 @@
-const fonts = {
+ export const fonts = {
   black: 'Satoshi-Black',
   blackItalic: 'Satoshi-BlackItalic',
   bold: 'Satoshi-Bold',
