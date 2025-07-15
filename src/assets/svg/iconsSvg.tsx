@@ -29,7 +29,8 @@ export type IconName =
   | 'productListPrimaryIcon'
   | 'pendingIcon'
   | 'boxIcon'
-  | 'walletPrimaryIcon';
+  | 'walletPrimaryIcon'
+  | 'viewDetailArrow';
 
 export interface IconsSvgProps {
   name: IconName;
@@ -475,7 +476,6 @@ const IconsSvg = (props: IconsSvgProps) => {
       height={40}
       viewBox="0 0 40 40"
       fill="none"
-      xmlns="http://www.w3.org/2000/svg"
       {...props}
     >
       <Path
@@ -509,6 +509,32 @@ const IconsSvg = (props: IconsSvgProps) => {
         strokeLinejoin="round"
       />
     </Svg>
+      );
+    case 'viewDetailArrow':
+      return (
+        <Svg
+        width={26}
+        height={26}
+        viewBox="0 0 26 26"
+        fill="none"
+        {...props}
+      >
+        <Rect x={0.5} y={0.5} width={25} height={25} rx={12.5} stroke="#E0E0E0" />
+        <G
+          clipPath="url(#clip0_1_1209)"
+          stroke="#333"
+          strokeWidth={1.3}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <Path d="M9 17l8-8M10.5 9H17v6.5" />
+        </G>
+        <Defs>
+          <ClipPath id="clip0_1_1209">
+            <Path fill="#fff" transform="translate(5 5)" d="M0 0H16V16H0z" />
+          </ClipPath>
+        </Defs>
+      </Svg>
       );
     default:
       return null;

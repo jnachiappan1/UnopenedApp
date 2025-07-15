@@ -6,7 +6,7 @@ import fonts from '../assets/fonts/fonts';
 const commonStyles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 10,
+    // paddingHorizontal: 10,
     backgroundColor: colors.background,
   },
   bottomSpace: {
@@ -170,7 +170,8 @@ const commonStyles = StyleSheet.create({
     flexDirection: 'row',
     height: 70,
     width:width,
-    marginStart:8
+    marginStart:8,
+    paddingHorizontal:10
   },
   reimbursementContainer: {
     backgroundColor: colors.white,

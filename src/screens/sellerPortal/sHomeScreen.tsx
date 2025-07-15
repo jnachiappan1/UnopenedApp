@@ -20,6 +20,17 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
     }
     return productData.filter(item => item.status === selectedTab);
   };
+  const getTabCounts = () => {
+    const counts: { [key: string]: number } = {
+      All: productData.length,
+      Active: productData.filter(item => item.status === 'Active').length,
+      Sold: productData.filter(item => item.status === 'Sold').length,
+      'In Review': productData.filter(item => item.status === 'In Review').length,
+    };
+    return counts;
+  };
+
+  const tabCounts = getTabCounts();
   const renderTab = ({ item }: { item: string }) => (
     <TouchableOpacity
       key={item}
@@ -29,7 +40,14 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
         selectedTab === item && styles.activeTab,
       ]}
     >
-      <Text style={[styles.tabText, selectedTab === item && styles.activeTabText]}>{item}</Text>
+      <Text style={[styles.tabText, selectedTab === item && styles.activeTabText]}>
+        {item}
+      </Text>
+      <View style={styles.countContainer}>
+        <Text style={[styles.tabCountText, selectedTab === item && styles.activeTabCountText]}>
+          {tabCounts[item] ?? 0}
+        </Text>
+      </View>
     </TouchableOpacity>
   );
   return (
@@ -39,12 +57,12 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
       isHome
       onSearchPress={() => { }}
     >
-      <ScrollView showsVerticalScrollIndicator={false}>
+      {/* <ScrollView showsVerticalScrollIndicator={false}> */}
         <FlatList
           data={dashboardAnalyticsData}
           keyExtractor={(_, index) => index.toString()}
           numColumns={2}
-          // contentContainerStyle={styles.container}
+           contentContainerStyle={styles.container}
           renderItem={({ item }) => (
             <DashboardAnalyticsCard
               title={item.title}
@@ -77,9 +95,27 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
             contentContainerStyle={styles.list}
           />
         </View>
-      </ScrollView>
+        <View style={{marginBottom:100}}>
+           <View style={styles.header}>
+            <Text style={styles.title}>Recently Added Products</Text>
+            <Text style={styles.viewAllText}>View All</Text>
+          </View>
+          <FlatList
+            data={filterData()}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            renderItem={({ item }) => (
+              <ProductListingCard
+                item={item}
+                cardStyle={{marginHorizontal:5}}
+              />
+            )}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={{paddingVertical:10,paddingHorizontal:10}}
+          />
+        </View>
+      {/* </ScrollView> */}
     </HeaderHomeContainer>
-
   )
 }
 
@@ -87,13 +123,14 @@ export default SHomeScreen
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 20,
-    paddingHorizontal: 10,
+    marginTop: 10,
+    // paddingHorizontal: 15,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginHorizontal: 15,
   },
   title: {
     fontSize: fontSizes.large,
@@ -106,15 +143,17 @@ const styles = StyleSheet.create({
   tabs: {
     flexDirection: 'row',
     marginVertical: 16,
-
+    paddingHorizontal:15
   },
   tab: {
+    flexDirection: 'row',
     paddingVertical: 10,
     paddingHorizontal: 16,
     marginRight: 16,
     borderRadius: 60,
     borderColor: colors.chineseSilver,
-    borderWidth: 1
+    borderWidth: 1,
+    alignItems: 'center',
   },
   activeTab: {
     backgroundColor: colors.black,
@@ -128,53 +167,22 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontSize: fontSizes.regular
   },
+  tabCountText: {
+    fontSize: fontSizes.small,
+    color: colors.label,
+  },
+  activeTabCountText: {
+    color: colors.label,
+    fontSize: fontSizes.small
+  },
   list: {
-    paddingBottom: 100, // To add some space at the bottom
+     paddingHorizontal: 15,
   },
-  cardContainer: {
-    flexDirection: 'row',
-    backgroundColor: 'white',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-  },
-  cardImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 8,
-    marginRight: 12,
-  },
-  cardDetails: {
-    flex: 1,
-    justifyContent: 'space-between',
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-  },
-  cardPrice: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#888',
-  },
-  cardPosted: {
-    fontSize: 12,
-    color: '#888',
-  },
-  viewDetailsBtn: {
-    marginTop: 8,
-    backgroundColor: '#4CAF50',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 4,
-  },
-  viewDetailsText: {
-    color: 'white',
-    fontSize: 14,
-  },
+  countContainer: {
+    backgroundColor: '#E7ECDF',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+    marginStart: 5
+  }
 })

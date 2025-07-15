@@ -43,7 +43,7 @@ export const colorScheme = Appearance.getColorScheme();
 const darkColors: IColors = {
   primary: '#31AD52',
   secondary: '#268740',
-  background: '#F5F4F9',
+  background: '#F5F7F2',
   label: '#4D4D4D',
   text: '#474747',
   text2: '#8B7F97',
@@ -81,7 +81,7 @@ const lightColors: IColors = {
   primary: '#31AD52',
 
   secondary: '#268740',
-  background: '#F5F4F9',
+  background: '#F5F7F2',
   label: '#4D4D4D',
   text: '#474747',
   text2: '#8B7F97',
