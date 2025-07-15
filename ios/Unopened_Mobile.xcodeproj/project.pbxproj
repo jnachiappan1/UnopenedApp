@@ -12,9 +12,22 @@
 		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
+		2946DA5E7C6E430D8199CFA4 /* Satoshi-Black.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B6950042BA554BD4AFA35856 /* Satoshi-Black.ttf */; };
+		3D18FEA5ED7E4FBCBFB655EF /* Satoshi-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E3175577160345688208E102 /* Satoshi-Bold.ttf */; };
+		4F7A550AAA6E468F8729DC8D /* Satoshi-LightItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9B535FFD63BA41439162F089 /* Satoshi-LightItalic.ttf */; };
+		524F1853AB484D7DAE7AB22B /* Satoshi-VariableItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CE48793679944839A4ED63F1 /* Satoshi-VariableItalic.ttf */; };
+		699D9706E57145209FA606D7 /* Satoshi-BoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CA2B349DA56F49D2AA91F4CE /* Satoshi-BoldItalic.ttf */; };
+		6A4A9E0D7BE74C48A4F755FB /* Satoshi-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A2DF4B82623449A1B9F8D8A2 /* Satoshi-Medium.ttf */; };
+		6D2114B41EB047A0B97AD027 /* Satoshi-BlackItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = EA7AF9AC14B64D44A6D410B6 /* Satoshi-BlackItalic.ttf */; };
 		7699B88040F8A987B510C191 /* libPods-Unopened_Mobile-Unopened_MobileTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 19F6CBCC0A4E27FBF8BF4A61 /* libPods-Unopened_Mobile-Unopened_MobileTests.a */; };
+		7DA9429848D74E7180BB10EB /* Satoshi-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2239240BA5EE479080890CFD /* Satoshi-Regular.ttf */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		93FE6BF593164DA1B12DC2B2 /* fonts.ts in Resources */ = {isa = PBXBuildFile; fileRef = CC2DED4DE7BA40D4ABBCD523 /* fonts.ts */; };
 		B5C44FF76F4E3B20A1B38B45 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
+		BC43B28A830E4A6BA98418DA /* Satoshi-Variable.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F8C8605056F14311B7103411 /* Satoshi-Variable.ttf */; };
+		CFACB6C8B4B5401DB81E4F4D /* Satoshi-MediumItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 7C50EDCD8259417EB7DB47BC /* Satoshi-MediumItalic.ttf */; };
+		DDB5B461AC0940F1820B68F6 /* Satoshi-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 908CBEFB7EA14510921231AF /* Satoshi-Light.ttf */; };
+		F51CAF4E2ADE440D917BB09D /* Satoshi-Italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 54B31E8FD11D4748941AAC9D /* Satoshi-Italic.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -39,13 +52,26 @@
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = Unopened_Mobile/main.m; sourceTree = "<group>"; };
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = Unopened_Mobile/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		19F6CBCC0A4E27FBF8BF4A61 /* libPods-Unopened_Mobile-Unopened_MobileTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Unopened_Mobile-Unopened_MobileTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2239240BA5EE479080890CFD /* Satoshi-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Satoshi-Regular.ttf"; path = "../src/assets/fonts/Satoshi-Regular.ttf"; sourceTree = "<group>"; };
 		3B4392A12AC88292D35C810B /* Pods-Unopened_Mobile.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Unopened_Mobile.debug.xcconfig"; path = "Target Support Files/Pods-Unopened_Mobile/Pods-Unopened_Mobile.debug.xcconfig"; sourceTree = "<group>"; };
+		54B31E8FD11D4748941AAC9D /* Satoshi-Italic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Satoshi-Italic.ttf"; path = "../src/assets/fonts/Satoshi-Italic.ttf"; sourceTree = "<group>"; };
 		5709B34CF0A7D63546082F79 /* Pods-Unopened_Mobile.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Unopened_Mobile.release.xcconfig"; path = "Target Support Files/Pods-Unopened_Mobile/Pods-Unopened_Mobile.release.xcconfig"; sourceTree = "<group>"; };
 		5B7EB9410499542E8C5724F5 /* Pods-Unopened_Mobile-Unopened_MobileTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Unopened_Mobile-Unopened_MobileTests.debug.xcconfig"; path = "Target Support Files/Pods-Unopened_Mobile-Unopened_MobileTests/Pods-Unopened_Mobile-Unopened_MobileTests.debug.xcconfig"; sourceTree = "<group>"; };
 		5DCACB8F33CDC322A6C60F78 /* libPods-Unopened_Mobile.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Unopened_Mobile.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		7C50EDCD8259417EB7DB47BC /* Satoshi-MediumItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Satoshi-MediumItalic.ttf"; path = "../src/assets/fonts/Satoshi-MediumItalic.ttf"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = Unopened_Mobile/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		89C6BE57DB24E9ADA2F236DE /* Pods-Unopened_Mobile-Unopened_MobileTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Unopened_Mobile-Unopened_MobileTests.release.xcconfig"; path = "Target Support Files/Pods-Unopened_Mobile-Unopened_MobileTests/Pods-Unopened_Mobile-Unopened_MobileTests.release.xcconfig"; sourceTree = "<group>"; };
+		908CBEFB7EA14510921231AF /* Satoshi-Light.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Satoshi-Light.ttf"; path = "../src/assets/fonts/Satoshi-Light.ttf"; sourceTree = "<group>"; };
+		9B535FFD63BA41439162F089 /* Satoshi-LightItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Satoshi-LightItalic.ttf"; path = "../src/assets/fonts/Satoshi-LightItalic.ttf"; sourceTree = "<group>"; };
+		A2DF4B82623449A1B9F8D8A2 /* Satoshi-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Satoshi-Medium.ttf"; path = "../src/assets/fonts/Satoshi-Medium.ttf"; sourceTree = "<group>"; };
+		B6950042BA554BD4AFA35856 /* Satoshi-Black.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Satoshi-Black.ttf"; path = "../src/assets/fonts/Satoshi-Black.ttf"; sourceTree = "<group>"; };
+		CA2B349DA56F49D2AA91F4CE /* Satoshi-BoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Satoshi-BoldItalic.ttf"; path = "../src/assets/fonts/Satoshi-BoldItalic.ttf"; sourceTree = "<group>"; };
+		CC2DED4DE7BA40D4ABBCD523 /* fonts.ts */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = fonts.ts; path = ../src/assets/fonts/fonts.ts; sourceTree = "<group>"; };
+		CE48793679944839A4ED63F1 /* Satoshi-VariableItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Satoshi-VariableItalic.ttf"; path = "../src/assets/fonts/Satoshi-VariableItalic.ttf"; sourceTree = "<group>"; };
+		E3175577160345688208E102 /* Satoshi-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Satoshi-Bold.ttf"; path = "../src/assets/fonts/Satoshi-Bold.ttf"; sourceTree = "<group>"; };
+		EA7AF9AC14B64D44A6D410B6 /* Satoshi-BlackItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Satoshi-BlackItalic.ttf"; path = "../src/assets/fonts/Satoshi-BlackItalic.ttf"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
+		F8C8605056F14311B7103411 /* Satoshi-Variable.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Satoshi-Variable.ttf"; path = "../src/assets/fonts/Satoshi-Variable.ttf"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -109,6 +135,27 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		417052711D634DA39F0D08A5 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				B6950042BA554BD4AFA35856 /* Satoshi-Black.ttf */,
+				EA7AF9AC14B64D44A6D410B6 /* Satoshi-BlackItalic.ttf */,
+				E3175577160345688208E102 /* Satoshi-Bold.ttf */,
+				CA2B349DA56F49D2AA91F4CE /* Satoshi-BoldItalic.ttf */,
+				54B31E8FD11D4748941AAC9D /* Satoshi-Italic.ttf */,
+				908CBEFB7EA14510921231AF /* Satoshi-Light.ttf */,
+				9B535FFD63BA41439162F089 /* Satoshi-LightItalic.ttf */,
+				A2DF4B82623449A1B9F8D8A2 /* Satoshi-Medium.ttf */,
+				7C50EDCD8259417EB7DB47BC /* Satoshi-MediumItalic.ttf */,
+				2239240BA5EE479080890CFD /* Satoshi-Regular.ttf */,
+				F8C8605056F14311B7103411 /* Satoshi-Variable.ttf */,
+				CE48793679944839A4ED63F1 /* Satoshi-VariableItalic.ttf */,
+				CC2DED4DE7BA40D4ABBCD523 /* fonts.ts */,
+			);
+			name = Resources;
+			path = "";
+			sourceTree = "<group>";
+		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
 			isa = PBXGroup;
 			children = (
@@ -125,6 +172,7 @@
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				BBD78D7AC51CEA395F1C20DB /* Pods */,
+				417052711D634DA39F0D08A5 /* Resources */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -247,6 +295,19 @@
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				B5C44FF76F4E3B20A1B38B45 /* PrivacyInfo.xcprivacy in Resources */,
+				2946DA5E7C6E430D8199CFA4 /* Satoshi-Black.ttf in Resources */,
+				6D2114B41EB047A0B97AD027 /* Satoshi-BlackItalic.ttf in Resources */,
+				3D18FEA5ED7E4FBCBFB655EF /* Satoshi-Bold.ttf in Resources */,
+				699D9706E57145209FA606D7 /* Satoshi-BoldItalic.ttf in Resources */,
+				F51CAF4E2ADE440D917BB09D /* Satoshi-Italic.ttf in Resources */,
+				DDB5B461AC0940F1820B68F6 /* Satoshi-Light.ttf in Resources */,
+				4F7A550AAA6E468F8729DC8D /* Satoshi-LightItalic.ttf in Resources */,
+				6A4A9E0D7BE74C48A4F755FB /* Satoshi-Medium.ttf in Resources */,
+				CFACB6C8B4B5401DB81E4F4D /* Satoshi-MediumItalic.ttf in Resources */,
+				7DA9429848D74E7180BB10EB /* Satoshi-Regular.ttf in Resources */,
+				BC43B28A830E4A6BA98418DA /* Satoshi-Variable.ttf in Resources */,
+				524F1853AB484D7DAE7AB22B /* Satoshi-VariableItalic.ttf in Resources */,
+				93FE6BF593164DA1B12DC2B2 /* fonts.ts in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

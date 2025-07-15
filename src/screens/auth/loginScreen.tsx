@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import fonts from '../../assets/fonts/fonts';
 import Input from '../../components/input/input';
 import { useForm } from 'react-hook-form';
-import { emailPattern } from '../../utils/utils';
+import { emailPattern, OS } from '../../utils/utils';
 import Header from '../../components/headerContainer/header';
 import ImageBackgroundHeader from '../../components/headerContainer/imageBackgroundHeader';
 import IconsSvg from '../../assets/svg/iconsSvg';
@@ -12,6 +12,7 @@ import Button from '../../components/button/buttons';
 import WhiteButton from '../../components/button/whiteButton';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
+import { useSelector } from 'react-redux';
 
 type LoginProps = NativeStackScreenProps<
   RootStackParamList,
@@ -20,6 +21,9 @@ type LoginProps = NativeStackScreenProps<
 
 const LoginScreen: React.FC<LoginProps> = ({ route, navigation }) => {
   const [email, setEmail] = useState('johndoe@gmail.com');
+  let userType = useSelector((type: any) => type.user.userType);
+console.log("userType", userType);
+
   const {
     control,
     formState: { errors },
@@ -94,7 +98,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     color: colors.primaryBlack,
-    fontFamily: fonts.bold,
+    fontFamily: OS === 'ios' ?  "Satoshitalic":  "Satoshi-Italic",
     marginVertical: 10,
   },
   subtitle: {
