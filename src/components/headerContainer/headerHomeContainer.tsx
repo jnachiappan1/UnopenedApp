@@ -84,7 +84,7 @@ const HeaderHomeContainer: React.FC<HeaderHomeContainerProps> = props => {
             </Text>
           </View>
           <IconsSvg name='notificationIcon' />
-          <TouchableOpacity style={styles.userContainer}>
+          <TouchableOpacity style={styles.userContainer} >
             <IconsSvg name='addUser' />
             <Text style={styles.buyerTitle}>
               {"Buyer"}
