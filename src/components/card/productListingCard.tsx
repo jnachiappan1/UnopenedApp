@@ -6,8 +6,8 @@ import { ProductData } from '../../utils/types';
 import colors from '../../utils/colors';
 import IconsSvg from '../../assets/svg/iconsSvg';
 import fonts from '../../assets/fonts/fonts';
+import StatusBadge from './statusBadge';
 
-// Define types for the item data passed into the card
 interface ProductListingCardProps {
   item: ProductData;
   cardStyle?: StyleProp<ViewStyle> | undefined;
@@ -15,30 +15,6 @@ interface ProductListingCardProps {
 }
 
 const ProductListingCard: React.FC<ProductListingCardProps> = ({ item,cardStyle ,onSelect}) => {
-  const getStatusStyle = (status?: string) => {
-    switch (status) {
-      case 'In Review':
-        return {
-          background: { backgroundColor: '#FBF0DB' },
-          text: { color: '#AF7E15' },
-        };
-      case 'Sold':
-        return {
-          background: { backgroundColor: '#F3E4E2' },
-          text: { color: '#CB1C1C' },
-        };
-      case 'Active':
-        return {
-          background: { backgroundColor: '#DBF5E2' },
-          text: { color: '#239C43' },
-        };
-      default:
-        return {
-          background: {},
-          text: { color: '#000' },
-        };
-    }
-  };
   const handleCardPress = () => {
     console.log('Product selected:', item);
     onSelect?.(item);
@@ -54,11 +30,7 @@ const ProductListingCard: React.FC<ProductListingCardProps> = ({ item,cardStyle 
         </View>
       </View>
       <View style={styles.cardDetails}>
-        <View style={[styles.statusContainer, getStatusStyle(item?.status).background]}>
-          <Text style={[styles.statusText, getStatusStyle(item?.status).text]}>
-            {item?.status}
-          </Text>
-        </View>
+        <StatusBadge status={item.status} />
         <TouchableOpacity style={styles.viewDetailsBtn} activeOpacity={0.8}  onPress={handleCardPress}>
           <Text style={styles.viewDetailsText}>View Details</Text>
           <IconsSvg name='viewDetailArrow' />

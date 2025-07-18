@@ -1,11 +1,17 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
+import HeaderHomeContainer from '../../components/headerContainer/headerHomeContainer'
 
 const bHomeScreen = () => {
   return (
-    <View>
+    <HeaderHomeContainer
+    title={'Welcome,'}
+    userName={"Hello John"}
+    isHome
+    onSearchPress={() => { }}
+  >
       <Text>bHomeScreen</Text>
-    </View>
+    </HeaderHomeContainer>
   )
 }
 

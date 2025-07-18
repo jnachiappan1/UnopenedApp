@@ -9,7 +9,7 @@ const initialState: IUserState = {
   fcmToken: null,
   isOnline: false,
   driverId: null,
-  userType:null,
+  userType:"seller",
   rideId: '',
 };
 
@@ -62,6 +62,7 @@ const UserReducer = createSlice({
 
 export const {
   saveUserData,
+  saveUserType,
   removeUserData,
   setAuthToken,
   removeToken,

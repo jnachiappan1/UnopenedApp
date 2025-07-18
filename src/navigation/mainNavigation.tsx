@@ -14,6 +14,8 @@ import SignUpScreen from '../screens/auth/signUpScreen';
 import BottomTabNav from './bottomTabNav';
 import ProductDetailScreen from '../screens/sellerPortal/productDetailScreen';
 import ProductListScreen from '../screens/sellerPortal/productListScreen';
+import CashOutScreen from '../screens/wallet/cashOutScreen';
+import AddFundScreen from '../screens/wallet/addFundScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -45,6 +47,8 @@ const MainNavigation: React.FC = () => {
         <Stack.Screen name={SCREENS.BottomTab} component={BottomTabNav} />
         <Stack.Screen name={SCREENS.ProductListScreen} component={ProductListScreen} />
         <Stack.Screen name={SCREENS.ProductDetailScreen} component={ProductDetailScreen} />
+        <Stack.Screen name={SCREENS.CashOutScreen} component={CashOutScreen} />
+        <Stack.Screen name={SCREENS.AddFundScreen} component={AddFundScreen} />
       </Stack.Navigator>
     </View>
   );
@@ -64,6 +68,8 @@ export enum SCREENS {
   SalesScreen = 'SalesScreen',
   WalletScreen = 'WalletScreen',
   ProductDetailScreen = 'ProductDetailScreen',
+  CashOutScreen = 'CashOutScreen',
+  AddFundScreen = 'AddFundScreen',
 }
 
 export type RootStackParamList = {
@@ -78,4 +84,6 @@ export type RootStackParamList = {
   [SCREENS.SalesScreen]: undefined;
   [SCREENS.WalletScreen]: undefined;
   [SCREENS.ProductDetailScreen]: {productId: number|string | undefined | null};
+  [SCREENS.CashOutScreen]: undefined;
+  [SCREENS.AddFundScreen]: undefined;
 };

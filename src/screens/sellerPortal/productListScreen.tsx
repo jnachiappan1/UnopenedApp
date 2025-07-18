@@ -71,7 +71,7 @@ const ProductListScreen: React.FC<ProductListScreenProps> = ({ navigation }) => 
     navigation.navigate(SCREENS.ProductDetailScreen, { productId: item.id });
   }
   return (
-    <TitleBackHeaderContainer isBack title='Products Listing' >
+    <TitleBackHeaderContainer title='Products Listing' >
       <FlashList
         data={filterData()}
         renderItem={({ item }) => (

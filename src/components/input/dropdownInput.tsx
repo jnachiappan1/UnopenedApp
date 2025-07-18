@@ -14,6 +14,7 @@ import {
   FieldErrors,
   ValidationRule,
   FieldError,
+  FieldValues,
 } from 'react-hook-form';
 import {Dropdown} from 'react-native-element-dropdown';
 import fonts from '../../assets/fonts/fonts';
@@ -36,7 +37,7 @@ type InputProps = {
   name: string;
   label?: string;
   //error?: FieldErrors;
-  error?: FieldError | FieldErrors | undefined;
+  error?: FieldErrors<FieldValues>;
   required?: string | ValidationRule<boolean> | undefined;
   containerStyle?: StyleProp<ViewStyle>;
   options?: DropDownType[]; // Add options prop for dropdown
@@ -110,20 +111,12 @@ const DropdownInput: React.FC<InputProps> = props => {
               onChangeValue && onChangeValue(item);
             }}
             containerStyle={styles.dropdownContainerStyle}
-            activeColor={colors.secondary}
+            activeColor={colors.white}
             renderLeftIcon={() =>
-              I18nManager.isRTL ? (
-                <IconsSvg name="downArrow"  />
-              ) : (
-                <></>
-              )
+              I18nManager.isRTL ? <IconsSvg name="downArrow" /> : <></>
             }
             renderRightIcon={() =>
-              !I18nManager.isRTL ? (
-                <IconsSvg name="downArrow"  />
-              ) : (
-                <></>
-              )
+              !I18nManager.isRTL ? <IconsSvg name="downArrow" /> : <></>
             }
           />
 
@@ -149,32 +142,29 @@ export default DropdownInput;
 
 const styles = StyleSheet.create({
   label: {
+    fontWeight: '500',
     fontSize: 12,
     fontFamily: fonts.medium,
     color: colors.label,
-    textAlign: 'left',
   },
   container: {},
   dropdownContainerStyle: {
     borderRadius: 10,
-    backgroundColor: colors.secondary,
-    borderColor: colors.border,
+    backgroundColor: colors.white,
   },
   dropDownContainer: {
-    backgroundColor: colors.secondary,
+    backgroundColor: colors.white,
     height: 48,
-    borderRadius: 8,
-    marginTop: 5,
-    borderWidth: 1,
-    borderColor: colors.darkGray,
+    borderRadius: 160,
+    marginTop: 10,
     alignItems: 'center',
     paddingHorizontal: 16,
     flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
   },
   placeholderStyle: {
     fontSize: 14,
+    color: colors.primaryBlack,
     fontFamily: fonts.medium,
-    color: colors.placeholder,
     textAlign: 'left',
   },
   selectedTextStyle: {

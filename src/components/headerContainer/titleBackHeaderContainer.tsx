@@ -66,7 +66,6 @@ const TitleBackHeaderContainer: React.FC<
   const onBackPress = () => {
     navigation.goBack();
   };
-  console.log(title,"title---");
   const HEADER_MIN_HEIGHT = 30;
   return (
     <View style={[{ flex: 1, backgroundColor: colors.background }, containerStyle]}>
@@ -137,7 +136,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bold,
     color: colors.black,
     flex: 1,
-    paddingStart:10
+    paddingStart:10,
   },
   addMoreText: {
     fontSize: fontSizes.regular,

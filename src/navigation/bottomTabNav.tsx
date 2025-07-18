@@ -25,13 +25,13 @@ import sHomeScreen from '../screens/sellerPortal/sHomeScreen';
 import bHomeScreen from '../screens/buyerPortal/bHomeScreen';
 import AddProductScreen from '../screens/buyerPortal/addProductScreen';
 import ProductListScreen from '../screens/sellerPortal/productListScreen';
-import SalesScreen from '../screens/buyerPortal/salesScreen';
-import WalletScreen from '../screens/buyerPortal/walletScreen';
 import IconsSvg, { IconName } from '../assets/svg/iconsSvg';
 import IMAGE from '../assets/images';
 import { RootStackParamList, SCREENS } from './mainNavigation';
 import { fontSizes, OS } from '../utils/utils';
 import fonts from '../assets/fonts/fonts';
+import SalesScreen from '../screens/sellerPortal/salesScreen';
+import WalletScreen from '../screens/sellerPortal/walletScreen';
 
 const Tab = createBottomTabNavigator<RootStackParamList>();
 type BottomTabNavProps = NativeStackScreenProps<
@@ -45,18 +45,17 @@ const BottomTabNav: React.FC<BottomTabNavProps> = () => {
   const sellerPortalTab = (
     <>
       <Tab.Screen name={SCREENS.SHomeScreen} component={sHomeScreen} />
+      <Tab.Screen name={SCREENS.ProductListScreen} component={ProductListScreen} />
+      <Tab.Screen name={SCREENS.AddProductScreen} component={AddProductScreen} />
+      <Tab.Screen name={SCREENS.SalesScreen} component={SalesScreen} />
+      <Tab.Screen name={SCREENS.WalletScreen} component={WalletScreen} />
     </>
   );
 
   const buyerPortalTab = (
     <>
-      {/* <Tab.Screen name={SCREENS.BHomeScreen} component={bHomeScreen} />/ */}
-      <Tab.Screen name={SCREENS.SHomeScreen} component={sHomeScreen} />
+      <Tab.Screen name={SCREENS.BHomeScreen} component={bHomeScreen} />
 
-      <Tab.Screen name={SCREENS.ProductListScreen} component={ProductListScreen} />
-      <Tab.Screen name={SCREENS.AddProductScreen} component={AddProductScreen} />
-      <Tab.Screen name={SCREENS.SalesScreen} component={SalesScreen} />
-      <Tab.Screen name={SCREENS.WalletScreen} component={WalletScreen} />
     </>
   );
 
@@ -75,51 +74,6 @@ const BottomTabNav: React.FC<BottomTabNavProps> = () => {
 export default BottomTabNav;
 
 const SellerTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigation }) => {
-  const styles = getFlatStyles(getColors());
-  const iconMap: Record<string, string> = {
-    [SCREENS.SHomeScreen]: 'homeIcon',
-  };
-
-  return (
-    <View style={styles.container}>
-      {state.routes.map((route, index) => {
-        const { options } = descriptors[route.key];
-        const isFocused = state.index === index;
-        const iconName = iconMap[route.name] || 'homeIcon';
-
-        const onPress = () => {
-          const event = navigation.emit({
-            type: 'tabPress',
-            target: route.key,
-            canPreventDefault: true,
-          });
-          if (!isFocused && !event.defaultPrevented) {
-            navigation.navigate(route.name);
-          }
-        };
-
-        return (
-          <TouchableOpacity
-            key={route.key}
-            accessibilityRole="button"
-            accessibilityState={isFocused ? { selected: true } : {}}
-            onPress={onPress}
-            style={styles.icon}
-          >
-            <IconsSvg name={iconName as IconName} color={isFocused ? colors.primary : colors.icon} />
-          </TouchableOpacity>
-        );
-      })}
-    </View>
-  );
-};
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const BAR_HEIGHT = 80;
-const NOTCH_RADIUS = 0;
-const CENTER_BTN = 60;
-
-const BuyerTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigation }) => {
   const c = getColors();
   const styles = getCurvedStyles(c);
 
@@ -202,6 +156,51 @@ const BuyerTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigati
         })}
       </View>
     </SafeAreaView>
+  );
+};
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const BAR_HEIGHT = 80;
+const NOTCH_RADIUS = 0;
+const CENTER_BTN = 60;
+
+const BuyerTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigation }) => {
+  const styles = getFlatStyles(getColors());
+  const iconMap: Record<string, string> = {
+    [SCREENS.SHomeScreen]: 'homeIcon',
+  };
+
+  return (
+    <View style={styles.container}>
+      {state.routes.map((route, index) => {
+        const { options } = descriptors[route.key];
+        const isFocused = state.index === index;
+        const iconName = iconMap[route.name] || 'homeIcon';
+
+        const onPress = () => {
+          const event = navigation.emit({
+            type: 'tabPress',
+            target: route.key,
+            canPreventDefault: true,
+          });
+          if (!isFocused && !event.defaultPrevented) {
+            navigation.navigate(route.name);
+          }
+        };
+
+        return (
+          <TouchableOpacity
+            key={route.key}
+            accessibilityRole="button"
+            accessibilityState={isFocused ? { selected: true } : {}}
+            onPress={onPress}
+            style={styles.icon}
+          >
+            <IconsSvg name={iconName as IconName} color={isFocused ? colors.primary : colors.icon} />
+          </TouchableOpacity>
+        );
+      })}
+    </View>
   );
 };
 

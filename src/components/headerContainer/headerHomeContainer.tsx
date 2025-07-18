@@ -18,6 +18,9 @@ import { KeyboardAvoidingView } from 'react-native';
 import IconsSvg from '../../assets/svg/iconsSvg';
 import IMAGE from '../../assets/images';
 import { fontSizes } from '../../utils/utils';
+import { useDispatch, useSelector } from 'react-redux';
+import { saveUserType } from '../../redux/reducers/user/UserReducer';
+import { IRootState } from '../../redux/store';
 
 type HeaderHomeContainerProps = {
   children?: React.ReactNode | undefined;
@@ -59,7 +62,8 @@ const HeaderHomeContainer: React.FC<HeaderHomeContainerProps> = props => {
   const navigation = useNavigation<string | any>();
   const colors = getColors();
   const styles = getStyles(colors);
-
+  const dispatch = useDispatch();
+const userType = useSelector((state: IRootState) => state.user.userType);
   const onBackPress = () => {
     navigation.goBack();
   };
@@ -85,11 +89,16 @@ const HeaderHomeContainer: React.FC<HeaderHomeContainerProps> = props => {
             </Text>
           </View>
           <IconsSvg name='notificationIcon' />
-          <TouchableOpacity style={styles.userContainer} >
+          <TouchableOpacity style={styles.userContainer} 
+           onPress={() => {
+            const newType = userType === 'buyer' ? 'seller' : 'buyer';
+            dispatch(saveUserType(newType));
+          }}
+          >
             <IconsSvg name='addUser' />
             <Text style={styles.buyerTitle}>
-              {"Buyer"}
-            </Text>
+    {userType === 'buyer' ? 'Seller' : 'Buyer'}
+  </Text>
           </TouchableOpacity>
         </View>
       </View>

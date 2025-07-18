@@ -18,6 +18,7 @@ import {
 } from 'react-hook-form';
 import { IColors, getColors } from '../../utils/colors';
 import fonts from '../../assets/fonts/fonts';
+import { fontSizes } from '../../utils/utils';
 
 type InputProps = {
   control: Control<any>;
@@ -133,12 +134,12 @@ const getStyles = (colors: IColors, multiline: boolean) =>
     },
     label: {
       fontWeight: '500',
-      fontSize: 12,
+      fontSize: fontSizes.small,
       fontFamily: fonts.medium,
       color: colors.label,
     },
     input: {
-      fontSize: 14,
+      fontSize: fontSizes.regular,
       height: 53,
       paddingHorizontal: 16,
       paddingVertical: 12,
