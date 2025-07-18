@@ -1,7 +1,7 @@
-import { FlatList, StyleSheet, Text, View } from 'react-native'
-import React, { useState } from 'react'
-import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer'
-import { fontSizes, width } from '../../utils/utils';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
+import { fontSizes } from '../../utils/utils';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
 import colors from '../../utils/colors';
@@ -18,34 +18,49 @@ type CashOutScreenProps = NativeStackScreenProps<RootStackParamList, SCREENS.Cas
 
 const CashOutScreen: React.FC<CashOutScreenProps> = ({ navigation }) => {
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [paymentError, setPaymentError] = useState(false);
+
   const {
     control,
     formState: { errors },
     handleSubmit,
-    watch,
+    setValue,
     getValues,
   } = useForm<any>();
+
+  const onSubmit = (data: any) => {
+    if (selectedId === null) {
+      setPaymentError(true);
+      return;
+    }
+
+    setPaymentError(false);
+    console.log('Amount:', data.amount);
+    console.log('Payment Method ID:', selectedId);
+
+    // proceed with API or navigation
+  };
+
   return (
-    <TitleBackHeaderContainer isBack title='Cash Out'>
-      <View
-        style={styles.container}
-      >
+    <TitleBackHeaderContainer isBack title="Cash Out">
+      <View style={styles.container}>
         <Input
           control={control}
           name="amount"
-          label={'Amount'}
+          label="Amount"
           containerStyle={styles.amountContainer}
           inputProps={{
             placeholder: 'Enter Amount',
+            keyboardType: 'numeric',
           }}
-          required={{ value: true, message: 'Please enter enter amount' }}
+          required={{ value: true, message: 'Please enter amount' }}
           error={errors}
           maxLength={40}
           inputStyle={styles.inputStyle}
         />
-        <Text style={styles.titleStyle}>
-          Choose Payment Method
-        </Text>
+
+        <Text style={styles.titleStyle}>Choose Payment Method</Text>
+
         <FlatList
           data={paymentMethods}
           scrollEnabled={false}
@@ -55,29 +70,32 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({ navigation }) => {
               item={item}
               selected={selectedId === item.id}
               onPress={(selectedItem) => {
-                console.log('Selected item:', selectedItem);
                 setSelectedId(selectedItem.id);
+                setPaymentError(false); // reset error
               }}
             />
           )}
         />
-        <Button
-          title={'Cash Out'}
-          style={styles.cashOutButton}
-        />
-      </View>
-      <Text style={styles.heading}>Payout History</Text>
-        <FlashList
-          data={payoutHistory}
-          renderItem={({ item }) => <PayoutCard item={item} />}
-          estimatedItemSize={100}
-          keyExtractor={(item) => item.id}
-        />
-    </TitleBackHeaderContainer>
-  )
-}
 
-export default CashOutScreen
+        {paymentError && (
+          <Text style={styles.errorText}>Please select a payment method</Text>
+        )}
+
+        <Button title="Cash Out" style={styles.cashOutButton} onPress={handleSubmit(onSubmit)} />
+      </View>
+
+      <Text style={styles.heading}>Payout History</Text>
+      <FlashList
+        data={payoutHistory}
+        renderItem={({ item }) => <PayoutCard item={item} />}
+        estimatedItemSize={100}
+        keyExtractor={(item) => item.id}
+      />
+    </TitleBackHeaderContainer>
+  );
+};
+
+export default CashOutScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -85,11 +103,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginHorizontal: 15,
     marginTop: 10,
-    paddingVertical: 10
+    paddingVertical: 10,
   },
   amountContainer: {
     marginTop: 10,
-    paddingStart: 10
+    paddingStart: 10,
   },
   inputStyle: {
     borderWidth: 1,
@@ -103,7 +121,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bold,
     color: '#1A1A1A',
     paddingStart: 10,
-    paddingVertical: 10
+    paddingVertical: 10,
   },
   cashOutButton: {
     backgroundColor: colors.primary,
@@ -111,7 +129,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     marginHorizontal: 0,
     paddingHorizontal: 0,
-    alignSelf: 'center'
+    alignSelf: 'center',
   },
   heading: {
     fontSize: fontSizes.extraLarge,
@@ -119,6 +137,14 @@ const styles = StyleSheet.create({
     marginLeft: 16,
     marginBottom: 12,
     color: '#1A1A1A',
-    marginTop:10
+    marginTop: 10,
   },
-})
+  errorText: {
+    color: 'red',
+    fontSize: 14,
+    fontFamily: fonts.regular,
+    paddingStart: 16,
+    marginTop: -6,
+    marginBottom: 10,
+  },
+});

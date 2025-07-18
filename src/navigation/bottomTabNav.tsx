@@ -32,6 +32,8 @@ import { fontSizes, OS } from '../utils/utils';
 import fonts from '../assets/fonts/fonts';
 import SalesScreen from '../screens/sellerPortal/salesScreen';
 import WalletScreen from '../screens/sellerPortal/walletScreen';
+import BrowseScreen from '../screens/buyerPortal/browseScreen';
+import MyOrderScreen from '../screens/buyerPortal/myOrderScreen';
 
 const Tab = createBottomTabNavigator<RootStackParamList>();
 type BottomTabNavProps = NativeStackScreenProps<
@@ -55,7 +57,9 @@ const BottomTabNav: React.FC<BottomTabNavProps> = () => {
   const buyerPortalTab = (
     <>
       <Tab.Screen name={SCREENS.BHomeScreen} component={bHomeScreen} />
-
+      <Tab.Screen name={SCREENS.BrowseScreen} component={BrowseScreen} />
+      <Tab.Screen name={SCREENS.MyOrderScreen} component={MyOrderScreen} />
+      <Tab.Screen name={SCREENS.WalletScreen} component={WalletScreen} />
     </>
   );
 
@@ -88,14 +92,11 @@ const SellerTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* Background Image */}
       <Image
         source={IMAGE.bottomTabImage}
         style={styles.backgroundImage}
         resizeMode="stretch"
       />
-
-      {/* Center FAB Button with Label Container */}
       <View style={styles.fabContainer}>
         <TouchableOpacity
           activeOpacity={0.8}
@@ -106,22 +107,15 @@ const SellerTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
             <IconsSvg name="addProductIcon" color={c.white} />
           </View>
         </TouchableOpacity>
-
-        {/* Center FAB Label */}
         <Text style={styles.fabLabel}>Add Product</Text>
       </View>
-
-      {/* Tab Items */}
       <View style={styles.row}>
         {state.routes.map((route, index) => {
           if (route.name === SCREENS.AddProductScreen) {
-            // Return empty space for center button
             return <View key={route.key} style={styles.centerSpace} />;
           }
-
           const isFocused = state.index === index;
           const { icon, label } = iconMap[route.name];
-
           const onPress = () => {
             const event = navigation.emit({
               type: 'tabPress',
@@ -132,7 +126,6 @@ const SellerTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
               navigation.navigate(route.name);
             }
           };
-
           return (
             <TouchableOpacity
               key={route.key}
@@ -149,7 +142,6 @@ const SellerTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
                 <Text style={isFocused ? styles.activeLabel : styles.label}>
                   {label}
                 </Text>
-
               </View>
             </TouchableOpacity>
           );
@@ -163,20 +155,67 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const BAR_HEIGHT = 80;
 const NOTCH_RADIUS = 0;
 const CENTER_BTN = 60;
-
 const BuyerTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigation }) => {
+  const c = getColors();
   const styles = getFlatStyles(getColors());
-  const iconMap: Record<string, string> = {
-    [SCREENS.SHomeScreen]: 'homeIcon',
+  const iconMap: Record<string, { icon: string; label: string }> = {
+    [SCREENS.BHomeScreen]: { icon: 'homeIcon', label: 'Home' },
+    [SCREENS.BrowseScreen]: { icon: 'searchIcon', label: 'Browse' },
+    [SCREENS.MyOrderScreen]: { icon: 'myOrderIcon', label: 'My Order' },
+    [SCREENS.WalletScreen]: { icon: 'walletIcon', label: 'Wallet' },
   };
-
   return (
-    <View style={styles.container}>
-      {state.routes.map((route, index) => {
-        const { options } = descriptors[route.key];
-        const isFocused = state.index === index;
-        const iconName = iconMap[route.name] || 'homeIcon';
+    // <View style={styles.container}>
+    //   {state.routes.map((route, index) => {
+    //     const { options } = descriptors[route.key];
+    //     const isFocused = state.index === index;
+    //     const { icon, label } = iconMap[route.name];
 
+    //     const onPress = () => {
+    //       const event = navigation.emit({
+    //         type: 'tabPress',
+    //         target: route.key,
+    //         canPreventDefault: true,
+    //       });
+    //       if (!isFocused && !event.defaultPrevented) {
+    //         navigation.navigate(route.name);
+    //       }
+    //     };
+
+    //     return (
+    //       <TouchableOpacity
+    //         key={route.key}
+    //         accessibilityRole="button"
+    //         accessibilityState={isFocused ? { selected: true } : {}}
+    //         onPress={onPress}
+    //         style={styles.tab}
+    //       >
+    //         <View style={styles.tabContent}>
+    //           <IconsSvg
+    //             name={icon as IconName}
+    //             color={isFocused ? c.primary : c.gray}
+    //           />
+    //           <Text style={isFocused ? styles.activeLabel : styles.label}>
+    //             {label}
+    //           </Text>
+    //         </View>
+    //       </TouchableOpacity>
+    //     );
+    //   })}
+    // </View>
+    <SafeAreaView style={styles.safeArea}>
+    <Image
+      source={IMAGE.buyerBottomImage}
+      style={styles.backgroundImage}
+      resizeMode="stretch"
+    />
+    <View style={styles.row}>
+      {state.routes.map((route, index) => {
+        if (route.name === SCREENS.AddProductScreen) {
+          return <View key={route.key} style={styles.centerSpace} />;
+        }
+        const isFocused = state.index === index;
+        const { icon, label } = iconMap[route.name];
         const onPress = () => {
           const event = navigation.emit({
             type: 'tabPress',
@@ -187,20 +226,28 @@ const BuyerTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigati
             navigation.navigate(route.name);
           }
         };
-
         return (
           <TouchableOpacity
             key={route.key}
             accessibilityRole="button"
             accessibilityState={isFocused ? { selected: true } : {}}
             onPress={onPress}
-            style={styles.icon}
+            style={styles.tab}
           >
-            <IconsSvg name={iconName as IconName} color={isFocused ? colors.primary : colors.icon} />
+            <View style={styles.tabContent}>
+              <IconsSvg
+                name={icon as IconName}
+                color={isFocused ? c.primary : c.gray}
+              />
+              <Text style={isFocused ? styles.activeLabel : styles.label}>
+                {label}
+              </Text>
+            </View>
           </TouchableOpacity>
         );
       })}
     </View>
+  </SafeAreaView>
   );
 };
 
@@ -219,6 +266,62 @@ const getFlatStyles = (colors: IColors) =>
       width: 46,
       justifyContent: 'center',
       borderRadius: 23,
+    },
+    tab: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: OS === "android" ? 10 : -10,
+    },
+
+    tabContent: {
+      alignItems: 'center',
+      justifyContent: 'flex-end',
+      flexDirection: 'column',
+      marginBottom: 6,
+    },
+
+    centerSpace: {
+      flex: 1,
+      alignItems: 'center',
+    },
+    label: {
+      fontSize: fontSizes.small,
+      fontFamily: fonts.medium,
+      marginTop: 4,
+      textAlign: 'center',
+      color: colors.text
+    },
+    activeLabel: {
+      fontSize: fontSizes.small,
+      fontFamily: fonts.bold,
+      marginTop: 4,
+      textAlign: 'center',
+      color: colors.primary
+    },
+    safeArea: {
+      position: 'absolute',
+      bottom: 0,
+      width: '100%',
+      height: BAR_HEIGHT + 35,
+      alignItems: 'center',
+    },
+    backgroundImage: {
+      position: 'absolute',
+      bottom: 0,
+      width: SCREEN_WIDTH,
+      height: BAR_HEIGHT + 20,
+      zIndex: 0,
+    },
+    row: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      alignItems: 'flex-end',
+      width: '100%',
+      height: '100%',
+      zIndex: 1,
+
+      //paddingBottom: OS === 'android' ? 15 : 0,
     },
   });
 
@@ -259,7 +362,7 @@ const getCurvedStyles = (c: IColors) =>
       alignItems: 'center',
       justifyContent: 'flex-end',
       flexDirection: 'column',
-      marginBottom: 6, // push content closer to bottom
+      marginBottom: 6,
     },
 
     centerSpace: {
