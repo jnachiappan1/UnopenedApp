@@ -43,3 +43,9 @@ export const fontSizes = {
   mGigantic: 32,
   slightlySmall: 13,
 };
+export const capitalizeFirstLetter = (text: string) => {
+  return text
+    ?.split(" ")
+    ?.map((word) => word?.charAt(0)?.toUpperCase() + word?.slice(1))
+    ?.join(" ");
+};

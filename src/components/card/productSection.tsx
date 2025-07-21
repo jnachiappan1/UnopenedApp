@@ -15,7 +15,7 @@ import IMAGE from '../../assets/images';
 
 interface Product {
   description: string;
-  originalPrice: React.JSX.Element;
+  originalPrice: string;
   id: number;
   name: string;
   price: string;

@@ -15,6 +15,9 @@ import Svg, {
 
 export type IconName =
   | 'box'
+  | 'checkBox'
+  | 'checkBoxSelected'
+  | 'cancel'
   | 'filterIcon'
   | 'salesIcon'
   | 'walletIcon'
@@ -71,6 +74,41 @@ const IconsSvg = (props: IconsSvgProps) => {
             clipRule="evenodd"
             d="M13.394 1.882A1577.58 1577.58 0 015.378 5.65C3.141 6.693 1.31 7.59 1.31 7.643c0 .116 6.872 3.43 7.112 3.43.148 0 6.889-3.3 13.632-6.673l2.458-1.23-3.424-1.59C19.204.707 17.59-.004 17.502 0c-.088.005-1.937.852-4.108 1.882zm9.264 4.921a1602.14 1602.14 0 01-8.015 3.946l-3.503 1.708 3.1 1.53c1.706.84 3.21 1.523 3.343 1.518.133-.006 2.525-1.123 5.317-2.483l7.69-3.747c1.438-.7 2.76-1.32 2.94-1.378.179-.058.325-.161.325-.23 0-.127-6.302-3.115-6.55-3.106-.075.002-2.166 1.012-4.647 2.242zm-22.15 11.4c.003 5.263.061 9.658.127 9.766.106.172 2.034 1.144 6.556 3.306.709.34 3.165 1.541 5.458 2.671C14.94 35.076 16.845 36 16.878 36c.033 0 .058-4.38.055-9.735l-.006-9.734-3.067-1.467a218.863 218.863 0 00-3.216-1.52c-.089-.032-.15.923-.15 2.32v2.375l-1.37-.687-1.37-.687V12.114l-2.456-1.19a433.202 433.202 0 00-3.628-1.74L.5 8.635l.007 9.569zm25.936-5.655c-4.386 2.142-8.047 3.92-8.136 3.952-.156.056-.29 19.5-.135 19.5.103 0 1.816-.822 7.546-3.62 2.836-1.384 5.972-2.907 6.968-3.384l1.813-.867v-9.75c0-5.363-.018-9.745-.04-9.737-.022.007-3.63 1.765-8.016 3.906zm-.646 17.709c-.002.367-.125.505-.685.766-.376.175-1.752.853-3.06 1.508l-2.376 1.19v-.499c0-.485.079-.537 2.94-1.943 1.618-.794 2.995-1.45 3.062-1.457.066-.007.12.189.119.435z"
             fill="#31AD52"
+          />
+        </Svg>
+      );
+    case 'checkBox':
+      return (
+        <Svg width={24} height={24} viewBox="0 0 24 24" fill="none" {...props}>
+          <Path
+            fillRule="evenodd"
+            clipRule="evenodd"
+            d="M4.544 4.544C5.662 3.427 7.334 3 9.488 3h5.024c2.155 0 3.826.427 4.944 1.544C20.573 5.662 21 7.334 21 9.488v5.024c0 2.155-.427 3.826-1.544 4.944C18.338 20.573 16.666 21 14.512 21H9.488c-2.155 0-3.826-.427-4.944-1.544C3.427 18.338 3 16.666 3 14.512V9.488c0-2.155.427-3.826 1.544-4.944zm.888.888c-.766.767-1.176 2.025-1.176 4.056v5.024c0 2.03.41 3.29 1.176 4.056.767.766 2.025 1.176 4.056 1.176h5.024c2.03 0 3.29-.41 4.056-1.176.766-.767 1.176-2.025 1.176-4.056V9.488c0-2.03-.41-3.29-1.176-4.056-.767-.766-2.025-1.176-4.056-1.176H9.488c-2.03 0-3.29.41-4.056 1.176z"
+            fill="#666"
+          />
+        </Svg>
+      );
+    case 'checkBoxSelected':
+      return (
+        <Svg width={24} height={24} viewBox="0 0 24 24" fill="none" {...props}>
+          <Rect x={3} y={3} width={18} height={18} rx={5} fill="#31AD52" />
+          <Path
+            fillRule="evenodd"
+            clipRule="evenodd"
+            d="M16.002 9.187a.628.628 0 010 .888l-4.748 4.739a.628.628 0 01-.887 0l-2.37-2.37a.628.628 0 11.888-.888l1.926 1.926 4.303-4.296a.628.628 0 01.888.001z"
+            fill="#fff"
+          />
+        </Svg>
+      );
+
+    case 'cancel':
+      return (
+        <Svg width={20} height={20} viewBox="0 0 20 20" fill="none" {...props}>
+          <Path
+            fillRule="evenodd"
+            clipRule="evenodd"
+            d="M5.19 5.19a.626.626 0 01.885 0l3.931 3.93 3.933-3.93a.626.626 0 11.884.884l-3.932 3.931 3.933 3.933a.626.626 0 01-.885.885l-3.932-3.932-3.932 3.932a.626.626 0 01-.885-.885l3.932-3.932L5.19 6.074a.626.626 0 010-.885z"
+            fill="#21252B"
           />
         </Svg>
       );
@@ -772,34 +810,29 @@ const IconsSvg = (props: IconsSvgProps) => {
       );
     case 'addCard':
       return (
-        <Svg
-        width={56}
-        height={56}
-        viewBox="0 0 56 56"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        {...props}
-      >
-        <Rect width={56} height={56} rx={12} fill="#F2F5ED" />
-        <G
-          clipPath="url(#clip0_1_7003)"
-          stroke="#000"
-          strokeWidth={1.125}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <Path d="M37 21.25H19a.75.75 0 00-.75.75v12c0 .414.336.75.75.75h18a.75.75 0 00.75-.75V22a.75.75 0 00-.75-.75zM31.75 31.75h3M27.25 31.75h1.5M18.25 25h19.5" />
-        </G>
-        <Defs>
-          <ClipPath id="clip0_1_7003">
-            <Path fill="#fff" transform="translate(16 16)" d="M0 0H24V24H0z" />
-          </ClipPath>
-        </Defs>
-      </Svg>
+        <Svg width={56} height={56} viewBox="0 0 56 56" fill="none" {...props}>
+          <Rect width={56} height={56} rx={12} fill="#F2F5ED" />
+          <G
+            clipPath="url(#clip0_1_7003)"
+            stroke="#000"
+            strokeWidth={1.125}
+            strokeLinecap="round"
+            strokeLinejoin="round">
+            <Path d="M37 21.25H19a.75.75 0 00-.75.75v12c0 .414.336.75.75.75h18a.75.75 0 00.75-.75V22a.75.75 0 00-.75-.75zM31.75 31.75h3M27.25 31.75h1.5M18.25 25h19.5" />
+          </G>
+          <Defs>
+            <ClipPath id="clip0_1_7003">
+              <Path
+                fill="#fff"
+                transform="translate(16 16)"
+                d="M0 0H24V24H0z"
+              />
+            </ClipPath>
+          </Defs>
+        </Svg>
       );
     case 'googlePay':
       return (
-  
         <Svg width={56} height={56} viewBox="0 0 56 56" fill="none" {...props}>
           <Rect width={56} height={56} rx={12} fill="#F2F5ED" />
           <Path
@@ -822,7 +855,6 @@ const IconsSvg = (props: IconsSvgProps) => {
       );
     case 'applePay':
       return (
-      
         <Svg width={56} height={56} viewBox="0 0 56 56" fill="none" {...props}>
           <Rect width={56} height={56} rx={12} fill="#F2F5ED" />
           <Path
@@ -833,7 +865,6 @@ const IconsSvg = (props: IconsSvgProps) => {
       );
     case 'payPal':
       return (
-       
         <Svg width={56} height={56} viewBox="0 0 56 56" fill="none" {...props}>
           <Rect width={56} height={56} rx={12} fill="#F2F5ED" />
           <Path
@@ -852,14 +883,12 @@ const IconsSvg = (props: IconsSvgProps) => {
       );
     case 'searchIcon':
       return (
-        <Svg
-          width={24}
-          height={24}
-          viewBox="0 0 24 24"
-          fill="none"
-          {...props}
-        >
-          <Path opacity={0.07} d="M19 11a8 8 0 10-16 0 8 8 0 0016 0z"  fill={color || '#777'} />
+        <Svg width={24} height={24} viewBox="0 0 24 24" fill="none" {...props}>
+          <Path
+            opacity={0.07}
+            d="M19 11a8 8 0 10-16 0 8 8 0 0016 0z"
+            fill={color || '#777'}
+          />
           <Path
             d="M17 17l4 4m-2-10a8 8 0 10-16 0 8 8 0 0016 0z"
             stroke={color || '#777'}
@@ -871,33 +900,27 @@ const IconsSvg = (props: IconsSvgProps) => {
       );
     case 'myOrderIcon':
       return (
-        <Svg
-        width={24}
-        height={24}
-        viewBox="0 0 24 24"
-        fill="none"
-        {...props}
-      >
-        <Path
-          opacity={0.16}
-          d="M22 17.161c0 1.383-1.946 2.205-5.837 3.848C14.6 21.67 13.818 22 13 22c-.818 0-1.6-.33-3.163-.99C5.946 19.366 4 18.543 4 17.16V7l9 4.355L22 7v10.161z"
-          fill={color || '#777'}
-        />
-        <Path
-          d="M13 22c-.818 0-1.6-.341-3.163-1.024C8.012 20.18 6.616 19.57 5.647 19H2m11 3c.818 0 1.6-.341 3.163-1.024C20.054 19.278 22 18.43 22 17V6.5M13 22V11M4 6.5v3"
-          stroke={color || '#777'}
-          strokeWidth={1.5}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <Path
-          d="M18.137 4.016L7.867 8.985M2 13h3m-3 3h3m4.326-6.309L6.405 8.278C4.802 7.502 4 7.114 4 6.5c0-.614.802-1.002 2.405-1.778l2.92-1.413C11.13 2.436 12.03 2 13 2c.97 0 1.871.436 3.674 1.309l2.921 1.413C21.198 5.498 22 5.886 22 6.5c0 .614-.802 1.002-2.405 1.778l-2.92 1.413C14.87 10.564 13.97 11 13 11c-.97 0-1.871-.436-3.674-1.309z"
-          stroke={color || '#777'}
-          strokeWidth={1.5}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </Svg>
+        <Svg width={24} height={24} viewBox="0 0 24 24" fill="none" {...props}>
+          <Path
+            opacity={0.16}
+            d="M22 17.161c0 1.383-1.946 2.205-5.837 3.848C14.6 21.67 13.818 22 13 22c-.818 0-1.6-.33-3.163-.99C5.946 19.366 4 18.543 4 17.16V7l9 4.355L22 7v10.161z"
+            fill={color || '#777'}
+          />
+          <Path
+            d="M13 22c-.818 0-1.6-.341-3.163-1.024C8.012 20.18 6.616 19.57 5.647 19H2m11 3c.818 0 1.6-.341 3.163-1.024C20.054 19.278 22 18.43 22 17V6.5M13 22V11M4 6.5v3"
+            stroke={color || '#777'}
+            strokeWidth={1.5}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M18.137 4.016L7.867 8.985M2 13h3m-3 3h3m4.326-6.309L6.405 8.278C4.802 7.502 4 7.114 4 6.5c0-.614.802-1.002 2.405-1.778l2.92-1.413C11.13 2.436 12.03 2 13 2c.97 0 1.871.436 3.674 1.309l2.921 1.413C21.198 5.498 22 5.886 22 6.5c0 .614-.802 1.002-2.405 1.778l-2.92 1.413C14.87 10.564 13.97 11 13 11c-.97 0-1.871-.436-3.674-1.309z"
+            stroke={color || '#777'}
+            strokeWidth={1.5}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
       );
 
     default:

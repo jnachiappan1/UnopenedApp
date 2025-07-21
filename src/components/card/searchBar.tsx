@@ -9,11 +9,13 @@ interface BannerItemCardProps {
   onChangeText?: (text: string) => void;
   onFilterPress?: () => void;
   value?: string;
+  onSubmit?: () => void;
 }
 
 const SearchBar: React.FC<BannerItemCardProps> = ({ placeholder = 'Search unopened products...',
   onChangeText,
   onFilterPress,
+  onSubmit,
   value, }) => {
   return (
     <View style={styles.searchContainer}>
@@ -23,6 +25,7 @@ const SearchBar: React.FC<BannerItemCardProps> = ({ placeholder = 'Search unopen
         placeholderTextColor="#666"
         onChangeText={onChangeText}
         value={value}
+        onSubmitEditing={onSubmit}
       />
       <TouchableOpacity  onPress={onFilterPress}>
         <IconsSvg name ="filterIcon"/>

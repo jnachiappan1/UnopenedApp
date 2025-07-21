@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 // In App.js in a new project
-import React, { useEffect } from 'react';
-import { Alert, Linking, View } from 'react-native';
+import React, {useEffect} from 'react';
+import {Alert, Linking, View} from 'react-native';
 // import BottomTabNav from './bottomTabNav';
 import {
   createStackNavigator,
   CardStyleInterpolators,
 } from '@react-navigation/stack';
-import { useContainer } from '../components/hooks/useContainer';
+import {useContainer} from '../components/hooks/useContainer';
 import VerifyOTP from '../screens/auth/verifyOTP';
 import LoginScreen from '../screens/auth/loginScreen';
 import SignUpScreen from '../screens/auth/signUpScreen';
@@ -18,6 +18,9 @@ import CashOutScreen from '../screens/wallet/cashOutScreen';
 import AddFundScreen from '../screens/wallet/addFundScreen';
 import BrowseScreen from '../screens/buyerPortal/browseScreen';
 import MyOrderScreen from '../screens/buyerPortal/myOrderScreen';
+import PreviewConfirmScreen from '../screens/sellerPortal/previewConfirmScreen';
+import { ProductData, ProductDetail } from '../utils/types';
+import FilterSortScreen from '../screens/buyerPortal/filterSortScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -41,18 +44,32 @@ const MainNavigation: React.FC = () => {
         screenOptions={{
           headerShown: false,
           cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
-        }}
-      >
+        }}>
         <Stack.Screen name={SCREENS.LoginScreen} component={LoginScreen} />
         <Stack.Screen name={SCREENS.VerifyOTP} component={VerifyOTP} />
         <Stack.Screen name={SCREENS.SignUpScreen} component={SignUpScreen} />
         <Stack.Screen name={SCREENS.BottomTab} component={BottomTabNav} />
-        <Stack.Screen name={SCREENS.ProductListScreen} component={ProductListScreen} />
-        <Stack.Screen name={SCREENS.ProductDetailScreen} component={ProductDetailScreen} />
+        <Stack.Screen
+          name={SCREENS.ProductListScreen}
+          component={ProductListScreen}
+        />
+        <Stack.Screen
+          name={SCREENS.ProductDetailScreen}
+          component={ProductDetailScreen}
+        />
         <Stack.Screen name={SCREENS.CashOutScreen} component={CashOutScreen} />
         <Stack.Screen name={SCREENS.AddFundScreen} component={AddFundScreen} />
         <Stack.Screen name={SCREENS.BrowseScreen} component={BrowseScreen} />
         <Stack.Screen name={SCREENS.MyOrderScreen} component={MyOrderScreen} />
+        <Stack.Screen
+          name={SCREENS.PreviewConfirmScreen}
+          component={PreviewConfirmScreen}
+        />
+        <Stack.Screen
+          name={SCREENS.FilterSortScreen}
+          component={FilterSortScreen}
+        />
+        
       </Stack.Navigator>
     </View>
   );
@@ -76,6 +93,8 @@ export enum SCREENS {
   AddFundScreen = 'AddFundScreen',
   MyOrderScreen = 'MyOrderScreen',
   BrowseScreen = 'BrowseScreen',
+  PreviewConfirmScreen = 'PreviewConfirmScreen',
+  FilterSortScreen ='FilterSortScreen'
 }
 
 export type RootStackParamList = {
@@ -89,9 +108,20 @@ export type RootStackParamList = {
   [SCREENS.ProductListScreen]: undefined;
   [SCREENS.SalesScreen]: undefined;
   [SCREENS.WalletScreen]: undefined;
-  [SCREENS.ProductDetailScreen]: {productId: number|string | undefined | null};
+  [SCREENS.ProductDetailScreen]: {
+    productId: number | string | undefined | null;
+  };
   [SCREENS.CashOutScreen]: undefined;
   [SCREENS.AddFundScreen]: undefined;
   [SCREENS.BrowseScreen]: undefined;
   [SCREENS.MyOrderScreen]: undefined;
+  [SCREENS.PreviewConfirmScreen]: {
+    productData?: ProductDetail;
+  };
+  [SCREENS.FilterSortScreen]: {
+    onApplyFilters: (filters: any) => void;
+    initialFilters: string[]; 
+  };
+
+  
 };

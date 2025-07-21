@@ -44,3 +44,13 @@ export interface ProductData {
   image: string;
   status: string;
 }
+export interface ProductDetail {
+  name: string;
+  brand: string;
+  category: string;
+  msrp: string;
+  listingPrice: string;
+  description: string;
+  images: string[];
+  sku: any;
+}
