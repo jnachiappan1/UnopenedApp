@@ -23,7 +23,6 @@ import { useSelector } from 'react-redux';
 import { IRootState } from '../redux/store';
 import sHomeScreen from '../screens/sellerPortal/sHomeScreen';
 import bHomeScreen from '../screens/buyerPortal/bHomeScreen';
-import AddProductScreen from '../screens/buyerPortal/addProductScreen';
 import ProductListScreen from '../screens/sellerPortal/productListScreen';
 import IconsSvg, { IconName } from '../assets/svg/iconsSvg';
 import IMAGE from '../assets/images';
@@ -34,6 +33,7 @@ import SalesScreen from '../screens/sellerPortal/salesScreen';
 import WalletScreen from '../screens/sellerPortal/walletScreen';
 import BrowseScreen from '../screens/buyerPortal/browseScreen';
 import MyOrderScreen from '../screens/buyerPortal/myOrderScreen';
+import AddProductScreen from '../screens/sellerPortal/addProductScreen';
 
 const Tab = createBottomTabNavigator<RootStackParamList>();
 type BottomTabNavProps = NativeStackScreenProps<

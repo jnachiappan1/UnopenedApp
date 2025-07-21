@@ -23,6 +23,7 @@ import colors from '../../utils/colors';
 import fonts from '../../assets/fonts/fonts';
 import ImageUpload from '../../components/input/ImageUpload';
 import { categoryOptions } from '../../utils/static';
+import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
 
 type LoginProps = NativeStackScreenProps<
   RootStackParamList,
@@ -89,10 +90,8 @@ const AddProductScreen: React.FC<LoginProps> = ({route, navigation}) => {
   };
 
   return (
-    <View style={styles.container}>
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}>
+    <TitleBackHeaderContainer isBack title="Add Product">
+
         <View style={styles.scanSection}>
           <IconsSvg name="scannerIcon" />
 
@@ -205,14 +204,19 @@ const AddProductScreen: React.FC<LoginProps> = ({route, navigation}) => {
             uploadSubtitle="Minimum 720p quality. Ensure file is not\ncorrupted or blurred."
           />
         </View>
-      </ScrollView>
-      <View style={styles.bottomButtons}>
-        <WhiteButton title="Preview & Confirm" style={styles.submitButton} />
-        <Button title="Submit For Review" style={styles.submitReviewButton} />
+        <View style={styles.bottomButtons}>
+        <WhiteButton title="Preview & Confirm" 
+        style={styles.submitButton} 
+        />
+        <Button title="Submit For Review" 
+        style={styles.submitReviewButton} 
+        />
 
         <View style={{height: 130}} />
       </View>
-    </View>
+  
+    
+    </TitleBackHeaderContainer>
   );
 };
 
@@ -340,6 +344,9 @@ const styles = StyleSheet.create({
   },
   bottomButtons: {
     flexDirection: 'row',
+    justifyContent:'space-between',
+    marginHorizontal:10,
+    paddingBottom:50
   },
 
   submitButton: {
@@ -349,10 +356,13 @@ const styles = StyleSheet.create({
     borderColor: '#4CAF50',
     justifyContent: 'center',
     alignItems: 'center',
+    marginHorizontal: 0,
   },
   submitReviewButton: {
     borderRadius: 25,
     borderWidth: 1,
     borderColor: '#4CAF50',
+    marginHorizontal: 0,
+    
   },
 });

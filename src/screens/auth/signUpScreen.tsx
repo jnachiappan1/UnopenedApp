@@ -140,6 +140,8 @@ const SignUpScreen: React.FC<LoginProps> = ({ route, navigation }) => {
             country={watch('country') ? getValues('country') : undefined}
             state={watch('state') ? getValues('state') : undefined}
             placeholder={'City'}
+            error={errors}
+            required={{ value: true, message: 'City is required' }}
           />
           <GenderDropdown
             control={control}

@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     color: colors.primaryBlack,
-    fontFamily: OS === 'ios' ?  "Satoshi":  "Satoshi-Italic",
+    fontFamily: OS === 'ios' ?  "Satoshi":  fonts.bold,
     marginVertical: 10,
   },
   subtitle: {
