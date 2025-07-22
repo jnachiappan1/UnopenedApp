@@ -1,9 +1,4 @@
-import {
-  StyleSheet,
-  ScrollView,
-  FlatList,
-  View,
-} from 'react-native';
+import {StyleSheet, ScrollView, FlatList, View} from 'react-native';
 import React, {useState} from 'react';
 import HeaderHomeContainer from '../../components/headerContainer/headerHomeContainer';
 import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
@@ -14,11 +9,20 @@ import SearchBar from '../../components/card/searchBar';
 import CategoryList from '../../components/card/categoryList';
 import ProductSection from '../../components/card/productSection';
 import TopPicksSection from '../../components/card/topPicksSection';
+import {ProductData} from '../../utils/types';
 
 type LoginProps = NativeStackScreenProps<
   RootStackParamList,
   SCREENS.BHomeScreen
 >;
+interface Product {
+  description: string;
+  originalPrice: string;
+  id: number;
+  name: string;
+  price: string;
+  image: string;
+}
 
 const BHomeScreen: React.FC<LoginProps> = ({route, navigation}) => {
   const categories = ['Mobile', 'Earphones', 'Smartwatch', 'Watch'];
@@ -28,6 +32,9 @@ const BHomeScreen: React.FC<LoginProps> = ({route, navigation}) => {
   const handleFilterPress = () => {
     console.log('Filter button pressed');
   };
+  const handlePress = (item: Product[]) => {
+    navigation.navigate(SCREENS.BProductDetailScreen, {item: item});
+  };
   return (
     <HeaderHomeContainer
       title={'Welcome,'}
@@ -35,44 +42,45 @@ const BHomeScreen: React.FC<LoginProps> = ({route, navigation}) => {
       isHome
       onSearchPress={() => {}}>
       {/* <ScrollView style={styles.container} showsVerticalScrollIndicator={false}> */}
-        <FlatList
-          data={bannerData}
-          keyExtractor={item => item.id}
-          renderItem={({item}) => <BannerItem item={item} />}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-        />
+      <FlatList
+        data={bannerData}
+        keyExtractor={item => item.id}
+        renderItem={({item}) => <BannerItem item={item} />}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+      />
 
-        <SearchBar
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          onFilterPress={handleFilterPress}
-        />
+      <SearchBar
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+        onFilterPress={handleFilterPress}
+      />
 
-        <CategoryList
-          categories={categories}
-          selectedIndex={selectedIndex}
-          onSelectCategory={setSelectedIndex}
-        />
+      <CategoryList
+        categories={categories}
+        selectedIndex={selectedIndex}
+        onSelectCategory={setSelectedIndex}
+      />
 
-        <ProductSection
-          title="Our Products"
-          products={products}
-          onViewAll={() => console.log('View All Pressed')}
-        />
+      <ProductSection
+        title="Our Products"
+        products={products}
+        onViewAll={() => console.log('View All Pressed')}
+        onPress={handlePress}
+      />
 
-        <TopPicksSection
-          title="Top Picks in Electronics"
-          products={topPicks}
-          onViewAll={() => console.log('View All Top Picks')}
-        />
+      <TopPicksSection
+        title="Top Picks in Electronics"
+        products={topPicks}
+        onViewAll={() => console.log('View All Top Picks')}
+      />
 
-        <ProductSection
-          title="Recently Listed Items"
-          products={recentItems}
-          onViewAll={() => console.log('View All Pressed')}
-        />
-        <View style={{height:100}}/>
+      <ProductSection
+        title="Recently Listed Items"
+        products={recentItems}
+        onViewAll={() => console.log('View All Pressed')}
+      />
+      <View style={{height: 100}} />
       {/* </ScrollView> */}
     </HeaderHomeContainer>
   );

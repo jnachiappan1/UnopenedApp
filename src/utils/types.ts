@@ -63,3 +63,11 @@ export interface ProductDetail {
   images: string[];
   sku: any;
 }
+export interface Product {
+  description: string;
+  originalPrice: string;
+  id: number;
+  name: string;
+  price: string;
+  image: string;
+}
