@@ -15,6 +15,9 @@ import Svg, {
 
 export type IconName =
   | 'box'
+  | 'raiseTicketIcon'
+  | 'helpSupportIcon'
+  | 'trackOrderIcon'
   | 'checkBox'
   | 'checkBoxSelected'
   | 'cancel'
@@ -77,6 +80,69 @@ const IconsSvg = (props: IconsSvgProps) => {
           />
         </Svg>
       );
+    case 'raiseTicketIcon':
+      return (
+        <Svg width={20} height={20} viewBox="0 0 20 20" fill="none" {...props}>
+          <G
+            clipPath="url(#clip0_350_3076)"
+            stroke="#31AD52"
+            strokeWidth={1.5}
+            strokeLinecap="round"
+            strokeLinejoin="round">
+            <Path d="M7.5 4.375v11.25M1.875 12.5a2.5 2.5 0 000-5V5a.625.625 0 01.625-.625h15a.625.625 0 01.625.625v2.5a2.5 2.5 0 000 5V15a.624.624 0 01-.625.625h-15A.625.625 0 011.875 15v-2.5z" />
+          </G>
+          <Defs>
+            <ClipPath id="clip0_350_3076">
+              <Path fill="#fff" d="M0 0H20V20H0z" />
+            </ClipPath>
+          </Defs>
+        </Svg>
+      );
+    case 'helpSupportIcon':
+      return (
+        <Svg width={20} height={20} viewBox="0 0 20 20" fill="none" {...props}>
+          <G
+            clipPath="url(#clip0_350_3065)"
+            stroke="#31AD52"
+            strokeWidth={1.5}
+            strokeLinecap="round"
+            strokeLinejoin="round">
+            <Path d="M17.5 15.625v.625a2.5 2.5 0 01-2.5 2.5h-4.375M17.5 10H15a1.25 1.25 0 00-1.25 1.25v3.125a1.25 1.25 0 001.25 1.25h2.5V10zm0 0a7.5 7.5 0 00-15 0m0 0v4.375a1.25 1.25 0 001.25 1.25H5a1.25 1.25 0 001.25-1.25V11.25A1.25 1.25 0 005 10H2.5z" />
+          </G>
+          <Defs>
+            <ClipPath id="clip0_350_3065">
+              <Path fill="#fff" d="M0 0H20V20H0z" />
+            </ClipPath>
+          </Defs>
+        </Svg>
+      );
+
+    case 'trackOrderIcon':
+      return (
+        <Svg width={30} height={31} viewBox="0 0 30 31" fill="none" {...props}>
+          <Rect x={0.5} y={1} width={29} height={29} rx={14.5} fill="#31AD52" />
+          <Rect x={0.5} y={1} width={29} height={29} rx={14.5} stroke="#fff" />
+          <G clipPath="url(#clip0_350_2976)">
+            <Path
+              d="M9.5 16.5L13 20l8-8"
+              stroke="#fff"
+              strokeWidth={1.5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </G>
+          <Defs>
+            <ClipPath id="clip0_350_2976">
+              <Path
+                fill="#fff"
+                transform="translate(7 7.5)"
+                d="M0 0H16V16H0z"
+              />
+            </ClipPath>
+          </Defs>
+        </Svg>
+      );
+
     case 'checkBox':
       return (
         <Svg width={24} height={24} viewBox="0 0 24 24" fill="none" {...props}>

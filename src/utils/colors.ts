@@ -53,7 +53,7 @@ const darkColors: IColors = {
   inputBackground: '#464D43',
   placeholder: '#7E7585',
   border: '#E0E0E0',
-  title: '#332640',
+  title: '#1F1F1F',
   icon: '#826C99',
   btnTitle: '#0B1B22',
   btnBg: '#EBF3F7',
@@ -74,7 +74,7 @@ const darkColors: IColors = {
   darkGray: '#646464',
   bottomBorder: '#E3E1E5',
   modalBackGround: '#00000099',
-  gray: '#777777',
+  gray: '#444444',
   chineseSilver: '#cccccc',
 };
 const lightColors: IColors = {
@@ -91,7 +91,7 @@ const lightColors: IColors = {
   inputBackground: '#F3F3F3',
   placeholder: '#7E7585',
   border: '#E0E0E0',
-  title: '#332640',
+  title: '#1F1F1F',
   icon: '#826C99',
   btnTitle: '#0B1B22',
   btnBg: '#EBF3F7',
@@ -112,7 +112,7 @@ const lightColors: IColors = {
   darkGray: '#646464',
   bottomBorder: '#E3E1E5',
   modalBackGround: '#00000099',
-  gray: '#777777',
+  gray: '#444444',
   chineseSilver: '#cccccc',
 };
 

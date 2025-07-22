@@ -19,8 +19,9 @@ import AddFundScreen from '../screens/wallet/addFundScreen';
 import BrowseScreen from '../screens/buyerPortal/browseScreen';
 import MyOrderScreen from '../screens/buyerPortal/myOrderScreen';
 import PreviewConfirmScreen from '../screens/sellerPortal/previewConfirmScreen';
-import { ProductData, ProductDetail } from '../utils/types';
+import { OrderData, ProductData, ProductDetail } from '../utils/types';
 import FilterSortScreen from '../screens/buyerPortal/filterSortScreen';
+import OrderTrackScreen from '../screens/buyerPortal/orderTrackScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -69,6 +70,11 @@ const MainNavigation: React.FC = () => {
           name={SCREENS.FilterSortScreen}
           component={FilterSortScreen}
         />
+         <Stack.Screen
+          name={SCREENS.OrderTrackScreen}
+          component={OrderTrackScreen}
+        />
+        
         
       </Stack.Navigator>
     </View>
@@ -94,7 +100,8 @@ export enum SCREENS {
   MyOrderScreen = 'MyOrderScreen',
   BrowseScreen = 'BrowseScreen',
   PreviewConfirmScreen = 'PreviewConfirmScreen',
-  FilterSortScreen ='FilterSortScreen'
+  FilterSortScreen ='FilterSortScreen',
+  OrderTrackScreen = 'OrderTrackScreen'
 }
 
 export type RootStackParamList = {
@@ -122,6 +129,9 @@ export type RootStackParamList = {
     onApplyFilters: (filters: any) => void;
     initialFilters: string[]; 
   };
-
+  [SCREENS.OrderTrackScreen]: {
+    productId: OrderData;
+  };
+  
   
 };

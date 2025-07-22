@@ -44,6 +44,15 @@ export interface ProductData {
   image: string;
   status: string;
 }
+export interface OrderData {
+  id: string;
+  title: string;
+  price: number;
+  order_Id: string;
+  delivered_On:string;
+  image: string;
+  status: string;
+}
 export interface ProductDetail {
   name: string;
   brand: string;

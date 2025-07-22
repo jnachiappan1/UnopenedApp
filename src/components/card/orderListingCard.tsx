@@ -1,0 +1,116 @@
+// components/DashboardCard.tsx
+import React from 'react';
+import { View, Text, StyleSheet, Image, TouchableOpacity, StyleProp, ViewStyle } from 'react-native';
+import { fontSizes } from '../../utils/utils';
+import { OrderData, ProductData } from '../../utils/types';
+import colors from '../../utils/colors';
+import IconsSvg from '../../assets/svg/iconsSvg';
+import fonts from '../../assets/fonts/fonts';
+import StatusBadge from './statusBadge';
+
+interface ProductListingCardProps {
+  item: OrderData;
+  cardStyle?: StyleProp<ViewStyle> | undefined;
+  onSelect?: (item: OrderData) => void;
+}
+
+const OrderListingCard: React.FC<ProductListingCardProps> = ({ item,cardStyle ,onSelect}) => {
+  const handleCardPress = () => {
+    onSelect?.(item);
+  };
+  return (
+    <View style={[styles.cardContainer,cardStyle]}>
+      <View style={styles.productDetailView}>
+        <Image source={{ uri: item?.image }} style={styles.cardImage} />
+        <View>
+          <Text style={styles.cardTitle}>{item?.title}</Text>
+          <Text style={styles.cardPosted}>Order ID: {item?.order_Id}</Text>
+          <Text style={styles.cardPosted}>Delivered On: {item?.delivered_On}</Text>
+          <Text style={styles.cardPrice}>${item?.price}</Text>
+        </View>
+      </View>
+      <View style={styles.cardDetails}>
+        <StatusBadge status={item.status} />
+        <TouchableOpacity style={styles.viewDetailsBtn} activeOpacity={0.8}  onPress={handleCardPress}>
+          <Text style={styles.viewDetailsText}>Track Order</Text>
+          <IconsSvg name='viewDetailArrow' />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+};
+
+export default OrderListingCard;
+
+const styles = StyleSheet.create({
+  cardContainer: {
+    flexDirection: 'column',
+    backgroundColor: colors.white,
+    borderRadius: 20,
+    padding: 5,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  cardImage: {
+    width: 91,
+    height: 86,
+    borderRadius: 8,
+    marginRight: 12,
+  },
+  cardDetails: {
+    flex: 1,
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+    paddingHorizontal:5,
+    paddingVertical:5
+  },
+  cardTitle: {
+    fontSize: fontSizes.medium,
+    fontFamily: fonts.bold,
+    color: '#1F1F1F',
+    paddingVertical: 2
+  },
+  cardPrice: {
+    fontSize: fontSizes.medium,
+    fontFamily:fonts.bold,
+    color: colors.black,
+    paddingVertical: 2
+  },
+  cardPosted: {
+    fontSize: fontSizes.small,
+    fontFamily: fonts.medium,
+    color: '#666666',
+    paddingVertical: 2
+  },
+  viewDetailsBtn: {
+    paddingVertical: 6,
+    borderRadius: 4,
+    flexDirection:'row',
+    alignItems:'center'
+  },
+  viewDetailsText: {
+    color: '#333333',
+    fontSize: fontSizes.small,
+    fontFamily:fonts.bold,
+    paddingEnd:5
+  },
+  productDetailView: {
+    flexDirection: 'row', backgroundColor: '#F5F7F2', borderRadius: 20,
+    paddingHorizontal: 8,
+    paddingVertical: 10
+  },
+  statusContainer: {
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 18,
+    alignSelf: 'flex-start',
+    marginTop: 4,
+  },
+  statusText: {
+    fontSize: fontSizes.small,
+    fontFamily:fonts.bold
+  },
+});

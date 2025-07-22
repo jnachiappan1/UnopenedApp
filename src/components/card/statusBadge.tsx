@@ -32,6 +32,16 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status,statusStyle }) => {
           backgroundColor: '#DBF5E2',
           textColor: '#239C43',
         };
+        case 'Pending':
+        return {
+          backgroundColor: '#F3E4E2',
+          textColor: '#CB1C1C',
+        };
+        case 'In Transit':
+          return {
+            backgroundColor: '#FBF0DB',
+            textColor: '#AF7E15',
+          };
       default:
         return {
           backgroundColor: '#F0F0F0',
