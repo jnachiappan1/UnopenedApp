@@ -24,6 +24,26 @@ type LoginProps = NativeStackScreenProps<
   SCREENS.SignUpScreen
 >;
 
+export type InputsRegistration = {
+  full_name: string;
+  email: string;
+  country_code: string;
+  currency: string;
+  country?: string;
+  state?: string;
+  city?: string;
+  area?: string;
+  address?: string;
+  password: string;
+  confirmPassword?: string;
+  referralCode?: string;
+  business_name: string;
+  business_link: string;
+  business_phone_number: string;
+  business_country_code: string;
+  referral_code?: string;
+  fcmToken?: string;
+};
 const SignUpScreen: React.FC<LoginProps> = ({ route, navigation }) => {
   const [email, setEmail] = useState('johndoe@gmail.com');
   const {
