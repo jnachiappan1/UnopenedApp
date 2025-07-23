@@ -45,7 +45,7 @@ const getStyles = () =>
     container: {
       alignItems: 'center',
       justifyContent: 'center',
-     // marginHorizontal: 24,
+      marginHorizontal: 24,
       paddingHorizontal: 15,
       borderRadius: 120,
       borderColor: colors.primary,

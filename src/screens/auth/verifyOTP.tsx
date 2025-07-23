@@ -88,7 +88,6 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({ route, navigation }) => {
         {'Please enter 4 digit code we sent to you on'}
       </Text>
       <Text style={styles.emailText}>{'Loisbecket@gmail.com'}</Text>
-
       <InputOtp
         control={control}
         name="otp"
@@ -101,7 +100,6 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({ route, navigation }) => {
         error={errors}
       />
       <Button title={'Verify'} style={styles.buttonStyle} onPress={()=> navigation.navigate(SCREENS.BottomTab)} />
-
       {showResendTxt}
     </ImageBackgroundHeader>
   );

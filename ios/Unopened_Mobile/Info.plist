@@ -62,5 +62,9 @@
 		<string>Satoshi-Variable.ttf</string>
 		<string>Satoshi-VariableItalic.ttf</string>
 	</array>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Your message to user when the photo library is accessed for the first time</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Your message to user when the photo library is accessed for the first time</string>
 </dict>
 </plist>

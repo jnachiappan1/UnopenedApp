@@ -25,6 +25,7 @@ export interface IUser {
   createdAt: string | null | undefined;
   updatedAt: string | null | undefined;
 }
+export type errorMsg = {message: ''; status: 'error'};
 export interface IUserState {
   userData: IUser | null | any;
   token: string | null;

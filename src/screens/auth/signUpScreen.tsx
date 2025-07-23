@@ -43,14 +43,11 @@ const SignUpScreen: React.FC<LoginProps> = ({ route, navigation }) => {
         extraScrollHeight={20}
         keyboardShouldPersistTaps="handled"
       >
-        <IconsSvg name="box" style={{ alignSelf: 'center' }} />
-
+        <IconsSvg name="box" style={styles.boxIconStyle} />
         <Text style={styles.title}>Get Started now</Text>
-
         <Text style={styles.subtitle}>
           Create an account or log in to{'\n'}explore about our app
         </Text>
-
         <Input
           control={control}
           name="name"
@@ -64,7 +61,6 @@ const SignUpScreen: React.FC<LoginProps> = ({ route, navigation }) => {
           maxLength={40}
           inputStyle={styles.inputStyle}
         />
-        
         <Input
           control={control}
           name="phoneNumber"
@@ -82,7 +78,6 @@ const SignUpScreen: React.FC<LoginProps> = ({ route, navigation }) => {
           maxLength={40}
           inputStyle={styles.inputStyle}
         />
-
         <Input
           control={control}
           name="email"
@@ -192,6 +187,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingBottom: 30, // Add padding at bottom for better spacing
   },
+  boxIconStyle:{ alignSelf: 'center',marginTop:30 },
   inputStyle: {
     height: 53,
     borderRadius: 160, 
@@ -202,6 +198,7 @@ const styles = StyleSheet.create({
     color: colors.primaryBlack,
     fontFamily: fonts.bold,
     marginVertical: 10,
+    
   },
   subtitle: {
     fontSize: 16,

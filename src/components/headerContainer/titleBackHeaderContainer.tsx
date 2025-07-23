@@ -68,7 +68,7 @@ const TitleBackHeaderContainer: React.FC<
   };
   const HEADER_MIN_HEIGHT = 30;
   return (
-    <View style={[{ flex: 1, backgroundColor: colors.background }, containerStyle]}>
+    <View style={[container,{ flex: 1, backgroundColor: colors.background }, containerStyle]}>
       <View style={[styles.headerRowContainer, headerRowContainerStyle]}>
         {isBack && (
             <TouchableOpacity

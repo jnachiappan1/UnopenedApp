@@ -1,38 +1,63 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { ImageBackground, StatusBar, StyleSheet, Text, TouchableOpacity, View, } from 'react-native';
 import React, { useState } from 'react';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
 import fonts from '../../assets/fonts/fonts';
 import Input from '../../components/input/input';
 import { useForm } from 'react-hook-form';
-import { emailPattern, OS } from '../../utils/utils';
-import Header from '../../components/headerContainer/header';
-import ImageBackgroundHeader from '../../components/headerContainer/imageBackgroundHeader';
-import IconsSvg from '../../assets/svg/iconsSvg';
+import { emailPattern, fontSizes, height, OS } from '../../utils/utils';
 import colors from '../../utils/colors';
+import { errorMsg } from '../../utils/types';
+import { showAlert } from '../../components/cAlert';
+import { showLoader } from '../../components/loader/loader';
+import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
 import Button from '../../components/button/buttons';
+import IconBackHeaderContainer from '../../components/headerContainer/iconBackHeaderContainer';
+import IconsSvg from '../../assets/svg/iconsSvg';
 import WhiteButton from '../../components/button/whiteButton';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
-import { useSelector } from 'react-redux';
-import { useContainer } from '../../components/hooks/useContainer';
+import IMAGE from '../../assets/images';
 
-type LoginProps = NativeStackScreenProps<
+type ProfileLoginScreenProps = NativeStackScreenProps<
   RootStackParamList,
-  SCREENS.LoginScreen
+  SCREENS.ProfileLoginScreen
 >;
 
-const LoginScreen: React.FC<LoginProps> = ({ route, navigation }) => {
-  const [email, setEmail] = useState('johndoe@gmail.com');
-  let userType = useSelector((type: any) => type.user.userType);
-console.log("userType", userType);
-const container = useContainer();
+type Inputs = {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+};
+
+const ProfileLoginScreen: React.FC<ProfileLoginScreenProps> = ({
+  navigation,
+}) => {
+  const defaultValues = {
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  };
 
   const {
     control,
-    formState: { errors },
     handleSubmit,
-  } = useForm<any>();
+    watch,
+    formState: { errors },
+  } = useForm<Inputs>({ defaultValues });
+  const submit = (data: Inputs) => {
+    console.log('Password change data:', data);
+
+  };
+  const newPassword = watch('newPassword');
+
   return (
-    <ImageBackgroundHeader containerStyle={[container,styles.container]} hideBack ={true} >
+    <IconBackHeaderContainer isBack>
+      <ImageBackground
+      source={IMAGE.imageBackground}
+      resizeMode="contain"
+      style={{height:height,
+      paddingHorizontal: 20,
+        }}>
+<StatusBar backgroundColor={colors.primary} barStyle="light-content" />
       <View style={styles.content}>
         <IconsSvg name="box" />
         <Text style={styles.title}>Get Started now</Text>
@@ -63,12 +88,7 @@ const container = useContainer();
         <Button
           title={'Send OTP'}
           style={styles.sendOtpButton}
-          onPress={() => navigation.navigate(SCREENS.VerifyOTP)}
-        />
-        <WhiteButton
-          title={'Login as Guest'}
-          style={styles.guestButton}
-          onPress={() => navigation.navigate(SCREENS.BottomTab)}
+          onPress={() => navigation.navigate(SCREENS.ProfileVerifyScreen)}
         />
         <View style={styles.registerContainer}>
           <Text style={styles.registerText}>Don't have an account? </Text>
@@ -76,11 +96,13 @@ const container = useContainer();
             <Text style={styles.registerLink}>Register Now</Text>
           </TouchableOpacity>
         </View>
-      </View>
-    </ImageBackgroundHeader>
+      </View> 
+      </ImageBackground>
+    </IconBackHeaderContainer>
   );
 };
-export default LoginScreen;
+
+export default ProfileLoginScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -110,11 +132,11 @@ const styles = StyleSheet.create({
   inputContainer: {
     width: '100%',
     marginBottom: 24,
+    marginVertical:20
   },
-
   sendOtpButton: {
     backgroundColor: colors.primary,
-    width: '100%',
+    width: '100%'
   },
   sendOtpText: {
     color: '#FFFFFF',
@@ -122,25 +144,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontFamily: fonts?.medium || 'System',
   },
-  guestButton: {
-    width: '100%',
-    backgroundColor: 'transparent',
-    borderRadius: 25,
-    borderWidth: 1,
-    borderColor: '#4CAF50',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  guestText: {
-    color: '#4CAF50',
-    fontSize: 16,
-    fontWeight: '600',
-    fontFamily: fonts?.medium || 'System',
-  },
   registerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginTop:30
   },
   registerText: {
     fontSize: 14,
@@ -152,5 +159,5 @@ const styles = StyleSheet.create({
     color: colors.secondary,
     fontFamily: fonts.bold,
   },
-  emailContainer: { marginTop: 20 },
+  emailContainer: { marginTop: 20},
 });

@@ -3,6 +3,7 @@ import {
   Platform,
   RefreshControl,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -21,6 +22,7 @@ import { fontSizes } from '../../utils/utils';
 import { useDispatch, useSelector } from 'react-redux';
 import { saveUserType } from '../../redux/reducers/user/UserReducer';
 import { IRootState } from '../../redux/store';
+import { useContainer } from '../hooks/useContainer';
 
 type HeaderHomeContainerProps = {
   children?: React.ReactNode | undefined;
@@ -63,7 +65,8 @@ const HeaderHomeContainer: React.FC<HeaderHomeContainerProps> = props => {
   const colors = getColors();
   const styles = getStyles(colors);
   const dispatch = useDispatch();
-const userType = useSelector((state: IRootState) => state.user.userType);
+  const container = useContainer();
+  const userType = useSelector((state: IRootState) => state.user.userType);
   const onBackPress = () => {
     navigation.goBack();
   };
@@ -74,11 +77,12 @@ const userType = useSelector((state: IRootState) => state.user.userType);
     //navigation.navigate(SCREENS.NotificationScreen);
   };
   return (
-    <View style={commonStyles.container}>
-      
+    <View style={[container,commonStyles.container]}>
+      <StatusBar backgroundColor={colors.background  } barStyle="dark-content" />
       <View style={commonStyles.headerRowContainer}>
-        <Image source={IMAGE.profileImage} style={styles.icon} />
-
+        <TouchableOpacity onPress={() => navigation.navigate(SCREENS.ProfileScreen)}>
+          <Image source={IMAGE.profileImage} style={styles.icon} />
+        </TouchableOpacity>
         <View style={styles.itemContainer}>
           <View style={{ width: '48%', paddingStart: 5 }}>
             {isHome && userName && (
@@ -89,16 +93,16 @@ const userType = useSelector((state: IRootState) => state.user.userType);
             </Text>
           </View>
           <IconsSvg name='notificationIcon' />
-          <TouchableOpacity style={styles.userContainer} 
-           onPress={() => {
-            const newType = userType === 'buyer' ? 'seller' : 'buyer';
-            dispatch(saveUserType(newType));
-          }}
+          <TouchableOpacity style={styles.userContainer}
+            onPress={() => {
+              const newType = userType === 'buyer' ? 'seller' : 'buyer';
+              dispatch(saveUserType(newType));
+            }}
           >
             <IconsSvg name='addUser' />
             <Text style={styles.buyerTitle}>
-    {userType === 'buyer' ? 'Seller' : 'Buyer'}
-  </Text>
+              {userType === 'buyer' ? 'Seller' : 'Buyer'}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>

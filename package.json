@@ -23,6 +23,7 @@
     "react-native": "0.76.3",
     "react-native-element-dropdown": "^2.12.4",
     "react-native-gesture-handler": "^2.27.1",
+    "react-native-image-crop-picker": "^0.50.1",
     "react-native-keyboard-aware-scroll-view": "^0.9.5",
     "react-native-modal": "^14.0.0-rc.1",
     "react-native-otp-textinput": "^1.1.7",

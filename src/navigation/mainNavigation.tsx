@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 // In App.js in a new project
-import React, { useEffect } from 'react';
-import { Alert, Linking, View } from 'react-native';
+import React  from 'react';
+import { View } from 'react-native';
 // import BottomTabNav from './bottomTabNav';
 import {
   createStackNavigator,
@@ -18,6 +18,14 @@ import CashOutScreen from '../screens/wallet/cashOutScreen';
 import AddFundScreen from '../screens/wallet/addFundScreen';
 import BrowseScreen from '../screens/buyerPortal/browseScreen';
 import MyOrderScreen from '../screens/buyerPortal/myOrderScreen';
+import ProfileScreen from '../screens/profile/profileScreen';
+import HelpSupportScreen from '../screens/profile/helpSupportScreen';
+import PrivacyPolicyScreen from '../screens/profile/privacyPolicyScreen';
+import TermsConditionsScreen from '../screens/profile/termsConditionsScreen';
+import EditProfileScreen from '../screens/profile/editProfileScreen';
+import ChangePasswordScreen from '../screens/profile/changePasswordScreen';
+import ProfileLoginScreen from '../screens/profile/profileLoginScreen';
+import ProfileVerifyScreen from '../screens/profile/profileVerifyScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -35,7 +43,7 @@ const MainNavigation: React.FC = () => {
   //       : SCREENS.SelectUserType;
 
   return (
-    <View style={container}>
+    // <View style={container}>
       <Stack.Navigator
         // initialRouteName={firstName}
         screenOptions={{
@@ -53,8 +61,16 @@ const MainNavigation: React.FC = () => {
         <Stack.Screen name={SCREENS.AddFundScreen} component={AddFundScreen} />
         <Stack.Screen name={SCREENS.BrowseScreen} component={BrowseScreen} />
         <Stack.Screen name={SCREENS.MyOrderScreen} component={MyOrderScreen} />
+        <Stack.Screen name={SCREENS.ProfileScreen} component={ProfileScreen} />
+        <Stack.Screen name={SCREENS.HelpSupportScreen} component={HelpSupportScreen} />
+        <Stack.Screen name={SCREENS.PrivacyPolicyScreen} component={PrivacyPolicyScreen} />
+        <Stack.Screen name={SCREENS.TermsConditionsScreen} component={TermsConditionsScreen} />
+        <Stack.Screen name={SCREENS.EditProfileScreen} component={EditProfileScreen} />
+        <Stack.Screen name={SCREENS.ChangePasswordScreen} component={ChangePasswordScreen} />
+        <Stack.Screen name={SCREENS.ProfileLoginScreen} component={ProfileLoginScreen} />
+        <Stack.Screen name={SCREENS.ProfileVerifyScreen} component={ProfileVerifyScreen} />
       </Stack.Navigator>
-    </View>
+    // </View>
   );
 };
 
@@ -76,6 +92,14 @@ export enum SCREENS {
   AddFundScreen = 'AddFundScreen',
   MyOrderScreen = 'MyOrderScreen',
   BrowseScreen = 'BrowseScreen',
+  ProfileScreen = 'ProfileScreen',
+  HelpSupportScreen = 'HelpSupportScreen',
+  PrivacyPolicyScreen = 'PrivacyPolicyScreen',
+  TermsConditionsScreen = 'TermsConditionsScreen',
+  EditProfileScreen = 'EditProfileScreen',
+  ChangePasswordScreen = 'ChangePasswordScreen',
+  ProfileLoginScreen = 'ProfileLoginScreen',
+  ProfileVerifyScreen = 'ProfileVerifyScreen',
 }
 
 export type RootStackParamList = {
@@ -94,4 +118,12 @@ export type RootStackParamList = {
   [SCREENS.AddFundScreen]: undefined;
   [SCREENS.BrowseScreen]: undefined;
   [SCREENS.MyOrderScreen]: undefined;
+  [SCREENS.ProfileScreen]: undefined;
+  [SCREENS.HelpSupportScreen]: undefined;
+  [SCREENS.PrivacyPolicyScreen]: undefined;
+  [SCREENS.TermsConditionsScreen]: undefined;
+  [SCREENS.EditProfileScreen]: undefined;
+  [SCREENS.ChangePasswordScreen]: undefined;
+  [SCREENS.ProfileLoginScreen]: undefined;
+  [SCREENS.ProfileVerifyScreen]: undefined;
 };

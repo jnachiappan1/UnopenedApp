@@ -346,9 +346,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent:'space-between',
     marginHorizontal:10,
-    paddingBottom:50
+    paddingBottom:50,
+    alignSelf:"center"
   },
-
   submitButton: {
     backgroundColor: 'transparent',
     borderRadius: 25,
@@ -357,6 +357,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginHorizontal: 0,
+    marginEnd:10
   },
   submitReviewButton: {
     borderRadius: 25,
