@@ -15,23 +15,30 @@ import IMAGE from '../../assets/images';
 
 interface Product {
   description: string;
-  originalPrice: React.JSX.Element;
+  originalPrice: string;
   id: number;
   name: string;
   price: string;
   image: string;
 }
-
 interface Props {
   title?: string;
   products: Product[];
   onViewAll?: () => void;
+  onPress?: (item: Product) => void;
 }
 const ProductSection: React.FC<Props> = ({
   title = 'Our Products',
   products,
   onViewAll,
+  onPress
 }) => {
+  const handlePress = (item:any) => {
+    if (onPress) {
+      onPress(item);
+    }
+    
+  };
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -57,7 +64,9 @@ const ProductSection: React.FC<Props> = ({
               style={[
                 styles.productCard,
                 isHorizontal && styles.horizontalCard,
-              ]}>
+              ]}
+              onPress={() => handlePress(item)}
+              >
               <Image
                 source={IMAGE.profileImage}
                 style={[

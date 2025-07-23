@@ -7,7 +7,7 @@ import {
   createStackNavigator,
   CardStyleInterpolators,
 } from '@react-navigation/stack';
-import { useContainer } from '../components/hooks/useContainer';
+import {useContainer} from '../components/hooks/useContainer';
 import VerifyOTP from '../screens/auth/verifyOTP';
 import LoginScreen from '../screens/auth/loginScreen';
 import SignUpScreen from '../screens/auth/signUpScreen';
@@ -26,6 +26,12 @@ import EditProfileScreen from '../screens/profile/editProfileScreen';
 import ChangePasswordScreen from '../screens/profile/changePasswordScreen';
 import ProfileLoginScreen from '../screens/profile/profileLoginScreen';
 import ProfileVerifyScreen from '../screens/profile/profileVerifyScreen';
+import PreviewConfirmScreen from '../screens/sellerPortal/previewConfirmScreen';
+import { OrderData, Product, ProductData, ProductDetail } from '../utils/types';
+import FilterSortScreen from '../screens/buyerPortal/filterSortScreen';
+import OrderTrackScreen from '../screens/buyerPortal/orderTrackScreen';
+import BProductDetailScreen from '../screens/buyerPortal/bProductDetailScreen';
+import ConfirmYourOrderScreen from '../screens/buyerPortal/confirmYourOrderScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -49,14 +55,19 @@ const MainNavigation: React.FC = () => {
         screenOptions={{
           headerShown: false,
           cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
-        }}
-      >
+        }}>
         <Stack.Screen name={SCREENS.LoginScreen} component={LoginScreen} />
         <Stack.Screen name={SCREENS.VerifyOTP} component={VerifyOTP} />
         <Stack.Screen name={SCREENS.SignUpScreen} component={SignUpScreen} />
         <Stack.Screen name={SCREENS.BottomTab} component={BottomTabNav} />
-        <Stack.Screen name={SCREENS.ProductListScreen} component={ProductListScreen} />
-        <Stack.Screen name={SCREENS.ProductDetailScreen} component={ProductDetailScreen} />
+        <Stack.Screen
+          name={SCREENS.ProductListScreen}
+          component={ProductListScreen}
+        />
+        <Stack.Screen
+          name={SCREENS.ProductDetailScreen}
+          component={ProductDetailScreen}
+        />
         <Stack.Screen name={SCREENS.CashOutScreen} component={CashOutScreen} />
         <Stack.Screen name={SCREENS.AddFundScreen} component={AddFundScreen} />
         <Stack.Screen name={SCREENS.BrowseScreen} component={BrowseScreen} />
@@ -69,6 +80,27 @@ const MainNavigation: React.FC = () => {
         <Stack.Screen name={SCREENS.ChangePasswordScreen} component={ChangePasswordScreen} />
         <Stack.Screen name={SCREENS.ProfileLoginScreen} component={ProfileLoginScreen} />
         <Stack.Screen name={SCREENS.ProfileVerifyScreen} component={ProfileVerifyScreen} />
+        <Stack.Screen
+          name={SCREENS.PreviewConfirmScreen}
+          component={PreviewConfirmScreen}
+        />
+        <Stack.Screen
+          name={SCREENS.FilterSortScreen}
+          component={FilterSortScreen}
+        />
+         <Stack.Screen
+          name={SCREENS.OrderTrackScreen}
+          component={OrderTrackScreen}
+        />
+          <Stack.Screen
+          name={SCREENS.BProductDetailScreen}
+          component={BProductDetailScreen}
+        />
+          <Stack.Screen
+          name={SCREENS.ConfirmYourOrderScreen}
+          component={ConfirmYourOrderScreen}
+        />
+        
       </Stack.Navigator>
     // </View>
   );
@@ -100,6 +132,11 @@ export enum SCREENS {
   ChangePasswordScreen = 'ChangePasswordScreen',
   ProfileLoginScreen = 'ProfileLoginScreen',
   ProfileVerifyScreen = 'ProfileVerifyScreen',
+  PreviewConfirmScreen = 'PreviewConfirmScreen',
+  FilterSortScreen ='FilterSortScreen',
+  OrderTrackScreen = 'OrderTrackScreen',
+  BProductDetailScreen = 'BProductDetailScreen',
+  ConfirmYourOrderScreen = 'ConfirmYourOrderScreen'
 }
 
 export type RootStackParamList = {
@@ -113,7 +150,9 @@ export type RootStackParamList = {
   [SCREENS.ProductListScreen]: undefined;
   [SCREENS.SalesScreen]: undefined;
   [SCREENS.WalletScreen]: undefined;
-  [SCREENS.ProductDetailScreen]: {productId: number|string | undefined | null};
+  [SCREENS.ProductDetailScreen]: {
+    productId: number | string | undefined | null;
+  };
   [SCREENS.CashOutScreen]: undefined;
   [SCREENS.AddFundScreen]: undefined;
   [SCREENS.BrowseScreen]: undefined;
@@ -126,4 +165,18 @@ export type RootStackParamList = {
   [SCREENS.ChangePasswordScreen]: undefined;
   [SCREENS.ProfileLoginScreen]: undefined;
   [SCREENS.ProfileVerifyScreen]: undefined;
+  [SCREENS.PreviewConfirmScreen]: {
+    productData?: ProductDetail;
+  };
+  [SCREENS.FilterSortScreen]: {
+    onApplyFilters: (filters: any) => void;
+    initialFilters: string[]; 
+  };
+  [SCREENS.OrderTrackScreen]: {
+    productId: OrderData;
+  };
+  [SCREENS.BProductDetailScreen]: {
+    item:Product[]
+  };
+  [SCREENS.ConfirmYourOrderScreen]: undefined;
 };

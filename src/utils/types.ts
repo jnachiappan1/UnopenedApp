@@ -45,3 +45,30 @@ export interface ProductData {
   image: string;
   status: string;
 }
+export interface OrderData {
+  id: string;
+  title: string;
+  price: number;
+  order_Id: string;
+  delivered_On:string;
+  image: string;
+  status: string;
+}
+export interface ProductDetail {
+  name: string;
+  brand: string;
+  category: string;
+  msrp: string;
+  listingPrice: string;
+  description: string;
+  images: string[];
+  sku: any;
+}
+export interface Product {
+  description: string;
+  originalPrice: string;
+  id: number;
+  name: string;
+  price: string;
+  image: string;
+}
