@@ -72,3 +72,13 @@ export interface Product {
   price: string;
   image: string;
 }
+export type AlertState = {
+  isVisible: boolean;
+  type: 'info' | 'delete' | 'success' | 'error';
+  title?: string;
+  description?: string;
+  onDeletePress?: () => void;
+  onDonePress?: () => void;
+  doneText?: string;
+  deleteText?: string;
+};

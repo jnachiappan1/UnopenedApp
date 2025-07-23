@@ -141,7 +141,7 @@ export enum SCREENS {
 
 export type RootStackParamList = {
   [SCREENS.LoginScreen]: undefined;
-  [SCREENS.VerifyOTP]: undefined;
+  [SCREENS.VerifyOTP]: {otp:string};
   [SCREENS.SignUpScreen]: undefined;
   [SCREENS.BottomTab]: undefined;
   [SCREENS.SHomeScreen]: undefined;

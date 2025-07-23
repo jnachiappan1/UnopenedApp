@@ -22,8 +22,9 @@ import CAlert from './src/components/cAlert';
 import {Provider as StoreProvider} from 'react-redux';
 import { store } from './src/redux/store';
 import MainNavigation from './src/navigation/mainNavigation';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-
+const queryClient = new QueryClient();
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
   React.useEffect(() => {
@@ -35,11 +36,13 @@ function App() {
     <SafeAreaProvider>
       {/* <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} /> */}
       <StoreProvider store={store}>
+      <QueryClientProvider client={queryClient}>
       <NavigationContainer>
         <MainNavigation />
       </NavigationContainer>
       <Loader />
       <CAlert />
+      </QueryClientProvider>
       </StoreProvider>
     </SafeAreaProvider>
   );

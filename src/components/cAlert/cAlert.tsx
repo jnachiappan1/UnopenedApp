@@ -67,18 +67,15 @@ export default class CAlert extends React.Component<any, IState> {
             <View style={styles.animatedView}>
               <View style={styles.icon}>
                 <IconsSvg
-                  // name={this.state.type ? this.state.type : 'success'}
-                  name='success'
+                  name={this.state.type ? this.state.type : 'success'}
                 />
               </View>
             </View>
             {this.state.title && (
-              <Text style={styles.label}>{(this.state.title)}</Text>
+              <Text style={styles.label}>{this.state.title}</Text>
             )}
             {this.state.description && (
-              <Text style={styles.description}>
-                {(this.state.description)}{' '}
-              </Text>
+              <Text style={styles.description}>{this.state.description} </Text>
             )}
 
             <TouchableOpacity
@@ -92,7 +89,7 @@ export default class CAlert extends React.Component<any, IState> {
                 this.setState({isVisible: false});
               }}>
               {this.state.doneText && (
-                <Text style={styles.btnTxt}>{(this.state.doneText)}</Text>
+                <Text style={styles.btnTxt}>{this.state.doneText}</Text>
               )}
             </TouchableOpacity>
             {this.state.onDeletePress && (
@@ -108,7 +105,7 @@ export default class CAlert extends React.Component<any, IState> {
                 }}>
                 {this.state.deleteText && (
                   <Text style={styles.btnDeleteTxt}>
-                    {(this.state.deleteText)}
+                    {this.state.deleteText}
                   </Text>
                 )}
               </TouchableOpacity>

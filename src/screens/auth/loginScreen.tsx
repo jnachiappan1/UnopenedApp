@@ -1,38 +1,87 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import React, { useState } from 'react';
+import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
+import React, {useState} from 'react';
 import fonts from '../../assets/fonts/fonts';
 import Input from '../../components/input/input';
-import { useForm } from 'react-hook-form';
-import { emailPattern, OS } from '../../utils/utils';
+import {useForm} from 'react-hook-form';
+import {capitalizeFirstLetter, emailPattern, OS} from '../../utils/utils';
 import Header from '../../components/headerContainer/header';
 import ImageBackgroundHeader from '../../components/headerContainer/imageBackgroundHeader';
 import IconsSvg from '../../assets/svg/iconsSvg';
 import colors from '../../utils/colors';
 import Button from '../../components/button/buttons';
 import WhiteButton from '../../components/button/whiteButton';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
-import { useSelector } from 'react-redux';
-import { useContainer } from '../../components/hooks/useContainer';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
+import {useSelector} from 'react-redux';
+import {useContainer} from '../../components/hooks/useContainer';
+import {showLoader} from '../../components/loader/loader';
+import {CommonActions} from '@react-navigation/native';
+import {showAlert} from '../../components/cAlert';
+import {useMutation} from '@tanstack/react-query';
+import {signInApi} from '../../utils/apiAction';
+import {errorMsg} from '../../utils/types';
 
 type LoginProps = NativeStackScreenProps<
   RootStackParamList,
   SCREENS.LoginScreen
 >;
+type Inputs = {
+  email: string;
+};
 
-const LoginScreen: React.FC<LoginProps> = ({ route, navigation }) => {
+const LoginScreen: React.FC<LoginProps> = ({route, navigation}) => {
   const [email, setEmail] = useState('johndoe@gmail.com');
   let userType = useSelector((type: any) => type.user.userType);
-console.log("userType", userType);
-const container = useContainer();
+  console.log('userType', userType);
+  const container = useContainer();
 
   const {
     control,
-    formState: { errors },
+    formState: {errors},
     handleSubmit,
   } = useForm<any>();
+  const {mutate} = useMutation({
+    mutationFn: (data: Inputs) => signInApi(data, 'edit'),
+    onSuccess: async (data: any) => {
+      showAlert({
+        isVisible: true,
+        type: 'success',
+        title: 'Sign In',
+        description: capitalizeFirstLetter(data?.message),
+        doneText: 'Okay',
+        onDonePress: () => {
+         navigation.navigate(SCREENS.VerifyOTP, {otp: data?.data.otp})
+        },
+      });
+    },
+    onError: (error: errorMsg) => {
+      console.log("error---", error);
+      
+      showLoader(false);
+      showAlert({
+        isVisible: true,
+        type: 'error',
+        title: capitalizeFirstLetter(error.status),
+        description: error.message,
+        doneText: 'Okay',
+      });
+    },
+    onSettled: () => {
+      showLoader(false);
+    },
+  });
+
+  const submit = (userData: Inputs) => {
+    // console.log("\\", userData);
+    
+    showLoader(true);
+    mutate(userData);
+  
+  };
   return (
-    <ImageBackgroundHeader containerStyle={[container,styles.container]} hideBack ={true} >
+    <ImageBackgroundHeader
+      containerStyle={[container, styles.container]}
+      hideBack={true}>
       <View style={styles.content}>
         <IconsSvg name="box" />
         <Text style={styles.title}>Get Started now</Text>
@@ -48,7 +97,7 @@ const container = useContainer();
             inputProps={{
               placeholder: 'Enter Email Address Here',
             }}
-            required={{ value: true, message: 'Email address required' }}
+            required={{value: true, message: 'Email address required'}}
             pattern={{
               value: emailPattern,
               message: 'Invalid email format',
@@ -56,14 +105,15 @@ const container = useContainer();
             error={errors}
             keyboardType="email-address"
             maxLength={40}
-            inputStyle={{ height: 53, borderRadius: 160 }}
+            inputStyle={{height: 53, borderRadius: 160}}
           />
         </View>
 
         <Button
           title={'Send OTP'}
           style={styles.sendOtpButton}
-          onPress={() => navigation.navigate(SCREENS.VerifyOTP)}
+          onPress={handleSubmit(submit)}
+          // onPress={() => navigation.navigate(SCREENS.VerifyOTP)}
         />
         <WhiteButton
           title={'Login as Guest'}
@@ -72,7 +122,8 @@ const container = useContainer();
         />
         <View style={styles.registerContainer}>
           <Text style={styles.registerText}>Don't have an account? </Text>
-          <TouchableOpacity onPress={()=> navigation.navigate(SCREENS.SignUpScreen)}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate(SCREENS.SignUpScreen)}>
             <Text style={styles.registerLink}>Register Now</Text>
           </TouchableOpacity>
         </View>
@@ -91,13 +142,13 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     alignItems: 'center',
-    marginTop:40
+    marginTop: 40,
   },
 
   title: {
     fontSize: 32,
     color: colors.primaryBlack,
-    fontFamily: OS === 'ios' ?  "Satoshi":  fonts.bold,
+    fontFamily: OS === 'ios' ? 'Satoshi' : fonts.bold,
     marginVertical: 10,
   },
   subtitle: {
@@ -152,5 +203,5 @@ const styles = StyleSheet.create({
     color: colors.secondary,
     fontFamily: fonts.bold,
   },
-  emailContainer: { marginTop: 20 },
+  emailContainer: {marginTop: 20},
 });
