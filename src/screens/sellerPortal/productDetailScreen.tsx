@@ -44,7 +44,7 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ navigation })
       <Button 
           title={'Withdraw'} 
           style={styles.withdrawButton}
-          onPress={{}}
+          // onPress={()=>}
         />
     </TitleBackHeaderContainer>
   )

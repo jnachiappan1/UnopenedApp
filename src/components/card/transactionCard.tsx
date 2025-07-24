@@ -6,12 +6,37 @@ import IconsSvg, { IconName } from '../../assets/svg/iconsSvg';
 import colors from '../../utils/colors';
 export type TransactionTypeName = 'credit' | 'debit' | 'add';
 
-type TransactionType = {
-  id: string;
-  title: string;
-  dateTime: string;
-  amount: number;
-  type: string;
+export type TransactionType = {
+  id: number
+  user: number
+  transactionType: string
+  amount: string
+  currency: string
+  transactionId: any
+  status: string
+  purpose: string
+  type: string
+  tx_ref: string
+  flw_ref: any
+  device_fingerprint: any
+  charged_amount: any
+  app_fee: any
+  merchant_fee: any
+  processor_response: any
+  auth_model: any
+  ip: any
+  narration: any
+  payment_type: any
+  account_id: any
+  meta: any
+  amount_settled: any
+  customer: any
+  currentWalletbalance: any
+  method: string
+  category: any
+  notes: string
+  createdAt: string
+  updatedAt: string
 };
 
 type Props = {
@@ -58,7 +83,7 @@ const getTypeStyles = (rawType: string) => {
 };
 
 const TransactionCard: React.FC<Props> = ({ item }) => {
-  const { amountColor, prefix, iconName } = getTypeStyles(item.type);
+  const { amountColor, prefix, iconName } = getTypeStyles(item.transactionType);
 
   return (
     <View style={styles.card}>
@@ -67,18 +92,18 @@ const TransactionCard: React.FC<Props> = ({ item }) => {
           <IconsSvg name={iconName as IconName} width={20} height={20} />
         </View>
         <View style={{ marginLeft: 10 }}>
-          <Text style={styles.title}>{item.title}</Text>
+          <Text style={styles.title}>{item.purpose}</Text>
           <View style={{flexDirection:'row',paddingVertical:5}}>
             <IconsSvg name={'celender'} width={20} height={20} />
             <Text style={styles.subtitle}>
-              {item.dateTime}</Text>
+              {item.notes}</Text>
           </View>
 
         </View>
       </View>
 
       <Text style={[styles.amount, { color: amountColor }]}>
-        {prefix}${Math.abs(item.amount)}
+      {prefix}${Math.abs(Number(item.amount))}
       </Text>
     </View>
   );

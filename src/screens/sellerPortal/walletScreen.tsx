@@ -7,20 +7,37 @@ import fonts from '../../assets/fonts/fonts'
 import IconsSvg from '../../assets/svg/iconsSvg'
 import { FlashList } from '@shopify/flash-list'
 import { pendingTranferData, transactions } from '../../utils/static'
-import TransactionCard from '../../components/card/transactionCard'
+import TransactionCard, { TransactionType } from '../../components/card/transactionCard'
 import PendingCard from '../../components/card/pendingCard'
 import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation'
 import { NativeStackScreenProps } from '@react-navigation/native-stack'
+import { useQuery } from '@tanstack/react-query'
+import { getTransactionList, getWalletDetail } from '../../utils/apiAction'
 type WalletScreenProps = NativeStackScreenProps<RootStackParamList, SCREENS.WalletScreen>;
 
 const WalletScreen: React.FC<WalletScreenProps> = ({ navigation }) => {
+  const { data: walletData, refetch: refetchWalletDetail } = useQuery({
+    queryKey: ['getWalletDetail'],
+    queryFn: () => getWalletDetail(),
+  });
+  const {
+    isLoading: isTransactionLoading,
+    data: transactionData,
+    refetch: refetchTransactionData,
+  } = useQuery({
+    queryKey: ['getTransactionList'],
+    queryFn: () => getTransactionList(),
+  });
+  
+  console.log(JSON.stringify(transactionData),"transactionData---");
+  
   return (
     <TitleBackHeaderContainer title='Wallet' >
       <View style={styles.transactionsContainer}>
         <View style={styles.innerBalanceContainer}>
           <Text style={styles.availableText}>Available Balance</Text>
           <Text style={styles.amountText}>
-            $2,430.00
+            {"$" +walletData?.data?.wallet?.amount}
           </Text>
         </View>
         <View style={styles.balanceContainer}>
@@ -45,16 +62,14 @@ const WalletScreen: React.FC<WalletScreenProps> = ({ navigation }) => {
         <Text style={styles.title}>Transactions History</Text>
         <Text style={styles.viewAllText}>View All</Text>
       </View>
-      <FlashList
-        data={transactions}
-        renderItem={({ item }) => <TransactionCard item={item} />}
-        estimatedItemSize={80}
-        contentContainerStyle={{ paddingBottom: 20 }}
-        keyExtractor={(item) => item.id}
-      />
-
+        <FlashList
+          data={transactionData?.data?.transaction || []}
+          renderItem={({ item }) => <TransactionCard item={item as TransactionType} />}
+          estimatedItemSize={80}
+          contentContainerStyle={{ paddingBottom: 20 }}
+          keyExtractor={(item) => (item as TransactionType).id.toString()}
+        />
         <Text style={styles.pendingText}>Pending Transfers</Text>
-     
         <FlashList
         data={pendingTranferData}
         renderItem={({ item }) => <PendingCard item={item} />}

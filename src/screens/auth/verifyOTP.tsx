@@ -1,105 +1,173 @@
 /* eslint-disable @typescript-eslint/no-shadow */
-import { StyleSheet, Text, View } from 'react-native';
-import React, { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { IColors, getColors } from '../../utils/colors';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import {StyleSheet, Text, View} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {useForm} from 'react-hook-form';
+import {IColors, getColors} from '../../utils/colors';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import fonts from '../../assets/fonts/fonts';
-import { CommonActions } from '@react-navigation/native';
-import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
-import { useTimer } from '../../components/hooks/useTimer';
-import Header from '../../components/headerContainer/header';
+import {CommonActions} from '@react-navigation/native';
+import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
+import {useTimer} from '../../components/hooks/useTimer';
 import Button from '../../components/button/buttons';
-import InputPassword from '../../components/input/inputPassword';
-import HeaderContainer from '../../components/headerContainer/headerContainer';
 import ImageBackgroundHeader from '../../components/headerContainer/imageBackgroundHeader';
 import InputOtp from '../../components/input/InputOTP';
+import {showLoader} from '../../components/loader/loader';
+import {useMutation} from '@tanstack/react-query';
+import {showAlert} from '../../components/cAlert';
+import {capitalizeFirstLetter} from '../../utils/utils';
+import {verifyOtpApi, resendOtpApi} from '../../utils/apiAction';
+import { handleError, handleSettled } from '../../utils/method';
+import { ResendInputPayloadType } from '../../utils/payload';
+import { useDispatch } from 'react-redux';
+import { saveUserData, setAuthToken } from '../../redux/reducers/user/UserReducer';
 
 type Inputs = {
   otp: string;
 };
-
+type ResendInput = {
+  email: string;
+};
 type VerifyOTPProps = NativeStackScreenProps<
   RootStackParamList,
   SCREENS.VerifyOTP
 >;
 
-const VerifyOTP: React.FC<VerifyOTPProps> = ({ route, navigation }) => {
+const VerifyOTP: React.FC<VerifyOTPProps> = ({route, navigation}) => {
   // let userType = useSelector((type: any) => type.user.userType);
-  // const {Email, Screen} = route.params;
-  // const dispatch = useDispatch();
+  const {otp, email, type} = route.params;
+  const [resendOtp, setResendOtp] = useState('');
+  const dispatch = useDispatch();
   const colors = getColors();
   const styles = getStyles(colors);
   const {
     control,
-    formState: { errors },
+    formState: {errors},
     handleSubmit,
   } = useForm<Inputs>();
 
-  const { pause, reset, running, seconds, start, stop } = useTimer({
-    initialSeconds: 30,
-    initiallyRunning: false,
+  const {pause, reset, running, seconds, start, stop} = useTimer({
+    initialSeconds: 5,
+    initiallyRunning: true,
   });
 
-  const onSetCounting = () => {
-    if (seconds >= 0) {
-      const timerId = setInterval(() => {
-        start();
-      }, 1000);
-
-      return () => clearInterval(timerId);
-    } else {
+  useEffect(() => {
+    if (seconds <= 0) {
       pause();
     }
+  }, [seconds, pause]);
+
+  const { mutate: resendMutate } = useMutation({
+    mutationFn: (data: ResendInput) => resendOtpApi(type!, data),
+    onSuccess: async (data: any) => {
+      setResendOtp(data?.data?.otp);
+      showAlert({
+        isVisible: true,
+        type: 'success',
+        title: 'OTP Resent',
+        description: capitalizeFirstLetter(data?.message),
+        doneText: 'Okay',
+        onDonePress: () => {
+          reset();
+          start();
+        },
+      });
+    },
+    onError: handleError,
+    onSettled: () => {
+      showLoader(false);
+    },
+  });
+  const onResendOTP = () => {
+    if (!email || !type) return;
+    const payload: ResendInput = { email };
+    showLoader(true);
+    resendMutate(payload);
   };
-
-  useEffect(() => {
-    onSetCounting();
-  }, [seconds]);
-
-  const onResendOTP = () => {};
 
   const renderCounting = (
     <Text style={styles.resendOTPTxt}>
       {'Resend code in'}{' '}
       <Text style={styles.digitTxt}>
         {'00:'}
-        {seconds}
-      </Text>{' '}
-      {/* {('Seconds.')} */}
+        {seconds.toString().padStart(2, '0')}
+      </Text>
     </Text>
   );
 
   const renderResendOTP = (
     <Text style={styles.resendOTPTxt} onPress={onResendOTP}>
-      {"Didn't receive an OTP,"}{' '}
+      {"Didn't receive an OTP? "}{' '}
       <Text style={styles.digitTxt}>{'Resend again'}</Text>
     </Text>
   );
 
-  const showResendTxt = seconds >= 0 ? renderCounting : renderResendOTP;
+  const showResendTxt = seconds > 0 ? renderCounting : renderResendOTP;
+  const { mutate } = useMutation({
+    mutationFn: ({ type, payload }: { type: string; payload: ResendInputPayloadType }) =>
+      verifyOtpApi(type, payload),
+    onSuccess: async (data: any) => {
+      dispatch(setAuthToken(data.data.token));
+      dispatch(saveUserData(data.data.user));
+      showAlert({
+        isVisible: true,
+        type: 'success',
+        title: 'OTP Verified',
+        description: capitalizeFirstLetter(data?.message),
+        doneText: 'Okay',
+        onDonePress: () => {
+          navigation.dispatch(
+            CommonActions.reset({
+              index: 0,
+              routes: [{ name: SCREENS.BottomTab }],
+            })
+          );
+        },
+      });
+    },
+    onError: handleError,
+    onSettled: handleSettled
+  });
 
-  const submit = (data: Inputs) => {};
+  const submit = (data: Inputs) => {
+    if (!type) return;
+
+    const payload = {
+      email: email,
+      ...data,
+    };
+    showLoader(true);
+    mutate({ type, payload });
+  };
 
   return (
-    <ImageBackgroundHeader title={''} containerStyle={styles.container}>
+    <ImageBackgroundHeader  title={''} containerStyle={styles.container}
+    onBackPress={()=>navigation.goBack()}>
       <Text style={styles.subHeading}>{'Verify OTP'}</Text>
       <Text style={styles.codeSentText}>
         {'Please enter 4 digit code we sent to you on'}
       </Text>
-      <Text style={styles.emailText}>{'Loisbecket@gmail.com'}</Text>
+      <Text style={styles.emailText}>{email}</Text>
+      <Text style={styles.emailText}>
+        {'Otp: '}
+        {resendOtp ? resendOtp : otp}
+      </Text>
+
       <InputOtp
         control={control}
         name="otp"
         label=""
-        required={{ value: true, message: 'Required OTP' }}
+        required={{value: true, message: 'Required OTP'}}
         pattern={{
-          value: /^[0-9]{4}$/,
-          message: 'OTP must be a 4-digit number',
+          value: /^[0-9]{6}$/,
+          message: 'OTP must be a 6-digit number',
         }}
         error={errors}
       />
-      <Button title={'Verify'} style={styles.buttonStyle} onPress={()=> navigation.navigate(SCREENS.BottomTab)} />
+      <Button
+        title={'Verify'}
+        style={styles.buttonStyle}
+        onPress={handleSubmit(submit)}
+      />
       {showResendTxt}
     </ImageBackgroundHeader>
   );
@@ -132,7 +200,7 @@ const getStyles = (colors: IColors) =>
       color: colors.text,
       fontSize: 14,
     },
-    otpContainer: { marginTop: 20 },
+    otpContainer: {marginTop: 20},
     resendOTPTxt: {
       textAlign: 'center',
       fontSize: 14,

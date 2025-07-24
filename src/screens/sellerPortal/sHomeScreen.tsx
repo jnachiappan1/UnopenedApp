@@ -10,11 +10,15 @@ import ProductListingCard from '../../components/card/productListingCard';
 import { fontSizes } from '../../utils/utils';
 import colors from '../../utils/colors';
 import fonts from '../../assets/fonts/fonts';
+import { IRootState } from '../../redux/store';
+import { useSelector } from 'react-redux';
 
 type PHomeScreenProps = NativeStackScreenProps<RootStackParamList, SCREENS.SHomeScreen>;
 
 const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
   const [selectedTab, setSelectedTab] = useState('All');
+  const userData = useSelector((user: IRootState) => user.user.userData);
+
   const filterData = () => {
     if (selectedTab === 'All') {
       return productData;
@@ -54,7 +58,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
   return (
     <HeaderHomeContainer
       title={'Welcome,'}
-      userName={"Hello John"}
+      userName={`Hello ${userData?.full_name ?? 'Guest'}`}
       isHome
       onSearchPress={() => { }}
     >

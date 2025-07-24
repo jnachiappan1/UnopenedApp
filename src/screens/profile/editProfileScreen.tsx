@@ -17,6 +17,13 @@ import InputCountry from '../../components/input/inputCountry';
 import InputState from '../../components/input/inputState';
 import InputCity from '../../components/input/inputCity';
 import GenderDropdown from '../../components/input/genderDropdown';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { signUp, updateProfile, viewProfile } from '../../utils/apiAction';
+import { showLoader } from '../../components/loader/loader';
+import { showAlert } from '../../components/cAlert';
+import { handleError, handleSettled } from '../../utils/method';
+import { saveUserData } from '../../redux/reducers/user/UserReducer';
+import { useDispatch } from 'react-redux';
 
 type EditProfileScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -24,38 +31,102 @@ type EditProfileScreenProps = NativeStackScreenProps<
 >;
 
 type Inputs = {
-  name: string;
+  full_name: string;
   pincode: string;
   email?: string;
   address?: string;
+  phone_number?: string;
   profileImage?: string;
   country?: string;
+  city?: string;
   state?: string;
   gender?: string;
 };
 
 const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation }) => {
+  const dispatch = useDispatch();
+
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isFormChanged, setIsFormChanged] = useState<boolean>(false);
+  const {data, refetch} = useQuery({
+    queryKey: ['getProfile'],
+    queryFn: viewProfile,
+    
+  });
   const {
     control,
     handleSubmit,
     setValue,
     watch,
+    reset,
     getValues,
-    formState: { errors },
-  } = useForm<Inputs>();
+    formState: { errors, isDirty },
+  } = useForm<Inputs>({ defaultValues: {
+    full_name: '',
+    email: '',
+    phone_number: '',
+    address: '',
+    country: '',
+    state: '',
+    city: '',
+    pincode: '',
+    gender: '',
+  },});
 
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isFormChanged, setIsFormChanged] = useState<boolean>(false);
-
-  useFocusEffect(
-    useCallback(() => {
-
-    }, []),
-  );
-  const onSubmit = (data: Inputs) => {
-
+  const { mutate } = useMutation({
+    mutationFn: updateProfile,
+    onSuccess: (data) => {
+      dispatch(saveUserData(data.data.user));
+      showLoader(false);
+      showAlert({
+        isVisible: true,
+        type: 'success',
+        title: 'Profile',
+        description: 'Your profile update successfully',
+        doneText: 'Okay',
+        onDonePress: () => {
+          navigation.goBack();
+        },
+      });
+    },
+    onError: handleError,
+    onSettled: handleSettled,
+  });
+  const onSubmit = (formData: Inputs)=> {
+    const payload = {
+      full_name: formData.full_name,
+      email: formData.email,
+      phone_number: formData.phone_number,
+      address: formData.address,
+      country: formData.country,
+      state: formData.state,
+      city: formData.city,
+      pincode: formData.pincode,
+      gender: formData.gender,
+      profile_image: formData.profileImage || '',
+    };
+  
+    showLoader(true);
+    mutate(payload);
   };
-
+  useEffect(() => {
+    if (data?.data?.user) {
+      const user = data.data.user;
+      const fields: Inputs = {
+        full_name: user.full_name || '',
+        email: user.email || '',
+        phone_number: user.phone_number || '',
+        address: user.address || '',
+        country: user.country || '',
+        state: user.state || '',
+        city: user.city || '',
+        pincode: user.pincode || '',
+        gender: user.gender || '',
+      };
+  
+      reset(fields); // ✅ this won't set form as dirty
+    }
+  }, [data, reset]);
   return (
     <TitleBackHeaderContainer title={"My Profile"} isBack>
       <View style={styles.profileContainer}>
@@ -74,7 +145,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation }) => 
       <View style={[styles.imageContainer]}>
         <Input
           control={control}
-          name="name"
+          name="full_name"
           label={'Full Name'}
           containerStyle={styles.emailContainer}
           inputProps={{
@@ -84,6 +155,24 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation }) => 
           error={errors}
           maxLength={40}
           inputStyle={styles.inputStyle}
+        />
+         <Input
+          control={control}
+          name="phone_number"
+          label={'Phone Number'}
+          containerStyle={styles.emailContainer}
+          inputProps={{
+            placeholder: 'Enter Phone Number',
+          }}
+          required={{
+            value: true,
+            message: 'Please enter your phone number',
+          }}
+          error={errors}
+          keyboardType="numeric"
+          maxLength={40}
+          inputStyle={styles.inputStyle}
+          disabled
         />
         <Input
           control={control}
@@ -102,6 +191,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation }) => 
           keyboardType="email-address"
           maxLength={40}
           inputStyle={styles.inputStyle}
+          disabled
         />
         <Input
           control={control}
@@ -161,16 +251,13 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation }) => 
           />
         </View>
       </View>
-
-
       <Button
         title={'Save Changes'}
         style={styles.btnContainer}
         textStyle={styles.btnTextStyle}
         onPress={handleSubmit(onSubmit)}
-        // disabled={isFormChanged ? false : true}
+        disabled={!isDirty}
       />
-
       <ImageUpload
         control={control}
         name="profileImage"

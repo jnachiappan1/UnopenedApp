@@ -5,7 +5,7 @@ import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
 import fonts from '../../assets/fonts/fonts';
 import Input from '../../components/input/input';
 import { useForm } from 'react-hook-form';
-import { emailPattern, fontSizes, height, OS } from '../../utils/utils';
+import { capitalizeFirstLetter, emailPattern, fontSizes, height, OS } from '../../utils/utils';
 import colors from '../../utils/colors';
 import { errorMsg } from '../../utils/types';
 import { showAlert } from '../../components/cAlert';
@@ -18,6 +18,13 @@ import WhiteButton from '../../components/button/whiteButton';
 import IMAGE from '../../assets/images';
 import InputOtp from '../../components/input/InputOTP';
 import { useTimer } from '../../components/hooks/useTimer';
+import { handleError, handleSettled } from '../../utils/method';
+import { useMutation } from '@tanstack/react-query';
+import { resendOtpApi, verifyOtpApi } from '../../utils/apiAction';
+import { ResendInputPayloadType } from '../../utils/payload';
+import { saveUserData, setAuthToken } from '../../redux/reducers/user/UserReducer';
+import { CommonActions } from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
 
 type ProfileVerifyScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -27,10 +34,17 @@ type ProfileVerifyScreenProps = NativeStackScreenProps<
 type Inputs = {
   otp: string;
 };
+type ResendInput = {
+  email: string;
+};
 
 const ProfileVerifyScreen: React.FC<ProfileVerifyScreenProps> = ({
-  navigation,
+  navigation,route
 }) => {
+  const {otp, email, type} = route.params;
+  const [resendOtp, setResendOtp] = useState('');
+  const dispatch = useDispatch();
+
   const defaultValues = {
     otp: ''
   };
@@ -41,10 +55,42 @@ const ProfileVerifyScreen: React.FC<ProfileVerifyScreenProps> = ({
     watch,
     formState: { errors },
   } = useForm<Inputs>({ defaultValues });
+  const { mutate } = useMutation({
+    mutationFn: ({ type, payload }: { type: string; payload: ResendInputPayloadType }) =>
+      verifyOtpApi(type, payload),
+    onSuccess: async (data: any) => {
+      dispatch(setAuthToken(data.data.token));
+      dispatch(saveUserData(data.data.user));
+      showAlert({
+        isVisible: true,
+        type: 'success',
+        title: 'OTP Verified',
+        description: capitalizeFirstLetter(data?.message),
+        doneText: 'Okay',
+        onDonePress: () => {
+          navigation.dispatch(
+            CommonActions.reset({
+              index: 0,
+              routes: [{ name: SCREENS.BottomTab }],
+            })
+          );
+        },
+      });
+    },
+    onError: handleError,
+    onSettled: handleSettled
+  });
   const submit = (data: Inputs) => {
-    console.log('Password change data:', data);
+    if (!type) return;
 
+    const payload = {
+      email: email,
+      ...data,
+    };
+    showLoader(true);
+    mutate({ type, payload });
   };
+
 
   const { pause, reset, running, seconds, start, stop } = useTimer({
     initialSeconds: 30,
@@ -67,8 +113,31 @@ const ProfileVerifyScreen: React.FC<ProfileVerifyScreenProps> = ({
     onSetCounting();
   }, [seconds]);
 
-  const onResendOTP = () => { };
-
+  const { mutate: resendMutate } = useMutation({
+    mutationFn: (data: ResendInput) => resendOtpApi(type!, data),
+    onSuccess: async (data: any) => {
+      setResendOtp(data?.data?.otp);
+      showAlert({
+        isVisible: true,
+        type: 'success',
+        title: 'OTP Resent',
+        description: capitalizeFirstLetter(data?.message),
+        doneText: 'Okay',
+        onDonePress: () => {
+          reset();
+          start();
+        },
+      });
+    },
+    onError: handleError,
+    onSettled: handleSettled
+  });
+  const onResendOTP = () => {
+    if (!email || !type) return;
+    const payload: ResendInput = { email };
+    showLoader(true);
+    resendMutate(payload);
+  };
   const renderCounting = (
     <Text style={styles.resendOTPTxt}>
       {'Resend code in'}{' '}
@@ -102,19 +171,27 @@ const ProfileVerifyScreen: React.FC<ProfileVerifyScreenProps> = ({
         <Text style={styles.codeSentText}>
           {'Please enter 4 digit code we sent to you on'}
         </Text>
-        <Text style={styles.emailText}>{'Loisbecket@gmail.com'}</Text>
+        <Text style={styles.emailText}>{email}</Text>
+        <Text style={styles.emailText}>
+        {'Otp: '}
+        {resendOtp ? resendOtp : otp}
+      </Text>
         <InputOtp
           control={control}
           name="otp"
           label=""
           required={{ value: true, message: 'Required OTP' }}
           pattern={{
-            value: /^[0-9]{4}$/,
+            value: /^[0-9]{6}$/,
             message: 'OTP must be a 4-digit number',
           }}
           error={errors}
         />
-        <Button title={'Verify'} style={styles.buttonStyle} onPress={() => navigation.navigate(SCREENS.BottomTab)} />
+           <Button
+        title={'Verify'}
+        style={styles.buttonStyle}
+        onPress={handleSubmit(submit)}
+      />
         {showResendTxt}
       </ImageBackground>
     </IconBackHeaderContainer>

@@ -12,7 +12,7 @@ import Button from '../../components/button/buttons';
 import WhiteButton from '../../components/button/whiteButton';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {useContainer} from '../../components/hooks/useContainer';
 import {showLoader} from '../../components/loader/loader';
 import {CommonActions} from '@react-navigation/native';
@@ -20,6 +20,8 @@ import {showAlert} from '../../components/cAlert';
 import {useMutation} from '@tanstack/react-query';
 import {signInApi} from '../../utils/apiAction';
 import {errorMsg} from '../../utils/types';
+import {handleError} from '../../utils/method';
+import { saveUserData, setAuthToken } from '../../redux/reducers/user/UserReducer';
 
 type LoginProps = NativeStackScreenProps<
   RootStackParamList,
@@ -30,10 +32,9 @@ type Inputs = {
 };
 
 const LoginScreen: React.FC<LoginProps> = ({route, navigation}) => {
-  const [email, setEmail] = useState('johndoe@gmail.com');
   let userType = useSelector((type: any) => type.user.userType);
-  console.log('userType', userType);
   const container = useContainer();
+  const dispatch = useDispatch();
 
   const {
     control,
@@ -41,42 +42,54 @@ const LoginScreen: React.FC<LoginProps> = ({route, navigation}) => {
     handleSubmit,
   } = useForm<any>();
   const {mutate} = useMutation({
-    mutationFn: (data: Inputs) => signInApi(data, 'edit'),
+    mutationFn: (data: Inputs) => signInApi('otp', data),
     onSuccess: async (data: any) => {
-      showAlert({
-        isVisible: true,
-        type: 'success',
-        title: 'Sign In',
-        description: capitalizeFirstLetter(data?.message),
-        doneText: 'Okay',
-        onDonePress: () => {
-         navigation.navigate(SCREENS.VerifyOTP, {otp: data?.data.otp})
-        },
-      });
+      console.log(data,"data---");
+      if(data?.data?.user?.verify_account)
+      {
+        dispatch(setAuthToken(data.data.token));
+        dispatch(saveUserData(data.data.user));
+        showAlert({
+          isVisible: true,
+          type: 'success',
+          title: 'Login Sucessfully',
+          doneText: 'Okay',
+          onDonePress: () => {
+            navigation.dispatch(
+              CommonActions.reset({
+                index: 0,
+                routes: [{ name: SCREENS.BottomTab }],
+              })
+            );
+          },
+        });
+      }
+      else{
+        showAlert({
+          isVisible: true,
+          type: 'success',
+          title: 'Sign In',
+          description: capitalizeFirstLetter(data?.message),
+          doneText: 'Okay',
+          onDonePress: () => {
+            navigation.navigate(SCREENS.VerifyOTP, {
+              otp: data?.data.otp,
+              email: data?.data?.user?.email,
+              type: 'login',
+            });
+          },
+        });
+      }
     },
-    onError: (error: errorMsg) => {
-      console.log("error---", error);
-      
-      showLoader(false);
-      showAlert({
-        isVisible: true,
-        type: 'error',
-        title: capitalizeFirstLetter(error.status),
-        description: error.message,
-        doneText: 'Okay',
-      });
-    },
+    onError: handleError,
     onSettled: () => {
       showLoader(false);
     },
   });
 
   const submit = (userData: Inputs) => {
-    // console.log("\\", userData);
-    
     showLoader(true);
     mutate(userData);
-  
   };
   return (
     <ImageBackgroundHeader

@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Control, Controller, ValidationRule } from 'react-hook-form';
 import IconsSvg from '../../assets/svg/iconsSvg';
+import colors from '../../utils/colors';
 
 type InputProps = {
   control: Control;
@@ -131,7 +132,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   placeholderText: {
-    color: '#999',
+    color: colors.black,
     fontSize: 14,
   },
   errorText: {

@@ -7,7 +7,7 @@ import IMAGE from '../../assets/images';
 import IconsSvg from '../../assets/svg/iconsSvg';
 import { setLoader } from '../../redux/reducers/app/AppReducer';
 import { CommonActions } from '@react-navigation/native';
-import { fontSizes } from '../../utils/utils';
+import { capitalizeFirstLetter, fontSizes } from '../../utils/utils';
 import colors from '../../utils/colors';
 import { IRootState } from '../../redux/store';
 import { useDispatch, useSelector } from 'react-redux';
@@ -15,6 +15,11 @@ import TitleBackHeaderContainer from '../../components/headerContainer/titleBack
 import IconTitleCard from '../../components/card/iconTitleCard';
 import Button from '../../components/button/buttons';
 import LogOutModal from '../../components/model/logIssueModal';
+import { handleError, handleSettled } from '../../utils/method';
+import { removeToken, removeUserData } from '../../redux/reducers/user/UserReducer';
+import { showAlert } from '../../components/cAlert';
+import { useMutation } from '@tanstack/react-query';
+import { logOutAPI } from '../../utils/apiAction';
 
 type ProfileScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -25,12 +30,46 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   const dispatch = useDispatch();
   const userType = useSelector((user: IRootState) => user.user.userType);
   const [isDeleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [isLogoutModalVisible, setLogoutModalVisible] = useState(false);
   const [isEnabled, setIsEnabled] = useState(true);
-
+  const userData = useSelector((user: IRootState) => user.user.userData);
 
   const deleteData = () => {
     setDeleteModalVisible(false);
     setLoader(true);
+  };
+  const { mutate: logOutMutation } = useMutation({
+    mutationFn: logOutAPI,
+    onSuccess: (data: any) => {
+
+      setLoader(false);
+      showAlert({
+        isVisible: true,
+        type: 'success',
+        title: 'Logout',
+        description: capitalizeFirstLetter(data?.message),
+        doneText: 'Okay',
+        onDonePress: () => {
+          setTimeout(() => {
+            dispatch(removeToken());
+            dispatch(removeUserData());
+          }, 500);
+          navigation.dispatch(
+            CommonActions.reset({
+              index: 0,
+              routes: [{ name: SCREENS.LoginScreen }],
+            }),
+          );
+        },
+      });
+    },
+    onError: handleError,
+    onSettled: handleSettled
+  });
+  const logoutPress = () => {
+    setLogoutModalVisible(false);
+    setLoader(true);
+    logOutMutation();
   };
   console.log(userType);
   const handleToggle = () => {
@@ -40,53 +79,59 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   };
   return (
     <TitleBackHeaderContainer isBack title={"My Profile"} containerStyle={{}}>
-      <View style={styles.loginContainer}>
-        <Text style={styles.detailStyle}>Login to get exclusive Offers</Text>
-        <Button
-          title={'Login'}
-          style={styles.sendOtpButton}
-          onPress={() => navigation.navigate(SCREENS.ProfileLoginScreen)}
-        />
-      </View>  
-      <View style={styles.profileContainer}>
-        <View style={styles.profileDetailContainer}>
-          <Image
-            source={IMAGE.profileImage}
-            style={styles.profileImage}
-            resizeMode="cover"
+      {!userData ? (
+        <View style={styles.loginContainer}>
+          <Text style={styles.detailStyle}>Login to get exclusive Offers</Text>
+          <Button
+            title={'Login'}
+            style={styles.sendOtpButton}
+            onPress={() => navigation.navigate(SCREENS.ProfileLoginScreen)}
           />
-          <View style={styles.nameContainer}>
-            <View style={styles.userTypeCOntainer}>
-              <IconsSvg
-                name="rupesIcon"
-                style={styles.rupesIconStyle}
-              />
-              <Text style={styles.userType}>{userType}</Text>
-            </View>
-            <Text style={styles.nameStyle}>John Smith</Text>
-            <Text style={styles.gmailStyle}>johnsmith@gmail.com</Text>
-          </View>
         </View>
-        <IconsSvg
-          name="edit"
-          style={styles.editIconStyle}
-           onPress={() => navigation.navigate(SCREENS.EditProfileScreen)}
-        />
-      </View>
+      ) : (
+        <View style={styles.profileContainer}>
+          <View style={styles.profileDetailContainer}>
+            <Image
+              source={IMAGE.profileImage}
+              style={styles.profileImage}
+              resizeMode="cover"
+            />
+            <View style={styles.nameContainer}>
+              <View style={styles.userTypeCOntainer}>
+                <IconsSvg
+                  name="rupesIcon"
+                  style={styles.rupesIconStyle}
+                />
+                <Text style={styles.userType}>{userType}</Text>
+              </View>
+              <Text style={styles.nameStyle}>{userData?.full_name}</Text>
+              <Text style={styles.gmailStyle}>{userData?.email}</Text>
+            </View>
+          </View>
+          <IconsSvg
+            name="edit"
+            style={styles.editIconStyle}
+            onPress={() => navigation.navigate(SCREENS.EditProfileScreen)}
+          />
+        </View>
+      )}
+
       <Text style={styles.title}>{'General'}</Text>
       <View style={styles.menuContainer}>
-        <IconTitleCard
-          title={"Change Password"}
-          svgName={'changePassword'}
-          rightArrow
-          onPress={() => navigation.navigate(SCREENS.ChangePasswordScreen)}
+        {
+          userData &&
+          <IconTitleCard
+            title={"Change Password"}
+            svgName={'changePassword'}
+            rightArrow
+            onPress={() => navigation.navigate(SCREENS.ChangePasswordScreen)}
+          />
+        }
 
-        />
         <IconTitleCard
           title={"Terms & Conditions"}
           svgName={'termsAndConditions'}
           onPress={() => navigation.navigate(SCREENS.TermsConditionsScreen)}
-
           rightArrow
         />
         <IconTitleCard
@@ -102,31 +147,53 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
           rightArrow
           onPress={() => navigation.navigate(SCREENS.HelpSupportScreen)}
         />
-        <IconTitleCard
-          title={"Notification"}
-          svgName={'notification'}
-          isToggleButtonOnOff
-          style={{ paddingHorizontal: 15 }}
-        />
-        <IconTitleCard
-          title={"Logout"}
-          svgName={'logout'}
-          rightArrow
-        // onPress={() => setModalVisible(true)}
-        />
-        <IconTitleCard
-          title={"Delete Account"}
-          svgName={'deleteAccount'}
-          rightArrow
-          onPress={() => setDeleteModalVisible(true)}
-        />
-        <LogOutModal
-          isModalVisible={isDeleteModalVisible}
-          setModalVisible={setDeleteModalVisible}
-          onSubmit={deleteData}
-          title="Are You Sure?"
-          description="Please confirm you want to Delete."
-        />
+        {
+          userData &&
+          <IconTitleCard
+            title={"Notification"}
+            svgName={'notification'}
+            isToggleButtonOnOff
+            style={{ paddingHorizontal: 15 }}
+          />
+        }
+        {
+          userData &&
+          <IconTitleCard
+            title={"Logout"}
+            svgName={'logout'}
+            rightArrow
+            onPress={() => setLogoutModalVisible(true)}
+          />
+        }
+        {
+          userData &&
+          <IconTitleCard
+            title={"Delete Account"}
+            svgName={'deleteAccount'}
+            rightArrow
+            onPress={() => setDeleteModalVisible(true)}
+          />
+        }
+        {
+          userData &&
+          <LogOutModal
+            isModalVisible={isDeleteModalVisible}
+            setModalVisible={setDeleteModalVisible}
+            onSubmit={deleteData}
+            title="Are You Sure?"
+            description="Please confirm you want to delete."
+          />
+        }
+        {
+          userData &&
+          <LogOutModal
+            isModalVisible={isLogoutModalVisible}
+            setModalVisible={setLogoutModalVisible}
+            onSubmit={logoutPress}
+            title="Are You Sure?"
+            description="Please confirm you want to logout."
+          />
+        }
       </View>
     </TitleBackHeaderContainer>
   );

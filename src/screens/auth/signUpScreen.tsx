@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import fonts from '../../assets/fonts/fonts';
 import Input from '../../components/input/input';
 import { useForm } from 'react-hook-form';
-import { emailPattern } from '../../utils/utils';
+import { capitalizeFirstLetter, emailPattern } from '../../utils/utils';
 import Header from '../../components/headerContainer/header';
 import ImageBackgroundHeader from '../../components/headerContainer/imageBackgroundHeader';
 import IconsSvg from '../../assets/svg/iconsSvg';
@@ -18,6 +18,11 @@ import InputState from '../../components/input/inputState';
 import InputCity from '../../components/input/inputCity';
 import GenderDropdown from '../../components/input/genderDropdown';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { useMutation } from '@tanstack/react-query';
+import { signUp } from '../../utils/apiAction';
+import { handleError, handleSettled } from '../../utils/method';
+import { showAlert } from '../../components/cAlert';
+import { showLoader } from '../../components/loader/loader';
 
 type LoginProps = NativeStackScreenProps<
   RootStackParamList,
@@ -28,32 +33,60 @@ export type InputsRegistration = {
   full_name: string;
   email: string;
   country_code: string;
-  currency: string;
-  country?: string;
-  state?: string;
-  city?: string;
-  area?: string;
-  address?: string;
+  phone_number: string;
+  address: string;
+  country: string;
+  state: string;
+  city: string;
+  pincode: string;
+  gender: string;
   password: string;
-  confirmPassword?: string;
-  referralCode?: string;
-  business_name: string;
-  business_link: string;
-  business_phone_number: string;
-  business_country_code: string;
-  referral_code?: string;
-  fcmToken?: string;
 };
 const SignUpScreen: React.FC<LoginProps> = ({ route, navigation }) => {
   const [email, setEmail] = useState('johndoe@gmail.com');
+  const defaultValues = {
+    full_name: '',
+    email: '',
+    country_code: '+91',
+    phone_number: '',
+    address: '',
+    country: '',
+    state: '',
+    city: '',
+    pincode: '',
+    gender: '',
+    password: '',
+  };
   const {
     control,
     formState: { errors },
     handleSubmit,
     watch,
     getValues,
-  } = useForm<any>();
-  
+  } = useForm<InputsRegistration>({ defaultValues });
+  const { mutate } = useMutation({
+    mutationFn: signUp,
+    onSuccess: (data) => {
+      showLoader(false);
+      showAlert({
+        isVisible: true,
+        type: 'success',
+        title: 'Welcome to Unopened!',
+        description: 'You can now list your sealed items.',
+        doneText: 'Okay',
+        onDonePress: () => {
+          navigation.navigate(SCREENS.VerifyOTP, {
+            otp: data?.data.otp,
+            email: watch('email') && getValues('email'),
+            type: 'register'
+          })
+        },
+      });
+    },
+    onError: handleError,
+    onSettled: handleSettled,
+  });
+
   return (
     <ImageBackgroundHeader containerStyle={styles.container} hideBack={true}>
       <KeyboardAwareScrollView
@@ -70,7 +103,7 @@ const SignUpScreen: React.FC<LoginProps> = ({ route, navigation }) => {
         </Text>
         <Input
           control={control}
-          name="name"
+          name="full_name"
           label={'Full Name'}
           containerStyle={styles.emailContainer}
           inputProps={{
@@ -83,7 +116,7 @@ const SignUpScreen: React.FC<LoginProps> = ({ route, navigation }) => {
         />
         <Input
           control={control}
-          name="phoneNumber"
+          name="phone_number"
           label={'Phone Number'}
           containerStyle={styles.emailContainer}
           inputProps={{
@@ -147,7 +180,7 @@ const SignUpScreen: React.FC<LoginProps> = ({ route, navigation }) => {
             error={errors}
             required={{ value: true, message: 'State is required' }}
           />
-         
+
           <InputCity
             control={control}
             name="city"
@@ -157,6 +190,23 @@ const SignUpScreen: React.FC<LoginProps> = ({ route, navigation }) => {
             placeholder={'City'}
             error={errors}
             required={{ value: true, message: 'City is required' }}
+          />
+          <Input
+            control={control}
+            name="pincode"
+            label={'Pincode'}
+            // containerStyle={styles.emailContainer}
+            inputProps={{
+              placeholder: 'Enter Pincode',
+            }}
+            required={{
+              value: true,
+              message: 'Please enter your pincode',
+            }}
+            error={errors}
+            keyboardType="numeric"
+            maxLength={40}
+            inputStyle={styles.inputStyle}
           />
           <GenderDropdown
             control={control}
@@ -171,13 +221,15 @@ const SignUpScreen: React.FC<LoginProps> = ({ route, navigation }) => {
           />
         </View>
 
-      
-        <Button 
-          title={'Create Account'} 
+
+        <Button
+          title={'Create Account'}
           style={styles.sendOtpButton}
           onPress={handleSubmit((data) => {
             // Handle form submission
             console.log(data);
+            showLoader(true);
+            mutate(data);
           })}
         />
 
@@ -207,10 +259,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingBottom: 30, // Add padding at bottom for better spacing
   },
-  boxIconStyle:{ alignSelf: 'center',marginTop:30 },
+  boxIconStyle: { alignSelf: 'center', marginTop: 30 },
   inputStyle: {
     height: 53,
-    borderRadius: 160, 
+    borderRadius: 160,
     width: '100%',
   },
   title: {
@@ -218,7 +270,7 @@ const styles = StyleSheet.create({
     color: colors.primaryBlack,
     fontFamily: fonts.bold,
     marginVertical: 10,
-    
+
   },
   subtitle: {
     fontSize: 16,
@@ -229,7 +281,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   locationContainer: {
-    marginTop: 20, 
+    marginTop: 20,
     width: '100%'
   },
   sendOtpButton: {
@@ -254,7 +306,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bold,
     marginLeft: 5,
   },
-  emailContainer: { 
-    marginTop: 20 
+  emailContainer: {
+    marginTop: 20
   },
 });

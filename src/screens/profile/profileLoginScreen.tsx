@@ -5,7 +5,7 @@ import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
 import fonts from '../../assets/fonts/fonts';
 import Input from '../../components/input/input';
 import { useForm } from 'react-hook-form';
-import { emailPattern, fontSizes, height, OS } from '../../utils/utils';
+import { capitalizeFirstLetter, emailPattern, fontSizes, height, OS } from '../../utils/utils';
 import colors from '../../utils/colors';
 import { errorMsg } from '../../utils/types';
 import { showAlert } from '../../components/cAlert';
@@ -16,6 +16,9 @@ import IconBackHeaderContainer from '../../components/headerContainer/iconBackHe
 import IconsSvg from '../../assets/svg/iconsSvg';
 import WhiteButton from '../../components/button/whiteButton';
 import IMAGE from '../../assets/images';
+import { handleError, handleSettled } from '../../utils/method';
+import { useMutation } from '@tanstack/react-query';
+import { signInApi } from '../../utils/apiAction';
 
 type ProfileLoginScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -23,18 +26,14 @@ type ProfileLoginScreenProps = NativeStackScreenProps<
 >;
 
 type Inputs = {
-  currentPassword: string;
-  newPassword: string;
-  confirmPassword: string;
+  email: string;
 };
 
 const ProfileLoginScreen: React.FC<ProfileLoginScreenProps> = ({
   navigation,
 }) => {
   const defaultValues = {
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
+    email: '',
   };
 
   const {
@@ -43,60 +42,84 @@ const ProfileLoginScreen: React.FC<ProfileLoginScreenProps> = ({
     watch,
     formState: { errors },
   } = useForm<Inputs>({ defaultValues });
-  const submit = (data: Inputs) => {
-    console.log('Password change data:', data);
 
+  const {mutate} = useMutation({
+    mutationFn: (data: Inputs) => signInApi('otp', data),
+    onSuccess: async (data: any) => {
+      console.log(data,"data---");
+        showAlert({
+          isVisible: true,
+          type: 'success',
+          title: 'Sign In',
+          description: capitalizeFirstLetter(data?.message),
+          doneText: 'Okay',
+          onDonePress: () => {
+            // navigation.navigate(SCREENS.ProfileVerifyScreen)
+            navigation.navigate(SCREENS.ProfileVerifyScreen, {
+              otp: data?.data.otp,
+              email: data?.data?.user?.email,
+              type: 'login',
+            });
+          },
+        });
+    },
+    onError: handleError,
+    onSettled:handleSettled
+  });
+
+  const submit = (userData: Inputs) => {
+    showLoader(true);
+    mutate(userData);
   };
-  const newPassword = watch('newPassword');
-
   return (
     <IconBackHeaderContainer isBack>
       <ImageBackground
-      source={IMAGE.imageBackground}
-      resizeMode="contain"
-      style={{height:height,
-      paddingHorizontal: 20,
+        source={IMAGE.imageBackground}
+        resizeMode="contain"
+        style={{
+          height: height,
+          paddingHorizontal: 20,
         }}>
-<StatusBar backgroundColor={colors.primary} barStyle="light-content" />
-      <View style={styles.content}>
-        <IconsSvg name="box" />
-        <Text style={styles.title}>Get Started now</Text>
-        <Text style={styles.subtitle}>
-          Create an account or log in to{'\n'}explore about our app
-        </Text>
-        <View style={styles.inputContainer}>
-          <Input
-            control={control}
-            name="email"
-            label={'Enter Email Address'}
-            containerStyle={styles.emailContainer}
-            inputProps={{
-              placeholder: 'Enter Email Address Here',
-            }}
-            required={{ value: true, message: 'Email address required' }}
-            pattern={{
-              value: emailPattern,
-              message: 'Invalid email format',
-            }}
-            error={errors}
-            keyboardType="email-address"
-            maxLength={40}
-            inputStyle={{ height: 53, borderRadius: 160 }}
-          />
-        </View>
+        <StatusBar backgroundColor={colors.primary} barStyle="light-content" />
+        <View style={styles.content}>
+          <IconsSvg name="box" />
+          <Text style={styles.title}>Get Started now</Text>
+          <Text style={styles.subtitle}>
+            Create an account or log in to{'\n'}explore about our app
+          </Text>
+          <View style={styles.inputContainer}>
+            <Input
+              control={control}
+              name="email"
+              label={'Enter Email Address'}
+              containerStyle={styles.emailContainer}
+              inputProps={{
+                placeholder: 'Enter Email Address Here',
+              }}
+              required={{ value: true, message: 'Email address required' }}
+              pattern={{
+                value: emailPattern,
+                message: 'Invalid email format',
+              }}
+              error={errors}
+              keyboardType="email-address"
+              maxLength={40}
+              inputStyle={{ height: 53, borderRadius: 160 }}
+            />
+          </View>
 
-        <Button
-          title={'Send OTP'}
-          style={styles.sendOtpButton}
-          onPress={() => navigation.navigate(SCREENS.ProfileVerifyScreen)}
-        />
-        <View style={styles.registerContainer}>
-          <Text style={styles.registerText}>Don't have an account? </Text>
-          <TouchableOpacity onPress={()=> navigation.navigate(SCREENS.SignUpScreen)}>
-            <Text style={styles.registerLink}>Register Now</Text>
-          </TouchableOpacity>
+          <Button
+            title={'Send OTP'}
+            style={styles.sendOtpButton}
+            onPress={handleSubmit(submit)}
+          />
+          <View style={styles.registerContainer}>
+            <Text style={styles.registerText}>Don't have an account? </Text>
+            <TouchableOpacity onPress={() => navigation.navigate(SCREENS.SignUpScreen)}>
+              <Text style={styles.registerLink}>Register Now</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View> 
       </ImageBackground>
     </IconBackHeaderContainer>
   );
@@ -113,13 +136,13 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     alignItems: 'center',
-    marginTop:40
+    marginTop: 40
   },
 
   title: {
     fontSize: 32,
     color: colors.primaryBlack,
-    fontFamily: OS === 'ios' ?  "Satoshi":  fonts.bold,
+    fontFamily: OS === 'ios' ? "Satoshi" : fonts.bold,
     marginVertical: 10,
   },
   subtitle: {
@@ -132,7 +155,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     width: '100%',
     marginBottom: 24,
-    marginVertical:20
+    marginVertical: 20
   },
   sendOtpButton: {
     backgroundColor: colors.primary,
@@ -147,7 +170,7 @@ const styles = StyleSheet.create({
   registerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop:30
+    marginTop: 30
   },
   registerText: {
     fontSize: 14,
@@ -159,5 +182,5 @@ const styles = StyleSheet.create({
     color: colors.secondary,
     fontFamily: fonts.bold,
   },
-  emailContainer: { marginTop: 20},
+  emailContainer: { marginTop: 20 },
 });

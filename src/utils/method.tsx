@@ -116,3 +116,4 @@ export const handleError = (error: errorMsg) => {
 export const handleSettled = () => {
   showLoader(false);
 };
+

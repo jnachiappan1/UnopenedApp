@@ -26,16 +26,14 @@ const Button: React.FC<IButtonProps> = props => {
   const titleColor = disabled ? colors.primaryBlack : colors.white;
   return (
     <TouchableOpacity
-      style={ [styles.container, {backgroundColor: bgColor}, style] }
+      style={ [styles.container, { backgroundColor: bgColor, opacity: disabled ? 0.6 : 1 }, style] }
       onPress={ onPress }
       activeOpacity={ 0.8 }
       disabled={ disabled }>
-      <Text style={ [styles.text, {color: titleColor}, textStyle] }>{ title }</Text>
+      <Text style={ [styles.text,  { color: titleColor }, textStyle] }>{ title }</Text>
     </TouchableOpacity>
   );
 };
-
-
 export default Button;
 
 const getStyles = () =>
@@ -51,7 +49,7 @@ const getStyles = () =>
     text: {
       fontFamily: fonts.medium,
       fontSize: 16,
-      color:colors.white,
+      // color:colors.white,
       textAlign: 'center',
     },
   });
