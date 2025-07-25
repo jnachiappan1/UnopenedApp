@@ -19,7 +19,7 @@ import {verifyOtpApi, resendOtpApi} from '../../utils/apiAction';
 import { handleError, handleSettled } from '../../utils/method';
 import { ResendInputPayloadType } from '../../utils/payload';
 import { useDispatch } from 'react-redux';
-import { saveUserData, setAuthToken } from '../../redux/reducers/user/UserReducer';
+import { saveUserData, saveUserType, setAuthToken } from '../../redux/reducers/user/UserReducer';
 
 type Inputs = {
   otp: string;
@@ -106,6 +106,8 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({route, navigation}) => {
     mutationFn: ({ type, payload }: { type: string; payload: ResendInputPayloadType }) =>
       verifyOtpApi(type, payload),
     onSuccess: async (data: any) => {
+      const newType = 'buyer';
+      dispatch(saveUserType(newType));
       dispatch(setAuthToken(data.data.token));
       dispatch(saveUserData(data.data.user));
       showAlert({

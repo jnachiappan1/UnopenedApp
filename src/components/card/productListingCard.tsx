@@ -7,6 +7,7 @@ import colors from '../../utils/colors';
 import IconsSvg from '../../assets/svg/iconsSvg';
 import fonts from '../../assets/fonts/fonts';
 import StatusBadge from './statusBadge';
+import { calculateDaysAgo } from '../../utils/method';
 
 interface ProductListingCardProps {
   item: ProductData;
@@ -16,21 +17,20 @@ interface ProductListingCardProps {
 
 const ProductListingCard: React.FC<ProductListingCardProps> = ({ item,cardStyle ,onSelect}) => {
   const handleCardPress = () => {
-    console.log('Product selected:', item);
     onSelect?.(item);
   };
   return (
     <View style={[styles.cardContainer,cardStyle]}>
       <View style={styles.productDetailView}>
-        <Image source={{ uri: item?.image }} style={styles.cardImage} />
+        <Image source={item?.product_image } style={styles.cardImage} />
         <View>
-          <Text style={styles.cardTitle}>{item?.title}</Text>
-          <Text style={styles.cardPosted}>Posted {item?.daysAgo} Days Ago</Text>
+          <Text style={styles.cardTitle}>{item?.name}</Text>
+          <Text style={styles.cardPosted}>Posted {calculateDaysAgo(item?.createdAt)} Days Ago</Text>
           <Text style={styles.cardPrice}>${item?.price}</Text>
         </View>
       </View>
       <View style={styles.cardDetails}>
-        <StatusBadge status={item.status} />
+        <StatusBadge status={item.product_status} />
         <TouchableOpacity style={styles.viewDetailsBtn} activeOpacity={0.8}  onPress={handleCardPress}>
           <Text style={styles.viewDetailsText}>View Details</Text>
           <IconsSvg name='viewDetailArrow' />

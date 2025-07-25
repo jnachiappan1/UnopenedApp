@@ -80,9 +80,10 @@ const styles = StyleSheet.create({
     borderColor: '#B3B3B3',
     borderStyle: 'dashed',
     borderRadius: 12,
-    padding: 40,
+    padding: 10,
     alignItems: 'center',
     backgroundColor: '#fafafa',
+    paddingVertical:50
   },
   disabled: {
     opacity: 0.6,

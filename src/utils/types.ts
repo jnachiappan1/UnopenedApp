@@ -37,13 +37,29 @@ export interface IUserState {
   userType: string | null | undefined;
   rideId: any;
 }
+export interface ProductCategory {
+  id: number
+  name: string
+  status: string
+  createdAt: string
+  updatedAt: string
+}
 export interface ProductData {
-  id: string;
-  title: string;
-  price: number;
-  daysAgo: number;
-  image: string;
-  status: string;
+  id: number
+  brand: string
+  name: string
+  category_id: number
+  user_id: number
+  msrp: number
+  price: number
+  barcode: string
+  description: string
+  status: string
+  product_status: string
+  createdAt: string
+  updatedAt: string
+  product_image: any[]
+  product_category: ProductCategory
 }
 export interface OrderData {
   id: string;
@@ -82,3 +98,17 @@ export type AlertState = {
   doneText?: string;
   deleteText?: string;
 };
+
+export interface CategoryAPIResponse {
+  status: string;
+  message: string;
+  data: {
+    category: Array<{
+      id: number;
+      name: string;
+      status: string;
+      createdAt: string;
+      updatedAt: string;
+    }>;
+  };
+}

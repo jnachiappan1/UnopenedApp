@@ -16,10 +16,10 @@ import IconTitleCard from '../../components/card/iconTitleCard';
 import Button from '../../components/button/buttons';
 import LogOutModal from '../../components/model/logIssueModal';
 import { handleError, handleSettled } from '../../utils/method';
-import { removeToken, removeUserData } from '../../redux/reducers/user/UserReducer';
+import { removeToken, removeUserData, saveUserType } from '../../redux/reducers/user/UserReducer';
 import { showAlert } from '../../components/cAlert';
 import { useMutation } from '@tanstack/react-query';
-import { logOutAPI } from '../../utils/apiAction';
+import { deleteAPI, logOutAPI } from '../../utils/apiAction';
 
 type ProfileScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -34,9 +34,38 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   const [isEnabled, setIsEnabled] = useState(true);
   const userData = useSelector((user: IRootState) => user.user.userData);
 
+  const { mutate: deleteMutation } = useMutation({
+    mutationFn: deleteAPI,
+    onSuccess: (data: any) => {
+      setLoader(false);
+      showAlert({
+        isVisible: true,
+        type: 'success',
+        title: 'Delete',
+        description: capitalizeFirstLetter(data?.message),
+        doneText: 'Okay',
+        onDonePress: () => {
+          setTimeout(() => {
+            dispatch(removeToken());
+            dispatch(removeUserData());
+          }, 500);
+          navigation.dispatch(
+            CommonActions.reset({
+              index: 0,
+              routes: [{ name: SCREENS.LoginScreen }],
+            }),
+          );
+        },
+      });
+    },
+    onError: handleError,
+    onSettled: handleSettled
+  });
+
   const deleteData = () => {
     setDeleteModalVisible(false);
     setLoader(true);
+    deleteMutation();
   };
   const { mutate: logOutMutation } = useMutation({
     mutationFn: logOutAPI,
@@ -51,6 +80,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
         doneText: 'Okay',
         onDonePress: () => {
           setTimeout(() => {
+            dispatch(saveUserType('buyer'));
             dispatch(removeToken());
             dispatch(removeUserData());
           }, 500);

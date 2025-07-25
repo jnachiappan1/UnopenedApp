@@ -117,3 +117,26 @@ export const handleSettled = () => {
   showLoader(false);
 };
 
+export const calculateDaysAgo = (createdAt: string): string => {
+  const createdDate = new Date(createdAt);
+  const today = new Date();
+  
+  // Reset time to start of day for accurate day calculation
+  const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const startOfCreatedDate = new Date(createdDate.getFullYear(), createdDate.getMonth(), createdDate.getDate());
+  
+  // Calculate difference in milliseconds
+  const timeDifference = startOfToday.getTime() - startOfCreatedDate.getTime();
+  
+  // Convert to days
+  const daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+  
+  // Format with leading zeros based on the number of digits
+  if (daysDifference < 10) {
+    return `0${daysDifference}`; // 01, 02, 03, etc.
+  } else if (daysDifference < 100) {
+    return `${daysDifference}`; // 11, 22, 99, etc.
+  } else {
+    return `${daysDifference}`; // 120, 365, etc.
+  }
+};

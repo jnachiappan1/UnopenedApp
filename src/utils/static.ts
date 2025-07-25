@@ -1,57 +1,123 @@
 import { IconName } from "../assets/svg/iconsSvg";
 import { PaymentMethodType } from "../components/card/paymentMethodCard";
-import { PaymentMethodItem } from "../components/card/paymentMethodOption";
 import { PayoutItem } from "../components/card/payoutCard";
 import { OrderData, ProductData } from "./types";
 
 export const dashboardAnalyticsData = [
-  { title: '12', subtitle: 'Active Listings', icon: 'productListPrimaryIcon' },
-  { title: '03', subtitle: 'Pending Review', icon: 'pendingIcon' },
-  { title: '30', subtitle: 'Sold Products', icon: 'boxIcon' },
-  { title: '$550', subtitle: 'Wallet Balance', icon: 'walletPrimaryIcon' },
+  {
+    key: 'active',
+    title: '0',
+    subtitle: 'Active Listings',
+    icon: 'productListPrimaryIcon',
+  },
+  {
+    key: 'in_review',
+    title: '0',
+    subtitle: 'Pending Review',
+    icon: 'pendingIcon',
+  },
+  {
+    key: 'sold',
+    title: '0',
+    subtitle: 'Sold Products',
+    icon: 'boxIcon',
+  },
+  {
+    key: 'wallet_balance',
+    title: '$0',
+    subtitle: 'Wallet Balance',
+    icon: 'walletPrimaryIcon',
+  },
 ];
+
 export const productData: ProductData[] = [
   {
     id: '1',
-    image: 'https://5.imimg.com/data5/SELLER/Default/2023/10/353757091/WQ/VC/BK/199540713/whatsapp-image-2023-10-04-at-4-41-37-pm-1-500x500.jpeg',
-    title: 'BoAt Airdopes 141',
+    brand: 'boAt',
+    name: 'BoAt Airdopes 141',
+    barcode: '0001',
+    category_id: 1,
     price: 100,
+    msrp: 120,
+    description: 'Wireless earbuds with long battery life',
+    product_status: 'in_review',
+    status: 'pending',
+    createdAt: '2025-07-20T10:41:37.000Z',
+    product_image: [
+     
+    ],
     daysAgo: 2,
-    status: 'In Review',
   },
   {
     id: '2',
-    image: 'https://s3.ap-south-1.amazonaws.com/happimobiles/product-main-images/fdf21db5-35a6-4c51-a8e0-829c8784d757.webp',
-    title: 'Fire-Boltt Smartwatch',
+    brand: 'Fire-Boltt',
+    name: 'Fire-Boltt Smartwatch',
+    barcode: '0002',
+    category_id: 1,
     price: 280,
+    msrp: 320,
+    description: 'Smartwatch with fitness tracking',
+    product_status: 'sold',
+    status: 'approved',
+    createdAt: '2025-07-18T10:41:37.000Z',
+    product_image: [
+   
+    ],
     daysAgo: 5,
-    status: 'Sold',
   },
   {
     id: '3',
-    image: 'https://x.imastudent.com/content/0061615_jbl-boombox-3-portable-bluetooth-speaker_500.png',
-    title: 'JBL Speaker',
+    brand: 'JBL',
+    name: 'JBL Speaker',
+    barcode: '0003',
+    category_id: 1,
     price: 150,
+    msrp: 200,
+    description: 'Portable Bluetooth speaker',
+    product_status: 'active',
+    status: 'approved',
+    createdAt: '2025-07-22T10:41:37.000Z',
+    product_image: [
+     
+    ],
     daysAgo: 3,
-    status: 'Active',
   },
   {
     id: '4',
-    image: 'https://cdsassets.apple.com/live/7WUAS350/images/tech-specs/121203-airpods-4.png',
-    title: 'Apple AirPods Pro',
+    brand: 'Apple',
+    name: 'Apple AirPods Pro',
+    barcode: '0004',
+    category_id: 1,
     price: 250,
+    msrp: 300,
+    description: 'Noise-cancelling wireless earbuds',
+    product_status: 'active',
+    status: 'approved',
+    createdAt: '2025-07-24T10:41:37.000Z',
+    product_image: [
+     
+    ],
     daysAgo: 1,
-    status: 'Active',
   },
   {
     id: '5',
-    image: 'https://m.media-amazon.com/images/I/712YXD2phFL._UF1000,1000_QL80_.jpg',
-    title: 'Samsung Galaxy Mobile',
+    brand: 'Samsung',
+    name: 'Samsung Galaxy Mobile',
+    barcode: '0005',
+    category_id: 1,
     price: 450,
+    msrp: 500,
+    description: 'Android smartphone with AMOLED display',
+    product_status: 'in_review',
+    status: 'pending',
+    createdAt: '2025-07-21T10:41:37.000Z',
+    product_image: [
+     
+    ],
     daysAgo: 4,
-    status: 'In Review',
   },
 ];
+
 export const orderData: OrderData[] = [
   {
     id: '1',
@@ -268,6 +334,11 @@ export const payoutHistory: PayoutItem[] = [
   },
 ];
 export const quickAmounts = [10, 20, 50, 100, 120, 150];
+export type PaymentMethodItem = {
+  title: string;
+  icon: IconName;
+};
+
 export const paymentOptions: PaymentMethodItem[] = [
   { title: 'Add Card', icon: 'addCard' },
   { title: 'Google Pay', icon: 'googlePay' },

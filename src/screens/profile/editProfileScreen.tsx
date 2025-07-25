@@ -9,7 +9,7 @@ import { useForm } from 'react-hook-form';
 import fonts from '../../assets/fonts/fonts';
 import colors from '../../utils/colors';
 import { emailPattern, fontSizes, width } from '../../utils/utils';
-import ImageUpload from '../../components/model/profileImageUpload';
+import ProfileImageUpload from '../../components/model/profileImageUpload';
 import { useFocusEffect } from '@react-navigation/native';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
 import Button from '../../components/button/buttons';
@@ -258,7 +258,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation }) => 
         onPress={handleSubmit(onSubmit)}
         disabled={!isDirty}
       />
-      <ImageUpload
+      <ProfileImageUpload
         control={control}
         name="profileImage"
         isVisible={isModalVisible}

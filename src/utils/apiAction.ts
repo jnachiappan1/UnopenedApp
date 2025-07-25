@@ -25,6 +25,10 @@ export const logOutAPI = async () => {
   const response = await axios.patch(API.buyer.log_Out);
   return response;
 };
+export const deleteAPI = async () => {
+  const response = await axios.delete(API.buyer.delete);
+  return response;
+};
 export const viewProfile = async () => {
   const response = await axios.get(API.buyer.getProfile);
   return response;
@@ -43,6 +47,26 @@ export const getWalletDetail = async () => {
 };
 export const getTransactionList = async () => {
   const response = await axios.get(API.buyer.getTransactionList);
+  return response;
+};
+export const getCategoryDetail = async () => {
+  const response = await axios.get(API.seller.getCategory);
+  return response;
+};
+export const addProduct = async (data: globalThis.FormData) => {
+  const response = await axiosmultipart.post(API.seller.add_Product, data);
+  return response;
+};
+export const getSellerDashboardCount = async () => {
+  const response = await axios.get(API.seller.dashBoard_Count);
+  return response;
+};
+export const getSellerOwnProductList = async () => {
+  const response = await axios.get(API.seller.product_List);
+  return response;
+};
+export const getSellerProductByID = async (productID?: string|number | null | undefined) => {
+  const response = await axios.get(API.seller.product_List+"/"+productID);
   return response;
 };
 // export const getPlanOwnerInfo = async () => {

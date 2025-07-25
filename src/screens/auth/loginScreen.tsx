@@ -44,27 +44,7 @@ const LoginScreen: React.FC<LoginProps> = ({route, navigation}) => {
   const {mutate} = useMutation({
     mutationFn: (data: Inputs) => signInApi('otp', data),
     onSuccess: async (data: any) => {
-      console.log(data,"data---");
-      if(data?.data?.user?.verify_account)
-      {
-        dispatch(setAuthToken(data.data.token));
-        dispatch(saveUserData(data.data.user));
-        showAlert({
-          isVisible: true,
-          type: 'success',
-          title: 'Login Sucessfully',
-          doneText: 'Okay',
-          onDonePress: () => {
-            navigation.dispatch(
-              CommonActions.reset({
-                index: 0,
-                routes: [{ name: SCREENS.BottomTab }],
-              })
-            );
-          },
-        });
-      }
-      else{
+      console.log(data?.data?.user?.verify_account,"data---");
         showAlert({
           isVisible: true,
           type: 'success',
@@ -75,11 +55,11 @@ const LoginScreen: React.FC<LoginProps> = ({route, navigation}) => {
             navigation.navigate(SCREENS.VerifyOTP, {
               otp: data?.data.otp,
               email: data?.data?.user?.email,
-              type: 'login',
+              type: data?.data?.user?.verify_account?'login':"register",
             });
           },
         });
-      }
+      
     },
     onError: handleError,
     onSettled: () => {

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import {
   View,
@@ -13,7 +12,6 @@ import {
   Control,
   FieldErrors,
   ValidationRule,
-  FieldError,
   FieldValues,
 } from 'react-hook-form';
 import {Dropdown} from 'react-native-element-dropdown';
@@ -22,36 +20,30 @@ import IconsSvg from '../../assets/svg/iconsSvg';
 import colors from '../../utils/colors';
 import commonStyles from '../../utils/common-styles';
 
-export interface DropDownType {
-  _id: string;
-  type: string;
+export interface DropDownTypes {
+  id: string;
   name: string;
-  value: string;
-  createdAt: string;
-  updatedAt: string;
-  __v: number;
 }
 
 type InputProps = {
   control: Control<any>;
   name: string;
   label?: string;
-  //error?: FieldErrors;
   error?: FieldErrors<FieldValues>;
   required?: string | ValidationRule<boolean> | undefined;
   containerStyle?: StyleProp<ViewStyle>;
-  options?: DropDownType[]; // Add options prop for dropdown
+  options?: DropDownTypes[];
   isSearch?: boolean;
   isDisable?: boolean;
   placeholder?: string;
-  data?: any[];
+  data?: DropDownTypes[];
   valueField?: string;
   labelField?: string;
   value?: any;
   onChangeValue?: (value: any) => void;
 };
 
-const DropdownInput: React.FC<InputProps> = props => {
+const DropdownInputs: React.FC<InputProps> = props => {
   const {
     control,
     name,
@@ -63,8 +55,8 @@ const DropdownInput: React.FC<InputProps> = props => {
     label,
     placeholder = '',
     data = [],
-    valueField = '',
-    labelField = '',
+    valueField = 'id',
+    labelField = 'name',
     value,
     onChangeValue,
   } = props;
@@ -73,7 +65,6 @@ const DropdownInput: React.FC<InputProps> = props => {
     error && Object.keys(error).length !== 0 && error[name]
       ? error[name]?.message?.toString()
       : '';
-  // const err = error?.message || '';
 
   const productErr =
     error && 'message' in error && typeof error.message === 'string'
@@ -100,7 +91,7 @@ const DropdownInput: React.FC<InputProps> = props => {
             data={data}
             search={isSearch}
             maxHeight={300}
-            value={value}            
+            value={value}
             labelField={labelField}
             valueField={valueField}
             disable={isDisable}
@@ -129,16 +120,13 @@ const DropdownInput: React.FC<InputProps> = props => {
               {err?.toString()}
             </Text>
           ) : null}
-          {/* <Text style={commonStyles.error} numberOfLines={2}>
-            {err}
-          </Text> */}
         </View>
       )}
     />
   );
 };
 
-export default DropdownInput;
+export default DropdownInputs;
 
 const styles = StyleSheet.create({
   label: {

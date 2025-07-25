@@ -13,13 +13,18 @@ import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation'
 import { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { useQuery } from '@tanstack/react-query'
 import { getTransactionList, getWalletDetail } from '../../utils/apiAction'
+import { useSelector } from 'react-redux'
+import { IRootState } from '../../redux/store'
 type WalletScreenProps = NativeStackScreenProps<RootStackParamList, SCREENS.WalletScreen>;
 
 const WalletScreen: React.FC<WalletScreenProps> = ({ navigation }) => {
+  const userData = useSelector((user: IRootState) => user.user.userData);
   const { data: walletData, refetch: refetchWalletDetail } = useQuery({
     queryKey: ['getWalletDetail'],
     queryFn: () => getWalletDetail(),
+    enabled: !!userData, 
   });
+  
   const {
     isLoading: isTransactionLoading,
     data: transactionData,
@@ -27,17 +32,15 @@ const WalletScreen: React.FC<WalletScreenProps> = ({ navigation }) => {
   } = useQuery({
     queryKey: ['getTransactionList'],
     queryFn: () => getTransactionList(),
+    enabled: !!userData,
   });
-  
-  console.log(JSON.stringify(transactionData),"transactionData---");
-  
   return (
     <TitleBackHeaderContainer title='Wallet' >
       <View style={styles.transactionsContainer}>
         <View style={styles.innerBalanceContainer}>
           <Text style={styles.availableText}>Available Balance</Text>
           <Text style={styles.amountText}>
-            {"$" +walletData?.data?.wallet?.amount}
+            {"$" + (walletData?.data?.wallet?.amount || "0.00")}
           </Text>
         </View>
         <View style={styles.balanceContainer}>

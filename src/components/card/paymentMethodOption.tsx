@@ -4,7 +4,7 @@ import IconsSvg, { IconName } from '../../assets/svg/iconsSvg';
 import colors from '../../utils/colors';
 import fonts from '../../assets/fonts/fonts';
 
-type PaymentMethodOptionProps = {
+export type PaymentMethodOptionProps = {
   title: string;
   icon: IconName;
   onPress: (item: { title: string; icon: IconName }) => void;

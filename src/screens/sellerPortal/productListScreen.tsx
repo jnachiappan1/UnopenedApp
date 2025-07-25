@@ -9,30 +9,95 @@ import { fontSizes } from '../../utils/utils';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
 import { ProductData } from '../../utils/types';
+import { getSellerOwnProductList } from '../../utils/apiAction';
+import { useQuery } from '@tanstack/react-query';
+import fonts from '../../assets/fonts/fonts';
 
 type ProductListScreenProps = NativeStackScreenProps<RootStackParamList, SCREENS.ProductListScreen>;
 
 const ProductListScreen: React.FC<ProductListScreenProps> = ({ navigation }) => {
   const [selectedTab, setSelectedTab] = useState('All');
+  const { data: sellerOwnProductList, refetch: refetchsellerOwnProductList } = useQuery({
+    queryKey: ['getSellerOwnProductList'],
+    queryFn: () => getSellerOwnProductList(),
+  });
+  const products: ProductData[] = sellerOwnProductList?.data?.product || [];
+  
+  const EmptyStateMessage = ({ selectedTab }: { selectedTab: string }) => {
+    const getEmptyMessage = () => {
+      switch (selectedTab) {
+        case 'Active':
+          return {
+            title: 'No Active Listings',
+            subtitle: 'You don\'t have any active products listed at the moment.'
+          };
+        case 'Sold':
+          return {
+            title: 'No Sold Products',
+            subtitle: 'You haven\'t sold any products yet. Keep promoting your listings!'
+          };
+        case 'In Review':
+          return {
+            title: 'No Products Under Review',
+            subtitle: 'You don\'t have any products currently under review.'
+          };
+        default:
+          return {
+            title: 'No Products Found',
+            subtitle: 'You don\'t have any products at the moment.'
+          };
+      }
+    };
+
+    const message = getEmptyMessage();
+
+    return (
+      <View style={styles.emptyStateContainer}>
+        <Text style={styles.emptyStateTitle}>{message.title}</Text>
+        <Text style={styles.emptyStateSubtitle}>{message.subtitle}</Text>
+      </View>
+    );
+  };
+
+  const getStatusForTab = (tabName: string) => {
+    switch (tabName) {
+      case 'Active':
+        return 'active';
+      case 'Sold':
+        return 'sold';
+      case 'In Review':
+        return 'in_review';
+      default:
+        return null;
+    }
+  };
 
   const filterData = () => {
     if (selectedTab === 'All') {
-      return productData;
+      return products;
     }
-    return productData.filter(item => item.status === selectedTab);
+    const statusToFilter = getStatusForTab(selectedTab);
+    return products.filter(item => item.product_status === statusToFilter);
   };
 
   const getTabCounts = () => {
     const counts: { [key: string]: number } = {
-      All: productData.length,
-      Active: productData.filter(item => item.status === 'Active').length,
-      Sold: productData.filter(item => item.status === 'Sold').length,
-      'In Review': productData.filter(item => item.status === 'In Review').length,
+      All: products.length,
+      Active: products.filter(item => item.product_status === 'active').length,
+      Sold: products.filter(item => item.product_status === 'sold').length,
+      'In Review': products.filter(item => item.product_status === 'in_review').length,
     };
     return counts;
   };
 
   const tabCounts = getTabCounts();
+  const filteredData = filterData();
+
+  const renderProductItem = ({ item }: { item: ProductData }) => (
+    <ProductListingCard item={item} onSelect={(item) => {
+      navigation.navigate(SCREENS.ProductDetailScreen, { productId: item.id });
+    }} />
+  );
 
   const renderTab = ({ item }: { item: string }) => (
     <TouchableOpacity
@@ -66,33 +131,43 @@ const ProductListScreen: React.FC<ProductListScreenProps> = ({ navigation }) => 
       />
     </View>
   );
+
   const handleProductSelect = (item: ProductData) => {
     console.log('Selected product:', item);
     navigation.navigate(SCREENS.ProductDetailScreen, { productId: item.id });
   }
+
   return (
     <TitleBackHeaderContainer title='Products Listing' >
-      <FlashList
-        data={filterData()}
-        renderItem={({ item }) => (
-          <View style={{ paddingHorizontal: 10 }}>
-            <ProductListingCard
-              item={item}
-              onSelect={handleProductSelect}
-            />
-          </View>
-
-        )}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
-        ListHeaderComponent={
+      {filteredData.length > 0 ? (
+        <FlashList
+          data={filteredData}
+          renderItem={({ item }) => (
+            <View style={{ paddingHorizontal: 10 }}>
+              <ProductListingCard
+                item={item}
+                onSelect={handleProductSelect}
+              />
+            </View>
+          )}
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={styles.list}
+          ListHeaderComponent={
+            <View style={{ paddingEnd: 10 }}>
+              {renderHeader()}
+            </View>
+          }
+          estimatedItemSize={120}
+          showsVerticalScrollIndicator={false}
+        />
+      ) : (
+        <View style={{ flex: 1 }}>
           <View style={{ paddingEnd: 10 }}>
             {renderHeader()}
           </View>
-        }
-        estimatedItemSize={120}
-        showsVerticalScrollIndicator={false}
-      />
+          <EmptyStateMessage selectedTab={selectedTab} />
+        </View>
+      )}
     </TitleBackHeaderContainer>
   )
 }
@@ -152,5 +227,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     alignSelf: 'flex-start',
-  }
+  },
+  emptyStateContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+  },
+  emptyStateTitle: {
+    fontSize: fontSizes.large,
+    fontFamily: fonts.bold,
+    color: colors.black,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  emptyStateSubtitle: {
+    fontSize: fontSizes.regular,
+    color: '#888',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
 })

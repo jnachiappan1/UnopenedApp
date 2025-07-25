@@ -23,6 +23,9 @@ const UserReducer = createSlice({
     saveUserType: (state, action) => {
       state.userType = action.payload;
     },
+    removeUserType: (state, action) => {
+      state.userType = null;
+    },
     removeUserData: (state) => {
       state.userData = null;
       state.token = null;
@@ -64,6 +67,7 @@ export const {
   saveUserData,
   saveUserType,
   removeUserData,
+  removeUserType,
   setAuthToken,
   removeToken,
   saveLanguage,

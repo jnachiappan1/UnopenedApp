@@ -2,7 +2,6 @@ import axios from 'axios';
 import {store} from '../redux/store';
 import { base_url } from './api';
 
-
 const instance = axios.create({
   baseURL: base_url,
   timeout: 100000,
