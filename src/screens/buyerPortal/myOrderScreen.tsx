@@ -49,8 +49,6 @@ const MyOrderScreen: React.FC<MyOrderScreenProps> = ({navigation}) => {
     </View>
   );
   const handleProductSelect = (item: OrderData) => {
-    console.log("i----------tem", item);
-    
     navigation.navigate(SCREENS.OrderTrackScreen, {productId: item});
   };
   return (

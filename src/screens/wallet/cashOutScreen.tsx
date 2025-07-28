@@ -35,9 +35,6 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({ navigation }) => {
     }
 
     setPaymentError(false);
-    console.log('Amount:', data.amount);
-    console.log('Payment Method ID:', selectedId);
-
     // proceed with API or navigation
   };
 

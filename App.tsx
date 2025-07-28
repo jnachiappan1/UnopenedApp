@@ -23,6 +23,7 @@ import {Provider as StoreProvider} from 'react-redux';
 import { store } from './src/redux/store';
 import MainNavigation from './src/navigation/mainNavigation';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { LogBox } from 'react-native';
 
 const queryClient = new QueryClient();
 function App() {
@@ -32,6 +33,9 @@ function App() {
       SplashScreen.hide();
     }, 1000);
   }, []);
+  LogBox.ignoreLogs([
+    'Support for defaultProps will be removed from function components', // suppress React warning
+  ]);
   return (
     <SafeAreaProvider>
       {/* <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} /> */}

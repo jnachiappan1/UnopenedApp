@@ -9,7 +9,7 @@ const initialState: IUserState = {
   fcmToken: null,
   isOnline: false,
   driverId: null,
-  userType:"seller",
+  userType:"buyer",
   rideId: '',
 };
 

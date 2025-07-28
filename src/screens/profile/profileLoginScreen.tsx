@@ -46,7 +46,6 @@ const ProfileLoginScreen: React.FC<ProfileLoginScreenProps> = ({
   const {mutate} = useMutation({
     mutationFn: (data: Inputs) => signInApi('otp', data),
     onSuccess: async (data: any) => {
-      console.log(data,"data---");
         showAlert({
           isVisible: true,
           type: 'success',

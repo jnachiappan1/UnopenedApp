@@ -101,7 +101,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
     setLoader(true);
     logOutMutation();
   };
-  console.log(userType);
   const handleToggle = () => {
     setIsEnabled(!isEnabled);
     const formData = new FormData();
@@ -161,21 +160,28 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
         <IconTitleCard
           title={"Terms & Conditions"}
           svgName={'termsAndConditions'}
-          onPress={() => navigation.navigate(SCREENS.TermsConditionsScreen)}
+          onPress={() => navigation.navigate(SCREENS.TermsConditionsScreen,{
+            type:"terms_and_conditions"
+          })}
           rightArrow
         />
         <IconTitleCard
           title={"Privacy Policy"}
           svgName={'privacyPolicy'}
           rightArrow
-          onPress={() => navigation.navigate(SCREENS.PrivacyPolicyScreen)}
-
+          // onPress={() => navigation.navigate(SCREENS.PrivacyPolicyScreen)}
+          onPress={() => navigation.navigate(SCREENS.TermsConditionsScreen,{
+            type:"privacy_policy"
+          })}
         />
         <IconTitleCard
           title={"Help & Support"}
           svgName={'helpAndSupport'}
           rightArrow
-          onPress={() => navigation.navigate(SCREENS.HelpSupportScreen)}
+          // onPress={() => navigation.navigate(SCREENS.HelpSupportScreen)}
+          onPress={() => navigation.navigate(SCREENS.TermsConditionsScreen,{
+            type:"help_support"
+          })}
         />
         {
           userData &&

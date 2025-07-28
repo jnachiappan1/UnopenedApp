@@ -87,6 +87,8 @@ const SellerTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
     [SCREENS.ProductListScreen]: { icon: 'productListIcon', label: 'Product List' },
     [SCREENS.SalesScreen]: { icon: 'salesIcon', label: 'Sales' },
     [SCREENS.WalletScreen]: { icon: 'walletIcon', label: 'Wallet' },
+    
+
   };
 
   return (

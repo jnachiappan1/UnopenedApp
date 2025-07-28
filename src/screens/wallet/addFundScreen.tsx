@@ -37,9 +37,6 @@ const AddFundScreen: React.FC<AddFundScreenProps> = ({ navigation }) => {
       Alert.alert('Please select a payment method.');
       return;
     }
-
-    console.log('Amount:', data.amount);
-    console.log('Payment Method:', selectedPayment);
   };
 
   return (
@@ -87,7 +84,6 @@ const AddFundScreen: React.FC<AddFundScreenProps> = ({ navigation }) => {
               icon={item.icon}
               selected={selectedPayment === item.icon}
               onPress={(selectedItem) => {
-                console.log('Selected payment method:', selectedItem);
                 setSelectedPayment(selectedItem.icon);
               }}
             />

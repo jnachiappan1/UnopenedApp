@@ -36,6 +36,7 @@ import { showLoader } from '../../components/loader/loader';
 import { fontSizes } from '../../utils/utils';
 import { IRootState } from '../../redux/store';
 import { useSelector } from 'react-redux';
+import { handleError, handleSettled } from '../../utils/method';
 
 type MediaObject = {
   uri: string;
@@ -120,17 +121,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       productImages: [],
     }
   });
-  useFocusEffect(
-    React.useCallback(() => {
-      return () => {
-        if (!isNavigatingToPreview) {
-          reset();
-          setUploadedImages([]);
-          setImageError('');
-        }
-      };
-    }, [isNavigatingToPreview, reset]),
-  );
   const handleImageUpload = (selectedImages: MediaObject[]) => {
     setUploadedImages(selectedImages);
     setValue('productImages', selectedImages);
@@ -213,13 +203,13 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     formData.append('price', data.price);
     formData.append('description', data.description);
     // Add media files (uncomment when ready to use)
-    // uploadedImages.forEach((media, index) => {
-    //   formData.append(`images`, {
-    //     uri: media.uri,
-    //     name: media.name,
-    //     type: media.type,
-    //   });
-    // });
+    uploadedImages.forEach((media, index) => {
+      formData.append(`images`, {
+        uri: media.uri,
+        name: media.name,
+        type: media.type,
+      });
+    });
 
     return formData;
   };
@@ -232,22 +222,16 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
         title: 'Product',
         description: 'Product added successfully',
         doneText: 'Okay',
-        onDonePress: () => navigation.goBack(),
+        onDonePress: () => {
+          reset();
+          setUploadedImages([]);
+          setImageError('');
+          navigation.goBack();
+        },
       });
     },
-    onError: (error: errorMsg) => {
-      showLoader(false);
-      showAlert({
-        isVisible: true,
-        type: 'error',
-        title: error.status.toUpperCase(),
-        description: error.message,
-        doneText: 'Okay',
-      });
-    },
-    onSettled: () => {
-      showLoader(false);
-    },
+    onError: handleError,
+    onSettled: handleSettled,
   });
   const Submit = async (data: FormData) => {
     const isValid = await validateAllFields();

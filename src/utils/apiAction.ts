@@ -1,4 +1,4 @@
-import {API} from './api';
+import { API } from './api';
 import axios from './axios';
 import axiosmultipart from './axiosmultipart';
 import { ChangePasswordPayloadType, ResendInputPayloadType, SignUpPayloadType } from './payload';
@@ -6,7 +6,7 @@ import { ChangePasswordPayloadType, ResendInputPayloadType, SignUpPayloadType } 
 //Plan Owner Auth API Action
 
 export const signInApi = async (type: string, data: any) => {
-  const response = await axios.post(API.buyer.sign_in + type, data);  
+  const response = await axios.post(API.buyer.sign_in + type, data);
   return response;
 };
 export const signUp = async (data: SignUpPayloadType) => {
@@ -65,8 +65,20 @@ export const getSellerOwnProductList = async () => {
   const response = await axios.get(API.seller.product_List);
   return response;
 };
-export const getSellerProductByID = async (productID?: string|number | null | undefined) => {
-  const response = await axios.get(API.seller.product_List+"/"+productID);
+export const getSellerProductByID = async (productID?: string | number | null | undefined) => {
+  const response = await axios.get(API.seller.product_List + "/" + productID);
+  return response;
+};
+export const getLegalcontent = async (type: string | null | undefined) => {
+  const response = await axios.get(API.seller.getLegalcontent + type);
+  return response;
+};
+
+export const updateProductStatus = async (
+  productID: string | number | null | undefined,
+  data: globalThis.FormData
+) => {
+  const response = await axiosmultipart.patch(API.seller.add_Product + "/" + productID, data);
   return response;
 };
 // export const getPlanOwnerInfo = async () => {

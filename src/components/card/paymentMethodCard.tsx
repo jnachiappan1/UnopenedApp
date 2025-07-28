@@ -31,7 +31,6 @@ const PaymentMethodCard: React.FC<PaymentMethodCardProps> = ({
         selected && styles.selectedCard
       ]} 
       onPress={() => {
-        console.log('Card Pressed');
         onPress(item);
       }} 
       activeOpacity={0.8}

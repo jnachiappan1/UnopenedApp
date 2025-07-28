@@ -46,9 +46,6 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
   const product : Product = item?.item;
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const imageScrollRef = useRef<FlatList>(null);
-
-  console.log('data=--=-=-', product);
-
   // Sample images array - replace with actual product images
   const productImages = product?.images || [
     product?.image,
@@ -73,8 +70,6 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
   };
 
   const handleBuyNow = () => {
-    console.log('Buy Now pressed for:', product.name);
-    // Add your buy now logic here
     navigation.navigate(SCREENS.ConfirmYourOrderScreen)
   };
 

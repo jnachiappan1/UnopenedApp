@@ -20,7 +20,6 @@ type ProductListScreenProps = NativeStackScreenProps<RootStackParamList, SCREENS
 const ProductListScreen: React.FC<ProductListScreenProps> = ({ navigation }) => {
   const [selectedTab, setSelectedTab] = useState('All');
   const userData = useSelector((user: IRootState) => user.user.userData);
-  console.log("userData---", userData);
   const { data: sellerOwnProductList, refetch: refetchsellerOwnProductList } = useQuery({
     queryKey: ['getSellerOwnProductList'],
     queryFn: () => getSellerOwnProductList(),

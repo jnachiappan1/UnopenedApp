@@ -15,6 +15,7 @@ export const API = {
     change_Password: `${base_url}/api/v1/auth/change/password`,
     getWallet: `${base_url}/api/v1/wallet`,
     getTransactionList: `${base_url}/api/v1/wallet/transaction`,
+    getProductList: `${base_url}/api/v1/common/product-list`,
   },
   seller: {
     sign_up: `${base_url}/api/v1/users/auth/create`,
@@ -22,5 +23,7 @@ export const API = {
     add_Product: `${base_url}/api/v1/product`,
     dashBoard_Count: `${base_url}/api/v1/product/count`,
     product_List: `${base_url}/api/v1/product`,
+    getLegalcontent: `${base_url}/api/v1/common/legalcontent/`,
+
   },
 };

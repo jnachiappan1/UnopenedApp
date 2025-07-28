@@ -1,30 +1,55 @@
-import { StyleSheet, Text, View, Image, ScrollView } from 'react-native';
-import React, { useState } from 'react';
+import { StyleSheet} from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
-import fonts from '../../assets/fonts/fonts';
-import IMAGE from '../../assets/images';
-import IconsSvg from '../../assets/svg/iconsSvg';
-import { setLoader } from '../../redux/reducers/app/AppReducer';
-import { CommonActions } from '@react-navigation/native';
-import { fontSizes } from '../../utils/utils';
-import colors from '../../utils/colors';
-import { IRootState } from '../../redux/store';
-import { useDispatch, useSelector } from 'react-redux';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
-import IconTitleCard from '../../components/card/iconTitleCard';
-import Button from '../../components/button/buttons';
-import LogOutModal from '../../components/model/logIssueModal';
+import { showLoader } from '../../components/loader/loader';
+import RenderHTML from 'react-native-render-html';
+import { getLegalcontent } from '../../utils/apiAction';
+import colors from '../../utils/colors';
+import { fontSizes } from '../../utils/utils';
+import fonts from '../../assets/fonts/fonts';
 
 type TermsConditionsScreenProps = NativeStackScreenProps<
   RootStackParamList,
   SCREENS.TermsConditionsScreen
 >;
 
-const TermsConditionsScreen: React.FC<TermsConditionsScreenProps> = ({ navigation }) => {
+const TermsConditionsScreen: React.FC<TermsConditionsScreenProps> = ({ navigation,route }) => {
+  const {type} = route.params;
+  const [privacyPolicy, setPrivacyPolicy] = useState<string>('');
+  useEffect(() => {
+    fetchPrivacyPolicy();
+  }, []);
+
+  const fetchPrivacyPolicy = async () => {
+    try {
+      showLoader(true);
+      const response = await getLegalcontent(type);
+      setPrivacyPolicy(response.data.legalContent.content);
+      showLoader(false);
+    } catch (error) {
+      console.error('Error fetching terms and conditions:', error);
+    }
+  };
+  const renderHTMLMemoized = useMemo(
+    () => (
+      <RenderHTML
+        source={{html: privacyPolicy}}
+        contentWidth={300}
+        tagsStyles={{
+          p: styles.contentText,
+          h1: styles.contentText,
+          h3: styles.contentText,
+          ul: styles.contentText,
+        }}
+      />
+    ),
+    [privacyPolicy],
+  );
   return (
     <TitleBackHeaderContainer isBack title={"Terms & Conditions"} containerStyle={{}}>
-      <Text style={{paddingHorizontal:15}}>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras viverra vehicula sodales. Nam convallis nulla a justo vehicula auctor. Donec pharetra tincidunt purus in sollicitudin. Mauris volutpat varius nulla sed fringilla. In ut ligula consequat, elementum augue non, rhoncus sapien. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Pellentesque bibendum, sapien ut vestibulum tincidunt, ante enim ultricies erat, nec imperdiet augue tellus quis lectus. Vestibulum bibendum sapien nunc, ut sagittis odio tristique quis. In vitae faucibus risus. Vestibulum varius odio id neque pulvinar, in rhoncus magna maximus.</Text>
+       {privacyPolicy && renderHTMLMemoized}
     </TitleBackHeaderContainer>
   );
 };
@@ -32,5 +57,16 @@ const TermsConditionsScreen: React.FC<TermsConditionsScreenProps> = ({ navigatio
 export default TermsConditionsScreen;
 
 const styles = StyleSheet.create({
-
+  containerStyle: {
+    backgroundColor: colors.secondary,
+    marginHorizontal: 20,
+    marginVertical: 20,
+    borderRadius: 10,
+  },
+  contentText: {
+    fontSize: fontSizes.medium,
+    color: colors.label,
+    fontFamily: fonts.regular,
+    marginHorizontal: 20,
+  },
 });

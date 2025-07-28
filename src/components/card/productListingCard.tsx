@@ -22,7 +22,10 @@ const ProductListingCard: React.FC<ProductListingCardProps> = ({ item,cardStyle 
   return (
     <View style={[styles.cardContainer,cardStyle]}>
       <View style={styles.productDetailView}>
-        <Image source={item?.product_image } style={styles.cardImage} />
+      <Image
+  source={{ uri: item?.product_image?.[0]?.image }}
+  style={styles.cardImage}
+/>
         <View>
           <Text style={styles.cardTitle}>{item?.name}</Text>
           <Text style={styles.cardPosted}>Posted {calculateDaysAgo(item?.createdAt)} Days Ago</Text>

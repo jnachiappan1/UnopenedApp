@@ -44,6 +44,13 @@ export interface ProductCategory {
   createdAt: string
   updatedAt: string
 }
+export interface ProductImage {
+  id: number;
+  product_id: number;
+  image: string;
+  createdAt: string;
+  updatedAt: string;
+}
 export interface ProductData {
   id: number
   brand: string
@@ -58,7 +65,7 @@ export interface ProductData {
   product_status: string
   createdAt: string
   updatedAt: string
-  product_image: any[]
+  product_image: ProductImage[]
   product_category: ProductCategory
 }
 export interface OrderData {

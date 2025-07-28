@@ -20,7 +20,7 @@ import {showAlert} from '../../components/cAlert';
 import {useMutation} from '@tanstack/react-query';
 import {signInApi} from '../../utils/apiAction';
 import {errorMsg} from '../../utils/types';
-import {handleError} from '../../utils/method';
+import {handleError, handleSettled} from '../../utils/method';
 import { saveUserData, setAuthToken } from '../../redux/reducers/user/UserReducer';
 
 type LoginProps = NativeStackScreenProps<
@@ -44,7 +44,6 @@ const LoginScreen: React.FC<LoginProps> = ({route, navigation}) => {
   const {mutate} = useMutation({
     mutationFn: (data: Inputs) => signInApi('otp', data),
     onSuccess: async (data: any) => {
-      console.log(data?.data?.user?.verify_account,"data---");
         showAlert({
           isVisible: true,
           type: 'success',
@@ -62,9 +61,7 @@ const LoginScreen: React.FC<LoginProps> = ({route, navigation}) => {
       
     },
     onError: handleError,
-    onSettled: () => {
-      showLoader(false);
-    },
+    onSettled: handleSettled,
   });
 
   const submit = (userData: Inputs) => {

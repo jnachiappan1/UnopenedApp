@@ -24,6 +24,7 @@ export function showAlert(args: IState) {
     ref.showAlert(args);
   }
 }
+
 export default class CAlert extends React.Component<any, IState> {
   constructor(props: IState) {
     super(props);
@@ -36,6 +37,7 @@ export default class CAlert extends React.Component<any, IState> {
       deleteText: 'Cancel',
     };
   }
+
   //register and unregister component
   componentDidMount() {
     AlertManager.register(this);
@@ -54,6 +56,8 @@ export default class CAlert extends React.Component<any, IState> {
 
   render() {
     const show = this.state.isVisible as boolean;
+    const hasDeleteButton = this.state.onDeletePress;
+    
     return (
       <Modal
         isVisible={show}
@@ -78,38 +82,45 @@ export default class CAlert extends React.Component<any, IState> {
               <Text style={styles.description}>{this.state.description} </Text>
             )}
 
-            <TouchableOpacity
-              style={styles.btn}
-              onPress={() => {
-                if (this.state.type === 'error') {
-                  this.setState({isVisible: false});
-                } else if (this.state.onDonePress) {
-                  this.state.onDonePress();
-                }
-                this.setState({isVisible: false});
-              }}>
-              {this.state.doneText && (
-                <Text style={styles.btnTxt}>{this.state.doneText}</Text>
-              )}
-            </TouchableOpacity>
-            {this.state.onDeletePress && (
+            {/* Button Container for better layout management */}
+            <View style={hasDeleteButton ? styles.twoButtonContainer : styles.singleButtonContainer}>
               <TouchableOpacity
-                style={styles.deleteBtn}
+                style={[
+                  styles.btn,
+                  hasDeleteButton ? styles.btnTwoButton : styles.btnSingleButton
+                ]}
                 onPress={() => {
                   if (this.state.type === 'error') {
                     this.setState({isVisible: false});
-                  } else if (this.state.onDeletePress) {
-                    this.state.onDeletePress();
+                  } else if (this.state.onDonePress) {
+                    this.state.onDonePress();
                   }
                   this.setState({isVisible: false});
                 }}>
-                {this.state.deleteText && (
-                  <Text style={styles.btnDeleteTxt}>
-                    {this.state.deleteText}
-                  </Text>
+                {this.state.doneText && (
+                  <Text style={styles.btnTxt}>{this.state.doneText}</Text>
                 )}
               </TouchableOpacity>
-            )}
+              
+              {hasDeleteButton && (
+                <TouchableOpacity
+                  style={[styles.deleteBtn, styles.btnTwoButton]}
+                  onPress={() => {
+                    if (this.state.type === 'error') {
+                      this.setState({isVisible: false});
+                    } else if (this.state.onDeletePress) {
+                      this.state.onDeletePress();
+                    }
+                    this.setState({isVisible: false});
+                  }}>
+                  {this.state.deleteText && (
+                    <Text style={styles.btnDeleteTxt}>
+                      {this.state.deleteText}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
         </View>
       </Modal>
@@ -163,29 +174,52 @@ const styles = StyleSheet.create({
     marginTop: 20,
     alignSelf: 'center',
   },
+  
+  // Button container styles
+  singleButtonContainer: {
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    paddingTop: 20,
+  },
+  twoButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    paddingTop: 20,
+    gap: 10, // Space between buttons
+  },
+  
+  // Base button style
   btn: {
-    width: 256,
     height: 44,
     alignItems: 'center',
     justifyContent: 'center',
-    alignSelf: 'center',
     borderRadius: 22,
     backgroundColor: colors.primary,
-    marginTop: 20,
-    marginBottom: 20,
-    marginHorizontal: 20,
   },
-  deleteBtn: {
+  
+  // Single button takes full width
+  btnSingleButton: {
     width: 256,
+  },
+  
+  // Two buttons share the width
+  btnTwoButton: {
+    flex: 1,
+  },
+  
+  deleteBtn: {
     height: 44,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 22,
     borderWidth: 1.3,
     borderColor: colors.primary,
-    marginBottom: 20,
-    marginHorizontal: 20,
+    backgroundColor: 'transparent',
   },
+  
   btnDeleteTxt: {
     color: colors.primary,
     fontSize: 16,

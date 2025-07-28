@@ -168,7 +168,7 @@ export type RootStackParamList = {
   [SCREENS.ProfileScreen]: undefined;
   [SCREENS.HelpSupportScreen]: undefined;
   [SCREENS.PrivacyPolicyScreen]: undefined;
-  [SCREENS.TermsConditionsScreen]: undefined;
+  [SCREENS.TermsConditionsScreen]: { type?: string | null | undefined};
   [SCREENS.EditProfileScreen]: undefined;
   [SCREENS.ChangePasswordScreen]: undefined;
   [SCREENS.ProfileLoginScreen]: undefined;

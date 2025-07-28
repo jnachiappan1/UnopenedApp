@@ -73,9 +73,7 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({route, navigation}) => {
       });
     },
     onError: handleError,
-    onSettled: () => {
-      showLoader(false);
-    },
+    onSettled: handleSettled,
   });
   const onResendOTP = () => {
     if (!email || !type) return;

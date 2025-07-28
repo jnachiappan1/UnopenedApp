@@ -14,6 +14,7 @@ import { useSelector } from 'react-redux';
 import { useQuery } from '@tanstack/react-query';
 import { getSellerDashboardCount, getSellerOwnProductList } from '../../utils/apiAction';
 import { ProductData } from '../../utils/types';
+import { useFocusEffect } from '@react-navigation/native';
 
 type PHomeScreenProps = NativeStackScreenProps<RootStackParamList, SCREENS.SHomeScreen>;
 
@@ -36,6 +37,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
   const [selectedTab, setSelectedTab] = useState('All');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const userData = useSelector((user: IRootState) => user.user.userData);
+  
   const { 
     data: dashboardCountData, 
     refetch: refetchDashboardCountData,
@@ -47,7 +49,6 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
     queryFn: async () => {
       try {
         const result = await getSellerDashboardCount();
-        console.log('Dashboard API success:', result);
         return result;
       } catch (error) {
         console.error('Dashboard API error:', error);
@@ -74,7 +75,6 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
     queryFn: async () => {
       try {
         const result = await getSellerOwnProductList();
-        console.log('Product API success:', result);
         return result;
       } catch (error) {
         console.error('Product API error:', error);
@@ -89,20 +89,56 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
     retryDelay: 1000,
     enabled: !!userData,
   });
+
+  // useFocusEffect to call APIs when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      if (userData) {
+        // Call both APIs when screen comes into focus
+        const focusRefresh = async () => {
+          try {
+            const refreshPromises = [
+              refetchDashboardCountData(),
+              refetchsellerOwnProductList()
+            ];
+            
+            const results = await Promise.allSettled(refreshPromises);
+            
+            results.forEach((result, index) => {
+              const apiName = index === 0 ? 'Dashboard' : 'Product';
+              if (result.status === 'fulfilled') {
+                console.log(`${apiName} API focus refresh successful`);
+              } else {
+                console.error(`${apiName} API focus refresh failed:`, result.reason);
+              }
+            });
+            
+            console.log('Focus refresh completed');
+          } catch (error) {
+            console.error('Error during focus refresh:', error);
+          }
+        };
+        
+        focusRefresh();
+      } else {
+        console.log('No userData - skipping focus refresh');
+      }
+    }, [userData, refetchDashboardCountData, refetchsellerOwnProductList])
+  );
+
   const handleRefresh = useCallback(async () => {
     if (!userData) {
       console.log('No user data available - skipping refresh');
       setIsRefreshing(false);
       return;
     }
-    console.log('Starting refresh - calling APIs...');
+    console.log('Starting pull-to-refresh - calling APIs...');
     setIsRefreshing(true);  
     try {
       const refreshPromises = [
         refetchDashboardCountData(),
         refetchsellerOwnProductList()
       ];
-      console.log('Making API calls...');
       const results = await Promise.allSettled(refreshPromises);
       results.forEach((result, index) => {
         const apiName = index === 0 ? 'Dashboard' : 'Product';
@@ -119,7 +155,9 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
       setIsRefreshing(false);
     }
   }, [userData, refetchDashboardCountData, refetchsellerOwnProductList]);
+
   const isAnyApiFetching = userData ? (isDashboardFetching || isProductFetching) : false;
+  
   const products: ProductData[] = React.useMemo(() => {
     try {
       return sellerOwnProductList?.data?.product || [];
@@ -128,6 +166,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
       return [];
     }
   }, [sellerOwnProductList]);
+  
   const EmptyStateMessage = React.memo(({ selectedTab }: { selectedTab: string }) => {
     const getEmptyMessage = () => {
       switch (selectedTab) {
@@ -191,6 +230,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
       },
     ];
   }, []);
+
   const counts = React.useMemo(() => {
     try {
       if (isDashboardError) {
@@ -208,6 +248,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
       return defaultCounts;
     }
   }, [dashboardCountData, isDashboardError]);
+
   const dashboardAnalyticsData = React.useMemo(() => {
     try {
       return transformDashboardCounts(counts);
@@ -216,6 +257,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
       return transformDashboardCounts(defaultCounts);
     }
   }, [counts, transformDashboardCounts]);
+
   const getStatusForTab = React.useCallback((tabName: string) => {
     switch (tabName) {
       case 'Active':
@@ -228,6 +270,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
         return null;
     }
   }, []);
+
   const filterData = React.useCallback(() => {
     try {
       if (selectedTab === 'All') {
@@ -240,6 +283,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
       return [];
     }
   }, [selectedTab, products, getStatusForTab]);
+
   const getTabCounts = React.useCallback(() => {
     try {
       const counts: { [key: string]: number } = {
@@ -259,8 +303,10 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
       };
     }
   }, [products]);
+
   const tabCounts = getTabCounts();
   const filteredData = filterData();
+
   const renderProductItem = React.useCallback(({ item }: { item: ProductData }) => {
     try {
       return (
@@ -355,7 +401,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
           userData ? (
             filteredData.length > 0 ? (
               <FlatList
-                data={filteredData}
+                data={filteredData.slice(0, 5)}
                 renderItem={renderProductItem}
                 keyExtractor={(item) => item?.id?.toString() || Math.random().toString()}
                 contentContainerStyle={styles.list}
@@ -381,7 +427,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
         {
           userData && (
             <FlatList
-              data={products}
+              data={products.slice(0, 5)}
               horizontal
               showsHorizontalScrollIndicator={false}
               renderItem={({ item }) => (
@@ -406,7 +452,9 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
     </HeaderHomeContainer>
   );
 }
+
 export default SHomeScreen;
+
 const styles = StyleSheet.create({
   container: {
     marginTop: 10,

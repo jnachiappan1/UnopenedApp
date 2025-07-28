@@ -226,8 +226,6 @@ const SignUpScreen: React.FC<LoginProps> = ({ route, navigation }) => {
           title={'Create Account'}
           style={styles.sendOtpButton}
           onPress={handleSubmit((data) => {
-            // Handle form submission
-            console.log(data);
             showLoader(true);
             mutate(data);
           })}
