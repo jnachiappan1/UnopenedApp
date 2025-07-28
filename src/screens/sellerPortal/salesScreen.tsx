@@ -4,8 +4,19 @@ import TitleBackHeaderContainer from '../../components/headerContainer/titleBack
 import { FlashList } from '@shopify/flash-list'
 import { salesData } from '../../utils/static'
 import SaleCard from '../../components/card/saleCard'
+import { NativeStackScreenProps } from '@react-navigation/native-stack'
+import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation'
 
-const SalesScreen = () => {
+
+type SalesScreenProps = NativeStackScreenProps<
+  RootStackParamList,
+  SCREENS.SalesScreen
+>;
+
+  const SalesScreen: React.FC<SalesScreenProps> = ({
+    route,
+    navigation,
+  }) => {
   return (
     <TitleBackHeaderContainer title='Sales Activity' >
       <FlashList

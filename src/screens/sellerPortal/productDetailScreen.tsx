@@ -51,9 +51,9 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ navigation ,r
       </View>
       <View style={styles.imageDetailContainer}>
         <Text style={styles.headingStyle}>Listing Details</Text>
-        <InfoRow title="Created On"  subtitle={moment(productDetail?.data?.product[0]?.createdAt).format('DD MMMM YYYY')}  showColon />
-        <InfoRow title="Last Updated" subtitle={moment(productDetail?.data?.product[0]?.updatedAt).format('DD MMMM YYYY')} showColon />
-        <InfoRow title="Buyer Name" subtitle="Jay" showColon />
+        <InfoRow title="Created On" style={styles.containerStyle}  subtitle={moment(productDetail?.data?.product[0]?.createdAt).format('DD MMMM YYYY')}  showColon />
+        <InfoRow title="Last Updated" style={styles.containerStyle} subtitle={moment(productDetail?.data?.product[0]?.updatedAt).format('DD MMMM YYYY')} showColon />
+        <InfoRow title="Buyer Name" style={styles.containerStyle} subtitle="Jay" showColon />
         <View style={styles.row}>
           <Text style={styles.title}>{"Delivery Status"}</Text>
           <Text style={styles.colon}>{': '}</Text>
@@ -80,6 +80,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 10,
   },
+  containerStyle:{paddingHorizontal: 0,},
   productImage: {
     width: "100%",
     height: 210,
@@ -113,7 +114,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingHorizontal: 0,
     borderTopWidth: 1,
     borderTopColor: '#F5F5F5',
     backgroundColor: colors.white,

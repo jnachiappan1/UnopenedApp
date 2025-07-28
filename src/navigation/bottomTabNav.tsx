@@ -48,7 +48,7 @@ const BottomTabNav: React.FC<BottomTabNavProps> = () => {
     <>
       <Tab.Screen name={SCREENS.SHomeScreen} component={sHomeScreen} />
       <Tab.Screen name={SCREENS.ProductListScreen} component={ProductListScreen} />
-      <Tab.Screen name={SCREENS.AddProductScreen} component={AddProductScreen} />
+      {/* <Tab.Screen name={SCREENS.AddProductScreen} component={AddProductScreen} /> */}
       <Tab.Screen name={SCREENS.SalesScreen} component={SalesScreen} />
       <Tab.Screen name={SCREENS.WalletScreen} component={WalletScreen} />
     </>
@@ -82,10 +82,8 @@ const SellerTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
   const styles = getCurvedStyles(c);
 
   const iconMap: Record<string, { icon: string; label: string }> = {
-    // [SCREENS.BHomeScreen]: { icon: 'homeIcon', label: 'Home' },
     [SCREENS.SHomeScreen]: { icon: 'homeIcon', label: 'Home' },
     [SCREENS.ProductListScreen]: { icon: 'productListIcon', label: 'Product List' },
-    [SCREENS.AddProductScreen]: { icon: 'addProductIcon', label: 'Add Product' },
     [SCREENS.SalesScreen]: { icon: 'salesIcon', label: 'Sales' },
     [SCREENS.WalletScreen]: { icon: 'walletIcon', label: 'Wallet' },
   };
@@ -111,11 +109,9 @@ const SellerTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
       </View>
       <View style={styles.row}>
         {state.routes.map((route, index) => {
-          if (route.name === SCREENS.AddProductScreen) {
-            return <View key={route.key} style={styles.centerSpace} />;
-          }
           const isFocused = state.index === index;
           const { icon, label } = iconMap[route.name];
+          
           const onPress = () => {
             const event = navigation.emit({
               type: 'tabPress',
@@ -126,6 +122,32 @@ const SellerTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
               navigation.navigate(route.name);
             }
           };
+
+          // Add center space after ProductListScreen (index 1)
+          if (index === 1) {
+            return (
+              <React.Fragment key={route.key}>
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityState={isFocused ? { selected: true } : {}}
+                  onPress={onPress}
+                  style={styles.tab}
+                >
+                  <View style={styles.tabContent}>
+                    <IconsSvg
+                      name={icon as IconName}
+                      color={isFocused ? c.primary : c.gray}
+                    />
+                    <Text style={isFocused ? styles.activeLabel : styles.label}>
+                      {label}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+                <View style={styles.centerSpace} />
+              </React.Fragment>
+            );
+          }
+
           return (
             <TouchableOpacity
               key={route.key}
@@ -348,8 +370,6 @@ const getCurvedStyles = (c: IColors) =>
       width: '100%',
       height: '100%',
       zIndex: 1,
-
-      //paddingBottom: OS === 'android' ? 15 : 0,
     },
     tab: {
       flex: 1,
@@ -357,22 +377,17 @@ const getCurvedStyles = (c: IColors) =>
       justifyContent: 'center',
       marginBottom: OS === "android" ? 10 : -10,
     },
-
     tabContent: {
       alignItems: 'center',
       justifyContent: 'flex-end',
       flexDirection: 'column',
       marginBottom: 6,
     },
-
     centerSpace: {
       flex: 1,
       alignItems: 'center',
+      minWidth: 30,
     },
-    // tabContent: {
-    //   alignItems: 'center',
-    //   justifyContent: 'center',
-    // },
     label: {
       fontSize: fontSizes.small,
       fontFamily: fonts.medium,
@@ -395,12 +410,9 @@ const getCurvedStyles = (c: IColors) =>
       zIndex: 3,
     },
     fab: {
-      // width: CENTER_BTN + 12,
-      //height: CENTER_BTN + 12,
       borderRadius: (CENTER_BTN + 12) / 2,
       alignItems: 'center',
       justifyContent: 'center',
-      //backgroundColor: c.white,
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.25,

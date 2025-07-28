@@ -12,14 +12,19 @@ import { ProductData } from '../../utils/types';
 import { getSellerOwnProductList } from '../../utils/apiAction';
 import { useQuery } from '@tanstack/react-query';
 import fonts from '../../assets/fonts/fonts';
+import { useSelector } from 'react-redux';
+import { IRootState } from '../../redux/store';
 
 type ProductListScreenProps = NativeStackScreenProps<RootStackParamList, SCREENS.ProductListScreen>;
 
 const ProductListScreen: React.FC<ProductListScreenProps> = ({ navigation }) => {
   const [selectedTab, setSelectedTab] = useState('All');
+  const userData = useSelector((user: IRootState) => user.user.userData);
+  console.log("userData---", userData);
   const { data: sellerOwnProductList, refetch: refetchsellerOwnProductList } = useQuery({
     queryKey: ['getSellerOwnProductList'],
     queryFn: () => getSellerOwnProductList(),
+    enabled: !!userData, 
   });
   const products: ProductData[] = sellerOwnProductList?.data?.product || [];
   

@@ -34,6 +34,7 @@ import BProductDetailScreen from '../screens/buyerPortal/bProductDetailScreen';
 import ConfirmYourOrderScreen from '../screens/buyerPortal/confirmYourOrderScreen';
 import { useSelector } from 'react-redux';
 import { IRootState } from '../redux/store';
+import AddProductScreen from '../screens/sellerPortal/addProductScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -86,6 +87,7 @@ const MainNavigation: React.FC = () => {
       <Stack.Screen name={SCREENS.ChangePasswordScreen} component={ChangePasswordScreen} />
       <Stack.Screen name={SCREENS.ProfileLoginScreen} component={ProfileLoginScreen} />
       <Stack.Screen name={SCREENS.ProfileVerifyScreen} component={ProfileVerifyScreen} />
+      <Stack.Screen name={SCREENS.AddProductScreen} component={AddProductScreen} />
       <Stack.Screen
         name={SCREENS.PreviewConfirmScreen}
         component={PreviewConfirmScreen}

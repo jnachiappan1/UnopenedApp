@@ -64,10 +64,6 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
     retryDelay: 1000,
     enabled: !!userData, 
   });
-
-  console.log("dashboardCountData---", dashboardCountData);
-  console.log("dashboardError---", dashboardError);
-
   const { 
     data: sellerOwnProductList, 
     refetch: refetchsellerOwnProductList,
