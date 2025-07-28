@@ -80,6 +80,7 @@ export default BottomTabNav;
 const SellerTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigation }) => {
   const c = getColors();
   const styles = getCurvedStyles(c);
+  const userData = useSelector((state: IRootState) => state.user.userData);
 
   const iconMap: Record<string, { icon: string; label: string }> = {
     [SCREENS.SHomeScreen]: { icon: 'homeIcon', label: 'Home' },
@@ -98,7 +99,13 @@ const SellerTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
       <View style={styles.fabContainer}>
         <TouchableOpacity
           activeOpacity={0.8}
-          onPress={() => navigation.navigate(SCREENS.AddProductScreen)}
+          onPress={() => {
+            if (userData) {
+              navigation.navigate(SCREENS.AddProductScreen);
+            } else {
+              navigation.navigate(SCREENS.LoginScreen); 
+            }
+          }}
           style={styles.fab}
         >
           <View style={styles.fabInner}>
@@ -111,7 +118,7 @@ const SellerTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
         {state.routes.map((route, index) => {
           const isFocused = state.index === index;
           const { icon, label } = iconMap[route.name];
-          
+
           const onPress = () => {
             const event = navigation.emit({
               type: 'tabPress',
@@ -226,50 +233,50 @@ const BuyerTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigati
     //   })}
     // </View>
     <SafeAreaView style={styles.safeArea}>
-    <Image
-      source={IMAGE.buyerBottomImage}
-      style={styles.backgroundImage}
-      resizeMode="stretch"
-    />
-    <View style={styles.row}>
-      {state.routes.map((route, index) => {
-        if (route.name === SCREENS.AddProductScreen) {
-          return <View key={route.key} style={styles.centerSpace} />;
-        }
-        const isFocused = state.index === index;
-        const { icon, label } = iconMap[route.name];
-        const onPress = () => {
-          const event = navigation.emit({
-            type: 'tabPress',
-            target: route.key,
-            canPreventDefault: true,
-          });
-          if (!isFocused && !event.defaultPrevented) {
-            navigation.navigate(route.name);
+      <Image
+        source={IMAGE.buyerBottomImage}
+        style={styles.backgroundImage}
+        resizeMode="stretch"
+      />
+      <View style={styles.row}>
+        {state.routes.map((route, index) => {
+          if (route.name === SCREENS.AddProductScreen) {
+            return <View key={route.key} style={styles.centerSpace} />;
           }
-        };
-        return (
-          <TouchableOpacity
-            key={route.key}
-            accessibilityRole="button"
-            accessibilityState={isFocused ? { selected: true } : {}}
-            onPress={onPress}
-            style={styles.tab}
-          >
-            <View style={styles.tabContent}>
-              <IconsSvg
-                name={icon as IconName}
-                color={isFocused ? c.primary : c.gray}
-              />
-              <Text style={isFocused ? styles.activeLabel : styles.label}>
-                {label}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        );
-      })}
-    </View>
-  </SafeAreaView>
+          const isFocused = state.index === index;
+          const { icon, label } = iconMap[route.name];
+          const onPress = () => {
+            const event = navigation.emit({
+              type: 'tabPress',
+              target: route.key,
+              canPreventDefault: true,
+            });
+            if (!isFocused && !event.defaultPrevented) {
+              navigation.navigate(route.name);
+            }
+          };
+          return (
+            <TouchableOpacity
+              key={route.key}
+              accessibilityRole="button"
+              accessibilityState={isFocused ? { selected: true } : {}}
+              onPress={onPress}
+              style={styles.tab}
+            >
+              <View style={styles.tabContent}>
+                <IconsSvg
+                  name={icon as IconName}
+                  color={isFocused ? c.primary : c.gray}
+                />
+                <Text style={isFocused ? styles.activeLabel : styles.label}>
+                  {label}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </SafeAreaView>
   );
 };
 

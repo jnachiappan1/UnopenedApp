@@ -54,7 +54,7 @@ const HeaderHomeContainer: React.FC<HeaderHomeContainerProps> = props => {
     onPressBack = () => { },
     isBackNavigation = false,
     isNewNotification = false,
-    refreshing,
+    refreshing = false,
     onRefresh,
     isNormalHeader = false,
     isNotification = true,
@@ -67,18 +67,30 @@ const HeaderHomeContainer: React.FC<HeaderHomeContainerProps> = props => {
   const dispatch = useDispatch();
   const container = useContainer();
   const userType = useSelector((state: IRootState) => state.user.userType);
+  
   const onBackPress = () => {
     navigation.goBack();
   };
-  // const onSearchPress = () => {
-  //   navigation.navigate(SCREENS.SearchScreen, {title: title});
-  // };
+  
   const onNotificationPress = () => {
     //navigation.navigate(SCREENS.NotificationScreen);
   };
+
+  // Always provide RefreshControl, but only make it functional when onRefresh is provided
+  const refreshControl = (
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={onRefresh || (() => {
+        console.log('RefreshControl triggered but no onRefresh handler provided');
+      })}
+      tintColor={colors.primary}
+      enabled={!!onRefresh} // Only enable pull-to-refresh when onRefresh is provided
+    />
+  );
+
   return (
-    <View style={[container,commonStyles.container]}>
-      <StatusBar backgroundColor={colors.background  } barStyle="dark-content" />
+    <View style={[container, commonStyles.container]}>
+      <StatusBar backgroundColor={colors.background} barStyle="dark-content" />
       <View style={commonStyles.headerRowContainer}>
         <TouchableOpacity onPress={() => navigation.navigate(SCREENS.ProfileScreen)}>
           <Image source={IMAGE.profileImage} style={styles.icon} />
@@ -117,17 +129,8 @@ const HeaderHomeContainer: React.FC<HeaderHomeContainerProps> = props => {
           keyboardVerticalOffset={HEADER_MIN_HEIGHT}>
           <ScrollView
             showsVerticalScrollIndicator={false}
-            refreshControl={
-              refreshing ? (
-                <RefreshControl
-                  refreshing={refreshing}
-                  onRefresh={onRefresh}
-                  tintColor={colors.primary}
-                />
-              ) : (
-                <></>
-              )
-            }>
+            refreshControl={refreshControl}
+          >
             {children}
           </ScrollView>
         </KeyboardAvoidingView>

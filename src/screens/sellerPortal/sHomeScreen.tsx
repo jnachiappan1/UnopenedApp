@@ -1,5 +1,5 @@
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { useState } from 'react'
+import React, { useState, useCallback } from 'react'
 import HeaderHomeContainer from '../../components/headerContainer/headerHomeContainer'
 import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation'
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -34,15 +34,14 @@ const defaultCounts = {
 
 const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
   const [selectedTab, setSelectedTab] = useState('All');
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const userData = useSelector((user: IRootState) => user.user.userData);
-  console.log("userData---", userData);
-  
-  // Add error handling and retry logic to useQuery
   const { 
     data: dashboardCountData, 
     refetch: refetchDashboardCountData,
     error: dashboardError,
-    isError: isDashboardError
+    isError: isDashboardError,
+    isFetching: isDashboardFetching
   } = useQuery({
     queryKey: ['getSellerDashboardCount'],
     queryFn: async () => {
@@ -52,7 +51,6 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
         return result;
       } catch (error) {
         console.error('Dashboard API error:', error);
-        // Return a default structure instead of throwing
         return {
           data: {
             counts: defaultCounts
@@ -62,13 +60,15 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
     },
     retry: 1,
     retryDelay: 1000,
-    enabled: !!userData, 
+    enabled: !!userData
   });
+
   const { 
     data: sellerOwnProductList, 
     refetch: refetchsellerOwnProductList,
     error: productError,
-    isError: isProductError
+    isError: isProductError,
+    isFetching: isProductFetching
   } = useQuery({
     queryKey: ['getSellerOwnProductList'],
     queryFn: async () => {
@@ -78,7 +78,6 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
         return result;
       } catch (error) {
         console.error('Product API error:', error);
-        // Return a default structure instead of throwing
         return {
           data: {
             product: []
@@ -88,10 +87,39 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
     },
     retry: 1,
     retryDelay: 1000,
-    enabled: !!userData, 
+    enabled: !!userData,
   });
-
-  // Safely extract products with fallback
+  const handleRefresh = useCallback(async () => {
+    if (!userData) {
+      console.log('No user data available - skipping refresh');
+      setIsRefreshing(false);
+      return;
+    }
+    console.log('Starting refresh - calling APIs...');
+    setIsRefreshing(true);  
+    try {
+      const refreshPromises = [
+        refetchDashboardCountData(),
+        refetchsellerOwnProductList()
+      ];
+      console.log('Making API calls...');
+      const results = await Promise.allSettled(refreshPromises);
+      results.forEach((result, index) => {
+        const apiName = index === 0 ? 'Dashboard' : 'Product';
+        if (result.status === 'fulfilled') {
+          console.log(`${apiName} API refresh successful`);
+        } else {
+          console.error(`${apiName} API refresh failed:`, result.reason);
+        }
+      });
+    } catch (error) {
+      console.error('Error during refresh:', error);
+    } finally {
+      console.log('Setting isRefreshing to false');
+      setIsRefreshing(false);
+    }
+  }, [userData, refetchDashboardCountData, refetchsellerOwnProductList]);
+  const isAnyApiFetching = userData ? (isDashboardFetching || isProductFetching) : false;
   const products: ProductData[] = React.useMemo(() => {
     try {
       return sellerOwnProductList?.data?.product || [];
@@ -100,7 +128,6 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
       return [];
     }
   }, [sellerOwnProductList]);
-
   const EmptyStateMessage = React.memo(({ selectedTab }: { selectedTab: string }) => {
     const getEmptyMessage = () => {
       switch (selectedTab) {
@@ -126,9 +153,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
           };
       }
     };
-
     const message = getEmptyMessage();
-
     return (
       <View style={styles.emptyStateContainer}>
         <Text style={styles.emptyStateTitle}>{message.title}</Text>
@@ -138,9 +163,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
   });
 
   const transformDashboardCounts = React.useCallback((counts: any): DashboardAnalyticsItem[] => {
-    // Ensure counts is always an object
     const safeCounts = counts && typeof counts === 'object' ? counts : defaultCounts;
-    
     return [
       {
         key: 'active',
@@ -168,29 +191,23 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
       },
     ];
   }, []);
-
-  // Safely extract counts with multiple fallbacks
   const counts = React.useMemo(() => {
     try {
       if (isDashboardError) {
         console.log('Using default counts due to dashboard error');
         return defaultCounts;
       }
-      
       const extractedCounts = dashboardCountData?.data?.counts;
-      
       if (!extractedCounts || typeof extractedCounts !== 'object') {
         console.log('Using default counts due to invalid data structure');
         return defaultCounts;
       }
-      
       return extractedCounts;
     } catch (error) {
       console.error('Error extracting counts:', error);
       return defaultCounts;
     }
   }, [dashboardCountData, isDashboardError]);
-
   const dashboardAnalyticsData = React.useMemo(() => {
     try {
       return transformDashboardCounts(counts);
@@ -199,7 +216,6 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
       return transformDashboardCounts(defaultCounts);
     }
   }, [counts, transformDashboardCounts]);
-
   const getStatusForTab = React.useCallback((tabName: string) => {
     switch (tabName) {
       case 'Active':
@@ -212,7 +228,6 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
         return null;
     }
   }, []);
-
   const filterData = React.useCallback(() => {
     try {
       if (selectedTab === 'All') {
@@ -225,7 +240,6 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
       return [];
     }
   }, [selectedTab, products, getStatusForTab]);
-
   const getTabCounts = React.useCallback(() => {
     try {
       const counts: { [key: string]: number } = {
@@ -245,10 +259,8 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
       };
     }
   }, [products]);
-
   const tabCounts = getTabCounts();
   const filteredData = filterData();
-
   const renderProductItem = React.useCallback(({ item }: { item: ProductData }) => {
     try {
       return (
@@ -271,7 +283,6 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
 
   const renderTab = React.useCallback(({ item }: { item: string }) => {
     try {
-      console.log(item, "item======");
       return (
         <TouchableOpacity
           key={item}
@@ -308,6 +319,8 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
       title={'Welcome,'}
       userName={`Hello ${userData?.full_name ?? 'Guest'}`}
       isHome
+      refreshing={isRefreshing || isAnyApiFetching}
+      onRefresh={handleRefresh}
       onSearchPress={() => { 
         console.log('Search pressed');
       }}
@@ -393,9 +406,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
     </HeaderHomeContainer>
   );
 }
-
 export default SHomeScreen;
-
 const styles = StyleSheet.create({
   container: {
     marginTop: 10,

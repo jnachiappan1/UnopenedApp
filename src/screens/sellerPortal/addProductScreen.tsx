@@ -34,6 +34,8 @@ import { showAlert } from '../../components/cAlert';
 import { CategoryAPIResponse, errorMsg } from '../../utils/types';
 import { showLoader } from '../../components/loader/loader';
 import { fontSizes } from '../../utils/utils';
+import { IRootState } from '../../redux/store';
+import { useSelector } from 'react-redux';
 
 type MediaObject = {
   uri: string;
@@ -68,12 +70,15 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
 }) => {
   const [uploadedImages, setUploadedImages] = useState<MediaObject[]>([]);
   const [isNavigatingToPreview, setIsNavigatingToPreview] = useState(false);
+  const userData = useSelector((user: IRootState) => user.user.userData);
+  const isLogged = userData ? true : false;
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [imageError, setImageError] = useState<string>('');
   const [dropdownData, setDropdownData] = useState<DropDownType[]>([]);
   const { data: categoryData, refetch: refetchcategoryDetail } = useQuery({
     queryKey: ['getCategoryDetail'],
     queryFn: () => getCategoryDetail(),
+    enabled: isLogged,
   });
   const transformCategoryData = (apiData: any): DropDownType[] => {
     if (apiData?.status === 'success' && apiData?.data?.category) {
