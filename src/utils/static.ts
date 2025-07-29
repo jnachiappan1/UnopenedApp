@@ -1,6 +1,7 @@
 import { IconName } from "../assets/svg/iconsSvg";
 import { PaymentMethodType } from "../components/card/paymentMethodCard";
 import { PayoutItem } from "../components/card/payoutCard";
+import { Sort } from "../screens/buyerPortal/filterSortScreen";
 import { OrderData, ProductData } from "./types";
 
 export const dashboardAnalyticsData = [
@@ -446,4 +447,10 @@ export const bannerData :any= [
   },
   
   // Add more if needed
+];
+
+export const sortByList: Sort[] = [
+  { id: 'newest_first', name: 'Newest First' },
+  { id: 'price_low_to_high', name: 'Price: Low to High' },
+  { id: 'price_high_to_low', name: 'Price: High to Low' },
 ];

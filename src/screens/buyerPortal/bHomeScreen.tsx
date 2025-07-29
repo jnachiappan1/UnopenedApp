@@ -10,6 +10,8 @@ import CategoryList from '../../components/card/categoryList';
 import ProductSection from '../../components/card/productSection';
 import TopPicksSection from '../../components/card/topPicksSection';
 import {ProductData} from '../../utils/types';
+import { useSelector } from 'react-redux';
+import { IRootState } from '../../redux/store';
 
 type LoginProps = NativeStackScreenProps<
   RootStackParamList,
@@ -28,7 +30,7 @@ const BHomeScreen: React.FC<LoginProps> = ({route, navigation}) => {
   const categories = ['Mobile', 'Earphones', 'Smartwatch', 'Watch'];
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
-
+  const userData = useSelector((user: IRootState) => user.user.userData);
   const handleFilterPress = () => {
     console.log('Filter button pressed');
   };
@@ -38,7 +40,7 @@ const BHomeScreen: React.FC<LoginProps> = ({route, navigation}) => {
   return (
     <HeaderHomeContainer
       title={'Welcome,'}
-      userName={'Hello John'}
+      userName={`Hello ${userData?.full_name ?? 'Guest'}`}
       isHome
       onSearchPress={() => {}}>
       {/* <ScrollView style={styles.container} showsVerticalScrollIndicator={false}> */}

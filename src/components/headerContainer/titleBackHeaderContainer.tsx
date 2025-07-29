@@ -32,6 +32,7 @@ type TitleBackHeaderContainerProps = {
   isScanner?: boolean;
   isThreeDot?: boolean;
   refreshing?: boolean;
+  isNormalHeader?: boolean;
   onRefresh?: (() => void) | undefined;
   isAddMore?: boolean;
   containerStyle?: StyleProp<ViewStyle>;
@@ -54,6 +55,7 @@ const TitleBackHeaderContainer: React.FC<
     isDriver = false,
     isThreeDot = false,
     isAddMore = false,
+    isNormalHeader = true,
     containerStyle,
     refreshing,
     onRefresh,
@@ -81,7 +83,30 @@ const TitleBackHeaderContainer: React.FC<
             {title}
           </Text>
       </View>
-      <KeyboardAvoidingView
+      {!isNormalHeader ? (
+  <View style={{ flex: 1 }}>
+    {children}</View>
+) : (
+  <KeyboardAvoidingView
+    style={{ flex: 1 }}
+    behavior={OS === 'ios' ? 'padding' : 'height'}
+    keyboardVerticalOffset={HEADER_MIN_HEIGHT}>
+    <ScrollView
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        refreshing ? (
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
+          />
+        ) : <></>
+      }>
+      {children}
+    </ScrollView>
+  </KeyboardAvoidingView>
+)}
+      {/* <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={HEADER_MIN_HEIGHT}>
@@ -100,7 +125,7 @@ const TitleBackHeaderContainer: React.FC<
             }>
            {children}
           </ScrollView>
-        </KeyboardAvoidingView>
+        </KeyboardAvoidingView> */}
       {/* <View style={[styles.childrenView, containerStyle]}>{children}</View> */}
     </View>
   );

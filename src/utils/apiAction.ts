@@ -81,6 +81,61 @@ export const updateProductStatus = async (
   const response = await axiosmultipart.patch(API.seller.add_Product + "/" + productID, data);
   return response;
 };
+
+
+//Buyer Side API call
+interface productListParams {
+  search?: string;
+  sort_by?: string;
+  price?: string;
+  category_id?: string;
+}
+export const getProductList = async ({
+  search,
+  sort_by,
+  price,
+  category_id
+}: productListParams) => {
+  console.log(  search,"======",
+    sort_by,"-=-0=-0-0",
+    price,
+    category_id);
+  
+  try {
+    const queryParts: string[] = [];
+
+    if (search && search.trim() !== '') {
+      queryParts.push(`search=${encodeURIComponent(search)}`);
+    }
+    if (sort_by && sort_by !== 'null') {
+      queryParts.push(`sort_by=${encodeURIComponent(sort_by)}`);
+    }
+    if (price) {
+      queryParts.push(`price=${encodeURIComponent(price)}`);
+    }
+    
+    // Handle multiple category IDs
+    if (category_id) {
+      const categoryIds = category_id.split(',');
+      categoryIds.forEach(id => {
+        queryParts.push(`category_id=${encodeURIComponent(id.trim())}`);
+      });
+    }
+
+    const queryString = queryParts.join('&');
+    const url = `${API.seller.getProductList}${queryString ? `?${queryString}` : ''}`;
+    console.log(url,"url--------");
+    
+    const response = await axios.get(url);
+    // console.log(response,"response00000-");
+    
+    return response;
+  } catch (error) {
+    console.error('Error fetching product list:', error);
+    throw error;
+  }
+};
+
 // export const getPlanOwnerInfo = async () => {
 //   const response = await axios.get(API.planOwner.plan_owner_info);
 //   return response;

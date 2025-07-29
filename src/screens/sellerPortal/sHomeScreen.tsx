@@ -1,5 +1,5 @@
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import HeaderHomeContainer from '../../components/headerContainer/headerHomeContainer'
 import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation'
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -11,7 +11,7 @@ import colors from '../../utils/colors';
 import fonts from '../../assets/fonts/fonts';
 import { IRootState } from '../../redux/store';
 import { useSelector } from 'react-redux';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getSellerDashboardCount, getSellerOwnProductList } from '../../utils/apiAction';
 import { ProductData } from '../../utils/types';
 import { useFocusEffect } from '@react-navigation/native';
@@ -37,7 +37,18 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
   const [selectedTab, setSelectedTab] = useState('All');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const userData = useSelector((user: IRootState) => user.user.userData);
+  const queryClient = useQueryClient();
   
+  // Clear React Query cache when user logs out
+  useEffect(() => {
+    if (!userData) {
+      // Clear all cached data when no user is logged in
+      queryClient.removeQueries({ queryKey: ['getSellerDashboardCount'] });
+      queryClient.removeQueries({ queryKey: ['getSellerOwnProductList'] });
+      console.log('Cleared React Query cache - user logged out');
+    }
+  }, [userData, queryClient]);
+
   const { 
     data: dashboardCountData, 
     refetch: refetchDashboardCountData,
@@ -61,8 +72,11 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
     },
     retry: 1,
     retryDelay: 1000,
-    enabled: !!userData
+    enabled: !!userData, // Only run when user is logged in
+    staleTime: 0, // Always refetch when query becomes active
   });
+
+  console.log(dashboardCountData,"dashboardCountData-------");
 
   const { 
     data: sellerOwnProductList, 
@@ -87,7 +101,8 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
     },
     retry: 1,
     retryDelay: 1000,
-    enabled: !!userData,
+    enabled: !!userData, // Only run when user is logged in
+    staleTime: 0, // Always refetch when query becomes active
   });
 
   // useFocusEffect to call APIs when screen comes into focus
@@ -121,7 +136,9 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
         
         focusRefresh();
       } else {
-        console.log('No userData - skipping focus refresh');
+        console.log('No userData - skipping focus refresh and clearing data');
+        // Reset selected tab to 'All' when user logs out
+        setSelectedTab('All');
       }
     }, [userData, refetchDashboardCountData, refetchsellerOwnProductList])
   );
@@ -158,14 +175,18 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
 
   const isAnyApiFetching = userData ? (isDashboardFetching || isProductFetching) : false;
   
+  // Use default empty array when no user data or when user is logged out
   const products: ProductData[] = React.useMemo(() => {
+    if (!userData) {
+      return []; // Return empty array when no user is logged in
+    }
     try {
       return sellerOwnProductList?.data?.product || [];
     } catch (error) {
       console.error('Error extracting products:', error);
       return [];
     }
-  }, [sellerOwnProductList]);
+  }, [sellerOwnProductList, userData]);
   
   const EmptyStateMessage = React.memo(({ selectedTab }: { selectedTab: string }) => {
     const getEmptyMessage = () => {
@@ -231,7 +252,11 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
     ];
   }, []);
 
+  // Use default counts when no user data or when user is logged out
   const counts = React.useMemo(() => {
+    if (!userData) {
+      return defaultCounts; // Return default counts when no user is logged in
+    }
     try {
       if (isDashboardError) {
         console.log('Using default counts due to dashboard error');
@@ -247,7 +272,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
       console.error('Error extracting counts:', error);
       return defaultCounts;
     }
-  }, [dashboardCountData, isDashboardError]);
+  }, [dashboardCountData, isDashboardError, userData]);
 
   const dashboardAnalyticsData = React.useMemo(() => {
     try {
@@ -425,7 +450,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
           <Text style={styles.viewAllText}>View All</Text>
         </View>
         {
-          userData && (
+          userData && products.length > 0 ? (
             <FlatList
               data={products.slice(0, 5)}
               horizontal
@@ -446,6 +471,20 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
               keyExtractor={(item) => item?.id?.toString() || Math.random().toString()}
               contentContainerStyle={styles.contentContainerStyle}
             />
+          ) : userData ? (
+            <View style={styles.emptyStateContainer}>
+              <Text style={styles.emptyStateTitle}>No Recent Products</Text>
+              <Text style={styles.emptyStateSubtitle}>
+                You haven't added any products recently.
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.loginPromptContainer}>
+              <Text style={styles.loginPromptTitle}>Please log in first</Text>
+              <Text style={styles.loginPromptSubtitle}>
+                You must be logged in to view recent products.
+              </Text>
+            </View>
           )
         }
       </View>
