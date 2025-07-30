@@ -27,7 +27,7 @@ import ChangePasswordScreen from '../screens/profile/changePasswordScreen';
 import ProfileLoginScreen from '../screens/profile/profileLoginScreen';
 import ProfileVerifyScreen from '../screens/profile/profileVerifyScreen';
 import PreviewConfirmScreen from '../screens/sellerPortal/previewConfirmScreen';
-import { OrderData, Product, ProductData, ProductDetail } from '../utils/types';
+import { OrderData, Product, ProductCategory, ProductData, ProductDetail } from '../utils/types';
 import FilterSortScreen from '../screens/buyerPortal/filterSortScreen';
 import OrderTrackScreen from '../screens/buyerPortal/orderTrackScreen';
 import BProductDetailScreen from '../screens/buyerPortal/bProductDetailScreen';
@@ -177,14 +177,20 @@ export type RootStackParamList = {
     productData?: ProductDetail;
   };
   [SCREENS.FilterSortScreen]: {
-    onApplyFilters: (filters: any) => void;
-    initialFilters: string[];
+    onApplyFilters: (
+      selectedCategories: ProductCategory[],
+      selectedSort: { id: string; name: string } | null, 
+      selectedPriceRange: { min: number; max: number } | null
+    ) => void;
+    initialFilters: ProductCategory[];
+    initialSort: { id: string; name: string } | null;
+    initialPriceRange: { min: number; max: number } | null;
   };
   [SCREENS.OrderTrackScreen]: {
     productId: OrderData;
   };
   [SCREENS.BProductDetailScreen]: {
-    item: Product[]
+    productId: number
   };
   [SCREENS.ConfirmYourOrderScreen]: undefined;
 };

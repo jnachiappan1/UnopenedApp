@@ -20,6 +20,7 @@ import { removeToken, removeUserData, saveUserType } from '../../redux/reducers/
 import { showAlert } from '../../components/cAlert';
 import { useMutation } from '@tanstack/react-query';
 import { deleteAPI, logOutAPI } from '../../utils/apiAction';
+import { image_url } from '../../utils/api';
 
 type ProfileScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -33,6 +34,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   const [isLogoutModalVisible, setLogoutModalVisible] = useState(false);
   const [isEnabled, setIsEnabled] = useState(true);
   const userData = useSelector((user: IRootState) => user.user.userData);
+console.log(userData,"userData---");
 
   const { mutate: deleteMutation } = useMutation({
     mutationFn: deleteAPI,
@@ -121,7 +123,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
         <View style={styles.profileContainer}>
           <View style={styles.profileDetailContainer}>
             <Image
-              source={IMAGE.profileImage}
+             source={{ uri: image_url+userData?.profile_picture }}
+              // source={IMAGE.profileImage}
               style={styles.profileImage}
               resizeMode="cover"
             />

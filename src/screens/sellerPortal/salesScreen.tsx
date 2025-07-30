@@ -6,6 +6,10 @@ import { salesData } from '../../utils/static'
 import SaleCard from '../../components/card/saleCard'
 import { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation'
+import { useSelector } from 'react-redux'
+import { IRootState } from '../../redux/store'
+import { useQuery } from '@tanstack/react-query'
+import { getSalesProductList } from '../../utils/apiAction'
 
 
 type SalesScreenProps = NativeStackScreenProps<
@@ -17,6 +21,14 @@ type SalesScreenProps = NativeStackScreenProps<
     route,
     navigation,
   }) => {
+    const userData = useSelector((user: IRootState) => user.user.userData);
+    const { data: sellerOwnProductList, refetch: refetchsellerOwnProductList } = useQuery({
+      queryKey: ['getSalesProductList'],
+      queryFn: () => getSalesProductList(),
+      enabled: !!userData, 
+    });
+    console.log(sellerOwnProductList,"sellerOwnProductList---");
+    
   return (
     <TitleBackHeaderContainer title='Sales Activity' >
       <FlashList

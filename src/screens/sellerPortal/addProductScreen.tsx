@@ -29,14 +29,14 @@ import TitleBackHeaderContainer from '../../components/headerContainer/titleBack
 import { useFocusEffect } from '@react-navigation/native';
 import ProductImageUpload from '../../components/model/productImageUpload';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { addProduct, getCategoryDetail } from '../../utils/apiAction';
+import { addProduct, getCategoryDetail, getProductPriceDetail } from '../../utils/apiAction';
 import { showAlert } from '../../components/cAlert';
 import { CategoryAPIResponse, errorMsg } from '../../utils/types';
 import { showLoader } from '../../components/loader/loader';
 import { fontSizes } from '../../utils/utils';
 import { IRootState } from '../../redux/store';
 import { useSelector } from 'react-redux';
-import { handleError, handleSettled } from '../../utils/method';
+import { calculateDiscount, handleError, handleSettled } from '../../utils/method';
 
 type MediaObject = {
   uri: string;
@@ -81,6 +81,13 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     queryFn: () => getCategoryDetail(),
     enabled: isLogged,
   });
+  const { data: ProductPriceData, refetch: refetchProductPriceData } = useQuery({
+    queryKey: ['getProductPriceDetail'],
+    queryFn: () => getProductPriceDetail(),
+    enabled: isLogged,
+  });
+  const discountPercentage = ProductPriceData?.data?.product_price?.price
+
   const transformCategoryData = (apiData: any): DropDownType[] => {
     if (apiData?.status === 'success' && apiData?.data?.category) {
       const transformed = apiData.data.category
@@ -363,8 +370,8 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             data={dropdownData}
             placeholder="Choose a category..."
             isSearch={true}
-            valueField="id"       
-            labelField="name"      
+            valueField="id"
+            labelField="name"
             required={{ value: true, message: 'Category is required' }}
             error={errors}
             onChangeValue={(selectedItem) => {
@@ -375,16 +382,28 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
           <Input
             control={control}
             name="msrp"
-            label={'MSRP *'}
-            containerStyle={styles.emailContainer}
+            label="MSRP *"
+            required={{ value: true, message: 'MSRP is required' }}
+            error={errors}
+            keyboardType="numeric"
             inputProps={{
               placeholder: 'Enter MSRP',
             }}
-            required={{ value: true, message: 'MSRP is required' }}
-            error={errors}
             maxLength={40}
-            keyboardType={'numeric'}
             inputStyle={styles.inputStyle}
+            containerStyle={styles.emailContainer}
+            onValueChange={(text) => {
+              const msrpValue = parseFloat(text);
+              if (!isNaN(msrpValue) && discountPercentage) {
+                const { amountToPay } = calculateDiscount(msrpValue, discountPercentage);
+                console.log(amountToPay);
+                
+                setValue('price', amountToPay.toFixed(2));
+              }
+              else{
+                setValue('price', '');
+              }
+            }}
           />
           <Input
             control={control}
@@ -393,6 +412,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             containerStyle={styles.emailContainer}
             inputProps={{
               placeholder: 'Enter Price',
+              editable: false,
             }}
             required={{ value: true, message: 'Price is required' }}
             error={errors}
@@ -577,13 +597,13 @@ const styles = StyleSheet.create({
   },
   selectedImagesText: {
     color: colors.primary || '#4CAF50',
-    fontSize:fontSizes.small,
+    fontSize: fontSizes.small,
     fontFamily: fonts.medium,
     marginLeft: 5,
   },
   validationSuccessText: {
     color: '#4CAF50',
-    fontSize:fontSizes.small,
+    fontSize: fontSizes.small,
     fontFamily: fonts.regular,
     marginTop: 2,
     marginLeft: 5,
@@ -644,11 +664,11 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
   },
   videoPreviewIcon: {
-    fontSize:fontSizes.huge,
+    fontSize: fontSizes.huge,
     marginBottom: 4,
   },
   videoPreviewText: {
-    fontSize:  fontSizes.tiny,
+    fontSize: fontSizes.tiny,
     color: '#007bff',
     fontWeight: '600',
     textAlign: 'center',
@@ -674,7 +694,7 @@ const styles = StyleSheet.create({
   },
   removeImageText: {
     color: 'white',
-    fontSize:  fontSizes.medium,
+    fontSize: fontSizes.medium,
     fontWeight: 'bold',
     lineHeight: 16,
   },
@@ -703,7 +723,7 @@ const styles = StyleSheet.create({
   },
   clearAllButtonText: {
     color: 'white',
-    fontSize:fontSizes.small,
+    fontSize: fontSizes.small,
     fontWeight: '600',
   },
   videoFileName: {

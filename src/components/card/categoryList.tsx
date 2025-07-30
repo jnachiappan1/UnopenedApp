@@ -1,49 +1,61 @@
-// components/DashboardCard.tsx
 import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  Image,
-  TextInput,
   TouchableOpacity,
   FlatList,
 } from 'react-native';
-import IconsSvg, {IconName} from '../../assets/svg/iconsSvg';
 import colors from '../../utils/colors';
 import fonts from '../../assets/fonts/fonts';
 
-interface BannerItemCardProps {
-  categories: string[];
-  selectedIndex: number;
-  onSelectCategory: (index: number) => void;
+interface CategoryItem {
+  id: number;
+  name: string;
 }
 
-const CategoryList: React.FC<BannerItemCardProps> = ({
+interface CategoryListProps {
+  categories: CategoryItem[];
+  selectedCategoryId: number | null; 
+  onSelectCategory: (categoryId: number | null, categoryName: string | null) => void; // Updated to handle null values
+}
+
+const CategoryList: React.FC<CategoryListProps> = ({
   categories,
-  selectedIndex,
+  selectedCategoryId,
   onSelectCategory,
 }) => {
+  
+  const handleCategoryPress = (item: CategoryItem) => {
+    // If the clicked item is already selected, deselect it
+    if (item.id === selectedCategoryId) {
+      onSelectCategory(null, null);
+    } else {
+      // Otherwise, select the new item
+      onSelectCategory(item.id, item.name);
+    }
+  };
+
   return (
     <FlatList
       horizontal
       data={categories}
-      keyExtractor={(item, index) => index.toString()}
+      keyExtractor={(item) => item.id.toString()}
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.categoriesContainer}
-      renderItem={({item, index}) => (
+      renderItem={({item}) => (
         <TouchableOpacity
           style={[
             styles.categoryButton,
-            index === selectedIndex && styles.activeCategoryButton,
+            item.id === selectedCategoryId && styles.activeCategoryButton,
           ]}
-          onPress={() => onSelectCategory(index)}>
+          onPress={() => handleCategoryPress(item)}>
           <Text
             style={[
               styles.categoryText,
-              index === selectedIndex && styles.activeCategoryText,
+              item.id === selectedCategoryId && styles.activeCategoryText,
             ]}>
-            {item}
+            {item.name}
           </Text>
         </TouchableOpacity>
       )}
@@ -64,18 +76,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     marginRight: 8,
+    borderWidth: 1,
+    borderColor: colors.border || '#E0E0E0',
+    justifyContent:'center'
+    
   },
   activeCategoryButton: {
     backgroundColor: colors.black,
+    borderColor: colors.black,
+    
   },
   categoryText: {
     color: colors.label,
     fontSize: 14,
     fontFamily: fonts.bold,
+    textTransform:'capitalize',
+    textAlign:'center'
+
   },
   activeCategoryText: {
     color: colors.white,
     fontSize: 14,
     fontFamily: fonts.bold,
+    textAlign:'center'
   },
 });

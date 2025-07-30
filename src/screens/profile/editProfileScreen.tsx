@@ -8,7 +8,7 @@ import Input from '../../components/input/input';
 import { useForm } from 'react-hook-form';
 import fonts from '../../assets/fonts/fonts';
 import colors from '../../utils/colors';
-import { emailPattern, fontSizes, width } from '../../utils/utils';
+import { emailPattern, fontSizes, width } from '../../utils/utils'; // Add image_url import
 import ProfileImageUpload from '../../components/model/profileImageUpload';
 import { useFocusEffect } from '@react-navigation/native';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
@@ -24,6 +24,7 @@ import { showAlert } from '../../components/cAlert';
 import { handleError, handleSettled } from '../../utils/method';
 import { saveUserData } from '../../redux/reducers/user/UserReducer';
 import { useDispatch } from 'react-redux';
+import { image_url } from '../../utils/api';
 
 type EditProfileScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -36,7 +37,7 @@ type Inputs = {
   email?: string;
   address?: string;
   phone_number?: string;
-  profileImage?: string;
+  profileImage?: string | { uri: string; name: string; type: string };
   country?: string;
   city?: string;
   state?: string;
@@ -51,8 +52,8 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation }) => 
   const {data, refetch} = useQuery({
     queryKey: ['getProfile'],
     queryFn: viewProfile,
-    
   });
+
   const {
     control,
     handleSubmit,
@@ -61,17 +62,28 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation }) => 
     reset,
     getValues,
     formState: { errors, isDirty },
-  } = useForm<Inputs>({ defaultValues: {
-    full_name: '',
-    email: '',
-    phone_number: '',
-    address: '',
-    country: '',
-    state: '',
-    city: '',
-    pincode: '',
-    gender: '',
-  },});
+  } = useForm<Inputs>({ 
+    defaultValues: {
+      full_name: '',
+      email: '',
+      phone_number: '',
+      address: '',
+      country: '',
+      state: '',
+      city: '',
+      pincode: '',
+      gender: '',
+      profileImage: '',
+    },
+  });
+
+  // Watch the profileImage field for changes
+  const watchedProfileImage = watch('profileImage');
+  
+  // Add debug logging for watchedProfileImage
+  useEffect(() => {
+    console.log('Watched profile image changed:', watchedProfileImage);
+  }, [watchedProfileImage]);
 
   const { mutate } = useMutation({
     mutationFn: updateProfile,
@@ -92,23 +104,32 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation }) => 
     onError: handleError,
     onSettled: handleSettled,
   });
-  const onSubmit = (formData: Inputs)=> {
-    const payload = {
-      full_name: formData.full_name,
-      email: formData.email,
-      phone_number: formData.phone_number,
-      address: formData.address,
-      country: formData.country,
-      state: formData.state,
-      city: formData.city,
-      pincode: formData.pincode,
-      gender: formData.gender,
-      profile_image: formData.profileImage || '',
-    };
+
+  const onSubmit = (formData: Inputs) => {
+    const formDataToSend = new FormData();
+    formDataToSend.append('full_name', formData.full_name);
+    formDataToSend.append('email', formData.email);
+    formDataToSend.append('phone_number', formData.phone_number);
+    formDataToSend.append('address', formData.address);
+    formDataToSend.append('country', formData.country);
+    formDataToSend.append('state', formData.state);
+    formDataToSend.append('city', formData.city);
+    formDataToSend.append('pincode', formData.pincode);
+    formDataToSend.append('gender', formData.gender);
   
+    if (formData.profileImage && typeof formData.profileImage === 'object') {
+      formDataToSend.append('profile_picture', {
+        uri: formData.profileImage.uri,
+        type: formData.profileImage.type || 'image/jpeg',
+        name: formData.profileImage.name || 'photo.jpg',
+      });
+    }
+  
+    console.log('Payload being sent:', formDataToSend);
     showLoader(true);
-    mutate(payload);
+    mutate(formDataToSend);
   };
+
   useEffect(() => {
     if (data?.data?.user) {
       const user = data.data.user;
@@ -122,16 +143,52 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation }) => 
         city: user.city || '',
         pincode: user.pincode || '',
         gender: user.gender || '',
+        profileImage: user.profile_picture || '', // Fixed: use profile_picture instead of profile_image
       };
-  
+      
+      console.log('Form fields being set:', fields);
       reset(fields); // ✅ this won't set form as dirty
     }
   }, [data, reset]);
+
+  // Function to get the image source
+  const getImageSource = () => {
+    // Priority 1: Check for newly selected image (object with uri)
+    if (watchedProfileImage && typeof watchedProfileImage === 'object' && watchedProfileImage.uri) {
+      console.log('Using newly selected image:', watchedProfileImage.uri);
+      return { uri: watchedProfileImage.uri };
+    }
+    
+    // Priority 2: Check for existing image URL from form (string)
+    if (watchedProfileImage && typeof watchedProfileImage === 'string' && watchedProfileImage.trim().length > 0) {
+      console.log('Using form image URL:', watchedProfileImage);
+      // Check if it's a full URL or needs base URL
+      const imageUrl = watchedProfileImage.startsWith('http') 
+        ? watchedProfileImage 
+        : `${image_url}${watchedProfileImage}`;
+      return { uri: imageUrl };
+    }
+    
+    // Priority 3: Check for image from API data (use profile_picture instead of profile_image)
+    if (data?.data?.user?.profile_picture && data.data.user.profile_picture.trim().length > 0) {
+      console.log('Using API image:', data.data.user.profile_picture);
+      // Check if it's a full URL or needs base URL
+      const imageUrl = data.data.user.profile_picture.startsWith('http') 
+        ? data.data.user.profile_picture 
+        : `${image_url}${data.data.user.profile_picture}`;
+      return { uri: imageUrl };
+    }
+    
+    // Priority 4: Default fallback image
+    console.log('Using default profile image');
+    return IMAGE.profileImage;
+  };
+
   return (
     <TitleBackHeaderContainer title={"My Profile"} isBack>
       <View style={styles.profileContainer}>
         <Image
-          source={IMAGE.profileImage}
+          source={getImageSource()}
           style={styles.profileImage}
           resizeMode="cover"
         />
@@ -281,7 +338,9 @@ const styles = StyleSheet.create({
   profileImage: {
     width: 100,
     height: 100,
-    // borderRadius: 30,
+    borderRadius: 50, // Make it circular
+    borderWidth: 2, // Add border
+    borderColor: colors.border || '#E0E0E0', // Add border color
   },
   editIconStyle: {
     position: 'absolute',

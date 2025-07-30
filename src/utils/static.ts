@@ -381,62 +381,6 @@ export const products = [
     image: 'https://cdsassets.apple.com/live/7WUAS350/images/tech-specs/121203-airpods-4.png',
   }
 ];
-
-export const topPicks = [
-  {
-    id: 1,
-    name: 'Sony wh-1000XM4',
-    price: '$348',
-    image: 'https://cdsassets.apple.com/live/7WUAS350/images/tech-specs/121203-airpods-4.png',
-  },
-  {
-    id: 2,
-    name: 'Google Pixel Buds',
-    price: '$99',
-    image: 'https://cdsassets.apple.com/live/7WUAS350/images/tech-specs/121203-airpods-4.png',
-  },
-  {
-    id: 3,
-    name: 'OnePlus',
-    price: '$49',
-    image: 'https://cdsassets.apple.com/live/7WUAS350/images/tech-specs/121203-airpods-4.png',
-  }
-];
-
-export const recentItems = [
-  {
-    id: 1,
-    name: 'iPad Pro 11" 2nd Gen',
-    description: 'Great, includes Apple Pencil',
-    price: '$750',
-    originalPrice: '$900',
-    image: 'https://cdsassets.apple.com/live/7WUAS350/images/tech-specs/121203-airpods-4.png',
-  },
-  {
-    id: 2,
-    name: 'OnePlus 9 Pro',
-    description: 'Mint, comes with all original accessories',
-    price: '$700',
-    originalPrice: '$900',
-    image: 'https://cdsassets.apple.com/live/7WUAS350/images/tech-specs/121203-airpods-4.png',
-  },
-  {
-    id: 3,
-    name: 'Garmin Forerunner',
-    description: 'Slightly used, still in original packaging',
-    price: '$250',
-    originalPrice: '$300',
-    image: 'https://cdsassets.apple.com/live/7WUAS350/images/tech-specs/121203-airpods-4.png',
-  },
-  {
-    id: 4,
-    name: 'OnePlus 9 Pro',
-    description: 'Mint, comes with all original accessories',
-    price: '$700',
-    originalPrice: '$900',
-    image: 'https://cdsassets.apple.com/live/7WUAS350/images/tech-specs/121203-airpods-4.png',
-  }
-];
 export const bannerData :any= [
   {
     id: '1',

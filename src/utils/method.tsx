@@ -140,3 +140,15 @@ export const calculateDaysAgo = (createdAt: string): string => {
     return `${daysDifference}`; // 120, 365, etc.
   }
 };
+
+export const calculateDiscount = (originalPrice: number, percentagePaid: number) => {
+  const amountToPay = (percentagePaid / 100) * originalPrice;
+  const discount = originalPrice - amountToPay;
+console.log(originalPrice,"==========",percentagePaid);
+
+  return {
+    amountToPay,
+    discount,
+    discountPercentage: 100 - percentagePaid
+  };
+};

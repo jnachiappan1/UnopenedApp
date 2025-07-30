@@ -1,6 +1,6 @@
 export const base_url = 'http://45.248.33.161:5019';
 
-export const image_url = '';
+export const image_url = 'http://45.248.33.161:5019/uploads/';
 
 export const API = {
   buyer: {
@@ -23,8 +23,10 @@ export const API = {
     add_Product: `${base_url}/api/v1/product`,
     dashBoard_Count: `${base_url}/api/v1/product/count`,
     product_List: `${base_url}/api/v1/product`,
+    sales_product_List: `${base_url}/api/v1/product/sales-activity-product`,
     getLegalcontent: `${base_url}/api/v1/common/legalcontent/`,
     getProductList: `${base_url}/api/v1/common/product-list`,
+    getProductPrice: `${base_url}/api/v1/common/product-price`,
 
   },
 };

@@ -7,7 +7,6 @@ import {fontSizes} from '../../utils/utils';
 import colors from '../../utils/colors';
 import { getProfileImage } from '../../utils/method';
 
-
 type IInputProps = {
   control: any;
   name: string;
@@ -20,7 +19,7 @@ const ProfileImageUpload = ({control, name, isVisible, setIsVisible}: IInputProp
     <Controller
       control={control}
       name={name}
-      render={({field: {onChange}}) => (
+      render={({field: {onChange, value}}) => (
         <Modal
           isVisible={isVisible}
           onBackdropPress={() => setIsVisible(false)}
@@ -36,18 +35,24 @@ const ProfileImageUpload = ({control, name, isVisible, setIsVisible}: IInputProp
             <TouchableOpacity
               style={styles.btn}
               onPress={async () => {
-                const res = await getProfileImage(false, false);
-                if (res) {
-                  const obj = {
-                    name:
-                      name +
-                      '.' +
-                      res.path.substr(res.path.lastIndexOf('.') + 1),
-                    type: res.mime,
-                    uri: res.path,
-                  };
-                  onChange(obj);
-                  setIsVisible(false);
+                try {
+                  const res = await getProfileImage(false, false); // Gallery
+                  console.log('Gallery result:', res); // Debug log
+                  
+                  if (res && res.path) {
+                    const imageObj = {
+                      name: `${name}.${res.path.substr(res.path.lastIndexOf('.') + 1)}`,
+                      type: res.mime,
+                      uri: res.path,
+                    };
+                    console.log('Setting image object:', imageObj); // Debug log
+                    onChange(imageObj);
+                    setIsVisible(false);
+                  } else {
+                    console.log('No image selected from gallery');
+                  }
+                } catch (error) {
+                  console.error('Error selecting image from gallery:', error);
                 }
               }}>
               <Text style={styles.title}>Gallery</Text>
@@ -55,22 +60,40 @@ const ProfileImageUpload = ({control, name, isVisible, setIsVisible}: IInputProp
             <TouchableOpacity
               style={styles.btn}
               onPress={async () => {
-                const res = await getProfileImage(true, false);
-                if (res) {
-                  const obj = {
-                    name:
-                      name +
-                      '.' +
-                      res.path.substr(res.path.lastIndexOf('.') + 1),
-                    type: res.mime,
-                    uri: res.path,
-                  };
-                  onChange(obj);
-                  setIsVisible(false);
+                try {
+                  const res = await getProfileImage(true, false); // Camera
+                  console.log('Camera result:', res); // Debug log
+                  
+                  if (res && res.path) {
+                    const imageObj = {
+                      name: `${name}.${res.path.substr(res.path.lastIndexOf('.') + 1)}`,
+                      type: res.mime,
+                      uri: res.path,
+                    };
+                    console.log('Setting image object:', imageObj); // Debug log
+                    onChange(imageObj);
+                    setIsVisible(false);
+                  } else {
+                    console.log('No image captured from camera');
+                  }
+                } catch (error) {
+                  console.error('Error capturing image from camera:', error);
                 }
               }}>
               <Text style={styles.title}>Camera</Text>
             </TouchableOpacity>
+            
+            {/* Add Remove Image Option if there's an existing image */}
+            {value && (
+              <TouchableOpacity
+                style={styles.btn}
+                onPress={() => {
+                  onChange(''); // Clear the image
+                  setIsVisible(false);
+                }}>
+                <Text style={[styles.title, {color: colors.red || '#FF0000'}]}>Remove Image</Text>
+              </TouchableOpacity>
+            )}
           </View>
           <TouchableOpacity
             style={styles.btnClose}
@@ -123,6 +146,5 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     borderRadius: 10,
     padding: 8,
-    
   },
 });

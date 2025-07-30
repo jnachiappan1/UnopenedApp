@@ -33,8 +33,8 @@ export const viewProfile = async () => {
   const response = await axios.get(API.buyer.getProfile);
   return response;
 };
-export const updateProfile = async (data: SignUpPayloadType) => {
-  const response = await axios.patch(API.buyer.update_Profile, data);
+export const updateProfile = async (data: globalThis.FormData) => {
+  const response = await axiosmultipart.patch(API.buyer.update_Profile, data);
   return response;
 };
 export const changePassword = async (data: ChangePasswordPayloadType) => {
@@ -89,12 +89,14 @@ interface productListParams {
   sort_by?: string;
   price?: string;
   category_id?: string;
+  user_id?: number;
 }
 export const getProductList = async ({
   search,
   sort_by,
   price,
-  category_id
+  category_id,
+  user_id,
 }: productListParams) => {
   console.log(  search,"======",
     sort_by,"-=-0=-0-0",
@@ -103,7 +105,6 @@ export const getProductList = async ({
   
   try {
     const queryParts: string[] = [];
-
     if (search && search.trim() !== '') {
       queryParts.push(`search=${encodeURIComponent(search)}`);
     }
@@ -113,22 +114,35 @@ export const getProductList = async ({
     if (price) {
       queryParts.push(`price=${encodeURIComponent(price)}`);
     }
-    
-    // Handle multiple category IDs
     if (category_id) {
       const categoryIds = category_id.split(',');
       categoryIds.forEach(id => {
         queryParts.push(`category_id=${encodeURIComponent(id.trim())}`);
       });
     }
-
+    if (user_id) {
+      queryParts.push(`user_id=${encodeURIComponent(user_id.toString())}`);
+    }
     const queryString = queryParts.join('&');
     const url = `${API.seller.getProductList}${queryString ? `?${queryString}` : ''}`;
-    console.log(url,"url--------");
+    console.log(url,"url------");
     
     const response = await axios.get(url);
-    // console.log(response,"response00000-");
-    
+    return response;
+  } catch (error) {
+    console.error('Error fetching product list:', error);
+    throw error;
+  }
+};
+export const getAllProductList = async (user_id?: number) => {
+  try {
+    let url = `${API.seller.getProductList}`;
+    if (user_id) {
+      url += `?user_id=${user_id}`;
+    }
+
+    const response = await axios.get(url);
+    console.log(response, 'response00000-');
     return response;
   } catch (error) {
     console.error('Error fetching product list:', error);
@@ -140,3 +154,12 @@ export const getProductList = async ({
 //   const response = await axios.get(API.planOwner.plan_owner_info);
 //   return response;
 // };
+export const getProductPriceDetail = async () => {
+  const response = await axios.get(API.seller.getProductPrice);
+  return response;
+};
+
+export const getSalesProductList = async () => {
+  const response = await axios.get(API.seller.sales_product_List);
+  return response;
+};

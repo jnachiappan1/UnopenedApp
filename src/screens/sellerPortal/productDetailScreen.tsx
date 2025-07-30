@@ -14,6 +14,7 @@ import { addProduct, getSellerProductByID, updateProductStatus } from '../../uti
 import moment from 'moment';
 import { handleError, handleSettled } from '../../utils/method';
 import { showAlert } from '../../components/cAlert';
+import { image_url } from '../../utils/api';
 
 type ProductDetailScreenProps = NativeStackScreenProps<RootStackParamList, SCREENS.ProductDetailScreen>;
 interface ProductImage {
@@ -83,7 +84,8 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ navigation, r
           onScroll={handleScroll}
           renderItem={({ item }) => (
             <Image
-              source={{ uri: item.image }}
+              // source={{ uri: item.image }}
+              source={{ uri: image_url+item.image }}
               style={styles.productImage}
               resizeMode="cover"
               onError={(e) =>

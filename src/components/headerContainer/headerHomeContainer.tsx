@@ -23,6 +23,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { saveUserType } from '../../redux/reducers/user/UserReducer';
 import { IRootState } from '../../redux/store';
 import { useContainer } from '../hooks/useContainer';
+import { image_url } from '../../utils/api';
 
 type HeaderHomeContainerProps = {
   children?: React.ReactNode | undefined;
@@ -39,6 +40,7 @@ type HeaderHomeContainerProps = {
   isNormalHeader?: boolean;
   isNotification?: boolean;
   onSearchPress?: () => void;
+  profileImage?: string;
 };
 const HEADER_MAX_HEIGHT = 100;
 const HEADER_MIN_HEIGHT = 30;
@@ -58,8 +60,8 @@ const HeaderHomeContainer: React.FC<HeaderHomeContainerProps> = props => {
     onRefresh,
     isNormalHeader = false,
     isNotification = true,
-    onSearchPress
-
+    onSearchPress,
+    profileImage
   } = props;
   const navigation = useNavigation<string | any>();
   const colors = getColors();
@@ -67,11 +69,11 @@ const HeaderHomeContainer: React.FC<HeaderHomeContainerProps> = props => {
   const dispatch = useDispatch();
   const container = useContainer();
   const userType = useSelector((state: IRootState) => state.user.userType);
-  
+
   const onBackPress = () => {
     navigation.goBack();
   };
-  
+
   const onNotificationPress = () => {
     //navigation.navigate(SCREENS.NotificationScreen);
   };
@@ -93,7 +95,14 @@ const HeaderHomeContainer: React.FC<HeaderHomeContainerProps> = props => {
       <StatusBar backgroundColor={colors.background} barStyle="dark-content" />
       <View style={commonStyles.headerRowContainer}>
         <TouchableOpacity onPress={() => navigation.navigate(SCREENS.ProfileScreen)}>
-          <Image source={IMAGE.profileImage} style={styles.icon} />
+          <Image
+            source={
+              profileImage
+                ? { uri: profileImage.startsWith('http') ? profileImage : `${image_url}${profileImage}` }
+                : IMAGE.profileImage
+            }
+            style={styles.icon}
+          />
         </TouchableOpacity>
         <View style={styles.itemContainer}>
           <View style={{ width: '48%', paddingStart: 5 }}>

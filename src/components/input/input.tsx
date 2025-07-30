@@ -44,6 +44,7 @@ type InputProps = {
   disabled?: boolean;
   multiline?: boolean;
   isPassword?: boolean;
+  onValueChange?: (text: string) => void; // ✅ NEW PROP
 };
 
 const Input: React.FC<InputProps> = props => {
@@ -66,12 +67,13 @@ const Input: React.FC<InputProps> = props => {
     multiline = false,
     disabled = false,
     isPassword = false,
+    onValueChange, // ✅ DESTRUCTURE NEW PROP
   } = props;
-  
+
   const [showText, setShowText] = useState(!isPassword);
   const colors = getColors();
   const styles = getStyles(colors, multiline);
-  
+
   const toggleShowText = () => {
     setShowText(!showText);
   };
@@ -105,20 +107,23 @@ const Input: React.FC<InputProps> = props => {
               {label}
             </Text>
           )}
-          
+
           <View style={[styles.inputContainer, inputContainerStyle]}>
             <TextInput
               style={[
                 styles.input,
                 {
                   backgroundColor: inputBgColor ? inputBgColor : colors.white,
-                  paddingRight: isPassword ? 50 : 16, // Add padding for eye icon
+                  paddingRight: isPassword ? 50 : 16,
                 },
                 inputStyle,
               ]}
               value={value}
               onBlur={onBlur}
-              onChangeText={onChange}
+              onChangeText={(text: string) => {
+                onChange(text); // form state update
+                onValueChange?.(text); // ✅ custom handler from parent
+              }}
               placeholderTextColor={colors.primaryBlack}
               {...inputProps}
               keyboardType={keyboardType ? keyboardType : 'default'}
@@ -128,10 +133,10 @@ const Input: React.FC<InputProps> = props => {
               returnKeyType="done"
               secureTextEntry={isPassword && !showText}
             />
-            
+
             {isPassword && (
-              <TouchableOpacity 
-                style={styles.iconView} 
+              <TouchableOpacity
+                style={styles.iconView}
                 onPress={toggleShowText}
                 activeOpacity={0.7}
               >
@@ -139,7 +144,7 @@ const Input: React.FC<InputProps> = props => {
               </TouchableOpacity>
             )}
           </View>
-         
+
           {err && (
             <Text style={styles.error} numberOfLines={2}>
               {err}
@@ -165,7 +170,7 @@ const getStyles = (colors: IColors, multiline: boolean) =>
       color: colors.label,
     },
     inputContainer: {
-      position: 'relative', // Add relative positioning for absolute icon
+      position: 'relative',
       marginTop: 10,
     },
     input: {
@@ -179,15 +184,14 @@ const getStyles = (colors: IColors, multiline: boolean) =>
       width: '100%',
     },
     iconView: {
-      position: 'absolute', // Position absolutely within inputContainer
-      right: 16, // Position from right edge
+      position: 'absolute',
+      right: 16,
       top: 0,
       bottom: 0,
       justifyContent: 'center',
       alignItems: 'center',
       width: 40,
-      height: 53, // Match input height
-      // backgroundColor: 'red', // Remove this debug background
+      height: 53,
     },
     error: {
       color: 'red',

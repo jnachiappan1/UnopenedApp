@@ -38,17 +38,13 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const userData = useSelector((user: IRootState) => user.user.userData);
   const queryClient = useQueryClient();
-  
-  // Clear React Query cache when user logs out
   useEffect(() => {
     if (!userData) {
-      // Clear all cached data when no user is logged in
       queryClient.removeQueries({ queryKey: ['getSellerDashboardCount'] });
       queryClient.removeQueries({ queryKey: ['getSellerOwnProductList'] });
       console.log('Cleared React Query cache - user logged out');
     }
   }, [userData, queryClient]);
-
   const { 
     data: dashboardCountData, 
     refetch: refetchDashboardCountData,
@@ -72,11 +68,9 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
     },
     retry: 1,
     retryDelay: 1000,
-    enabled: !!userData, // Only run when user is logged in
-    staleTime: 0, // Always refetch when query becomes active
+    enabled: !!userData, 
+    staleTime: 0, 
   });
-
-  console.log(dashboardCountData,"dashboardCountData-------");
 
   const { 
     data: sellerOwnProductList, 
@@ -101,24 +95,20 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
     },
     retry: 1,
     retryDelay: 1000,
-    enabled: !!userData, // Only run when user is logged in
-    staleTime: 0, // Always refetch when query becomes active
+    enabled: !!userData,
+    staleTime: 0,
   });
 
-  // useFocusEffect to call APIs when screen comes into focus
   useFocusEffect(
     useCallback(() => {
       if (userData) {
-        // Call both APIs when screen comes into focus
         const focusRefresh = async () => {
           try {
             const refreshPromises = [
               refetchDashboardCountData(),
               refetchsellerOwnProductList()
             ];
-            
             const results = await Promise.allSettled(refreshPromises);
-            
             results.forEach((result, index) => {
               const apiName = index === 0 ? 'Dashboard' : 'Product';
               if (result.status === 'fulfilled') {
@@ -127,7 +117,6 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
                 console.error(`${apiName} API focus refresh failed:`, result.reason);
               }
             });
-            
             console.log('Focus refresh completed');
           } catch (error) {
             console.error('Error during focus refresh:', error);
@@ -137,7 +126,6 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
         focusRefresh();
       } else {
         console.log('No userData - skipping focus refresh and clearing data');
-        // Reset selected tab to 'All' when user logs out
         setSelectedTab('All');
       }
     }, [userData, refetchDashboardCountData, refetchsellerOwnProductList])
@@ -175,10 +163,9 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
 
   const isAnyApiFetching = userData ? (isDashboardFetching || isProductFetching) : false;
   
-  // Use default empty array when no user data or when user is logged out
   const products: ProductData[] = React.useMemo(() => {
     if (!userData) {
-      return []; // Return empty array when no user is logged in
+      return []; 
     }
     try {
       return sellerOwnProductList?.data?.product || [];
@@ -252,10 +239,9 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
     ];
   }, []);
 
-  // Use default counts when no user data or when user is logged out
   const counts = React.useMemo(() => {
     if (!userData) {
-      return defaultCounts; // Return default counts when no user is logged in
+      return defaultCounts;
     }
     try {
       if (isDashboardError) {
@@ -395,6 +381,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
       onSearchPress={() => { 
         console.log('Search pressed');
       }}
+      profileImage={userData?.profile_picture} 
     >
       <FlatList
         data={dashboardAnalyticsData}

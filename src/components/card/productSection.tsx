@@ -12,20 +12,14 @@ import {
 import colors from '../../utils/colors';
 import fonts from '../../assets/fonts/fonts';
 import IMAGE from '../../assets/images';
+import { image_url } from '../../utils/api';
+import { ProductData } from '../../utils/types';
 
-interface Product {
-  description: string;
-  originalPrice: string;
-  id: number;
-  name: string;
-  price: string;
-  image: string;
-}
 interface Props {
   title?: string;
-  products: Product[];
+  products: ProductData[];
   onViewAll?: () => void;
-  onPress?: (item: Product) => void;
+  onPress?: (item: ProductData) => void;
 }
 const ProductSection: React.FC<Props> = ({
   title = 'Our Products',
@@ -33,15 +27,13 @@ const ProductSection: React.FC<Props> = ({
   onViewAll,
   onPress
 }) => {
-  const handlePress = (item:any) => {
+  const handlePress = (product: ProductData) => {
     if (onPress) {
-      onPress(item);
+      onPress(product);
     }
-    
   };
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>{title}</Text>
         {onViewAll && (
@@ -50,47 +42,51 @@ const ProductSection: React.FC<Props> = ({
           </TouchableOpacity>
         )}
       </View>
-
-      {/* Product Grid */}
       <FlatList
         data={products}
         keyExtractor={item => item.id.toString()}
         numColumns={2}
         scrollEnabled={false}
         contentContainerStyle={styles.listContent}
-        renderItem={(item, isHorizontal = false) => (
-          <View style={styles.productWrapper}>
-            <TouchableOpacity
-              style={[
-                styles.productCard,
-                isHorizontal && styles.horizontalCard,
-              ]}
-              onPress={() => handlePress(item)}
-              >
-              <Image
-                source={IMAGE.profileImage}
+        renderItem={(item, isHorizontal = false) => {
+          const imageUri = item.item?.product_image?.[0].image
+            ? image_url + item.item?.product_image?.[0].image
+            : 'https://via.placeholder.com/150';
+          return (
+            <View style={styles.productWrapper}>
+              <TouchableOpacity
                 style={[
-                  styles.productImage,
-                  isHorizontal && styles.horizontalImage,
+                  styles.productCard,
+                  isHorizontal && styles.horizontalCard,
                 ]}
-              />
-              <View style={styles.productInfo}>
-                <Text style={styles.productName}>{item.item?.name}</Text>
-                <Text style={styles.productDescription}>
-                  {item.item?.description}
-                </Text>
-                <View style={styles.priceContainer}>
-                  <Text style={styles.price}>{item.item?.price}</Text>
-                  {item.item?.originalPrice && (
-                    <Text style={styles.originalPrice}>
-                      {item.item?.originalPrice}
-                    </Text>
-                  )}
+                onPress={() => handlePress(item.item)}
+              >
+                <Image
+                  source={{ uri: imageUri }}
+                  style={[
+                    styles.productImage,
+                    isHorizontal && styles.horizontalImage,
+                  ]}
+                />
+                <View style={styles.productInfo}>
+                  <Text style={styles.productName}>{item.item?.name}</Text>
+                  <Text style={styles.productDescription}>
+                    {item.item?.description}
+                  </Text>
+                  <View style={styles.priceContainer}>
+                    <Text style={styles.price}>{item.item?.price}</Text>
+                    {item.item?.msrp && (
+                      <Text style={styles.originalPrice}>
+                        {item.item?.msrp}
+                      </Text>
+                    )}
+                  </View>
                 </View>
-              </View>
-            </TouchableOpacity>
-          </View>
-        )}
+              </TouchableOpacity>
+            </View>
+          )
+        }
+        }
       />
     </View>
   );

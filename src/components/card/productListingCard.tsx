@@ -8,6 +8,7 @@ import IconsSvg from '../../assets/svg/iconsSvg';
 import fonts from '../../assets/fonts/fonts';
 import StatusBadge from './statusBadge';
 import { calculateDaysAgo } from '../../utils/method';
+import { image_url } from '../../utils/api';
 
 interface ProductListingCardProps {
   item: ProductData;
@@ -23,7 +24,7 @@ const ProductListingCard: React.FC<ProductListingCardProps> = ({ item,cardStyle 
     <View style={[styles.cardContainer,cardStyle]}>
       <View style={styles.productDetailView}>
       <Image
-  source={{ uri: item?.product_image?.[0]?.image }}
+  source={{ uri: image_url+item?.product_image?.[0]?.image }}
   style={styles.cardImage}
 />
         <View>
