@@ -9,15 +9,16 @@ import {
 } from 'react-native';
 import React, {useState} from 'react';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
-import {fontSizes, width} from '../../utils/utils';
+import {fontSizes} from '../../utils/utils';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
 import colors from '../../utils/colors';
 import StatusBadge from '../../components/card/statusBadge';
 import fonts from '../../assets/fonts/fonts';
-import InfoRow from '../../components/card/infoRow';
-import Button from '../../components/button/buttons';
 import IconsSvg from '../../assets/svg/iconsSvg';
+import { getProductDetailByID } from '../../utils/apiAction';
+import { useQuery } from '@tanstack/react-query';
+import { image_url } from '../../utils/api';
 
 type OrderTrackScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -25,13 +26,13 @@ type OrderTrackScreenProps = NativeStackScreenProps<
 >;
 
 const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({navigation, route}) => {
-  // Get the order data from route params, with fallback to default data
-  const passedOrderData = route.params;
-  console.log("passedOrderData", passedOrderData);
+  const productId = route.params;
+  const { data: productDetail, refetch: refetchAllProduct } = useQuery({
+    queryKey: ['getProductDetailByID', productId?.productId],
+    queryFn: () => getProductDetailByID(productId?.productId),
+  });
+  console.log(JSON.stringify(productDetail),"productDetail----");
   
-  // const [orderData] = useState(passedOrderData);
-
-  // Generate tracking steps based on the order status
   const generateTrackingSteps = (status: string) => {
     const baseSteps = [
       {
@@ -76,7 +77,7 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({navigation, route}) 
     }
   };
 
-  const trackingSteps = generateTrackingSteps(passedOrderData?.productId?.status);
+  const trackingSteps = generateTrackingSteps(productDetail?.data?.product[0]?.status);
 
   const renderTrackingStep = (item: any, index: number) => {
     return (
@@ -113,10 +114,10 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({navigation, route}) 
           <View style={styles.orderIdRow}>
             <View>
               <Text style={styles.orderIdLabel}>Order ID</Text>
-              <Text style={styles.orderId}>{passedOrderData?.productId?.order_Id}</Text>
+              <Text style={styles.orderId}>{'ORD#11458'}</Text>
             </View>
             <View>
-              <StatusBadge status={passedOrderData?.productId?.status} />
+              <StatusBadge status={productDetail?.data?.product[0]?.product_activity_status} />
             </View>
           </View>
           <View style={styles.borderLine} />
@@ -124,27 +125,25 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({navigation, route}) 
           <View style={styles.imageDetailContainer}>
             <View style={styles.productRow}>
               <Image
-                source={{uri: passedOrderData?.productId.image}}
+                source={{uri: image_url + productDetail?.data?.product[0]?.product_image[0]?.image}}
                 style={styles.productImage}
-              />
+              /> 
               <View style={styles.productDetails}>
-                <Text style={styles.titleStyle}>{passedOrderData?.productId.title}</Text>
+                <Text style={styles.titleStyle}>{productDetail?.data?.product[0]?.name}</Text>
                 <Text style={styles.descriptionStyle}>
-                  Delivered On: {passedOrderData?.productId.delivered_On}
+                  Delivered On: {'15 Jun, 2025'}
                 </Text>
-                <Text style={[styles.mrspStyle]}>{passedOrderData?.productId.price}</Text>
+                <Text style={[styles.mrspStyle]}>${productDetail?.data?.product[0]?.price}</Text>
               </View>
             </View>
           </View>
         </View>
 
-        {/* Tracking Section */}
         <Text style={styles.headingStyle}>Track Your Order</Text>
         <View style={styles.container}>
           {trackingSteps.map((item, index) => renderTrackingStep(item, index))}
         </View>
 
-        {/* Help Section */}
         <View style={styles.helpSection}>
           <Text style={styles.headingText}>Need help with your order?</Text>
           <View style={styles.lineStyle} />
@@ -209,7 +208,7 @@ const styles = StyleSheet.create({
 
   imageDetailContainer: {
     backgroundColor: colors.white,
-    marginBottom: 16,
+    // marginBottom: 16,
     marginHorizontal: 10,
     paddingVertical: 16,
   },

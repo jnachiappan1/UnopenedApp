@@ -144,11 +144,24 @@ export const calculateDaysAgo = (createdAt: string): string => {
 export const calculateDiscount = (originalPrice: number, percentagePaid: number) => {
   const amountToPay = (percentagePaid / 100) * originalPrice;
   const discount = originalPrice - amountToPay;
-console.log(originalPrice,"==========",percentagePaid);
-
   return {
     amountToPay,
     discount,
     discountPercentage: 100 - percentagePaid
   };
+};
+
+export const getStatusForTab = (tabName: string) => {
+  switch (tabName) {
+    case 'Active':
+      return 'active';
+    case 'Sold':
+      return 'sold';
+    case 'In Review':
+      return 'in_review';
+    case 'Withdrawn':
+      return 'withdrawn';
+    default:
+      return null;
+  }
 };

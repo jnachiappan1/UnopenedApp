@@ -1,4 +1,4 @@
-import { StyleSheet, FlatList, View } from 'react-native';
+import { StyleSheet, FlatList, View, Text, TouchableOpacity } from 'react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import HeaderHomeContainer from '../../components/headerContainer/headerHomeContainer';
 import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
@@ -39,6 +39,7 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
   const [selectedSort, setSelectedSort] = useState<{ id: string; name: string } | null>(null);
   const [selectedPriceRange, setSelectedPriceRange] = useState<{ min: number; max: number } | null>(null);
   const [apiTrigger, setApiTrigger] = useState(0);
+  
   const getApiParams = () => {
     const params: any = {};
     if (searchQuery.trim() !== '') {
@@ -48,11 +49,9 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
     }
     if (selectedSort?.id) {
       const sortMapping: { [key: string]: string } = {
-        'price_low_to_high': 'price_asc',
-        'price_high_to_low': 'price_desc',
-        'newest_first': 'newest',
-        'name_a_to_z': 'name_asc',
-        'name_z_to_a': 'name_desc'
+        'price_low_to_high': 'price_low_to_high',
+        'price_high_to_low': 'price_high_to_low',
+        'newest_first': 'newest_first',
       };
       params.sort_by = sortMapping[selectedSort.id] || selectedSort.id;
     } else {
@@ -61,7 +60,7 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
     if (selectedPriceRange) {
       params.price = `${selectedPriceRange.min}-${selectedPriceRange.max}`;
     } else {
-      params.price = '100-5000'; 
+      params.price = ''; 
     }
     const allCategoryIds = new Set<number>();
     selectedCategories.forEach(cat => {
@@ -86,6 +85,7 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
     queryFn: () => getCategoryDetail(),
     enabled: isLogged,
   });
+  
   const { data: allProductList, refetch: refetchAllProduct } = useQuery({
     queryKey: ['getAllProductList', userData?.id], 
     queryFn: () => getAllProductList(userData?.id),
@@ -105,35 +105,84 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
     queryFn: () => {
       return getProductList(getApiParams());
     },
-    // enabled: isLogged,
     staleTime: 0, 
     refetchOnMount: true,
   });
+
+  // Check if any filters are applied
+  const hasActiveFilters = () => {
+    return (
+      searchQuery.trim() !== '' ||
+      selectedCategories.length > 0 ||
+      selectedCategoryIds.length > 0 ||
+      selectedSort !== null ||
+      selectedPriceRange !== null
+    );
+  };
+
+  // Get appropriate empty message
+  const getEmptyMessage = () => {
+    if (searchQuery.trim() !== '') {
+      return {
+        title: "No Search Results",
+        message: `No products found for "${searchQuery}". Try different keywords or check your spelling.`
+      };
+    } else if (selectedCategories.length > 0 || selectedCategoryIds.length > 0) {
+      return {
+        title: "No Products in Category",
+        message: "No products found in the selected category. Try selecting a different category."
+      };
+    } else if (selectedPriceRange !== null) {
+      return {
+        title: "No Products in Price Range",
+        message: `No products found in the price range $${selectedPriceRange.min} - $${selectedPriceRange.max}. Try adjusting your price range.`
+      };
+    } else if (selectedSort !== null) {
+      return {
+        title: "No Products Found",
+        message: "No products match your current sorting criteria."
+      };
+    } else {
+      return {
+        title: "No Products Available",
+        message: "No products are currently available. Please check back later."
+      };
+    }
+  };
+
+  // Empty State Component
+  const EmptyStateMessage = ({ title, message, showClearButton = false }: { 
+    title: string; 
+    message: string; 
+    showClearButton?: boolean; 
+  }) => (
+    <View style={styles.emptyStateContainer}>
+      <Text style={styles.emptyStateTitle}>{title}</Text>
+      <Text style={styles.emptyStateMessage}>{message}</Text>
+      {showClearButton && (
+        <TouchableOpacity 
+          style={styles.clearFiltersButton} 
+          onPress={clearAllFilters}
+        >
+          <Text style={styles.clearFiltersButtonText}>Clear All Filters</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+
   const triggerApiCall = () => {
-    console.log('🔄 Triggering API call...');
     setApiTrigger(prev => prev + 1);
     if (isLogged) {
       refetchProductList();
     }
   };
+
   useEffect(() => {
-    console.log('Filter changed, triggering API call');
     triggerApiCall();
   }, [searchQuery, selectedCategories, selectedSort, selectedPriceRange, selectedCategoryIds]);
 
-  // Debug logs
-  // useEffect(() => {
-  //   console.log('🏠 BHomeScreen State:');
-  //   console.log('isLogged:', isLogged);
-  //   console.log('userData:', userData);
-  //   console.log('Selected Category IDs:', selectedCategoryIds);
-  //   console.log('Filter Categories:', selectedCategories);
-  //   console.log('Selected Sort:', selectedSort);
-  //   console.log('Selected Price Range:', selectedPriceRange);
-  //   console.log('Search Query:', searchQuery);
-  //   console.log('API Trigger:', apiTrigger);
-  //   console.log('Product List Response:', productList);
-  // }, [isLogged, userData, selectedCategoryIds, selectedCategories, selectedSort, selectedPriceRange, searchQuery, apiTrigger, productList]);
+  useEffect(() => {
+  }, [isLogged, userData, selectedCategoryIds, selectedCategories, selectedSort, selectedPriceRange, searchQuery, apiTrigger, productList]);
 
   const handleFilterPress = () => {
     const onApplyFilters = (
@@ -157,11 +206,7 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
       initialPriceRange: selectedPriceRange,
     });
   };
-  const handlePress = (item: ProductData) => {
-    console.log(item,"item====");
-    
-    // navigation.navigate(SCREENS.BProductDetailScreen, { item: item });
-  };
+
   useEffect(() => {
     if (categoryData?.data?.category) {
       const activeCategories: ProductCategory[] = categoryData.data.category
@@ -175,7 +220,6 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
   }, [categoryData]);
 
   const handleCategorySelect = (categoryId: number | null, categoryName: string | null) => {
-    console.log('🏷️ Category selected:', categoryId, categoryName);
     if (categoryId !== null && selectedCategories.length > 0) {
       setSelectedCategories([]);
     }
@@ -189,13 +233,14 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
         if (isAlreadySelected) {
           newIds = prevIds.filter(id => id !== categoryId);
         } else {
-          newIds = [categoryId]; // Single selection
+          newIds = [categoryId];
         }
         return newIds;
       });
       setSelectedCategoryId(categoryId);
     }
   };
+
   const addToRecentSearches = async (query: string) => {
     const trimmedQuery = query.trim();
     if (trimmedQuery === '') return;
@@ -208,11 +253,12 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
     }
     triggerApiCall();
   };
+
   useEffect(() => {
     searchQueryRef.current = searchQuery;
   }, [searchQuery]);
+
   const clearAllFilters = () => {
-    console.log('🧹 Clearing all filters');
     setSelectedCategories([]);
     setSelectedSort(null);
     setSelectedPriceRange(null);
@@ -220,7 +266,15 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
     setSelectedCategoryId(null);
     setSearchQuery('');
   };
+
   const displayProducts = productList?.data?.product;
+  const allProducts = allProductList?.data?.product;
+
+  // Check if products are empty and not loading
+  const showEmptyState = !isLoading && !isFetching && (!displayProducts || displayProducts.length === 0);
+  // Show recently listed items only when NO filters are applied (regardless of whether filtered products exist)
+  const showRecentlyListed = !hasActiveFilters() && allProducts && allProducts.length > 0;
+
   return (
     <HeaderHomeContainer
       title={'Welcome,'}
@@ -236,32 +290,59 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
         horizontal
         showsHorizontalScrollIndicator={false}
       />
+      
       <SearchBar
         value={searchQuery}
         onChangeText={setSearchQuery}
         onSubmit={handleSearch}
         onFilterPress={handleFilterPress}
       />
+      
       <CategoryList
         categories={categories}
         selectedCategoryId={selectedCategoryId}
         onSelectCategory={handleCategorySelect}
       />
-      <ProductSection
-        title="Our Products"
-        products={displayProducts?.slice(0, 6)}
-        onViewAll={() => console.log('View All Pressed')}
-        onPress={(item) => {
-          console.log(item?.id , 'pressed product ID');
-          navigation.navigate(SCREENS.BProductDetailScreen, {productId: item?.id });
-        }}
-      // isLoading={isLoading || isFetching}
-      />
-      <ProductSection
-        title="Recently Listed Items"
-        products={allProductList?.data?.product?.slice(0, 6)}
-        onViewAll={() => console.log('View All Pressed')}
-      />
+
+      {showEmptyState ? (
+        <EmptyStateMessage 
+          {...getEmptyMessage()} 
+          showClearButton={hasActiveFilters()}
+        />
+      ) : (
+        <>
+          <ProductSection
+            title="Our Products"
+            products={displayProducts?.slice(0, 6)}
+            onViewAll={() => {
+              navigation.navigate(SCREENS.BrowseScreen); 
+            }}
+            onPress={(item) => {
+              if(isLogged) {
+                navigation.navigate(SCREENS.BProductDetailScreen, {productId: item?.id });
+              } else {
+                navigation.navigate(SCREENS.LoginScreen); 
+              }
+            }}
+            // isLoading={isLoading || isFetching}
+          />
+          
+          {showRecentlyListed && (
+            <ProductSection
+              title="Recently Listed Items"
+              products={allProducts?.slice(0, 6)}
+              onPress={(item) => {
+                if(isLogged) {
+                  navigation.navigate(SCREENS.BProductDetailScreen, {productId: item?.id });
+                } else {
+                  navigation.navigate(SCREENS.LoginScreen); 
+                }
+              }}
+            />
+          )}
+        </>
+      )}
+      
       <View style={{ height: 100 }} />
     </HeaderHomeContainer>
   );
@@ -271,6 +352,39 @@ export default BHomeScreen;
 
 const styles = StyleSheet.create({
   container: {
-  
+  },
+  emptyStateContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 40,
+    minHeight: 300,
+  },
+  emptyStateTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  emptyStateMessage: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 20,
+  },
+  clearFiltersButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginTop: 10,
+  },
+  clearFiltersButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

@@ -131,14 +131,13 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ navigation, r
           <StatusBadge status={"Delivered"} statusStyle={{}} />
         </View> */}
       </View>
-      {
-        productDetail?.data?.product[0]?.product_status !== "withdrawn" &&
-        <Button
-          title={'Withdraw'}
-          style={styles.withdrawButton}
-          onPress={Submit}
-        />
-      }
+      {!['sold', 'withdrawn', 'rejected'].includes(productDetail?.data?.product?.[0]?.product_status) && (
+  <Button
+    title={'Withdraw'}
+    style={styles.withdrawButton}
+    onPress={Submit}
+  />
+)}
 
     </TitleBackHeaderContainer>
   )

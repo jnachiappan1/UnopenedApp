@@ -98,11 +98,6 @@ export const getProductList = async ({
   category_id,
   user_id,
 }: productListParams) => {
-  console.log(  search,"======",
-    sort_by,"-=-0=-0-0",
-    price,
-    category_id);
-  
   try {
     const queryParts: string[] = [];
     if (search && search.trim() !== '') {
@@ -125,8 +120,6 @@ export const getProductList = async ({
     }
     const queryString = queryParts.join('&');
     const url = `${API.seller.getProductList}${queryString ? `?${queryString}` : ''}`;
-    console.log(url,"url------");
-    
     const response = await axios.get(url);
     return response;
   } catch (error) {
@@ -140,9 +133,7 @@ export const getAllProductList = async (user_id?: number) => {
     if (user_id) {
       url += `?user_id=${user_id}`;
     }
-
     const response = await axios.get(url);
-    console.log(response, 'response00000-');
     return response;
   } catch (error) {
     console.error('Error fetching product list:', error);
@@ -161,5 +152,16 @@ export const getProductPriceDetail = async () => {
 
 export const getSalesProductList = async () => {
   const response = await axios.get(API.seller.sales_product_List);
+  return response;
+};
+export const getProductDetailByID = async (productId: string | number | null | undefined) => {
+  const response = await axios.get(API.seller.getProductDetailByID+productId);
+  return response;
+};
+export const soldProduct = async (productId: string | number | null | undefined) => {
+  const response = await axios.patch(`${API.seller.soldProduct}${productId}`);
+  return response.data;
+};export const getMyOrderList = async () => {
+  const response = await axios.get(API.seller.getMyOrderList);
   return response;
 };

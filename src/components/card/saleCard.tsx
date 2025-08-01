@@ -1,64 +1,55 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { fontSizes } from '../../utils/utils';
 import fonts from '../../assets/fonts/fonts';
 import StatusBadge from './statusBadge';
-
-type SaleItemType = {
-  id: string;
-  title: string;
-  buyer: string;
-  date: string;
-  price: number;
-  status?: string; // Accept any string now
-  image: string;
-};
+import { ProductData } from '../../utils/types';
+import { image_url } from '../../utils/api';
+import moment from 'moment';
 
 type Props = {
-  item: SaleItemType;
+  item: ProductData;
+  onSelect?: (item: ProductData) => void;
 };
 
-// Switch-based status style resolver
-const getStatusStyles = (status?: string) => {
-  switch (status) {
-    case 'Delivered':
-      return { badgeColor: '#C8F4CE', textColor: '#38C36D' };
-    case 'In Transit':
-      return { badgeColor: '#FEE9CB', textColor: '#E29547' };
-    case 'Cancelled':
-      return { badgeColor: '#FFD4D4', textColor: '#D00000' };
-    case 'Shipped':
-      return { badgeColor: '#D6E4FF', textColor: '#4472C4' };
-    default:
-      return { badgeColor: '#EEE', textColor: '#999' }; // fallback style
-  }
-};
-
-const SaleCard: React.FC<Props> = ({ item }) => {
-  const { badgeColor, textColor } = getStatusStyles(item.status);
-
+const SaleCard: React.FC<Props> = ({ item ,onSelect}) => {
+  const handleCardPress = () => {
+    onSelect?.(item);
+  };
+  const formattedDate = moment(item.updatedAt).format('DD MMMM YYYY');
+  const imageUrl = item.product_image?.[0]?.image
+    ? `${image_url}${item.product_image[0].image}`
+    : 'https://via.placeholder.com/100';
   return (
-    <View style={styles.card}>
+    <TouchableOpacity style={styles.card} activeOpacity={0.8} onPress={handleCardPress}>
       <View>
-      <Image source={{ uri: item.image }} resizeMode='contain' style={styles.image} />
-      <StatusBadge status={item.status} statusStyle={{
-        position:'absolute',
-        alignSelf:'flex-end',
-        marginTop:10
-      }} />
+        <Image
+          source={{ uri: imageUrl }}
+          resizeMode='cover'
+          style={styles.image}
+          onError={(e) => console.log('Image load error:', e.nativeEvent.error)}
+        />
+        <StatusBadge
+          status={item.product_activity_status}
+          statusStyle={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+          }}
+        />
       </View>
 
       <View style={styles.info}>
-        <Text style={styles.title}>{item.title}</Text>
+        <Text style={styles.title}>{item.name}</Text>
         <Text style={styles.subText}>
-          Sale Date: <Text style={styles.textValue}>{item.date}</Text>
+          Sale Date: <Text style={styles.textValue}>{formattedDate}</Text>
         </Text>
         <Text style={styles.subText}>
-          Buyer Name: <Text style={styles.textValue}>{item.buyer}</Text>
+          Buyer Name: <Text style={styles.textValue}>{item.buyer_user?.full_name}</Text>
         </Text>
         <Text style={styles.price}>${item.price}</Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
@@ -70,14 +61,12 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: '#fff',
     marginBottom: 16,
-    overflow: 'hidden',
-    elevation: 3,
+    padding: 10
   },
   image: {
-    width: 100,
-    height: 134,
-    borderTopLeftRadius: 20,
-    borderBottomLeftRadius: 20,
+    width: 129,
+    height: 122,
+    borderRadius: 12,
   },
   info: {
     flex: 1,
@@ -102,15 +91,17 @@ const styles = StyleSheet.create({
   },
   subText: {
     fontSize: fontSizes.small,
-    color: '#555',
-    fontFamily: fonts.regular,
+    color: '#4D4D4D',
+    fontFamily: fonts.medium,
+    paddingVertical: 2
   },
   textValue: {
     fontFamily: fonts.medium,
     color: '#000',
+    fontSize: fontSizes.small,
   },
   price: {
-    fontSize: fontSizes.large,
+    fontSize: fontSizes.medium,
     fontFamily: fonts.bold,
     color: '#000',
     marginTop: 4,

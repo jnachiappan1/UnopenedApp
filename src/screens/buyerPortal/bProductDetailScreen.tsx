@@ -4,110 +4,77 @@ import {
   View,
   Text,
   Image,
-  TouchableOpacity,
   Dimensions,
   FlatList,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from 'react-native';
-import React, {useState, useRef} from 'react';
-import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import React, { useState, useRef } from 'react';
+import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
 import colors from '../../utils/colors';
-import {fontSizes} from '../../utils/utils';
+import { fontSizes } from '../../utils/utils';
 import fonts from '../../assets/fonts/fonts';
 import IconsSvg from '../../assets/svg/iconsSvg';
 import Button from '../../components/button/buttons';
+import { getProductDetailByID, getProductPriceDetail } from '../../utils/apiAction';
+import { useQuery } from '@tanstack/react-query';
+import { productData } from '../../utils/static';
+import { ProductData } from '../../utils/types';
+import { image_url } from '../../utils/api';
+import InfoRow from '../../components/card/infoRow';
+import { useSelector } from 'react-redux';
+import { IRootState } from '../../redux/store';
+import { showLoader } from '../../components/loader/loader';
 
-const {width} = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 type LoginProps = NativeStackScreenProps<
   RootStackParamList,
   SCREENS.BProductDetailScreen
 >;
-
-interface Product {
-  description: string;
-  originalPrice: string;
+interface ProductImage {
   id: number;
-  name: string;
-  price: string;
+  product_id: number;
   image: string;
-  images?: string[]; // Multiple images support
+  createdAt: string;
+  updatedAt: string;
 }
 
-interface SpecificationItem {
-  id: string;
-  label: string;
-  value: string;
-}
-
-const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
-  const {item} = route?.params;
-  const product : Product = item?.item;
+const BProductDetailScreen: React.FC<LoginProps> = ({ route, navigation }) => {
+  const { productId } = route?.params;
+  const product: ProductData = productData[0];
+  const userData = useSelector((user: IRootState) => user.user.userData);
+  const isLogged = userData ? true : false;
+  
+  const { data: allProductList, refetch: refetchAllProduct, isLoading } = useQuery({
+    queryKey: ['getProductDetailByID', productId],
+    queryFn: () => getProductDetailByID(productId),
+  });
+  
+  const { data: ProductPriceData, refetch: refetchProductPriceData, isLoading: isLoadingProductPriceData } = useQuery({
+    queryKey: ['getProductPriceDetail'],
+    queryFn: () => getProductPriceDetail(),
+    enabled: isLogged,
+  });
+  
+  const flatListRef = useRef<FlatList<ProductImage>>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const imageScrollRef = useRef<FlatList>(null);
-  // Sample images array - replace with actual product images
-  const productImages = product?.images || [
-    product?.image,
-    product?.image, // Duplicate for demo - replace with actual different images
-    product?.image,
-  ];
-
-  // Specifications data for FlatList
-  const specificationsData: SpecificationItem[] = [
-    {id: '1', label: 'Brand', value: 'AudioTech'},
-    {id: '2', label: 'Connectivity', value: 'Bluetooth 5.2'},
-    {id: '3', label: 'Weight', value: '4.5g each'},
-    {id: '4', label: 'Battery Life', value: '24 hours'},
-    {id: '5', label: 'Charging Case', value: 'USB-C'},
-    {id: '6', label: 'Water Resistance', value: 'IPX4'},
-  ];
-
-  const calculateDiscount = () => {
-    const original = parseFloat(product.originalPrice.replace('$', ''));
-    const current = parseFloat(product.price.replace('$', ''));
-    return Math.round(((original - current) / original) * 100);
-  };
-
-  const handleBuyNow = () => {
-    navigation.navigate(SCREENS.ConfirmYourOrderScreen)
-  };
-
-  const onImageScroll = (event: any) => {
+  
+  const handleImageScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const slideSize = event.nativeEvent.layoutMeasurement.width;
-    const index = event.nativeEvent.contentOffset.x / slideSize;
-    const roundIndex = Math.round(index);
-    setCurrentImageIndex(roundIndex);
+    const index = Math.round(event.nativeEvent.contentOffset.x / slideSize);
+    setCurrentImageIndex(index);
   };
 
-  const renderImage = ({item, index}: {item: string; index: number}) => (
-    <View style={styles.imageSlide}>
-      <Image source={{uri: item}} style={styles.productImage} />
-    </View>
-  );
+  // Show loader while data is being fetched
+  React.useEffect(() => {
+    showLoader(isLoading);
+  }, [isLoading]);
 
-  const renderSpecificationItem = ({item}: {item: SpecificationItem}) => (
-    <View style={styles.specRow}>
-      <Text style={styles.specLabel}>{item.label}</Text>
-      <Text style={styles.specValue}>: {item.value}</Text>
-    </View>
-  );
-
-  const renderDots = () => (
-    <View style={styles.dotsContainer}>
-      {productImages.map((_, index) => (
-        <View
-          key={index}
-          style={[
-            styles.dot,
-            index === currentImageIndex && styles.activeDot,
-          ]}
-        />
-      ))}
-    </View>
-  );
-
-  if (!product) {
+  // Show error if no product data found
+  if (!isLoading && !allProductList?.data?.product?.[0]) {
     return (
       <TitleBackHeaderContainer title="Product Detail" isBack>
         <View style={styles.errorContainer}>
@@ -117,58 +84,106 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
     );
   }
 
+  // Don't render content while loading
+  if (isLoading) {
+    return (
+      <TitleBackHeaderContainer title="Product Details" isBack>
+        <View style={styles.container} />
+      </TitleBackHeaderContainer>
+    );
+  }
+
+  const currentProduct = allProductList?.data?.product[0];
+
   return (
     <TitleBackHeaderContainer title="Product Details" isBack>
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Product Images with Swipe */}
-        <View style={styles.imageContainer}>
+        <View style={styles.imageCarouselContainer}>
           <FlatList
-            ref={imageScrollRef}
-            data={productImages}
-            renderItem={renderImage}
+            ref={flatListRef}
+            data={currentProduct?.product_image || []}
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
-            onScroll={onImageScroll}
-            scrollEventThrottle={16}
-            keyExtractor={(item, index) => index.toString()}
-          />
-          {productImages.length > 1 && renderDots()}
-          
-          <View style={{marginRight: 2, paddingHorizontal: 20}}>
-            <Text style={styles.productName}>{product.name}</Text>
-            <Text style={styles.productDescription}>{product.description}</Text>
-            <View style={styles.priceContainer}>
-              <Text style={styles.currentPrice}>{product.price}</Text>
-              <Text style={styles.originalPrice}>{product.originalPrice}</Text>
-              <View style={styles.discountBadge}>
-                <Text style={styles.discountText}>
-                  {calculateDiscount()}% off
-                </Text>
+            keyExtractor={(item) => item.id.toString()}
+            onMomentumScrollEnd={handleImageScroll}
+            snapToAlignment="center"
+            decelerationRate="fast"
+            renderItem={({ item }) => (
+              <View style={styles.imageSlide}>
+                <Image
+                  source={{ uri: image_url + item.image }}
+                  style={styles.productImage}
+                  resizeMode="contain"
+                  onError={(e) =>
+                    console.log('Image load error:', e.nativeEvent.error)
+                  }
+                />
               </View>
+            )}
+          />
+          <View style={styles.dotsContainer}>
+            {(currentProduct?.product_image || []).map(
+              (_: ProductImage, index: number) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.dot,
+                    currentImageIndex === index && styles.activeDot,
+                  ]}
+                />
+              )
+            )}
+          </View>
+          <View style={styles.productInfoInside}>
+            <Text style={styles.productName}>{currentProduct?.name}</Text>
+            <Text style={styles.productDescription}>{currentProduct?.description}</Text>
+            <View style={styles.priceContainer}>
+              <Text style={styles.price}>${currentProduct?.price}</Text>
+              {currentProduct?.msrp && (
+                <Text style={styles.originalPrice}>
+                  ${currentProduct?.msrp}
+                </Text>
+              )}
+              {isLoadingProductPriceData ? (
+                <View style={styles.discountContainer}>
+                  <Text style={styles.stockText}>Loading...</Text>
+                </View>
+              ) : (
+                ProductPriceData?.data?.product_price?.price && (
+                  <View style={styles.discountContainer}>
+                    <Text style={styles.stockText}>
+                      {100 - ProductPriceData.data.product_price.price}% off
+                    </Text>
+                  </View>
+                )
+              )}
             </View>
           </View>
         </View>
-
-        {/* Specifications with FlatList */}
+        
         <View style={styles.productInfo}>
           <Text style={styles.specTitle}>Specifications</Text>
-          <FlatList
-            data={specificationsData}
-            renderItem={renderSpecificationItem}
-            keyExtractor={item => item.id}
-            scrollEnabled={false}
-            showsVerticalScrollIndicator={false}
+          <InfoRow 
+            title="Brand"
+            showColon 
+            subtitle={currentProduct?.description}
+            style={styles.mainContainerStyle}
+            subtitleStyle={styles.subtitleStyle} 
+          />
+          <InfoRow 
+            title="Product Category"
+            showColon 
+            subtitle={currentProduct?.product_category?.name}
+            style={styles.mainContainerStyle}
+            subtitleStyle={styles.subtitleStyle} 
           />
         </View>
-
+        
         <View style={styles.productInfo}>
-          {/* Stock Status */}
           <View style={styles.stockBadge}>
             <Text style={styles.stockText}>In Stock</Text>
           </View>
-
-          {/* Delivery Info */}
           <View style={styles.deliveryInfo}>
             <View style={styles.deliveryRow}>
               <View style={styles.deliveryIcon}>
@@ -181,7 +196,6 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
                 <Text style={styles.deliverySubtitle}>Standard delivery</Text>
               </View>
             </View>
-
             <View style={styles.deliveryRow}>
               <View style={styles.deliveryIcon}>
                 <IconsSvg name="deliverBox" />
@@ -194,18 +208,14 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
             </View>
           </View>
         </View>
-
-        {/* Trust Badges with Vertical Line */}
+        
         <View style={styles.productInfo}>
           <View style={styles.trustContainer}>
             <View style={styles.trustBadge}>
               <IconsSvg name="securePayment" />
               <Text style={styles.trustText}>Secure Payment</Text>
             </View>
-            
-            {/* Vertical Line */}
             <View style={styles.verticalLine} />
-            
             <View style={styles.trustBadge}>
               <IconsSvg name="percentIcon" />
               <Text style={styles.trustText}>100% new</Text>
@@ -213,12 +223,17 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
           </View>
         </View>
       </ScrollView>
-
-      {/* Buy Now Button */}
-      <View style={styles.buyContainer}>
-      <Button title='Buy Now'  onPress={handleBuyNow}/>
-      </View>
       
+      <View style={styles.buyContainer}>
+        <Button 
+          title='Buy Now' 
+          onPress={() => { 
+            navigation.navigate(SCREENS.ConfirmYourOrderScreen, {
+              productId: currentProduct?.id
+            }) 
+          }} 
+        />
+      </View>
     </TitleBackHeaderContainer>
   );
 };
@@ -240,27 +255,38 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
   },
-  imageContainer: {
+  imageCarouselContainer: {
     backgroundColor: colors.white,
-    paddingVertical: 30,
-    alignItems: 'center',
     marginHorizontal: 20,
     borderRadius: 20,
-  },
-  imageSlide: {
-    width: width,
+    paddingTop: 20,
+    paddingBottom: 20,
     alignItems: 'center',
   },
+  subtitleStyle: { textTransform: 'capitalize' },
+  mainContainerStyle: {
+    paddingHorizontal: 0,
+    flexDirection: 'row',
+    paddingVertical: 12,
+  },
+  imageSlide: {
+    width: width - 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   productImage: {
-    width: width * 0.8,
-    height: 200,
-    resizeMode: 'contain',
+    width: width - 60, 
+    height: 220,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   dotsContainer: {
     flexDirection: 'row',
-    marginTop: 15,
-    marginBottom: 10,
     justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 15,
+    marginBottom: 15,
   },
   dot: {
     width: 8,
@@ -271,6 +297,10 @@ const styles = StyleSheet.create({
   },
   activeDot: {
     backgroundColor: '#333',
+  },
+  productInfoInside: {
+    paddingHorizontal: 20,
+    width: '100%',
   },
   productInfo: {
     backgroundColor: colors.white,
@@ -283,23 +313,24 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.large,
     color: colors.text2,
     fontFamily: fonts.bold,
-    marginTop: 10,
+    marginBottom: 8,
   },
   productDescription: {
     fontSize: fontSizes.regular,
     color: colors.text2,
     fontFamily: fonts.medium,
     lineHeight: 20,
+    marginBottom: 12,
   },
   priceContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  currentPrice: {
-    fontSize: 20,
-    fontFamily: fonts.bold,
+  price: {
     color: colors.black,
-    marginRight: 10,
+    fontSize: 16,
+    fontFamily: fonts.bold,
+    marginRight: 8,
   },
   originalPrice: {
     fontSize: fontSizes.medium,
@@ -307,43 +338,11 @@ const styles = StyleSheet.create({
     textDecorationLine: 'line-through',
     marginRight: 10,
   },
-  discountBadge: {
-    backgroundColor: '#DBF5E2',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 18,
-  },
-  discountText: {
-    color: colors.primary,
-    fontSize: 12,
-    fontFamily: fonts.bold,
-  },
   specTitle: {
     color: colors.text2,
     fontSize: fontSizes.medium,
     fontFamily: fonts.bold,
     marginBottom: 15,
-  },
-  specRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-    paddingVertical: 2,
-  },
-  specLabel: {
-    color: colors.label,
-    fontSize: fontSizes.small,
-    fontFamily: fonts.medium,
-    width: 100,
-  },
-  specValue: {
-    color: colors.darkLabel,
-    fontSize: fontSizes.small,
-    fontFamily: fonts.medium,
-    flex: 1,
-  },
-  stockContainer: {
-    marginVertical: 20,
   },
   stockBadge: {
     backgroundColor: '#DBF5E2',
@@ -369,9 +368,6 @@ const styles = StyleSheet.create({
   deliveryIcon: {
     width: 24,
     marginRight: 12,
-  },
-  deliveryIconText: {
-    fontSize: 16,
   },
   deliveryDetails: {
     flex: 1,
@@ -401,13 +397,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#E0E0E0',
     marginHorizontal: 20,
   },
-  trustIcon: {
-    fontSize: 24,
-  },
-  trustPercentage: {
-    fontSize: 24,
-    marginBottom: 8,
-  },
   trustText: {
     color: colors.title,
     fontSize: fontSizes.regular,
@@ -418,5 +407,13 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 30,
   },
- 
+  discountContainer: {
+    backgroundColor: '#DBF5E2',
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    borderRadius: 18,
+    alignSelf: 'flex-start',
+    height: 26,
+    justifyContent: 'center'
+  }
 });

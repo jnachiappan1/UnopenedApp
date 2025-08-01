@@ -105,7 +105,6 @@ const InputCountry = (props: IInputProps) => {
   useEffect(() => {
     fetchData();
   }, []);
-
   const err =
     error &&
     Object.keys(error).length !== 0 &&

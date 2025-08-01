@@ -396,8 +396,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
               const msrpValue = parseFloat(text);
               if (!isNaN(msrpValue) && discountPercentage) {
                 const { amountToPay } = calculateDiscount(msrpValue, discountPercentage);
-                console.log(amountToPay);
-                
                 setValue('price', amountToPay.toFixed(2));
               }
               else{

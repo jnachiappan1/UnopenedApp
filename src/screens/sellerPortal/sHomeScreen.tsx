@@ -42,7 +42,6 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
     if (!userData) {
       queryClient.removeQueries({ queryKey: ['getSellerDashboardCount'] });
       queryClient.removeQueries({ queryKey: ['getSellerOwnProductList'] });
-      console.log('Cleared React Query cache - user logged out');
     }
   }, [userData, queryClient]);
   const { 
@@ -117,7 +116,6 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
                 console.error(`${apiName} API focus refresh failed:`, result.reason);
               }
             });
-            console.log('Focus refresh completed');
           } catch (error) {
             console.error('Error during focus refresh:', error);
           }
@@ -125,7 +123,6 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
         
         focusRefresh();
       } else {
-        console.log('No userData - skipping focus refresh and clearing data');
         setSelectedTab('All');
       }
     }, [userData, refetchDashboardCountData, refetchsellerOwnProductList])
@@ -133,11 +130,9 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
 
   const handleRefresh = useCallback(async () => {
     if (!userData) {
-      console.log('No user data available - skipping refresh');
       setIsRefreshing(false);
       return;
     }
-    console.log('Starting pull-to-refresh - calling APIs...');
     setIsRefreshing(true);  
     try {
       const refreshPromises = [
@@ -156,7 +151,6 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
     } catch (error) {
       console.error('Error during refresh:', error);
     } finally {
-      console.log('Setting isRefreshing to false');
       setIsRefreshing(false);
     }
   }, [userData, refetchDashboardCountData, refetchsellerOwnProductList]);
@@ -245,12 +239,10 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
     }
     try {
       if (isDashboardError) {
-        console.log('Using default counts due to dashboard error');
         return defaultCounts;
       }
       const extractedCounts = dashboardCountData?.data?.counts;
       if (!extractedCounts || typeof extractedCounts !== 'object') {
-        console.log('Using default counts due to invalid data structure');
         return defaultCounts;
       }
       return extractedCounts;
@@ -264,7 +256,6 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
     try {
       return transformDashboardCounts(counts);
     } catch (error) {
-      console.error('Error transforming dashboard counts:', error);
       return transformDashboardCounts(defaultCounts);
     }
   }, [counts, transformDashboardCounts]);
@@ -277,6 +268,8 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
         return 'sold';
       case 'In Review':
         return 'in_review';
+        case 'Withdrawn':
+      return 'withdrawn';
       default:
         return null;
     }
@@ -301,6 +294,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
         All: products.length,
         Active: products.filter(item => item?.product_status === 'active').length,
         Sold: products.filter(item => item?.product_status === 'sold').length,
+        Withdrawn: products.filter(item => item.product_status === 'withdrawn').length,
         'In Review': products.filter(item => item?.product_status === 'in_review').length,
       };
       return counts;
@@ -399,10 +393,12 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>My Listing</Text>
-          <Text style={styles.viewAllText}>View All</Text>
+          <Text style={styles.viewAllText}
+          onPress={()=>navigation.navigate(SCREENS.ProductListScreen)}
+          >View All</Text>
         </View>
         <FlatList
-          data={['All', 'Active', 'Sold', 'In Review']}
+          data={['All', 'Active', 'Sold', 'In Review',"Withdrawn"]}
           horizontal
           showsHorizontalScrollIndicator={false}
           renderItem={renderTab}
@@ -434,7 +430,8 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
       <View style={styles.recentProductView}>
         <View style={styles.header}>
           <Text style={styles.title}>Recently Added Products</Text>
-          <Text style={styles.viewAllText}>View All</Text>
+          <Text style={styles.viewAllText}
+           onPress={()=>navigation.navigate(SCREENS.ProductListScreen)}>View All</Text>
         </View>
         {
           userData && products.length > 0 ? (

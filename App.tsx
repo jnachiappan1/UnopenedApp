@@ -14,7 +14,7 @@ import {
   useColorScheme,
   View,
 } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import React from 'react';
 import SplashScreen from 'react-native-splash-screen';
 import Loader from './src/components/loader/loader';
@@ -38,6 +38,7 @@ function App() {
   ]);
   return (
     <SafeAreaProvider>
+      <SafeAreaView style={styles.commonFlex} edges={['bottom']}>
       {/* <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} /> */}
       <StoreProvider store={store}>
       <QueryClientProvider client={queryClient}>
@@ -48,12 +49,17 @@ function App() {
       <CAlert />
       </QueryClientProvider>
       </StoreProvider>
+      </SafeAreaView>
+
     </SafeAreaProvider>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  commonFlex: {
     flex: 1,
   },
 });

@@ -24,9 +24,12 @@ export const API = {
     dashBoard_Count: `${base_url}/api/v1/product/count`,
     product_List: `${base_url}/api/v1/product`,
     sales_product_List: `${base_url}/api/v1/product/sales-activity-product`,
+    getProductDetailByID: `${base_url}/api/v1/common/product-list/`,
+    soldProduct: `${base_url}/api/v1/product/purchase-product/`,
     getLegalcontent: `${base_url}/api/v1/common/legalcontent/`,
     getProductList: `${base_url}/api/v1/common/product-list`,
     getProductPrice: `${base_url}/api/v1/common/product-price`,
+    getMyOrderList: `${base_url}/api/v1/product/purchase-product`,
 
   },
 };

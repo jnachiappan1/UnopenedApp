@@ -187,10 +187,12 @@ export type RootStackParamList = {
     initialPriceRange: { min: number; max: number } | null;
   };
   [SCREENS.OrderTrackScreen]: {
-    productId: OrderData;
+    productId:  string | number | null | undefined
   };
   [SCREENS.BProductDetailScreen]: {
-    productId: number
+    productId:  string | number | null | undefined
   };
-  [SCREENS.ConfirmYourOrderScreen]: undefined;
+  [SCREENS.ConfirmYourOrderScreen]:{
+    productId:  string | number | null | undefined
+  };
 };

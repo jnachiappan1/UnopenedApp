@@ -34,8 +34,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   const [isLogoutModalVisible, setLogoutModalVisible] = useState(false);
   const [isEnabled, setIsEnabled] = useState(true);
   const userData = useSelector((user: IRootState) => user.user.userData);
-console.log(userData,"userData---");
-
   const { mutate: deleteMutation } = useMutation({
     mutationFn: deleteAPI,
     onSuccess: (data: any) => {

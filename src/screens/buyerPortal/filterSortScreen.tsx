@@ -101,7 +101,7 @@ const FilterSortScreen: React.FC<FilterSortScreenProps> = ({
   });
 
   const [minPrice, setMinPrice] = useState<number>(() => {
-    return initialPriceRange?.min || 100;
+    return initialPriceRange?.min || 0;
   });
 
   const [maxPrice, setMaxPrice] = useState<number>(() => {
@@ -144,7 +144,7 @@ const FilterSortScreen: React.FC<FilterSortScreenProps> = ({
     setSelectedCategories([]);
     setSelectedSort(null);
     setSelectedPriceRange(null);
-    setMinPrice(100);
+    setMinPrice(0);
     setMaxPrice(1000);
   };
   

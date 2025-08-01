@@ -1,4 +1,4 @@
-import {Alert, FlatList, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {FlatList, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import React, {useState} from 'react';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
@@ -7,23 +7,59 @@ import {FlashList} from '@shopify/flash-list';
 import colors from '../../utils/colors';
 import {fontSizes} from '../../utils/utils';
 import OrderListingCard from '../../components/card/orderListingCard';
-import {OrderData, ProductData} from '../../utils/types';
-import {orderData} from '../../utils/static';
+import { ProductData} from '../../utils/types';
+import { getMyOrderList } from '../../utils/apiAction';
+import { useQuery } from '@tanstack/react-query';
+import { useSelector } from 'react-redux';
+import { IRootState } from '../../redux/store';
 
 type MyOrderScreenProps = NativeStackScreenProps<
   RootStackParamList,
   SCREENS.MyOrderScreen
 >;
+const ALLOWED_TABS = ['Pending', 'In Transit', 'Delivered', 'Cancelled'];
 
 const MyOrderScreen: React.FC<MyOrderScreenProps> = ({navigation}) => {
   const [selectedTab, setSelectedTab] = useState('All');
-
-  const filterData = () => {
-    if (selectedTab === 'All') {
-      return orderData;
+  const userData = useSelector((user: IRootState) => user.user.userData);
+  const { data: sellerOwnProductList, refetch: refetchsellerOwnProductList } = useQuery({
+    queryKey: ['getMyOrderList'],
+    queryFn: () => getMyOrderList(),
+    enabled: !!userData, 
+  });
+  const normalizeStatus = (status: string): string => {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return 'Pending';
+      case 'in_transit':
+      case 'shipped':
+        return 'In Transit';
+      case 'delivered':
+        return 'Delivered';
+      case 'cancelled':
+      case 'canceled':
+        return 'Cancelled';
+      default:
+        return 'Unknown';
     }
-    return orderData.filter(item => item.status === selectedTab);
   };
+  
+  const generateTabs = (): string[] => {
+    // Show all tabs regardless of data availability
+    return ['All', ...ALLOWED_TABS];
+  };
+  
+  const filterData = () => {
+    // Fixed: Access the product array correctly
+    const allProducts = sellerOwnProductList?.data?.product || [];
+  
+    if (selectedTab === 'All') return allProducts;
+  
+    return allProducts.filter(
+      (item: ProductData) => normalizeStatus(item.product_activity_status) === selectedTab
+    );
+  };
+
   const renderTab = ({item}: {item: string}) => (
     <TouchableOpacity
       key={item}
@@ -39,7 +75,7 @@ const MyOrderScreen: React.FC<MyOrderScreenProps> = ({navigation}) => {
   const renderHeader = () => (
     <View style={styles.headerContainer}>
       <FlatList
-        data={['All', 'Pending', 'In Transit', 'Delivered']}
+        data={generateTabs()} // Show all tabs
         horizontal
         showsHorizontalScrollIndicator={false}
         renderItem={renderTab}
@@ -48,22 +84,53 @@ const MyOrderScreen: React.FC<MyOrderScreenProps> = ({navigation}) => {
       />
     </View>
   );
-  const handleProductSelect = (item: OrderData) => {
-    navigation.navigate(SCREENS.OrderTrackScreen, {productId: item});
-  };
+  
+  // const handleProductSelect = (item: ProductData) => {
+  //   navigation.navigate(SCREENS.OrderTrackScreen, {productId: item});
+  // };
+  
+  // Add loading and error states
+  if (!sellerOwnProductList) {
+    return (
+      <TitleBackHeaderContainer title="My Orders">
+        <View style={styles.centerContainer}>
+          <Text>Loading...</Text>
+        </View>
+      </TitleBackHeaderContainer>
+    );
+  }
+
+  const filteredData = filterData();
+
   return (
     <TitleBackHeaderContainer title="My Orders">
       <FlashList
-        data={filterData()}
+        data={filteredData}
         renderItem={({item}) => (
           <View style={{paddingHorizontal: 10}}>
-            <OrderListingCard item={item} onSelect={handleProductSelect} />
+              <OrderListingCard 
+          item={item} 
+          onSelect={(selectedItem) => {
+            try {
+               navigation.navigate(SCREENS.OrderTrackScreen, {productId: item?.id});
+            } catch (navError) {
+              console.error('Navigation error:', navError);
+            }
+          }} 
+        />
           </View>
         )}
-        keyExtractor={item => item.id}
+        keyExtractor={(item: any) => item.id?.toString?.() ?? ''}
         contentContainerStyle={styles.list}
         ListHeaderComponent={
           <View style={{paddingEnd: 10}}>{renderHeader()}</View>
+        }
+        ListEmptyComponent={
+          <View style={styles.centerContainer}>
+            <Text style={styles.emptyText}>
+              {selectedTab === 'All' ? 'No orders found' : `No ${selectedTab.toLowerCase()} orders found`}
+            </Text>
+          </View>
         }
         estimatedItemSize={120}
         showsVerticalScrollIndicator={false}
@@ -126,5 +193,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     alignSelf: 'flex-start',
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 50,
+  },
+  emptyText: {
+    fontSize: fontSizes.medium,
+    color: '#666',
   },
 });

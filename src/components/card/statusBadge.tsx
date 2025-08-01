@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ViewStyle, StyleProp } from 'react-native';
 import { fontSizes } from '../../utils/utils';
-import colors from '../../utils/colors';
 import fonts from '../../assets/fonts/fonts';
 
 type StatusBadgeProps = {
@@ -30,19 +29,21 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status, statusStyle }) => {
           textColor: '#239C43',
           displayText: 'Active'
         };
-      case 'Delivered':
+      case 'delivered':
         return {
           backgroundColor: '#DBF5E2',
           textColor: '#239C43',
           displayText: 'Delivered'
         };
-      case 'Pending':
+      case 'pending':
         return {
           backgroundColor: '#F3E4E2',
           textColor: '#CB1C1C',
           displayText: 'Pending'
         };
       case 'In Transit':
+      case 'in_transit':
+      case 'shipped':
         return {
           backgroundColor: '#FBF0DB',
           textColor: '#AF7E15',

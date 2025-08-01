@@ -78,11 +78,9 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
     }
     if (selectedSort?.id) {
       const sortMapping: { [key: string]: string } = {
-        'Price: Low to High': 'price_asc',
-        'Price: High to Low': 'price_desc',
-        'Newest First': 'newest',
-        'Name: A to Z': 'name_asc',
-        'Name: Z to A': 'name_desc'
+      'price_low_to_high': 'price_low_to_high',
+        'price_high_to_low': 'price_high_to_low',
+        'newest_first': 'newest_first',
       };
       params.sort_by = sortMapping[selectedSort.id] || selectedSort.id;
     }  
@@ -234,13 +232,6 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
       setSelectedCategories(selectedCategories);
       setSelectedSort(selectedSort);
       setSelectedPriceRange(selectedPriceRange);
-      
-      console.log(
-        'Applied filters:',
-        'Sort:', selectedSort?.id,
-        'Categories:', selectedCategories,
-        'Price Range:', selectedPriceRange
-      );
     };
   
     navigation.navigate(SCREENS.FilterSortScreen, {
@@ -297,6 +288,7 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
           title="Popular Products"
           products={productListResponse?.data?.product}
           onViewAll={() => console.log('View All Pressed')}
+          showViewAll={false}
         />
         <View style={{height: 100}} />
       </ScrollView>

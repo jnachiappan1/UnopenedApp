@@ -20,12 +20,14 @@ interface Props {
   products: ProductData[];
   onViewAll?: () => void;
   onPress?: (item: ProductData) => void;
+  showViewAll?: boolean;
 }
 const ProductSection: React.FC<Props> = ({
   title = 'Our Products',
   products,
   onViewAll,
-  onPress
+  onPress,
+  showViewAll = true,
 }) => {
   const handlePress = (product: ProductData) => {
     if (onPress) {
@@ -36,7 +38,7 @@ const ProductSection: React.FC<Props> = ({
     <View style={styles.container}>
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>{title}</Text>
-        {onViewAll && (
+        {onViewAll && showViewAll && (
           <TouchableOpacity onPress={onViewAll}>
             <Text style={styles.viewAllText}>View All</Text>
           </TouchableOpacity>
@@ -74,10 +76,10 @@ const ProductSection: React.FC<Props> = ({
                     {item.item?.description}
                   </Text>
                   <View style={styles.priceContainer}>
-                    <Text style={styles.price}>{item.item?.price}</Text>
+                    <Text style={styles.price}>${item.item?.price}</Text>
                     {item.item?.msrp && (
                       <Text style={styles.originalPrice}>
-                        {item.item?.msrp}
+                        ${item.item?.msrp}
                       </Text>
                     )}
                   </View>

@@ -69,7 +69,6 @@ const PreviewConfirmScreen: React.FC<PreviewProps> = ({route, navigation}) => {
   };
 
   const handleSubmitForReview = () => {
-    console.log('Submitting product for review:', productData);
     navigation.goBack();
   };
 

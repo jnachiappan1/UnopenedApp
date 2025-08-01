@@ -1,5 +1,5 @@
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import { FlashList } from '@shopify/flash-list'
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer'
 import { productData } from '../../utils/static';
@@ -14,13 +14,16 @@ import { useQuery } from '@tanstack/react-query';
 import fonts from '../../assets/fonts/fonts';
 import { useSelector } from 'react-redux';
 import { IRootState } from '../../redux/store';
+import { getStatusForTab } from '../../utils/method';
+import { useFocusEffect } from '@react-navigation/native';
+import { showLoader } from '../../components/loader/loader';
 
 type ProductListScreenProps = NativeStackScreenProps<RootStackParamList, SCREENS.ProductListScreen>;
 
 const ProductListScreen: React.FC<ProductListScreenProps> = ({ navigation }) => {
   const [selectedTab, setSelectedTab] = useState('All');
   const userData = useSelector((user: IRootState) => user.user.userData);
-  const { data: sellerOwnProductList, refetch: refetchsellerOwnProductList } = useQuery({
+  const { data: sellerOwnProductList, refetch: refetchsellerOwnProductList,isLoading } = useQuery({
     queryKey: ['getSellerOwnProductList'],
     queryFn: () => getSellerOwnProductList(),
     enabled: !!userData, 
@@ -63,18 +66,6 @@ const ProductListScreen: React.FC<ProductListScreenProps> = ({ navigation }) => 
     );
   };
 
-  const getStatusForTab = (tabName: string) => {
-    switch (tabName) {
-      case 'Active':
-        return 'active';
-      case 'Sold':
-        return 'sold';
-      case 'In Review':
-        return 'in_review';
-      default:
-        return null;
-    }
-  };
 
   const filterData = () => {
     if (selectedTab === 'All') {
@@ -89,6 +80,7 @@ const ProductListScreen: React.FC<ProductListScreenProps> = ({ navigation }) => 
       All: products.length,
       Active: products.filter(item => item.product_status === 'active').length,
       Sold: products.filter(item => item.product_status === 'sold').length,
+      Withdrawn: products.filter(item => item.product_status === 'withdrawn').length,
       'In Review': products.filter(item => item.product_status === 'in_review').length,
     };
     return counts;
@@ -126,7 +118,7 @@ const ProductListScreen: React.FC<ProductListScreenProps> = ({ navigation }) => 
   const renderHeader = () => (
     <View style={styles.headerContainer}>
       <FlatList
-        data={['All', 'Active', 'Sold', 'In Review']}
+        data={['All', 'Active', 'Sold', 'In Review','Withdrawn']}
         horizontal
         showsHorizontalScrollIndicator={false}
         renderItem={renderTab}
@@ -137,10 +129,25 @@ const ProductListScreen: React.FC<ProductListScreenProps> = ({ navigation }) => 
   );
 
   const handleProductSelect = (item: ProductData) => {
-    console.log('Selected product:', item);
     navigation.navigate(SCREENS.ProductDetailScreen, { productId: item.id });
   }
-
+  useFocusEffect(
+    useCallback(() => {
+      const fetchData = async () => {
+        try {
+          showLoader(true);
+          await refetchsellerOwnProductList();
+        } catch (err) {
+          console.error('Failed to fetch product list:', err);
+        } finally {
+          showLoader(false);
+        }
+      };
+      if (userData) {
+        fetchData();
+      }
+    }, [userData, refetchsellerOwnProductList])
+  );
   return (
     <TitleBackHeaderContainer title='Products Listing' >
       {filteredData.length > 0 ? (

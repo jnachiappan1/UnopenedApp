@@ -57,17 +57,62 @@ export interface ProductData {
   name: string
   category_id: number
   user_id: number
+  buyer_id: number
   msrp: number
   price: number
   barcode: string
   description: string
   status: string
   product_status: string
+  product_activity_status: string
   createdAt: string
   updatedAt: string
   product_image: ProductImage[]
   product_category: ProductCategory
+  product_user: ProductUser
+  buyer_user: BuyerUser
 }
+export interface ProductUser {
+  id: number
+  full_name: string
+  email: string
+  country_code: string
+  phone_number: string
+  address: string
+  country: string
+  state: string
+  city: string
+  pincode: string
+  gender: string
+  password: any
+  verify_account: boolean
+  status: string
+  fcmToken: any
+  profile_picture: any
+  createdAt: string
+  updatedAt: string
+}
+export interface BuyerUser {
+  id: number
+  full_name: string
+  email: string
+  country_code: string
+  phone_number: string
+  address: string
+  country: string
+  state: string
+  city: string
+  pincode: string
+  gender: string
+  password: any
+  verify_account: boolean
+  status: string
+  fcmToken: any
+  profile_picture: string
+  createdAt: string
+  updatedAt: string
+}
+
 export interface OrderData {
   id: string;
   title: string;

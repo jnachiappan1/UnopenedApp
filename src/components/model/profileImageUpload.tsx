@@ -37,15 +37,12 @@ const ProfileImageUpload = ({control, name, isVisible, setIsVisible}: IInputProp
               onPress={async () => {
                 try {
                   const res = await getProfileImage(false, false); // Gallery
-                  console.log('Gallery result:', res); // Debug log
-                  
                   if (res && res.path) {
                     const imageObj = {
                       name: `${name}.${res.path.substr(res.path.lastIndexOf('.') + 1)}`,
                       type: res.mime,
                       uri: res.path,
                     };
-                    console.log('Setting image object:', imageObj); // Debug log
                     onChange(imageObj);
                     setIsVisible(false);
                   } else {
@@ -62,15 +59,12 @@ const ProfileImageUpload = ({control, name, isVisible, setIsVisible}: IInputProp
               onPress={async () => {
                 try {
                   const res = await getProfileImage(true, false); // Camera
-                  console.log('Camera result:', res); // Debug log
-                  
                   if (res && res.path) {
                     const imageObj = {
                       name: `${name}.${res.path.substr(res.path.lastIndexOf('.') + 1)}`,
                       type: res.mime,
                       uri: res.path,
                     };
-                    console.log('Setting image object:', imageObj); // Debug log
                     onChange(imageObj);
                     setIsVisible(false);
                   } else {

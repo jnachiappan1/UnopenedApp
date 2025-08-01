@@ -17,6 +17,7 @@ type OrderSuccessfulModalProps = {
   isModalVisible: boolean;
   setModalVisible: (visible: boolean) => void;
   onSubmit: () => void;
+  onContinue: () => void;
   title: string;
   description: string;
 };
@@ -25,6 +26,7 @@ const OrderSuccessfulModal: React.FC<OrderSuccessfulModalProps> = ({
   isModalVisible,
   setModalVisible,
   onSubmit,
+  onContinue,
   title = "Are You Sure?", 
   description = "Please confirm you want to Delete.", 
 }) => {
@@ -53,7 +55,10 @@ const OrderSuccessfulModal: React.FC<OrderSuccessfulModalProps> = ({
               title={'Continue Shopping'}
               style={styles.cancelBtn}
               textStyle={styles.cancelTextBtn}
-              onPress={() => setModalVisible(false)}
+              onPress={() => {
+                setModalVisible(false);
+                onContinue(); 
+              }}
             />
             <Button
               title={'Track Order'}

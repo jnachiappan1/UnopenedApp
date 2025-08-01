@@ -144,7 +144,7 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({route, navigation}) => {
     onBackPress={()=>navigation.goBack()}>
       <Text style={styles.subHeading}>{'Verify OTP'}</Text>
       <Text style={styles.codeSentText}>
-        {'Please enter 4 digit code we sent to you on'}
+        {'Please enter 6 digit code we sent to you on'}
       </Text>
       <Text style={styles.emailText}>{email}</Text>
       <Text style={styles.emailText}>

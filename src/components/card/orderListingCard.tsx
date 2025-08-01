@@ -2,36 +2,40 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, StyleProp, ViewStyle } from 'react-native';
 import { fontSizes } from '../../utils/utils';
-import { OrderData, ProductData } from '../../utils/types';
+import { ProductData } from '../../utils/types';
 import colors from '../../utils/colors';
 import IconsSvg from '../../assets/svg/iconsSvg';
 import fonts from '../../assets/fonts/fonts';
 import StatusBadge from './statusBadge';
+import { calculateDaysAgo } from '../../utils/method';
+import { image_url } from '../../utils/api';
 
-interface ProductListingCardProps {
-  item: OrderData;
+interface OrderListingCardProps {
+  item: ProductData;
   cardStyle?: StyleProp<ViewStyle> | undefined;
-  onSelect?: (item: OrderData) => void;
+  onSelect?: (item: ProductData) => void;
 }
 
-const OrderListingCard: React.FC<ProductListingCardProps> = ({ item,cardStyle ,onSelect}) => {
+const OrderListingCard: React.FC<OrderListingCardProps> = ({ item, cardStyle, onSelect }) => {
   const handleCardPress = () => {
     onSelect?.(item);
   };
   return (
-    <View style={[styles.cardContainer,cardStyle]}>
+    <View style={[styles.cardContainer, cardStyle]}>
       <View style={styles.productDetailView}>
-        <Image source={{ uri: item?.image }} style={styles.cardImage} />
+        <Image
+          source={{ uri: image_url + item?.product_image?.[0]?.image }}
+          style={styles.cardImage}
+        />
         <View>
-          <Text style={styles.cardTitle}>{item?.title}</Text>
-          <Text style={styles.cardPosted}>Order ID: {item?.order_Id}</Text>
-          <Text style={styles.cardPosted}>Delivered On: {item?.delivered_On}</Text>
+          <Text style={styles.cardTitle}>{item?.name}</Text>
+          <Text style={styles.cardPosted}>Posted {calculateDaysAgo(item?.createdAt)} Days Ago</Text>
           <Text style={styles.cardPrice}>${item?.price}</Text>
         </View>
       </View>
       <View style={styles.cardDetails}>
-        <StatusBadge status={item.status} />
-        <TouchableOpacity style={styles.viewDetailsBtn} activeOpacity={0.8}  onPress={handleCardPress}>
+        <StatusBadge status={item.product_activity_status} />
+        <TouchableOpacity style={styles.viewDetailsBtn} activeOpacity={0.8} onPress={handleCardPress}>
           <Text style={styles.viewDetailsText}>Track Order</Text>
           <IconsSvg name='viewDetailArrow' />
         </TouchableOpacity>
@@ -64,8 +68,8 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'space-between',
     flexDirection: 'row',
-    paddingHorizontal:5,
-    paddingVertical:5
+    paddingHorizontal: 5,
+    paddingVertical: 5
   },
   cardTitle: {
     fontSize: fontSizes.medium,
@@ -75,7 +79,7 @@ const styles = StyleSheet.create({
   },
   cardPrice: {
     fontSize: fontSizes.medium,
-    fontFamily:fonts.bold,
+    fontFamily: fonts.bold,
     color: colors.black,
     paddingVertical: 2
   },
@@ -88,14 +92,14 @@ const styles = StyleSheet.create({
   viewDetailsBtn: {
     paddingVertical: 6,
     borderRadius: 4,
-    flexDirection:'row',
-    alignItems:'center'
+    flexDirection: 'row',
+    alignItems: 'center'
   },
   viewDetailsText: {
     color: '#333333',
     fontSize: fontSizes.small,
-    fontFamily:fonts.bold,
-    paddingEnd:5
+    fontFamily: fonts.bold,
+    paddingEnd: 5
   },
   productDetailView: {
     flexDirection: 'row', backgroundColor: '#F5F7F2', borderRadius: 20,
@@ -111,6 +115,7 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: fontSizes.small,
-    fontFamily:fonts.bold
+    fontFamily: fonts.bold
   },
 });
+
