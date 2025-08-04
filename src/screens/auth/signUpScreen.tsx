@@ -23,6 +23,8 @@ import { signUp } from '../../utils/apiAction';
 import { handleError, handleSettled } from '../../utils/method';
 import { showAlert } from '../../components/cAlert';
 import { showLoader } from '../../components/loader/loader';
+import PhoneNumberInputs from '../../components/input/phoneNumberInputs';
+import { selectedCountryType } from '../../utils/types';
 
 type LoginProps = NativeStackScreenProps<
   RootStackParamList,
@@ -44,6 +46,15 @@ export type InputsRegistration = {
 };
 const SignUpScreen: React.FC<LoginProps> = ({ route, navigation }) => {
   const [email, setEmail] = useState('johndoe@gmail.com');
+  const [selectedCountry, setPhoneCountry] = useState<selectedCountryType>({
+    callingCode: ['91'],
+    cca2: 'IN',
+    currency: ['INR'],
+    flag: 'flag-in',
+    name: 'India',
+    region: 'Asia',
+    subregion: 'Southern Asia',
+  });
   const defaultValues = {
     full_name: '',
     email: '',
@@ -62,6 +73,7 @@ const SignUpScreen: React.FC<LoginProps> = ({ route, navigation }) => {
     formState: { errors },
     handleSubmit,
     watch,
+    setValue,
     getValues,
   } = useForm<InputsRegistration>({ defaultValues });
   const { mutate } = useMutation({
@@ -86,7 +98,12 @@ const SignUpScreen: React.FC<LoginProps> = ({ route, navigation }) => {
     onError: handleError,
     onSettled: handleSettled,
   });
-
+  const setPhoneCountryData = (item: any) => {
+    setPhoneCountry(item);
+    setValue('country_code', '+' + item.callingCode[0]);
+    // updateFormField('country_code', item.callingCode[0]);
+    // updateFormField('currency', item.currency[0]);
+  };
   return (
     <ImageBackgroundHeader containerStyle={styles.container} hideBack={true}>
       <KeyboardAwareScrollView
@@ -114,7 +131,7 @@ const SignUpScreen: React.FC<LoginProps> = ({ route, navigation }) => {
           maxLength={40}
           inputStyle={styles.inputStyle}
         />
-        <Input
+        {/* <Input
           control={control}
           name="phone_number"
           label={'Phone Number'}
@@ -130,6 +147,24 @@ const SignUpScreen: React.FC<LoginProps> = ({ route, navigation }) => {
           keyboardType="numeric"
           maxLength={40}
           inputStyle={styles.inputStyle}
+        /> */}
+        <PhoneNumberInputs
+          label={'Personal Phone Number'}
+          control={control}
+          name="phone_number"
+          placeholder={'Enter Phone Number'}
+          keyboardType="phone-pad"
+          //value={getValues('mobileNumber')}
+          selectedCountry={selectedCountry}
+          setPhoneCountry={setPhoneCountryData}
+          required={{
+            value: true,
+            message: 'Please enter your phone number',
+          }}
+          error={errors}
+          disabled={false}
+          style={{}}
+          containerStyle={{}}
         />
         <Input
           control={control}
@@ -212,12 +247,8 @@ const SignUpScreen: React.FC<LoginProps> = ({ route, navigation }) => {
             control={control}
             name="gender"
             label="Gender"
-            required={{
-              value: true,
-              message: 'Please select gender',
-            }}
+            required={{ value: true, message: 'Please select gender' }}
             error={errors}
-            placeholder={'Select Gender'}
           />
         </View>
 
@@ -226,6 +257,8 @@ const SignUpScreen: React.FC<LoginProps> = ({ route, navigation }) => {
           title={'Create Account'}
           style={styles.sendOtpButton}
           onPress={handleSubmit((data) => {
+            console.log("data=====",data);
+            
             showLoader(true);
             mutate(data);
           })}

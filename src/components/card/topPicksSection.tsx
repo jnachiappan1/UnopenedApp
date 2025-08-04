@@ -10,8 +10,10 @@ import {
 } from 'react-native';
 import colors from '../../utils/colors';
 import fonts from '../../assets/fonts/fonts';
+import { image_url } from '../../utils/api';
+import { ProductData } from '../../utils/types';
 
-const {width} = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 interface Product {
   id: number;
@@ -22,15 +24,18 @@ interface Product {
 
 interface Props {
   title?: string;
-  products: Product[];
+  products: ProductData[];
   onViewAll?: () => void;
+  onSelect?: (item: ProductData) => void;
 }
 
 const TopPicksSection: React.FC<Props> = ({
-  title = 'Top Picks in Electronics',
+  title = 'Product',
   products,
   onViewAll,
+  onSelect
 }) => {
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -43,21 +48,22 @@ const TopPicksSection: React.FC<Props> = ({
         )}
       </View>
 
-      {/* Horizontal List */}
       <FlatList
         data={products}
         horizontal
         showsHorizontalScrollIndicator={false}
         keyExtractor={item => item.id.toString()}
         contentContainerStyle={styles.listContent}
-        ItemSeparatorComponent={() => <View style={{width: 10}} />}
-        renderItem={({item}) => (
-          <TouchableOpacity style={styles.topPickCard}>
-            <Image source={{uri: item.image}} style={styles.topPickImage} />
-            <Text style={styles.topPickName}>{item.name}</Text>
-            <Text style={styles.topPickPrice}>{item.price}</Text>
-          </TouchableOpacity>
-        )}
+        ItemSeparatorComponent={() => <View style={{ width: 10 }} />}
+        renderItem={({ item }) => {
+          return (
+            <TouchableOpacity style={styles.topPickCard} onPress={() => onSelect?.(item)}>
+              <Image source={{ uri: image_url + item?.product_image[0]?.image }} style={styles.topPickImage} />
+              <Text style={styles.topPickName}>{item.name}</Text>
+              <Text style={styles.topPickPrice}>{item.price}</Text>
+            </TouchableOpacity>
+          )
+        }}
       />
     </View>
   );

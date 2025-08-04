@@ -51,8 +51,8 @@ const ProductSection: React.FC<Props> = ({
         scrollEnabled={false}
         contentContainerStyle={styles.listContent}
         renderItem={(item, isHorizontal = false) => {
-          const imageUri = item.item?.product_image?.[0].image
-            ? image_url + item.item?.product_image?.[0].image
+          const imageUri = item.item?.product_image?.[0]?.image
+            ? image_url + item.item?.product_image?.[0]?.image
             : 'https://via.placeholder.com/150';
           return (
             <View style={styles.productWrapper}>

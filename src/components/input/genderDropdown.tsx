@@ -8,49 +8,54 @@ import {
   StyleSheet,
   Dimensions,
 } from 'react-native';
-import { Control, Controller, ValidationRule } from 'react-hook-form';
+import { Control, Controller, FieldValues, Path, ValidationRule } from 'react-hook-form';
 import IconsSvg from '../../assets/svg/iconsSvg';
 import colors from '../../utils/colors';
 
-type InputProps = {
-  control: Control;
-  name: string;
-  error?: any;
-  placeholder?: string;
-  label?: string;
-  required?: string | ValidationRule<boolean> | undefined;
+type GenderOption = {
+  label: string;
+  value: string;
 };
 
-const GenderDropdown: React.FC<InputProps> = ({
+type InputProps<T extends FieldValues> = {
+  control: Control<T>;
+  name: Path<T>;
+  error?: Partial<Record<keyof T, { message?: string }>>;
+  placeholder?: string;
+  label?: string;
+  required?: string | ValidationRule<boolean>;
+};
+
+const GenderDropdown = <T extends FieldValues>({
   control,
   name,
   error,
   placeholder = 'Select Gender',
   label,
-  required
-}) => {
+  required,
+}: InputProps<T>) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const genderOptions = [
+  const genderOptions: GenderOption[] = [
     { label: 'Male', value: 'male' },
     { label: 'Female', value: 'female' },
     { label: 'Other', value: 'other' },
   ];
 
-  const errorMessage =
-    error && error[name] ? error[name]?.message?.toString() : '';
+  const selectedError = error?.[name]?.message;
 
   return (
     <Controller
       control={control}
       name={name}
+      rules={{ required }}
       render={({ field: { onChange, value } }) => (
         <View style={styles.dropdownContainer}>
           {label && <Text style={styles.label}>{label}</Text>}
           <TouchableOpacity
             style={[
               styles.dropdownButton,
-              error && name in error && styles.dropdownButtonError,
+              selectedError && styles.dropdownButtonError,
             ]}
             onPress={() => setIsOpen(true)}
           >
@@ -64,8 +69,8 @@ const GenderDropdown: React.FC<InputProps> = ({
             <IconsSvg name="downArrow" />
           </TouchableOpacity>
 
-          {error && name in error && (
-            <Text style={styles.errorText}>{errorMessage}</Text>
+          {selectedError && (
+            <Text style={styles.errorText}>{selectedError}</Text>
           )}
 
           <Modal
@@ -99,6 +104,8 @@ const GenderDropdown: React.FC<InputProps> = ({
     />
   );
 };
+
+export default GenderDropdown;
 
 const windowWidth = Dimensions.get('window').width;
 
@@ -136,10 +143,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   errorText: {
-    color: '#ff6b6b',
-    fontSize: 12,
-    marginTop: 5,
-    marginLeft: 5,
+    color: 'red',
+    fontSize: 14,
+    minHeight: 12,
+    marginVertical: 5,
   },
   modalOverlay: {
     flex: 1,
@@ -168,5 +175,3 @@ const styles = StyleSheet.create({
     color: '#333',
   },
 });
-
-export default GenderDropdown;

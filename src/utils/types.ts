@@ -164,3 +164,12 @@ export interface CategoryAPIResponse {
     }>;
   };
 }
+export type selectedCountryType = {
+  callingCode: string[];
+  cca2: string;
+  currency: string[];
+  flag: string;
+  name: string;
+  region: string;
+  subregion: string;
+};

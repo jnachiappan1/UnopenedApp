@@ -9,10 +9,15 @@ import SearchBar from '../../components/card/searchBar';
 import CategoryList from '../../components/card/categoryList';
 import ProductSection from '../../components/card/productSection';
 import { ProductCategory, ProductData } from '../../utils/types';
-import { getAllProductList, getCategoryDetail, getProductList } from '../../utils/apiAction';
+import { getAllProductList, getCategoryDetail, getMyOrderList, getProductList } from '../../utils/apiAction';
 import { IRootState } from '../../redux/store';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@tanstack/react-query';
+import TopPicksSection from '../../components/card/topPicksSection';
+import { FlashList } from '@shopify/flash-list';
+import OrderListingCard from '../../components/card/orderListingCard';
+import fonts from '../../assets/fonts/fonts';
+import colors from '../../utils/colors';
 
 type LoginProps = NativeStackScreenProps<
   RootStackParamList,
@@ -39,7 +44,7 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
   const [selectedSort, setSelectedSort] = useState<{ id: string; name: string } | null>(null);
   const [selectedPriceRange, setSelectedPriceRange] = useState<{ min: number; max: number } | null>(null);
   const [apiTrigger, setApiTrigger] = useState(0);
-  
+
   const getApiParams = () => {
     const params: any = {};
     if (searchQuery.trim() !== '') {
@@ -60,7 +65,7 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
     if (selectedPriceRange) {
       params.price = `${selectedPriceRange.min}-${selectedPriceRange.max}`;
     } else {
-      params.price = ''; 
+      params.price = '';
     }
     const allCategoryIds = new Set<number>();
     selectedCategories.forEach(cat => {
@@ -85,12 +90,26 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
     queryFn: () => getCategoryDetail(),
     enabled: isLogged,
   });
-  
+
   const { data: allProductList, refetch: refetchAllProduct } = useQuery({
-    queryKey: ['getAllProductList', userData?.id], 
+    queryKey: ['getAllProductList', userData?.id],
     queryFn: () => getAllProductList(userData?.id),
   });
-
+  const { data: sellerOwnProductList, refetch: refetchsellerOwnProductList } = useQuery({
+    queryKey: ['getMyOrderList'],
+    queryFn: () => getMyOrderList(),
+    enabled: !!userData,
+  });
+  const sellerOwnProductData = Array.isArray(sellerOwnProductList?.data?.product) &&
+    sellerOwnProductList.data.product.every((item: any) => item && typeof item === 'object' && 'id' in item)
+    ? (sellerOwnProductList.data.product as ProductData[])
+    : [];
+  const latestData = sellerOwnProductData.sort(
+    (a, b) =>
+      new Date(b.updatedAt || b.createdAt).getTime() -
+      new Date(a.updatedAt || a.createdAt).getTime()
+  );
+  const oneLatestItem = latestData.slice(0, 1);
   const { data: productList, refetch: refetchProductList, isLoading, isFetching } = useQuery({
     queryKey: [
       'getProductList',
@@ -105,7 +124,7 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
     queryFn: () => {
       return getProductList(getApiParams());
     },
-    staleTime: 0, 
+    staleTime: 0,
     refetchOnMount: true,
   });
 
@@ -151,17 +170,17 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
   };
 
   // Empty State Component
-  const EmptyStateMessage = ({ title, message, showClearButton = false }: { 
-    title: string; 
-    message: string; 
-    showClearButton?: boolean; 
+  const EmptyStateMessage = ({ title, message, showClearButton = false }: {
+    title: string;
+    message: string;
+    showClearButton?: boolean;
   }) => (
     <View style={styles.emptyStateContainer}>
       <Text style={styles.emptyStateTitle}>{title}</Text>
       <Text style={styles.emptyStateMessage}>{message}</Text>
       {showClearButton && (
-        <TouchableOpacity 
-          style={styles.clearFiltersButton} 
+        <TouchableOpacity
+          style={styles.clearFiltersButton}
           onPress={clearAllFilters}
         >
           <Text style={styles.clearFiltersButtonText}>Clear All Filters</Text>
@@ -174,6 +193,7 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
     setApiTrigger(prev => prev + 1);
     if (isLogged) {
       refetchProductList();
+      refetchsellerOwnProductList();
     }
   };
 
@@ -267,12 +287,19 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
     setSearchQuery('');
   };
 
-  const displayProducts = productList?.data?.product;
-  const allProducts = allProductList?.data?.product;
-
-  // Check if products are empty and not loading
+  const displayProducts = (productList?.data?.product || []).filter(
+    (item: ProductData) => item.product_status === 'active'
+  );
+  const allProducts = (allProductList?.data?.product || []).filter(
+    (item: ProductData) => item.product_status === 'active'
+  );
+  const soldProducts = (allProductList?.data?.product || []).filter(
+    (item: ProductData) => item.product_status === 'sold'
+  );
+  const withdrawnProducts = (allProductList?.data?.product || []).filter(
+    (item: ProductData) => item.product_status === 'withdrawn'
+  );
   const showEmptyState = !isLoading && !isFetching && (!displayProducts || displayProducts.length === 0);
-  // Show recently listed items only when NO filters are applied (regardless of whether filtered products exist)
   const showRecentlyListed = !hasActiveFilters() && allProducts && allProducts.length > 0;
 
   return (
@@ -280,70 +307,119 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
       title={'Welcome,'}
       userName={`Hello ${userData?.full_name ?? 'Guest'}`}
       isHome
-      profileImage={userData?.profile_picture} 
+      profileImage={userData?.profile_picture}
       onSearchPress={() => { }}>
 
-      <FlatList
-        data={bannerData}
-        keyExtractor={item => item.id}
-        renderItem={({ item }) => <BannerItem item={item} />}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-      />
-      
+      {(!oneLatestItem || oneLatestItem.length === 0) && (
+        <FlatList
+          data={bannerData}
+          keyExtractor={item => item.id}
+          renderItem={({ item }) => <BannerItem item={item} />}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+        />
+      )}
+
       <SearchBar
         value={searchQuery}
         onChangeText={setSearchQuery}
         onSubmit={handleSearch}
         onFilterPress={handleFilterPress}
       />
-      
+
       <CategoryList
         categories={categories}
         selectedCategoryId={selectedCategoryId}
         onSelectCategory={handleCategorySelect}
       />
+      {
+        oneLatestItem &&
+        <>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>{'My Purchase'}</Text>
+
+            <TouchableOpacity onPress={() => navigation.navigate(SCREENS.MyOrderScreen)}>
+              <Text style={styles.viewAllText}>View All</Text>
+            </TouchableOpacity>
+
+          </View>
+          <FlashList
+            data={oneLatestItem}
+            renderItem={({ item }) => (
+              <View style={{ paddingHorizontal: 10 }}>
+                <OrderListingCard
+                  item={item}
+                  cardStyle={{
+                    marginBottom: 0,
+
+                  }}
+                  onSelect={() =>
+                    navigation.navigate(SCREENS.OrderTrackScreen, {
+                      productId: item?.id,
+                    })
+                  }
+                />
+              </View>
+            )}
+            keyExtractor={(item, index) => `${item?.id ?? index}`}
+            contentContainerStyle={styles.list}
+            showsVerticalScrollIndicator={false}
+          />
+        </>
+      }
 
       {showEmptyState ? (
-        <EmptyStateMessage 
-          {...getEmptyMessage()} 
+        <EmptyStateMessage
+          {...getEmptyMessage()}
           showClearButton={hasActiveFilters()}
         />
       ) : (
         <>
           <ProductSection
             title="Our Products"
-            products={displayProducts?.slice(0, 6)}
+            products={displayProducts?.slice(0, 4)}
             onViewAll={() => {
-              navigation.navigate(SCREENS.BrowseScreen); 
+              navigation.navigate(SCREENS.BrowseScreen);
             }}
             onPress={(item) => {
-              if(isLogged) {
-                navigation.navigate(SCREENS.BProductDetailScreen, {productId: item?.id });
-              } else {
-                navigation.navigate(SCREENS.LoginScreen); 
-              }
+
+              navigation.navigate(SCREENS.BProductDetailScreen, { productId: item?.id });
+
             }}
-            // isLoading={isLoading || isFetching}
+          // isLoading={isLoading || isFetching}
           />
-          
+
           {showRecentlyListed && (
             <ProductSection
               title="Recently Listed Items"
-              products={allProducts?.slice(0, 6)}
+              products={allProducts?.slice(0, 4)}
               onPress={(item) => {
-                if(isLogged) {
-                  navigation.navigate(SCREENS.BProductDetailScreen, {productId: item?.id });
-                } else {
-                  navigation.navigate(SCREENS.LoginScreen); 
-                }
+                navigation.navigate(SCREENS.BProductDetailScreen, { productId: item?.id });
+
               }}
+            />
+          )}
+          {showRecentlyListed && (
+            <TopPicksSection
+              title="Top Sold Product"
+              products={soldProducts}
+              onViewAll={() => console.log('View All Top Picks')}
+              onSelect={(item) =>  navigation.navigate(SCREENS.BProductDetailScreen, { productId: item?.id })}
+
+            />
+          )}
+          {showRecentlyListed && (
+            <TopPicksSection
+              title="Top Withdrawn Product"
+              products={withdrawnProducts}
+              onViewAll={() => console.log('View All Top Picks')}
+              onSelect={(item) =>  navigation.navigate(SCREENS.BProductDetailScreen, { productId: item?.id })}
             />
           )}
         </>
       )}
-      
-      <View style={{ height: 100 }} />
+
+      <View style={{ height: 110 }} />
     </HeaderHomeContainer>
   );
 };
@@ -386,5 +462,25 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
+  },
+  list: {
+    paddingBottom: 20,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginHorizontal: 16,
+    marginVertical: 10,
+  },
+  sectionTitle: {
+    color: '#1A1A1A',
+    fontSize: 18,
+    fontFamily: fonts.bold,
+  },
+  viewAllText: {
+    color: colors.primary,
+    fontSize: 14,
+    fontFamily: fonts.bold,
   },
 });

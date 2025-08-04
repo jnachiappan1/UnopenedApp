@@ -27,6 +27,7 @@ import InfoRow from '../../components/card/infoRow';
 import { useSelector } from 'react-redux';
 import { IRootState } from '../../redux/store';
 import { showLoader } from '../../components/loader/loader';
+import StatusBadge from '../../components/card/statusBadge';
 
 const { width } = Dimensions.get('window');
 
@@ -47,21 +48,21 @@ const BProductDetailScreen: React.FC<LoginProps> = ({ route, navigation }) => {
   const product: ProductData = productData[0];
   const userData = useSelector((user: IRootState) => user.user.userData);
   const isLogged = userData ? true : false;
-  
+
   const { data: allProductList, refetch: refetchAllProduct, isLoading } = useQuery({
     queryKey: ['getProductDetailByID', productId],
     queryFn: () => getProductDetailByID(productId),
   });
-  
+
   const { data: ProductPriceData, refetch: refetchProductPriceData, isLoading: isLoadingProductPriceData } = useQuery({
     queryKey: ['getProductPriceDetail'],
     queryFn: () => getProductPriceDetail(),
     enabled: isLogged,
   });
-  
+
   const flatListRef = useRef<FlatList<ProductImage>>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  
+
   const handleImageScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const slideSize = event.nativeEvent.layoutMeasurement.width;
     const index = Math.round(event.nativeEvent.contentOffset.x / slideSize);
@@ -161,29 +162,32 @@ const BProductDetailScreen: React.FC<LoginProps> = ({ route, navigation }) => {
             </View>
           </View>
         </View>
-        
+
         <View style={styles.productInfo}>
           <Text style={styles.specTitle}>Specifications</Text>
-          <InfoRow 
+          <InfoRow
             title="Brand"
-            showColon 
+            showColon
             subtitle={currentProduct?.description}
             style={styles.mainContainerStyle}
-            subtitleStyle={styles.subtitleStyle} 
+            subtitleStyle={styles.subtitleStyle}
           />
-          <InfoRow 
+          <InfoRow
             title="Product Category"
-            showColon 
+            showColon
             subtitle={currentProduct?.product_category?.name}
             style={styles.mainContainerStyle}
-            subtitleStyle={styles.subtitleStyle} 
+            subtitleStyle={styles.subtitleStyle}
           />
         </View>
-        
+
         <View style={styles.productInfo}>
-          <View style={styles.stockBadge}>
+          {/* <View style={styles.stockBadge}>
             <Text style={styles.stockText}>In Stock</Text>
-          </View>
+          </View> */}
+          <StatusBadge status={ currentProduct?.product_status === 'active'
+    ? 'In_Stock'
+    : currentProduct?.product_status} />
           <View style={styles.deliveryInfo}>
             <View style={styles.deliveryRow}>
               <View style={styles.deliveryIcon}>
@@ -208,7 +212,7 @@ const BProductDetailScreen: React.FC<LoginProps> = ({ route, navigation }) => {
             </View>
           </View>
         </View>
-        
+
         <View style={styles.productInfo}>
           <View style={styles.trustContainer}>
             <View style={styles.trustBadge}>
@@ -223,16 +227,22 @@ const BProductDetailScreen: React.FC<LoginProps> = ({ route, navigation }) => {
           </View>
         </View>
       </ScrollView>
-      
+
       <View style={styles.buyContainer}>
-        <Button 
-          title='Buy Now' 
-          onPress={() => { 
-            navigation.navigate(SCREENS.ConfirmYourOrderScreen, {
-              productId: currentProduct?.id
-            }) 
-          }} 
-        />
+        {currentProduct?.product_status === 'active' && (
+          <Button
+            title="Buy Now"
+            onPress={() => {
+              if (isLogged) {
+                navigation.navigate(SCREENS.ConfirmYourOrderScreen, {
+                  productId: currentProduct?.id
+                });
+              } else {
+                navigation.navigate(SCREENS.LoginScreen);
+              }
+            }}
+          />
+        )}
       </View>
     </TitleBackHeaderContainer>
   );
@@ -275,7 +285,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   productImage: {
-    width: width - 60, 
+    width: width - 60,
     height: 220,
     borderRadius: 12,
     borderWidth: 1,

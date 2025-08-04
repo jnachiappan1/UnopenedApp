@@ -81,23 +81,30 @@ const InputCountry = (props: IInputProps) => {
 
   const fetchData = () => {
     setLoading(true);
-    fetch(
-      'https://countriesnow.space/api/v0.1/countries/info?returns=currency,flag,unicodeFlag,dialCode',
-      {
-        method: 'Get',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+    fetch('https://countriesnow.space/api/v0.1/countries/flag/unicode', {
+      method: 'Get',
+      headers: {
+        'Content-Type': 'application/json',
       },
-    )
+    })
       .then(response => response.json())
       .then(response => {
         if (response.error === false) {
-          setData(response.data);
+         console.log('esponse.data');
+          // let filterData = response.data.filter(
+          //   (t: any) =>
+          //     t.name === 'India' ||
+          //     t.name === 'Singapore' ||
+          //     t.name === 'New Zealand' ||
+          //     t.name === 'Malaysia' ||
+          //     t.name === 'Australia',
+          // );
+          setData(response?.data);
         }
         setLoading(false);
       })
       .catch(e => {
+        console.log('err', e);
         setLoading(false);
       });
   };
@@ -194,17 +201,23 @@ const InputCountry = (props: IInputProps) => {
                         .toLocaleLowerCase()
                         .startsWith(searchText.toLocaleLowerCase()),
                     )}
-                    renderItem={({ item }) => (
-                      <Text
-                        style={styles.renderTxt}
+                    renderItem={({ item }) =>     
+                    {
+                      return(
+                        <TouchableOpacity
+                        style={styles.countryItem}
                         onPress={() => {
                           onChange(item.name);
                           setShowList(false);
                         }}
                       >
-                        {item.name}
-                      </Text>
-                    )}
+                        <Text style={styles.flagText}>{item.unicodeFlag}</Text>
+                        <Text style={styles.countryName}>{item.name}</Text>
+                      </TouchableOpacity>
+                      )
+                    }
+                      
+                     }
                     keyExtractor={item => item.name}
                     style={styles.flatList}
                     scrollEnabled={false}
@@ -293,5 +306,20 @@ const getStyles = (colors: IColors, isShowError: boolean) =>
       flex: 1,
       paddingHorizontal: 10,
       color: colors.text,
+    },
+    countryItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 10,
+      paddingHorizontal: 14,
+    },
+    flagText: {
+      fontSize: 18,
+      marginRight: 10,
+    },
+    countryName: {
+      fontSize: 16,
+      color: colors.primary,
+      fontFamily: fonts.medium,
     },
   });

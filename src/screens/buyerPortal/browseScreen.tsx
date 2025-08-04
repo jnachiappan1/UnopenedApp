@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   FlatList,
   SafeAreaView,
+  StatusBar,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
@@ -23,6 +24,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getProductList } from '../../utils/apiAction';
 import { useSelector } from 'react-redux';
 import { IRootState } from '../../redux/store';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type BrowseScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -41,6 +43,7 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
   const userData = useSelector((user: IRootState) => user.user.userData);
   const isLogged = userData ? true : false;
   const searchQueryRef = useRef(searchQuery);
+  const insets = useSafeAreaInsets();
   useEffect(() => {
     loadRecentSearches();
   }, []);
@@ -243,7 +246,15 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
   };
 
   return (
-    <SafeAreaView style={{flex: 1, paddingTop: 20}}>
+    <>
+    <View style={{ height: insets.top, backgroundColor: colors.background }}>
+      <StatusBar
+        backgroundColor={colors.background}
+        barStyle="dark-content"
+        translucent={false}
+      />
+    </View>
+    <SafeAreaView style={{flex: 1}}> 
         <SearchBar
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -293,6 +304,8 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
         <View style={{height: 100}} />
       </ScrollView>
     </SafeAreaView>
+  </>
+ 
   );
 };
 

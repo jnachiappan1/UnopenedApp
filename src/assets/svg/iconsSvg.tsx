@@ -75,7 +75,11 @@ export type IconName =
   | 'eyeOff'
   | 'packageIcon'
   | 'locationIcon'
-  | 'orderSuccessful';
+  | 'orderSuccessful'
+  | 'back'
+  | 'close'
+  | 'filter'
+  |'dropDown';
 
 export interface IconsSvgProps {
   name: IconName;
@@ -1551,31 +1555,92 @@ const IconsSvg = (props: IconsSvgProps) => {
     case 'orderSuccessful':
       return (
         <Svg
-      width={72}
-      height={72}
-      viewBox="0 0 72 72"
-      fill="none"
-      {...props}
-    >
-      <Rect x={0.5} y={0.5} width={71} height={71} rx={35.5} stroke="#BABDB7" />
-      <G
-        clipPath="url(#clip0_348_2301)"
-        stroke="#000"
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <Path d="M24.51 47.49c-1.438-1.437-.485-4.457-1.216-6.226-.76-1.827-3.544-3.31-3.544-5.264 0-1.953 2.784-3.438 3.544-5.264.731-1.767-.222-4.79 1.215-6.227 1.438-1.437 4.46-.484 6.227-1.215 1.834-.76 3.31-3.544 5.264-3.544 1.953 0 3.438 2.784 5.264 3.544 1.769.731 4.79-.222 6.227 1.215 1.437 1.438.484 4.458 1.215 6.227.76 1.834 3.544 3.31 3.544 5.264 0 1.953-2.784 3.438-3.544 5.264-.731 1.769.222 4.79-1.215 6.227-1.438 1.437-4.458.484-6.227 1.215-1.827.76-3.31 3.544-5.264 3.544-1.953 0-3.438-2.784-5.264-3.544-1.767-.731-4.79.222-6.227-1.215z" />
-        <Path d="M29.75 37.25L33.5 41l8.75-8.75" />
-      </G>
-      <Defs>
-        <ClipPath id="clip0_348_2301">
-          <Path fill="#fff" transform="translate(16 16)" d="M0 0H40V40H0z" />
-        </ClipPath>
-      </Defs>
-    </Svg>
+          width={72}
+          height={72}
+          viewBox="0 0 72 72"
+          fill="none"
+          {...props}
+        >
+          <Rect x={0.5} y={0.5} width={71} height={71} rx={35.5} stroke="#BABDB7" />
+          <G
+            clipPath="url(#clip0_348_2301)"
+            stroke="#000"
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <Path d="M24.51 47.49c-1.438-1.437-.485-4.457-1.216-6.226-.76-1.827-3.544-3.31-3.544-5.264 0-1.953 2.784-3.438 3.544-5.264.731-1.767-.222-4.79 1.215-6.227 1.438-1.437 4.46-.484 6.227-1.215 1.834-.76 3.31-3.544 5.264-3.544 1.953 0 3.438 2.784 5.264 3.544 1.769.731 4.79-.222 6.227 1.215 1.437 1.438.484 4.458 1.215 6.227.76 1.834 3.544 3.31 3.544 5.264 0 1.953-2.784 3.438-3.544 5.264-.731 1.769.222 4.79-1.215 6.227-1.438 1.437-4.458.484-6.227 1.215-1.827.76-3.31 3.544-5.264 3.544-1.953 0-3.438-2.784-5.264-3.544-1.767-.731-4.79.222-6.227-1.215z" />
+            <Path d="M29.75 37.25L33.5 41l8.75-8.75" />
+          </G>
+          <Defs>
+            <ClipPath id="clip0_348_2301">
+              <Path fill="#fff" transform="translate(16 16)" d="M0 0H40V40H0z" />
+            </ClipPath>
+          </Defs>
+        </Svg>
       );
-
+      case 'back':
+        return (
+          <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+            <Path
+              d="M15 19.92L8.48 13.4c-.77-.77-.77-2.03 0-2.8L15 4.08"
+              stroke="#101828"
+              strokeWidth={1.5}
+              strokeMiterlimit={10}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </Svg>
+        );
+   
+   
+  case 'close':
+        return (
+          <Svg width={14} height={14} viewBox="0 0 12 12" fill="none">
+            <Path
+              d="M11 1L1 11M1 1l10 10"
+              stroke={color ? color : '#667085'}
+              strokeWidth={1.66667}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </Svg>
+        );
+   
+   
+   
+     case 'filter':
+        return (
+          <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+            <Path
+              d="M9.11 5.08c.87-.26 1.83-.43 2.89-.43 4.79 0 8.67 3.88 8.67 8.67s-3.88 8.67-8.67 8.67-8.67-3.88-8.67-8.67c0-1.78.54-3.44 1.46-4.82M7.87 5.32L10.76 2M7.87 5.32l3.37 2.46"
+              stroke="#292D32"
+              strokeWidth={1.5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <Path
+              d="M15 17l-3.04-1.447c-.529-.25-.96-.853-.96-1.346V11"
+              stroke="#292D32"
+              strokeWidth={1.5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </Svg>
+        );
+        case 'dropDown':
+          return (
+            <Svg width={14} height={7} viewBox="0 0 14 7" fill="none" {...props}>
+              <Path
+                d="M12.28.967L7.933 5.313a1.324 1.324 0 01-1.866 0L1.72.967"
+                stroke={color ? color : '#81838C'}
+                strokeWidth={1.5}
+                strokeMiterlimit={10}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </Svg>
+          );
     default:
       return null;
   }

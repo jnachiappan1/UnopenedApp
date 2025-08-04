@@ -29,6 +29,12 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status, statusStyle }) => {
           textColor: '#239C43',
           displayText: 'Active'
         };
+      case 'In_Stock':
+        return {
+          backgroundColor: '#DBF5E2',
+          textColor: '#239C43',
+          displayText: 'In Stock'
+        };
       case 'delivered':
         return {
           backgroundColor: '#DBF5E2',

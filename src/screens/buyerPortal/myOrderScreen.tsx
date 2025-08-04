@@ -90,15 +90,15 @@ const MyOrderScreen: React.FC<MyOrderScreenProps> = ({navigation}) => {
   // };
   
   // Add loading and error states
-  if (!sellerOwnProductList) {
-    return (
-      <TitleBackHeaderContainer title="My Orders">
-        <View style={styles.centerContainer}>
-          <Text>Loading...</Text>
-        </View>
-      </TitleBackHeaderContainer>
-    );
-  }
+  // if (!sellerOwnProductList) {
+  //   return (
+  //     <TitleBackHeaderContainer title="My Orders">
+  //       <View style={styles.centerContainer}>
+  //         <Text>Loading...</Text>
+  //       </View>
+  //     </TitleBackHeaderContainer>
+  //   );
+  // }
 
   const filteredData = filterData();
 
