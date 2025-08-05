@@ -310,7 +310,7 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
       profileImage={userData?.profile_picture}
       onSearchPress={() => { }}>
 
-      {(!oneLatestItem || oneLatestItem.length === 0) && (
+      {(!oneLatestItem || oneLatestItem.length === 0)?(
         <FlatList
           data={bannerData}
           keyExtractor={item => item.id}
@@ -318,7 +318,9 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
           horizontal
           showsHorizontalScrollIndicator={false}
         />
-      )}
+      ):
+      <View style={{height:10}}/>
+      }
 
       <SearchBar
         value={searchQuery}
@@ -401,21 +403,21 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
           )}
           {showRecentlyListed && (
             <TopPicksSection
-              title="Top Sold Product"
+              title="Sold Product"
               products={soldProducts}
               onViewAll={() => console.log('View All Top Picks')}
               onSelect={(item) =>  navigation.navigate(SCREENS.BProductDetailScreen, { productId: item?.id })}
 
             />
           )}
-          {showRecentlyListed && (
+          {/* {showRecentlyListed && (
             <TopPicksSection
               title="Top Withdrawn Product"
               products={withdrawnProducts}
               onViewAll={() => console.log('View All Top Picks')}
               onSelect={(item) =>  navigation.navigate(SCREENS.BProductDetailScreen, { productId: item?.id })}
             />
-          )}
+          )} */}
         </>
       )}
 

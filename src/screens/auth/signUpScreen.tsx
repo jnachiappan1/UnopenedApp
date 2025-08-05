@@ -25,6 +25,7 @@ import { showAlert } from '../../components/cAlert';
 import { showLoader } from '../../components/loader/loader';
 import PhoneNumberInputs from '../../components/input/phoneNumberInputs';
 import { selectedCountryType } from '../../utils/types';
+import PrivacyTermsCheckbox from '../../components/card/privacyTermsCheckbox';
 
 type LoginProps = NativeStackScreenProps<
   RootStackParamList,
@@ -46,6 +47,7 @@ export type InputsRegistration = {
 };
 const SignUpScreen: React.FC<LoginProps> = ({ route, navigation }) => {
   const [email, setEmail] = useState('johndoe@gmail.com');
+  const [accepted, setAccepted] = useState(false);
   const [selectedCountry, setPhoneCountry] = useState<selectedCountryType>({
     callingCode: ['91'],
     cca2: 'IN',
@@ -251,14 +253,22 @@ const SignUpScreen: React.FC<LoginProps> = ({ route, navigation }) => {
             error={errors}
           />
         </View>
-
-
+        <PrivacyTermsCheckbox
+          value={accepted}
+          onValueChange={setAccepted}
+          onPrivacyPress={() => {
+            navigation.navigate(SCREENS.TermsConditionsScreen,{
+              type:"privacy_policy"
+            })
+          }}
+          onTermsPress={() => navigation.navigate(SCREENS.TermsConditionsScreen,{
+            type:"terms_and_conditions"
+          })}
+        />
         <Button
           title={'Create Account'}
           style={styles.sendOtpButton}
           onPress={handleSubmit((data) => {
-            console.log("data=====",data);
-            
             showLoader(true);
             mutate(data);
           })}

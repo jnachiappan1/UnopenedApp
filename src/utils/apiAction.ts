@@ -165,3 +165,58 @@ export const soldProduct = async (productId: string | number | null | undefined)
   const response = await axios.get(API.seller.getMyOrderList);
   return response;
 };
+
+export const getCountriesAction = async ({
+  page = 1,
+  limit = 10,
+  search,
+}: {
+  page: number;
+  limit: number;
+  search: string;
+}): Promise<any> => {
+  let url = `${API.location.country}?page=${page}&limit=${limit}`;
+  if (search) {
+    url += `&search=${encodeURIComponent(search)}`;
+  }
+  const response = await axios.get<any>(url);
+  return response.data;
+};
+export const getStateAction = async ({
+  page = 1,
+  limit = 10,
+  search,
+  country,
+}: {
+  page: number;
+  limit: number;
+  search: string;
+  country: string;
+}): Promise<any> => {
+  let url = `${API.location.state}?page=${page}&limit=${limit}&country=${country}`;
+  if (search) {
+    url += `&search=${encodeURIComponent(search)}`;
+  }
+  const response = await axios.get<any>(url);
+  return response.data;
+};
+export const getCityAction = async ({
+  page = 1,
+  limit = 10,
+  search,
+  country,
+  state,
+}: {
+  page: number;
+  limit: number;
+  search: string;
+  country: string;
+  state: string;
+}): Promise<any> => {
+  let url = `${API.location.city}?page=${page}&limit=${limit}&country=${country}&state=${state}`;
+  if (search) {
+    url += `&search=${encodeURIComponent(search)}`;
+  }
+  const response = await axios.get<any>(url);
+  return response.data;
+};

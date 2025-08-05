@@ -32,4 +32,9 @@ export const API = {
     getMyOrderList: `${base_url}/api/v1/product/purchase-product`,
 
   },
+  location: {
+    country: '/api/v1/helper/countries',
+    state: '/api/v1/helper/states',
+    city: '/api/v1/helper/cities',
+  },
 };

@@ -1,17 +1,16 @@
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Dimensions,
   FlatList,
-  ScrollView,
-  StyleProp,
+  Modal,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
   ViewStyle,
+  StyleProp,
 } from 'react-native';
-import React, { useEffect, useRef, useState } from 'react';
 import {
   Control,
   Controller,
@@ -20,211 +19,193 @@ import {
   Validate,
   ValidationRule,
 } from 'react-hook-form';
-import Modal from 'react-native-modal';
-import fonts from '../../assets/fonts/fonts';
-import { IColors, getColors } from '../../utils/colors';
+import { InfiniteData, useInfiniteQuery } from '@tanstack/react-query';
+import { getColors, IColors } from '../../utils/colors';
+import { getCountriesAction } from '../../utils/apiAction';
 import IconsSvg from '../../assets/svg/iconsSvg';
-import Header from '../headerContainer/header';
 import commonStyles from '../../utils/common-styles';
+import Header from './header';
 
-type IInputProps = {
+
+type IInputCountryProps = {
   control: Control<any>;
   name: string;
   placeholder: string;
   label?: string;
   labelColor?: string;
   error?: FieldErrors<FieldValues>;
-  required?: string | ValidationRule<boolean> | undefined;
-  pattern?: ValidationRule<RegExp> | undefined;
+  required?: string | ValidationRule<boolean>;
+  pattern?: ValidationRule<RegExp>;
   validate?:
-    | Validate<any, FieldValues>
-    | Record<string, Validate<any, FieldValues>>
-    | undefined;
+  | Validate<any, FieldValues>
+  | Record<string, Validate<any, FieldValues>>;
   containerStyle?: StyleProp<ViewStyle>;
   style?: StyleProp<ViewStyle>;
   isShowError?: boolean;
 };
 
-export interface IItem {
+export interface ICountry {
+  currency: string;
+  dialCode: string;
+  flag: string;
   name: string;
-  iso2: string;
-  iso3: string;
   unicodeFlag: string;
 }
 
-const InputCountry = (props: IInputProps) => {
-  const {
-    placeholder,
-    label,
-    labelColor,
-    containerStyle,
-    style,
-    control,
-    name,
-    error,
-    required,
-    pattern,
-    validate,
-    isShowError = true,
-  } = props;
+const InputCountry: React.FC<IInputCountryProps> = ({
+  control,
+  name,
+  placeholder,
+  label,
+  labelColor,
+  containerStyle,
+  style,
+  error,
+  required,
+  pattern,
+  validate,
+  isShowError = true,
+}) => {
   const colors = getColors();
-  const styles = getStyles(colors, isShowError);
   const searchInputRef = useRef<TextInput | null>(null);
-  const [showList, setShowList] = useState<boolean>(false);
-  const onSwipeComplete = () => {
-    setShowList(false);
-  };
-
-  const [data, setData] = useState<IItem[]>([]);
-  const [searchText, setSearchText] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(false);
-
-  const fetchData = () => {
-    setLoading(true);
-    fetch('https://countriesnow.space/api/v0.1/countries/flag/unicode', {
-      method: 'Get',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(response => response.json())
-      .then(response => {
-        if (response.error === false) {
-         console.log('esponse.data');
-          // let filterData = response.data.filter(
-          //   (t: any) =>
-          //     t.name === 'India' ||
-          //     t.name === 'Singapore' ||
-          //     t.name === 'New Zealand' ||
-          //     t.name === 'Malaysia' ||
-          //     t.name === 'Australia',
-          // );
-          setData(response?.data);
-        }
-        setLoading(false);
-      })
-      .catch(e => {
-        console.log('err', e);
-        setLoading(false);
-      });
-  };
+  const [showList, setShowList] = useState(false);
+  const [searchText, setSearchText] = useState('');
+  const styles = getStyles(colors);
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    refetch,
+  } = useInfiniteQuery<any, Error, InfiniteData<any>, string[], number>({
+    queryKey: ['getCountriesAction', searchText],
+    queryFn: ({ pageParam }) =>
+      getCountriesAction({ page: pageParam, limit: 100, search: searchText }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      if (lastPage?.data?.hasNext) {
+        return lastPage.data.currentPage + 1;
+      }
+      return undefined;
+    },
+  });
 
   useEffect(() => {
-    fetchData();
-  }, []);
-  const err =
-    error &&
-    Object.keys(error).length !== 0 &&
-    error[name] &&
-    error[name]?.message
-      ? error[name]?.message?.toString()
-      : '';
+    refetch();
+  }, [refetch, searchText]);
 
-  // eslint-disable-next-line react/no-unstable-nested-components
-  const ItemSeparatorComponent = () => <View style={styles.line} />;
+const allCountries = useMemo(() => {
+  const all = data?.pages.flatMap((page, index) => {
+    return page?.data || [];
+  }) || [];
+  return all;
+}, [data]);
+
+  const getError = useMemo(() => {
+    return error?.[name]?.message?.toString() || '';
+  }, [error, name]);
+
+  const onClose = () => {
+    setShowList(false);
+    setSearchText('');
+  };
+
+  const handleSelectCountry = (
+    onChange: (val: any) => void,
+    country: ICountry
+  ) => {
+    onChange(country?.name);
+    onClose();
+  };
+
   return (
     <Controller
       control={control}
       name={name}
-      rules={{
-        required: required,
-        pattern: pattern,
-        validate: validate,
-      }}
+      rules={{ required, pattern, validate }}
       render={({ field: { onChange, value } }) => (
-        <View style={[styles.mainContainer, containerStyle]}>
+        <View style={[commonStyles.mainContainer, containerStyle]}>
           {label && (
-            <Text
-              style={[
-                styles.titleLabel,
-                { color: labelColor ? labelColor : colors.label },
-              ]}
-            >
+            <Text style={[{ color: labelColor || colors.label }]}>
               {label}
             </Text>
           )}
+
           <TouchableOpacity
-            style={[styles.container, style]}
+            style={[commonStyles.inputWrapper, style]}
             onPress={() => setShowList(true)}
-            disabled={loading}
-          >
-            <View style={styles.input}>
-              {loading ? (
-                <ActivityIndicator size={'small'} />
+            disabled={isLoading}
+            activeOpacity={0.7}>
+            <View style={styles.view}>
+              {isLoading ? (
+                <ActivityIndicator size="small" />
               ) : value ? (
-                <Text style={styles.value} numberOfLines={1}>
+                <Text style={commonStyles.valueText} numberOfLines={1}>
                   {value}
                 </Text>
               ) : (
-                <Text style={styles.placeHolder}>{placeholder}</Text>
+                <Text style={commonStyles.placeholder}>{placeholder}</Text>
               )}
             </View>
-            <IconsSvg name="downArrow" />
+            {value ? (
+              <IconsSvg name="close" onPress={() => onChange(null)} />
+            ) : (
+              <IconsSvg name="downArrow" onPress={() => onChange(null)} />
+            )}
           </TouchableOpacity>
-          {isShowError && (
+
+          {isShowError && !!getError && (
             <Text style={commonStyles.error} numberOfLines={2}>
-              {err}
+              {getError}
             </Text>
           )}
-          <Modal
-            testID={'modal'}
-            isVisible={showList}
-            style={styles.view}
-            onModalShow={() => searchInputRef?.current?.focus()}
-          >
-            <View style={styles.modelContainer}>
+
+          <Modal visible={showList} animationType="slide" onRequestClose={onClose}>
+            <View style={commonStyles.modalContainer}>
               <Header
-                hideBack={true}
+                hideBack
                 closeButton
-                title={'Select Country'}
-                onBackPress={onSwipeComplete}
+                title="Select Country"
+                onBackPress={onClose}
               />
-              <View style={styles.searchContainer}>
-                <IconsSvg name="search" style={styles.searchIcon} />
+              <View style={commonStyles.searchContainer}>
                 <TextInput
                   ref={searchInputRef}
-                  style={styles.searchInput}
-                  placeholder={'Search Country'}
+                  style={commonStyles.searchInput}
+                  placeholder="Search Country"
                   placeholderTextColor={colors.placeholder}
                   onChangeText={setSearchText}
                   value={searchText}
+                  autoFocus
                 />
               </View>
-              <ScrollView>
-                <View
-                  style={styles.containerModel}
-                  onStartShouldSetResponder={() => true}
-                >
-                  <FlatList
-                    data={data.filter(t =>
-                      t.name
-                        .toLocaleLowerCase()
-                        .startsWith(searchText.toLocaleLowerCase()),
-                    )}
-                    renderItem={({ item }) =>     
-                    {
-                      return(
-                        <TouchableOpacity
-                        style={styles.countryItem}
-                        onPress={() => {
-                          onChange(item.name);
-                          setShowList(false);
-                        }}
-                      >
-                        <Text style={styles.flagText}>{item.unicodeFlag}</Text>
-                        <Text style={styles.countryName}>{item.name}</Text>
-                      </TouchableOpacity>
-                      )
-                    }
-                      
-                     }
-                    keyExtractor={item => item.name}
-                    style={styles.flatList}
-                    scrollEnabled={false}
-                    ItemSeparatorComponent={ItemSeparatorComponent}
-                  />
-                </View>
-              </ScrollView>
+
+              <FlatList
+                data={allCountries}
+                keyExtractor={(item) => item.name}
+                renderItem={({ item }) => (
+                  <Text
+                    style={commonStyles.countryItem}
+                    onPress={() => handleSelectCountry(onChange, item)}>
+                    {item.name}
+                  </Text>
+                )}
+                contentContainerStyle={commonStyles.flatListContent}
+                keyboardShouldPersistTaps="handled"
+                onEndReached={() => {
+                  if (hasNextPage && !isFetchingNextPage) {
+                    fetchNextPage();
+                  }
+                }}
+                onEndReachedThreshold={0.5}
+                ListFooterComponent={
+                  isFetchingNextPage ? (
+                    <ActivityIndicator style={{ marginVertical: 10 }} />
+                  ) : null
+                }
+                ListEmptyComponent={<Text>No countries found</Text>}
+              />
             </View>
           </Modal>
         </View>
@@ -235,91 +216,12 @@ const InputCountry = (props: IInputProps) => {
 
 export default InputCountry;
 
-const getStyles = (colors: IColors, isShowError: boolean) =>
+const getStyles = (colors: IColors) =>
   StyleSheet.create({
-    containerModel: { flex: 1 },
-    mainContainer: { width: '100%' },
-    titleLabel: {
-      fontWeight: '500',
-      fontSize: 12,
-      fontFamily: fonts.medium,
-      color: colors.label,
-    },
-    container: {
-      height: 53,
-      paddingHorizontal: 14,
-      borderRadius: 25,
-      backgroundColor: colors.white,
-      borderColor: colors.border,
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginTop: isShowError ? 10 : 0,
-    },
-    input: {
-      height: 40,
-      flex: 1,
-      justifyContent: 'center',
-    },
-    iconRight: { width: 24, height: 24 },
-    placeHolder: {
-      color: colors.primaryBlack,
-      fontFamily: fonts.medium,
-      fontSize: 14,
-    },
-    value: {
-      color: colors.text,
-      fontFamily: fonts.regular,
-      fontSize: 16,
-    },
-    view: {
-      margin: 0,
-      flex: 1,
-      height: Dimensions.get('screen').height,
-    },
-    modelContainer: {
-      backgroundColor: colors.white,
-      borderTopRightRadius: 10,
-      borderTopLeftRadius: 10,
-      flex: 1,
-      height: Dimensions.get('screen').height,
-    },
-    line: { height: 1, backgroundColor: colors.border },
-    flatList: { marginVertical: 10, paddingHorizontal: 20, flex: 1 },
-    renderTxt: {
-      paddingVertical: 10,
-      paddingHorizontal: 14,
-      color: colors.primary,
-    },
-    searchContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      borderWidth: 1.5,
-      borderRadius: 20,
-      borderColor: colors.primary,
-      paddingHorizontal: 15,
-      marginHorizontal: 20,
-      marginVertical: 12,
-    },
-    searchIcon: { height: 18, width: 18, alignSelf: 'center' },
-    searchInput: {
-      height: 40,
-      flex: 1,
+   view: {
+      width: '90%',
+      height: 48,
       paddingHorizontal: 10,
-      color: colors.text,
-    },
-    countryItem: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingVertical: 10,
-      paddingHorizontal: 14,
-    },
-    flagText: {
-      fontSize: 18,
-      marginRight: 10,
-    },
-    countryName: {
-      fontSize: 16,
-      color: colors.primary,
-      fontFamily: fonts.medium,
-    },
+      paddingVertical: 12,
+    }
   });

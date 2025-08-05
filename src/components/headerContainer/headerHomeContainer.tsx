@@ -122,7 +122,7 @@ const HeaderHomeContainer: React.FC<HeaderHomeContainerProps> = props => {
           >
             <IconsSvg name='addUser' />
             <Text style={styles.buyerTitle}>
-              {userType === 'buyer' ? 'Seller' : 'Buyer'}
+              {userType === 'buyer' ? 'Sell' : 'Buy'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -182,6 +182,7 @@ const getStyles = (colors: IColors) =>
     itemContainer: {
       alignItems: 'center',
       flexDirection: 'row',
+      justifyContent:'space-between'
       // width: "82%"
     },
     user: {
@@ -194,11 +195,12 @@ const getStyles = (colors: IColors) =>
       flexDirection: "row",
       paddingHorizontal: 15,
       paddingVertical: 10,
-      marginStart: 10,
+      marginStart: 8,
       borderRadius: 50,
       borderColor: colors.primary,
       backgroundColor: colors.white,
-      borderWidth: 1
+      borderWidth: 1,
+    
     },
     buyerTitle: {
       fontSize: fontSizes.medium,

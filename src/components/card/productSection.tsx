@@ -14,6 +14,7 @@ import fonts from '../../assets/fonts/fonts';
 import IMAGE from '../../assets/images';
 import { image_url } from '../../utils/api';
 import { ProductData } from '../../utils/types';
+import StatusBadge from './statusBadge';
 
 interface Props {
   title?: string;
@@ -75,7 +76,11 @@ const ProductSection: React.FC<Props> = ({
                   <Text style={styles.productDescription}>
                     {item.item?.description}
                   </Text>
-                  <View style={styles.priceContainer}>
+                  {
+                    item?.item?.product_status ==="sold" ?
+                    <StatusBadge status={item.item?.product_status} />
+                    :
+                    <View style={styles.priceContainer}>
                     <Text style={styles.price}>${item.item?.price}</Text>
                     {item.item?.msrp && (
                       <Text style={styles.originalPrice}>
@@ -83,6 +88,8 @@ const ProductSection: React.FC<Props> = ({
                       </Text>
                     )}
                   </View>
+                  }
+                 
                 </View>
               </TouchableOpacity>
             </View>

@@ -1,18 +1,14 @@
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
-  Dimensions,
   FlatList,
-  ScrollView,
-  StyleProp,
+  Modal,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  ViewStyle,
 } from 'react-native';
-import React, { useEffect, useState } from 'react';
 import {
   Control,
   Controller,
@@ -21,210 +17,183 @@ import {
   Validate,
   ValidationRule,
 } from 'react-hook-form';
-import Modal from 'react-native-modal';
-import fonts from '../../assets/fonts/fonts';
-import colors from '../../utils/colors';
+import { getColors, IColors } from '../../utils/colors';
+import { InfiniteData, useInfiniteQuery } from '@tanstack/react-query';
+import { getCityAction } from '../../utils/apiAction';
 import IconsSvg from '../../assets/svg/iconsSvg';
-import Header from '../headerContainer/header';
+import Header from './header';
 import commonStyles from '../../utils/common-styles';
 
-type IInputProps = {
+type IInputCityProps = {
   control: Control<any>;
   name: string;
   placeholder: string;
   label?: string;
+  labelColor?: string;
   error?: FieldErrors<FieldValues>;
-  required?: string | ValidationRule<boolean> | undefined;
-  pattern?: ValidationRule<RegExp> | undefined;
+  required?: string | ValidationRule<boolean>;
+  pattern?: ValidationRule<RegExp>;
   validate?:
     | Validate<any, FieldValues>
-    | Record<string, Validate<any, FieldValues>>
-    | undefined;
-  containerStyle?: StyleProp<ViewStyle>;
+    | Record<string, Validate<any, FieldValues>>;
+  containerStyle?: any;
+  style?: any;
   country: string | undefined;
   state: string | undefined;
+  isShowError?: boolean;
 };
 
-export interface IItem {
-  name: string;
-  iso2: string;
-  iso3: string;
-  unicodeFlag: string;
-}
+const InputCity: React.FC<IInputCityProps> = ({
+  control,
+  name,
+  placeholder,
+  label,
+  labelColor,
+  containerStyle,
+  style,
+  error,
+  required,
+  pattern,
+  validate,
+  country,
+  state,
+  isShowError = true,
+}) => {
+  const colors = getColors();
 
-const InputCity = (props: IInputProps) => {
+  const searchInputRef = useRef<TextInput | null>(null);
+  const [showList, setShowList] = useState(false);
+  const [searchText, setSearchText] = useState('');
+  const styles = getStyles(colors);
   const {
-    placeholder,
-    label,
-    containerStyle,
-    control,
-    name,
-    error,
-    required,
-    pattern,
-    validate,
-    country,
-    state,
-  } = props;
-
-  const [showList, setShowList] = useState<boolean>(false);
-  const onSwipeComplete = () => {
-    setShowList(false);
-  };
-
-  const [data, setData] = useState<string[]>([]);
-  const [searchText, setSearchText] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(false);
-
-  const fetchData = () => {
-    setLoading(true);
-    fetch('https://countriesnow.space/api/v0.1/countries/state/cities', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        country: country,
-        state: state,
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    refetch,
+  } = useInfiniteQuery<any, Error, InfiniteData<any>, string[], number>({
+    queryKey: ['getCityAction', searchText],
+    queryFn: ({ pageParam }) =>
+      getCityAction({
+        page: pageParam,
+        limit: 30,
+        search: searchText,
+        country: country as string,
+        state: state as string,
       }),
-    })
-      .then(response => response.json())
-      .then(response => {
-        if (response.error === false) {
-          setData(response.data);
-        }
-        setLoading(false);
-      })
-      .catch(e => {
-        setLoading(false);
-      });
-  };
-
-  const fetchCityOfSingapore = () => {
-    setLoading(true);
-    fetch('https://countriesnow.space/api/v0.1/countries/cities', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        country: 'Singapore',
-      }),
-    })
-      .then(response => response.json())
-      .then(response => {
-        if (response.error === false) {
-          setData(response.data);
-        }
-        setLoading(false);
-      })
-      .catch(e => {
-        setLoading(false);
-      });
-  };
-
-  useEffect(() => {
-    if (country === 'Singapore') {
-      fetchCityOfSingapore();
-    } else {
-      if (state) {
-        fetchData();
+    initialPageParam: 1,
+    enabled: Boolean(country) && Boolean(state),
+    getNextPageParam: lastPage => {
+      if (lastPage?.data?.hasNext) {
+        return lastPage.data.currentPage + 1;
       }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state, country]);
+      return undefined;
+    },
+  });
+  useEffect(() => {
+    refetch();
+  }, [refetch, searchText, country, state]);
 
-  const err =
-    error &&
-    Object.keys(error).length !== 0 &&
-    error[name] &&
-    error[name]?.message
-      ? error[name]?.message?.toString()
-      : '';
+  const allCities = (data?.pages.flatMap(page => page.data || []) || []).map(
+    (city, index) => ({
+      id: index + 1,
+      name: city,
+    })
+  );
 
-  // eslint-disable-next-line react/no-unstable-nested-components
-  const ItemSeparatorComponent = () => <View style={styles.line} />;
+  const errorMessage =
+    error && error[name]?.message ? error[name]?.message.toString() : '';
+
+  const onClose = () => {
+    setShowList(false);
+    setSearchText('');
+  };
 
   return (
     <Controller
       control={control}
       name={name}
-      rules={{
-        required: required,
-        pattern: pattern,
-        validate: validate,
-      }}
+      rules={{ required, pattern, validate }}
       render={({ field: { onChange, value } }) => (
-        <View style={[styles.mainContainer, containerStyle]}>
-          {label && <Text style={styles.titleLabel}>{label}</Text>}
+        <View style={[commonStyles.mainContainer, containerStyle]}>
+          {label && (
+            <Text style={{ color: labelColor || colors.label }}>
+              {label}
+            </Text>
+          )}
           <TouchableOpacity
-            style={[styles.container]}
+            style={[commonStyles.inputWrapper, style]}
             onPress={() => setShowList(true)}
-            disabled={loading}
+            disabled={isLoading || (!country && !state)}
           >
-            <View style={styles.input}>
-              {loading ? (
-                <ActivityIndicator size={'small'} />
+           <View style={styles.view}>
+              {isLoading && country && state ? (
+                <ActivityIndicator size="small" color={colors.primary} />
               ) : value ? (
-                <Text style={styles.value} numberOfLines={1}>
-                  {value}
-                </Text>
+                <Text style={commonStyles.valueText}>{value}</Text>
               ) : (
-                <Text style={styles.placeHolder}>{placeholder}</Text>
+                <Text style={commonStyles.placeholder}>{placeholder}</Text>
               )}
             </View>
-            <IconsSvg name="downArrow" />
+            {value ? (
+              <IconsSvg name="close" onPress={() => onChange(null)} />
+            ) : (
+              <IconsSvg name="downArrow" onPress={() => onChange(null)} />
+            )}
           </TouchableOpacity>
-          <Text style={commonStyles.error} numberOfLines={2}>
-            {err}
-          </Text>
-          <Modal testID={'modal'} isVisible={showList} style={styles.view}>
-            <View style={styles.modelContainer}>
+          {isShowError && !!errorMessage && (
+            <Text style={commonStyles.error}>{errorMessage}</Text>
+          )}
+
+          <Modal visible={showList} animationType="slide" onRequestClose={onClose}>
+            <View style={commonStyles.modalContainer}>
               <Header
-                hideBack={true}
-                closeButton={true}
-                title={'Select City'}
-                onBackPress={onSwipeComplete}
+                title="Select City"
+                onBackPress={onClose}
+                closeButton
+                hideBack
               />
-              <View style={styles.searchContainer}>
-                <IconsSvg name="search" style={styles.searchIcon} />
+              <View style={commonStyles.searchContainer}>
                 <TextInput
-                  style={styles.searchInput}
+                  ref={searchInputRef}
+                  style={commonStyles.searchInput}
                   placeholder="Search City"
-                  placeholderTextColor={'#000'}
-                  onChangeText={setSearchText}
+                  placeholderTextColor={colors.placeholder}
                   value={searchText}
+                  onChangeText={setSearchText}
+                  autoFocus
                 />
               </View>
-              <ScrollView>
-                <View
-                  style={styles.containerModel}
-                  onStartShouldSetResponder={() => true}
-                >
-                  <FlatList
-                    data={data.filter(t =>
-                      t
-                        .toLocaleLowerCase()
-                        .startsWith(searchText.toLocaleLowerCase()),
-                    )}
-                    renderItem={({ item }) => (
-                      <Text
-                        style={styles.renderTxt}
-                        onPress={() => {
-                          onChange(item);
-                          setShowList(false);
-                        }}
-                      >
-                        {item}
-                      </Text>
-                    )}
-                    keyExtractor={(item, index) => item + index}
-                    style={styles.flatList}
-                    scrollEnabled={false}
-                    ItemSeparatorComponent={ItemSeparatorComponent}
-                  />
-                </View>
-              </ScrollView>
+              <FlatList
+                data={allCities}
+                keyExtractor={item => String(item.id)}
+                renderItem={({ item }) => (
+                  <Text
+                    style={commonStyles.countryItem}
+                    onPress={() => {
+                      onChange(item.name);
+                      onClose();
+                    }}
+                  >
+                    {item.name}
+                  </Text>
+                )}
+                contentContainerStyle={commonStyles.flatListContent}
+                keyboardShouldPersistTaps="handled"
+                onEndReached={() => {
+                  if (hasNextPage && !isFetchingNextPage) {
+                    fetchNextPage();
+                  }
+                }}
+                onEndReachedThreshold={0.5}
+                ListFooterComponent={
+                  isFetchingNextPage ? (
+                    <ActivityIndicator style={{ marginVertical: 10 }} />
+                  ) : null
+                }
+                ListEmptyComponent={<Text style={commonStyles.noDataText}>No cities found</Text>}
+              />
             </View>
           </Modal>
         </View>
@@ -235,76 +204,12 @@ const InputCity = (props: IInputProps) => {
 
 export default InputCity;
 
-const styles = StyleSheet.create({
-  containerModel: { flex: 1 },
-  titleLabel: {
-    fontWeight: '500',
-      fontSize: 12,
-      fontFamily: fonts.medium,
-      color: colors.label,
-    marginBottom: 8,
-  },
-  mainContainer: { width: '100%' },
-  container: {
-    height: 53,
-    paddingHorizontal: 14,
-    borderRadius: 260,
-    backgroundColor: colors.white,
-    borderColor: colors.border,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  iconLeft: { width: 20, height: 20 },
-  input: {
-    height: 40,
-    flex: 1,
-    justifyContent: 'center',
-  },
-  iconRight: { width: 24, height: 24 },
-  placeHolder: {
-    color: colors.primaryBlack,
-      fontFamily: fonts.medium,
-      fontSize:14
-  },
-  value: {
-    color: colors.text,
-    fontFamily: fonts.regular,
-    fontSize: 16,
-  },
-  view: {
-    margin: 0,
-    flex: 1,
-    height: Dimensions.get('screen').height,
-  },
-  modelContainer: {
-    backgroundColor: '#FFF',
-    borderTopRightRadius: 10,
-    borderTopLeftRadius: 10,
-    flex: 1,
-    height: Dimensions.get('screen').height,
-  },
-  line: { height: 1, backgroundColor: colors.border },
-  flatList: { marginVertical: 10, paddingHorizontal: 20, flex: 1 },
-  renderTxt: {
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    color: colors.primary,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderRadius: 20,
-    borderColor: colors.primary,
-    paddingHorizontal: 15,
-    marginHorizontal: 20,
-    marginVertical: 12,
-  },
-  searchIcon: { height: 18, width: 18, alignSelf: 'center' },
-  searchInput: {
-    height: 40,
-    flex: 1,
-    paddingHorizontal: 10,
-    color: colors.text,
-  },
-});
+const getStyles = (colors: IColors) =>
+  StyleSheet.create({
+   view: {
+      width: '90%',
+      height: 48,
+      paddingHorizontal: 10,
+      paddingVertical: 12,
+    }
+  });

@@ -154,12 +154,12 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({navigation, route}) 
             <Text style={styles.helpText}>Contact Support</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.helpOption}>
+          {/* <TouchableOpacity style={styles.helpOption}>
             <View style={styles.helpIconContainer}>
               <IconsSvg name="raiseTicketIcon" />
             </View>
             <Text style={styles.helpText}>Raise a Ticket</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </ScrollView>
     </TitleBackHeaderContainer>

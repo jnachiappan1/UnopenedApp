@@ -1,5 +1,5 @@
-import {StyleSheet} from 'react-native';
-import {OS, height, width} from './utils';
+import { StyleSheet } from 'react-native';
+import { OS, height, width } from './utils';
 import colors from './colors';
 import fonts from '../assets/fonts/fonts';
 
@@ -39,6 +39,13 @@ const commonStyles = StyleSheet.create({
     color: colors.title,
   },
   label: {
+    color: colors.label,
+    fontSize: 15,
+    fontFamily: fonts.medium,
+    fontWeight: '400',
+    marginVertical: 15,
+  },
+  noDataText: {
     color: colors.label,
     fontSize: 15,
     fontFamily: fonts.medium,
@@ -168,9 +175,9 @@ const commonStyles = StyleSheet.create({
   headerRowContainer: {
     alignItems: 'center',
     flexDirection: 'row',
-    width:width,
-    marginStart:4,
-    paddingHorizontal:10,
+    width: width,
+    marginStart: 4,
+    paddingHorizontal: 10,
   },
   reimbursementContainer: {
     backgroundColor: colors.white,
@@ -178,7 +185,7 @@ const commonStyles = StyleSheet.create({
     borderRadius: 20,
     marginVertical: 15,
   },
-  downloadBtn: {width: 264, alignSelf: 'center'},
+  downloadBtn: { width: 264, alignSelf: 'center' },
   noDataContainer: {
     justifyContent: 'center',
     alignSelf: 'center',
@@ -273,7 +280,8 @@ const commonStyles = StyleSheet.create({
     borderRadius: 25,
     borderWidth: 1,
     borderColor: colors.border,
-    marginBottom: 15,
+    // marginBottom: 15,
+    backgroundColor: "green"
   },
   inputValue: {
     fontSize: 16,
@@ -287,6 +295,70 @@ const commonStyles = StyleSheet.create({
     fontWeight: '500',
     fontFamily: fonts.medium,
     marginBottom: 15,
+  },
+  mainContainer: {
+    width: '100%',
+  },
+  inputWrapper: {
+    height: 48,
+    paddingHorizontal: 14,
+    borderRadius: 25,
+    backgroundColor: colors.white,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 5
+  },
+  // input: {
+  //   height: 40,
+  //   flex: 1,
+  //   justifyContent: 'center',
+  // },
+  // placeholder: {
+  //   color: colors.placeholder,
+  //   fontFamily: fonts.medium,
+  //   fontSize: 14,
+  //   fontWeight: '500',
+  // },
+  valueText: {
+    color: colors.black,
+    fontFamily: fonts.medium,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: colors.white,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    height: height,
+  },
+  searchContainer: {
+    paddingHorizontal: 20,
+    marginTop: 12,
+    height: 50,
+  },
+  searchInput: {
+    borderWidth: 1,
+    borderRadius: 150,
+    borderColor: colors.border,
+    height: 40,
+    paddingHorizontal: 15,
+    fontSize: 14,
+    fontFamily: fonts.medium,
+    fontWeight: '500',
+    color: colors.primary,
+  },
+  countryItem: {
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    fontSize: 14,
+    fontFamily: fonts.medium,
+    fontWeight: '500',
+    color: colors.primary,
+  },
+  flatListContent: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
   },
 });
 export default commonStyles;

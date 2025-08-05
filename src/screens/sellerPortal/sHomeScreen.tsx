@@ -10,11 +10,16 @@ import { fontSizes } from '../../utils/utils';
 import colors from '../../utils/colors';
 import fonts from '../../assets/fonts/fonts';
 import { IRootState } from '../../redux/store';
-import { useSelector } from 'react-redux';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getSellerDashboardCount, getSellerOwnProductList } from '../../utils/apiAction';
+import { useDispatch, useSelector } from 'react-redux';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { getLegalcontent, getSellerDashboardCount, getSellerOwnProductList, updateProfile } from '../../utils/apiAction';
 import { ProductData } from '../../utils/types';
 import { useFocusEffect } from '@react-navigation/native';
+import TermsModal from '../../components/model/termsModal';
+import { showLoader } from '../../components/loader/loader';
+import { saveUserData } from '../../redux/reducers/user/UserReducer';
+import { showAlert } from '../../components/cAlert';
+import { handleError, handleSettled } from '../../utils/method';
 
 type PHomeScreenProps = NativeStackScreenProps<RootStackParamList, SCREENS.SHomeScreen>;
 
@@ -36,8 +41,16 @@ const defaultCounts = {
 const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
   const [selectedTab, setSelectedTab] = useState('All');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [termsModalVisible, setTermsModalVisible] = useState(false);
+const [termsContent, setTermsContent] = useState('');
+const [termsLoading, setTermsLoading] = useState(false);
+const [termsChecked, setTermsChecked] = useState(false);
+const [acceptLoading, setAcceptLoading] = useState(false);
   const userData = useSelector((user: IRootState) => user.user.userData);
   const queryClient = useQueryClient();
+  const dispatch = useDispatch();
+console.log(userData,"uese-------");
+
   useEffect(() => {
     if (!userData) {
       queryClient.removeQueries({ queryKey: ['getSellerDashboardCount'] });
@@ -142,11 +155,6 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
       const results = await Promise.allSettled(refreshPromises);
       results.forEach((result, index) => {
         const apiName = index === 0 ? 'Dashboard' : 'Product';
-        if (result.status === 'fulfilled') {
-          console.log(`${apiName} API refresh successful`);
-        } else {
-          console.error(`${apiName} API refresh failed:`, result.reason);
-        }
       });
     } catch (error) {
       console.error('Error during refresh:', error);
@@ -274,7 +282,74 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
         return null;
     }
   }, []);
-
+  useEffect(() => {
+    // Auto-show terms modal if user hasn't accepted terms and conditions
+    if (userData && !userData.is_terms_and_conditions_accepted && !termsModalVisible) {
+      openTermsModal();
+    }
+  }, [userData, termsModalVisible]);
+  const openTermsModal = async () => {
+    setTermsModalVisible(true);
+    setTermsLoading(true);
+    setTermsChecked(false);
+    try {
+      const response = await getLegalcontent('terms_and_conditions');
+      setTermsContent(response.data.legalContent.content);
+    } catch (error) {
+      setTermsContent('<p>Failed to load Terms & Conditions.</p>');
+    }
+    setTermsLoading(false);
+  };
+  const { mutate } = useMutation({
+    mutationFn: updateProfile,
+    onSuccess: (data) => {
+      dispatch(saveUserData(data.data.user));
+      showLoader(false);
+      setAcceptLoading(false);
+      
+      // Close the modal only after successful API call
+      setTermsModalVisible(false);
+      setTermsChecked(false);
+      
+      showAlert({
+        isVisible: true,
+        type: 'success',
+        title: 'Terms Accepted',
+        description: 'You have successfully accepted the Terms & Conditions.',
+        doneText: 'Okay',
+        onDonePress: () => {
+          // Don't navigate back, just close the alert
+          // navigation.goBack();
+        },
+      });
+    },
+    onError: (error) => {
+      showLoader(false);
+      setAcceptLoading(false);
+    },
+    onSettled: handleSettled,
+  });
+  const handleTermsAcceptance = async () => {
+    if (!termsChecked) return;
+    
+    try {
+      setAcceptLoading(true);
+      
+      const formDataToSend = new FormData();
+      // Fix: Convert boolean to string for FormData
+      formDataToSend.append('is_terms_and_conditions_accepted', 'true');
+      
+      showLoader(true);
+      mutate(formDataToSend);
+      
+      console.log('Submitting terms acceptance...');
+    } catch (error) {
+      console.error('Error accepting terms:', error);
+      setAcceptLoading(false);
+      showLoader(false);
+    }
+  };
+  
   const filterData = React.useCallback(() => {
     try {
       if (selectedTab === 'All') {
@@ -472,6 +547,23 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
           )
         }
       </View>
+      <TermsModal
+  visible={termsModalVisible}
+  onClose={() => {
+    // Only allow closing if terms are already accepted
+    if (userData?.is_terms_and_conditions_accepted) {
+      setTermsModalVisible(false);
+    }
+    // If terms are not accepted, don't close the modal (make it mandatory)
+  }}
+  content={termsContent}
+  loading={termsLoading}
+  checked={termsChecked}
+  onCheck={setTermsChecked}
+  onAccept={handleTermsAcceptance}
+  isMandatory={userData && !userData.is_terms_and_conditions_accepted}
+  acceptLoading={acceptLoading} // Add this prop
+/>
     </HeaderHomeContainer>
   );
 }

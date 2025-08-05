@@ -43,7 +43,7 @@ const MainNavigation: React.FC = () => {
   const userData = useSelector((user: IRootState) => user.user.userData);
 
   const renderFirstScreen =
-  userData != null ? SCREENS.BottomTab : SCREENS.LoginScreen;
+  userData != null ? SCREENS.BottomTab : SCREENS.BottomTab;
   //   let planOwnerData = useSelector(
   //     (type: IRootState) => type.user.planOwnerData,
   //   );

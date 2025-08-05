@@ -51,6 +51,8 @@ type FormData = {
   category: DropDownType | string;
   msrp: string;
   price: string;
+  dimensions: string;
+  weight: string;
   description: string;
   productImages: MediaObject[];
 };
@@ -125,6 +127,8 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       msrp: '',
       price: '',
       description: '',
+      dimensions: '',
+      weight: '',
       productImages: [],
     }
   });
@@ -197,7 +201,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
   //   navigation.navigate(SCREENS.PreviewConfirmScreen, { productData });
   //   setIsNavigatingToPreview(false);
   // };
-  const handlePreviewAndConfirm = async(productInput: FormData) => {
+  const handlePreviewAndConfirm = async (productInput: FormData) => {
     const isValid = await validateAllFields();
     if (!isValid) {
       Alert.alert(
@@ -206,12 +210,12 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       );
       return;
     }
-  
+
     setIsNavigatingToPreview(true);
-  
+
     // 1. Create FormData for API
     const formDataForAPI = prepareFormDataForAPI(productInput);
-  
+
     // 2. Create productData for display
     const categoryValue =
       typeof productInput.category === 'object' && productInput.category !== null
@@ -219,7 +223,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
         : typeof productInput.category === 'string'
           ? productInput.category
           : '';
-  
+
     const previewProductData = {
       name: productInput.productName,
       brand: productInput.brandName,
@@ -233,16 +237,14 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
         : ['https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?w=400&h=300&fit=crop'],
       sku: 'SKU-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
     };
-  
-    // 3. Navigate with both
     navigation.navigate(SCREENS.PreviewConfirmScreen, {
       productData: previewProductData,
       formData: formDataForAPI,
     });
-  
+
     setIsNavigatingToPreview(false);
   };
-  
+
   const prepareFormDataForAPI = (data: FormData) => {
     const formData = new FormData()
     formData.append('brand', data.brandName);
@@ -253,9 +255,10 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       : '';
     formData.append('category_id', categoryId);
     formData.append('msrp', data.msrp);
+    data?.dimensions && formData.append('dimensions', data.dimensions);
+    data?.weight && formData.append('weight', data.weight);
     formData.append('price', data.price);
     formData.append('description', data.description);
-    // Add media files (uncomment when ready to use)
     uploadedImages.forEach((media, index) => {
       formData.append(`images`, {
         uri: media.uri,
@@ -444,7 +447,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
                 const { amountToPay } = calculateDiscount(msrpValue, discountPercentage);
                 setValue('price', amountToPay.toFixed(2));
               }
-              else{
+              else {
                 setValue('price', '');
               }
             }}
@@ -464,6 +467,34 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             keyboardType={'numeric'}
             inputStyle={styles.inputStyle}
             disabled
+          />
+          <Input
+            control={control}
+            name="dimensions"
+            label={'Dimensions'}
+            containerStyle={styles.emailContainer}
+            inputProps={{
+              placeholder: 'Enter Dimensions'
+            }}
+            required={{ value: true, message: 'Dimensions is required' }}
+            error={errors}
+            maxLength={40}
+            keyboardType={'numeric'}
+            inputStyle={styles.inputStyle}
+          />
+          <Input
+            control={control}
+            name="weight"
+            label={'Weight'}
+            containerStyle={styles.emailContainer}
+            inputProps={{
+              placeholder: 'Enter Weight'
+            }}
+            required={{ value: true, message: 'Weight is required' }}
+            error={errors}
+            maxLength={40}
+            keyboardType={'numeric'}
+            inputStyle={styles.inputStyle}
           />
           <Input
             control={control}

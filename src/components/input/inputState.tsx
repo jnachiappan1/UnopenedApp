@@ -1,8 +1,8 @@
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {
   ActivityIndicator,
-  Dimensions,
   FlatList,
-  ScrollView,
+  Modal,
   StyleProp,
   StyleSheet,
   Text,
@@ -11,7 +11,6 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import React, {useEffect, useRef, useState} from 'react';
 import {
   Control,
   Controller,
@@ -20,26 +19,26 @@ import {
   Validate,
   ValidationRule,
 } from 'react-hook-form';
-import Modal from 'react-native-modal';
-import IconsSvg from '../../assets/svg/iconsSvg';
-import Header from '../headerContainer/header';
-import fonts from '../../assets/fonts/fonts';
-import {IColors, getColors} from '../../utils/colors';
+import {getColors, IColors} from '../../utils/colors';
+import {InfiniteData, useInfiniteQuery} from '@tanstack/react-query';
+import { getStateAction } from '../../utils/apiAction';
+import Header from './header';
 import commonStyles from '../../utils/common-styles';
+import IconsSvg from '../../assets/svg/iconsSvg';
 
-type IInputProps = {
+
+type IInputStateProps = {
   control: Control<any>;
   name: string;
   placeholder: string;
   label?: string;
   labelColor?: string;
   error?: FieldErrors<FieldValues>;
-  required?: string | ValidationRule<boolean> | undefined;
-  pattern?: ValidationRule<RegExp> | undefined;
+  required?: string | ValidationRule<boolean>;
+  pattern?: ValidationRule<RegExp>;
   validate?:
     | Validate<any, FieldValues>
-    | Record<string, Validate<any, FieldValues>>
-    | undefined;
+    | Record<string, Validate<any, FieldValues>>;
   containerStyle?: StyleProp<ViewStyle>;
   style?: StyleProp<ViewStyle>;
   country: string | undefined;
@@ -53,248 +52,190 @@ export interface IItem {
   unicodeFlag: string;
 }
 
-const InputState = (props: IInputProps) => {
-  const {
-    placeholder,
-    label,
-    labelColor,
-    containerStyle,
-    style,
-    control,
-    name,
-    error,
-    required,
-    pattern,
-    validate,
-    country,
-    isShowError = true,
-  } = props;
+const InputState: React.FC<IInputStateProps> = ({
+  control,
+  name,
+  placeholder,
+  label,
+  labelColor,
+  containerStyle,
+  style,
+  error,
+  required,
+  pattern,
+  validate,
+  country,
+  isShowError = true,
+}) => {
   const colors = getColors();
-  const styles = getStyles(colors, isShowError);
+
   const searchInputRef = useRef<TextInput | null>(null);
-  const [showList, setShowList] = useState<boolean>(false);
-  const onSwipeComplete = () => {
-    setShowList(false);
-  };
-
-  const [data, setData] = useState<IItem[]>([]);
-  const [searchText, setSearchText] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(false);
-
-  const fetchData = () => {
-    setLoading(true);
-    fetch('https://countriesnow.space/api/v0.1/countries/states', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        country: country,
+  const [showList, setShowList] = useState(false);
+  const [searchText, setSearchText] = useState('');
+  const styles = getStyles(colors);
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    refetch,
+  } = useInfiniteQuery<
+    any,
+    Error,
+    InfiniteData<any>,
+    string[],
+    number
+  >({
+    queryKey: ['getStateAction', searchText, country as string],
+    queryFn: ({pageParam}) =>
+      getStateAction({
+        page: pageParam,
+        limit: 30,
+        search: searchText,
+        country: country as string,
       }),
-    })
-      .then(response => response.json())
-      .then(response => {
-        if (response.error === false) {
-          setData(response.data.states);
-        }
-        setLoading(false);
-      })
-      .catch(e => {
-        setLoading(false);
-      });
-  };
+    initialPageParam: 1,
+    enabled: Boolean(country),
+    getNextPageParam: lastPage => {
+      if (lastPage?.data?.hasNext) {
+        return lastPage.data.currentPage + 1;
+      }
+      return undefined;
+    },
+  });
 
   useEffect(() => {
-    if (country) {
-      fetchData();
-    }
-  }, [country]);
+    refetch();
+  }, [refetch, country, searchText]);
 
-  const err =
-    error &&
-    Object.keys(error).length !== 0 &&
-    error[name] &&
-    error[name]?.message
-      ? error[name]?.message?.toString()
-      : '';
+const allStates = useMemo(() => {
+  return data?.pages.flatMap(page => page.data || []) || [];
+}, [data]);
+  const getError = useMemo(() => {
+    return error?.[name]?.message?.toString() || '';
+  }, [error, name]);
 
-  const ItemSeparatorComponent = () => <View style={styles.line} />;
+  const onClose = () => {
+    setShowList(false);
+    setSearchText('');
+  };
+
+  const handleState = (onChange: (val: any) => void, state: string) => {
+    onChange(state);
+    onClose();
+  };
 
   return (
     <Controller
       control={control}
       name={name}
-      rules={{
-        required: required,
-        pattern: pattern,
-        validate: validate,
-      }}
-      render={({field: {onChange, value}}) => (
-        <View style={[styles.mainContainer, containerStyle]}>
-          {label && (
-            <Text
-              style={[
-                styles.titleLabel,
-                {color: labelColor ? labelColor : colors.label},
-              ]}>
-              {label}
-            </Text>
-          )}
-          <TouchableOpacity
-            style={[styles.container, style]}
-            onPress={() => setShowList(true)}
-            disabled={loading}>
-            <View style={styles.input}>
-              {loading ? (
-                <ActivityIndicator size={'small'} />
-              ) : value ? (
-                <Text style={styles.value} numberOfLines={1}>
-                  {value}
-                </Text>
-              ) : (
-                <Text style={styles.placeHolder}>{placeholder}</Text>
-              )}
-            </View>
-            <IconsSvg name="downArrow" />
-          </TouchableOpacity>
-          {isShowError ? (
-            <Text style={commonStyles.error} numberOfLines={2}>
-              {err}
-            </Text>
-          ) : (
-            <View style={{height: 10}} />
-          )}
-          <Modal
-            testID={'modal'}
-            isVisible={showList}
-            style={styles.view}
-            onModalShow={() => searchInputRef?.current?.focus()}>
-            <View style={styles.modelContainer}>
-              <Header
-                hideBack={true}
-                closeButton
-                title={'Select State'}
-                onBackPress={onSwipeComplete}
-              />
-              <View style={styles.searchContainer}>
-                <IconsSvg name="search" style={styles.searchIcon} />
-                <TextInput
-                  ref={searchInputRef}
-                  style={styles.searchInput}
-                  placeholder="Search State"
-                  placeholderTextColor={colors.text}
-                  onChangeText={setSearchText}
-                  value={searchText}
-                />
+      rules={{required, pattern, validate}}
+      render={({field: {onChange, value}}) => {
+        return (
+          <View style={[commonStyles.mainContainer, containerStyle]}>
+            {label && (
+              <Text
+                style={[
+                  // globalStyles.titleHeader,
+                  {color: labelColor || colors.label},
+                ]}>
+                {label}
+              </Text>
+            )}
+
+            <TouchableOpacity
+              style={[commonStyles.inputWrapper, style]}
+              onPress={() => setShowList(true)}
+              disabled={isLoading || !country}
+              activeOpacity={0.7}>
+               <View style={styles.view}>
+                {isLoading && country ? (
+                  <ActivityIndicator size="small" />
+                ) : value ? (
+                  <Text style={commonStyles.valueText} numberOfLines={1}>
+                    {value}
+                  </Text>
+                ) : (
+                  <Text style={commonStyles.placeholder}>{placeholder}</Text>
+                )}
               </View>
-              <ScrollView>
-                <View
-                  style={styles.containerModel}
-                  onStartShouldSetResponder={() => true}>
-                  <FlatList
-                    data={data.filter(t =>
-                      t.name
-                        .toLocaleLowerCase()
-                        .startsWith(searchText.toLocaleLowerCase()),
-                    )}
-                    renderItem={({item}) => (
-                      <Text
-                        style={styles.renderTxt}
-                        onPress={() => {
-                          onChange(item.name);
-                          setShowList(false);
-                        }}>
-                        {item.name}
-                      </Text>
-                    )}
-                    keyExtractor={item => item.name}
-                    style={styles.flatList}
-                    scrollEnabled={false}
-                    ItemSeparatorComponent={ItemSeparatorComponent}
+              {value ? (
+              <IconsSvg name='close' onPress={() => onChange(null)} />
+            ) : (
+              <IconsSvg name='downArrow' onPress={() => onChange(null)} />
+            )}
+            </TouchableOpacity>
+
+            {isShowError && !!getError && (
+              <Text style={commonStyles.error} numberOfLines={2}>
+                {getError}
+              </Text>
+            )}
+
+            <Modal
+              visible={showList}
+              animationType="slide"
+              onRequestClose={onClose}>
+              <View style={commonStyles.modalContainer}>
+                <Header
+                  hideBack
+                  closeButton
+                  title="Select State"
+                  onBackPress={onClose}
+                />
+                <View style={commonStyles.searchContainer}>
+                  <TextInput
+                    ref={searchInputRef}
+                    style={commonStyles.searchInput}
+                    placeholder="Search State"
+                    placeholderTextColor={colors.placeholder}
+                    onChangeText={setSearchText}
+                    value={searchText}
+                    autoFocus={true}
                   />
                 </View>
-              </ScrollView>
-            </View>
-          </Modal>
-        </View>
-      )}
+                <FlatList
+                  data={allStates}
+                  keyExtractor={item => item.name}
+                  renderItem={({item}) => (
+                    <Text
+                      style={commonStyles.countryItem}
+                      onPress={() => handleState(onChange, item.name)}>
+                      {item.name}
+                    </Text>
+                  )}
+                  contentContainerStyle={commonStyles.flatListContent}
+                  keyboardShouldPersistTaps="handled"
+                  onEndReached={() => {
+                    if (hasNextPage && !isFetchingNextPage) {
+                      fetchNextPage();
+                    }
+                  }}
+                  onEndReachedThreshold={0.5}
+                  ListFooterComponent={
+                    isFetchingNextPage ? (
+                      <ActivityIndicator style={{marginVertical: 10}} />
+                    ) : null
+                  }
+                  ListEmptyComponent={<Text style={commonStyles.noDataText}>No cities found</Text>}
+                />
+              </View>
+            </Modal>
+          </View>
+        );
+      }}
     />
   );
 };
 
 export default InputState;
-
-const getStyles = (colors: IColors, isShowError: boolean) =>
+const getStyles = (colors: IColors) =>
   StyleSheet.create({
-    containerModel: {flex: 1},
-    titleLabel: {
-      fontWeight: '500',
-      fontSize: 12,
-      fontFamily: fonts.medium,
-      color: colors.label,
-    },
-    mainContainer: {width: '100%'},
-    container: {
-      height: 53,
-      paddingHorizontal: 14,
-      borderRadius: 260,
-      backgroundColor: colors.white,
-      borderColor: colors.border,
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginTop: 10,
-    },
-    iconLeft: {width: 20, height: 20},
-    input: {
-      height: 40,
-      flex: 1,
-      justifyContent: 'center',
-    },
-    iconRight: {width: 24, height: 24},
-    placeHolder: {
-      color: colors.primaryBlack,
-      fontFamily: fonts.medium,
-      fontSize:14
-    },
-    value: {
-      color: colors.text,
-      fontFamily: fonts.regular,
-      fontSize: 16,
-    },
-    view: {
-      margin: 0,
-      flex: 1,
-      height: Dimensions.get('screen').height,
-    },
-    modelContainer: {
-      backgroundColor: colors.white,
-      borderTopRightRadius: 10,
-      borderTopLeftRadius: 10,
-      flex: 1,
-      height: Dimensions.get('screen').height,
-    },
-    line: {height: 1, backgroundColor: colors.border},
-    flatList: {marginVertical: 10, paddingHorizontal: 20, flex: 1},
-    renderTxt: {
-      paddingVertical: 10,
-      paddingHorizontal: 14,
-      color: colors.primary,
-    },
-    searchContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      borderWidth: 1.5,
-      borderRadius: 20,
-      borderColor: colors.primary,
-      paddingHorizontal: 15,
-      marginHorizontal: 20,
-      marginVertical: 12,
-    },
-    searchIcon: {height: 18, width: 18, alignSelf: 'center'},
-    searchInput: {
-      height: 40,
-      flex: 1,
+   view: {
+      width: '90%',
+      height: 48,
       paddingHorizontal: 10,
-      color: colors.text,
-    },
+      paddingVertical: 12,
+    }
   });

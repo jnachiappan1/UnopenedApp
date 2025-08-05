@@ -12,6 +12,7 @@ import colors from '../../utils/colors';
 import fonts from '../../assets/fonts/fonts';
 import { image_url } from '../../utils/api';
 import { ProductData } from '../../utils/types';
+import StatusBadge from './statusBadge';
 
 const { width } = Dimensions.get('window');
 
@@ -60,7 +61,7 @@ const TopPicksSection: React.FC<Props> = ({
             <TouchableOpacity style={styles.topPickCard} onPress={() => onSelect?.(item)}>
               <Image source={{ uri: image_url + item?.product_image[0]?.image }} style={styles.topPickImage} />
               <Text style={styles.topPickName}>{item.name}</Text>
-              <Text style={styles.topPickPrice}>${item.price}</Text>
+              <StatusBadge status={item.product_status} />
             </TouchableOpacity>
           )
         }}

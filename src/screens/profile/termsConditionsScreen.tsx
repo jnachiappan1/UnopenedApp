@@ -1,4 +1,4 @@
-import { StyleSheet} from 'react-native';
+import { StyleSheet } from 'react-native';
 import React, { useEffect, useMemo, useState } from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
@@ -15,8 +15,8 @@ type TermsConditionsScreenProps = NativeStackScreenProps<
   SCREENS.TermsConditionsScreen
 >;
 
-const TermsConditionsScreen: React.FC<TermsConditionsScreenProps> = ({ navigation,route }) => {
-  const {type} = route.params;
+const TermsConditionsScreen: React.FC<TermsConditionsScreenProps> = ({ navigation, route }) => {
+  const { type } = route.params;
   const [privacyPolicy, setPrivacyPolicy] = useState<string>('');
   useEffect(() => {
     fetchPrivacyPolicy();
@@ -35,7 +35,7 @@ const TermsConditionsScreen: React.FC<TermsConditionsScreenProps> = ({ navigatio
   const renderHTMLMemoized = useMemo(
     () => (
       <RenderHTML
-        source={{html: privacyPolicy}}
+        source={{ html: privacyPolicy }}
         contentWidth={300}
         tagsStyles={{
           p: styles.contentText,
@@ -48,8 +48,12 @@ const TermsConditionsScreen: React.FC<TermsConditionsScreenProps> = ({ navigatio
     [privacyPolicy],
   );
   return (
-    <TitleBackHeaderContainer isBack title={"Terms & Conditions"} containerStyle={{}}>
-       {privacyPolicy && renderHTMLMemoized}
+    <TitleBackHeaderContainer isBack title={type === 'terms_and_conditions'
+      ?
+      "Terms & Conditions"
+      :
+      type === 'privacy_policy' ? "Privacy Policy" : "Help Support"} containerStyle={{}}>
+      {privacyPolicy && renderHTMLMemoized}
     </TitleBackHeaderContainer>
   );
 };
