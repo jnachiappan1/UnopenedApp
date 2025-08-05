@@ -19,6 +19,10 @@ import Button from '../../components/button/buttons';
 import colors from '../../utils/colors';
 import fonts from '../../assets/fonts/fonts';
 import {capitalizeFirstLetter, fontSizes} from '../../utils/utils';
+import { useMutation } from '@tanstack/react-query';
+import { addProduct } from '../../utils/apiAction';
+import { showAlert } from '../../components/cAlert';
+import { handleError, handleSettled } from '../../utils/method';
 
 const {width} = Dimensions.get('window');
 
@@ -45,21 +49,7 @@ type PreviewProps = NativeStackScreenProps<
 };
 
 const PreviewConfirmScreen: React.FC<PreviewProps> = ({route, navigation}) => {
-  const productData: ProductData = route.params?.productData || {
-    name: 'Product Name Not Provided',
-    description: 'No description provided',
-    brand: 'Brand Not Provided',
-    category: 'Category Not Selected',
-    sku: 'SKU-GENERATED',
-    msrp: '$0',
-    listingPrice: '$0',
-    images: [
-      'https://picsum.photos/400/300?random=1',
-      ' https://picsum.photos/400/300?random=2',
-      ' https://picsum.photos/400/300?random=3',
-    ],
-  };
-
+  const { productData, formData } = route.params;
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef<FlatList<string>>(null);
 
@@ -67,9 +57,31 @@ const PreviewConfirmScreen: React.FC<PreviewProps> = ({route, navigation}) => {
     const index = Math.round(event.nativeEvent.contentOffset.x / (width - 32));
     setCurrentIndex(index);
   };
-
+  const { mutate } = useMutation({
+    mutationFn: (data: globalThis.FormData) => addProduct(data),
+    onSuccess: data => {
+      showAlert({
+        isVisible: true,
+        type: 'success',
+        title: 'Product',
+        description: 'Product added successfully',
+        doneText: 'Okay',
+        onDonePress: () => {
+       
+          navigation.navigate(SCREENS.BottomTab);
+        },
+      });
+    },
+    onError: handleError,
+    onSettled: handleSettled,
+  });
   const handleSubmitForReview = () => {
-    navigation.goBack();
+    if (!formData) {
+      // Alert.alert('Error', 'Form data is missing');
+      return;
+    }
+  
+    mutate(formData); // this will call the API with FormData
   };
 
   const renderDetailRow = (label: string, value: string, isPrice?: boolean) => (

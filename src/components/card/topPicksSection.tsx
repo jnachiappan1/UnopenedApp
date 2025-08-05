@@ -60,7 +60,7 @@ const TopPicksSection: React.FC<Props> = ({
             <TouchableOpacity style={styles.topPickCard} onPress={() => onSelect?.(item)}>
               <Image source={{ uri: image_url + item?.product_image[0]?.image }} style={styles.topPickImage} />
               <Text style={styles.topPickName}>{item.name}</Text>
-              <Text style={styles.topPickPrice}>{item.price}</Text>
+              <Text style={styles.topPickPrice}>${item.price}</Text>
             </TouchableOpacity>
           )
         }}

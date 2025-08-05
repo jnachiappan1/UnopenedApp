@@ -174,7 +174,8 @@ export type RootStackParamList = {
   [SCREENS.ProfileLoginScreen]: undefined;
   [SCREENS.ProfileVerifyScreen]:{ otp: string, email?: string | null | undefined ,type?: string | null | undefined};
   [SCREENS.PreviewConfirmScreen]: {
-    productData?: ProductDetail;
+    productData: ProductDetail;
+    formData: FormData;
   };
   [SCREENS.FilterSortScreen]: {
     onApplyFilters: (

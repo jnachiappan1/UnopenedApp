@@ -166,7 +166,38 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     return isFormValid && isImagesValid;
   };
 
-  const handlePreviewAndConfirm = async (data: FormData) => {
+  // const handlePreviewAndConfirm = async (data: FormData) => {
+  //   const isValid = await validateAllFields();
+  //   if (!isValid) {
+  //     Alert.alert(
+  //       'Validation Error',
+  //       'Please fill all required fields and upload at least 2 product images.'
+  //     );
+  //     return;
+  //   }
+  //   setIsNavigatingToPreview(true);
+  //   const categoryValue = typeof data.category === 'object' && data.category !== null
+  //     ? data.category.name
+  //     : typeof data.category === 'string'
+  //       ? data.category
+  //       : '';
+  //   const productData = {
+  //     name: data.productName,
+  //     brand: data.brandName,
+  //     barcode: data.barcode,
+  //     category: categoryValue,
+  //     msrp: `$${data.msrp}`,
+  //     listingPrice: `$${data.price}`,
+  //     description: data.description || 'No description provided',
+  //     images: uploadedImages.length > 0 ? uploadedImages.map(img => img.uri) : [
+  //       'https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?w=400&h=300&fit=crop',
+  //     ],
+  //     sku: 'SKU-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
+  //   };
+  //   navigation.navigate(SCREENS.PreviewConfirmScreen, { productData });
+  //   setIsNavigatingToPreview(false);
+  // };
+  const handlePreviewAndConfirm = async(productInput: FormData) => {
     const isValid = await validateAllFields();
     if (!isValid) {
       Alert.alert(
@@ -175,28 +206,43 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       );
       return;
     }
+  
     setIsNavigatingToPreview(true);
-    const categoryValue = typeof data.category === 'object' && data.category !== null
-      ? data.category.name
-      : typeof data.category === 'string'
-        ? data.category
-        : '';
-    const productData = {
-      name: data.productName,
-      brand: data.brandName,
-      barcode: data.barcode,
+  
+    // 1. Create FormData for API
+    const formDataForAPI = prepareFormDataForAPI(productInput);
+  
+    // 2. Create productData for display
+    const categoryValue =
+      typeof productInput.category === 'object' && productInput.category !== null
+        ? productInput.category.name
+        : typeof productInput.category === 'string'
+          ? productInput.category
+          : '';
+  
+    const previewProductData = {
+      name: productInput.productName,
+      brand: productInput.brandName,
+      barcode: productInput.barcode,
       category: categoryValue,
-      msrp: `$${data.msrp}`,
-      listingPrice: `$${data.price}`,
-      description: data.description || 'No description provided',
-      images: uploadedImages.length > 0 ? uploadedImages.map(img => img.uri) : [
-        'https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?w=400&h=300&fit=crop',
-      ],
+      msrp: `$${productInput.msrp}`,
+      listingPrice: `$${productInput.price}`,
+      description: productInput.description || 'No description provided',
+      images: uploadedImages.length > 0
+        ? uploadedImages.map(img => img.uri)
+        : ['https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?w=400&h=300&fit=crop'],
       sku: 'SKU-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
     };
-    navigation.navigate(SCREENS.PreviewConfirmScreen, { productData });
+  
+    // 3. Navigate with both
+    navigation.navigate(SCREENS.PreviewConfirmScreen, {
+      productData: previewProductData,
+      formData: formDataForAPI,
+    });
+  
     setIsNavigatingToPreview(false);
   };
+  
   const prepareFormDataForAPI = (data: FormData) => {
     const formData = new FormData()
     formData.append('brand', data.brandName);
@@ -417,6 +463,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             maxLength={40}
             keyboardType={'numeric'}
             inputStyle={styles.inputStyle}
+            disabled
           />
           <Input
             control={control}

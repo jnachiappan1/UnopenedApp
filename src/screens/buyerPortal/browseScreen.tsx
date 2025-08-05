@@ -300,6 +300,9 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
           products={productListResponse?.data?.product}
           onViewAll={() => console.log('View All Pressed')}
           showViewAll={false}
+          onPress={(item) => {
+            navigation.navigate(SCREENS.BProductDetailScreen, { productId: item?.id });
+          }}
         />
         <View style={{height: 100}} />
       </ScrollView>
