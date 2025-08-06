@@ -2,6 +2,7 @@ import { API } from './api';
 import axios from './axios';
 import axiosmultipart from './axiosmultipart';
 import { ChangePasswordPayloadType, ResendInputPayloadType, SignUpPayloadType } from './payload';
+import { ContactSupportType, AddressPayloadType } from './types';
 
 //Plan Owner Auth API Action
 
@@ -219,4 +220,21 @@ export const getCityAction = async ({
   }
   const response = await axios.get<any>(url);
   return response.data;
+};
+
+export const getScanProductDetail = async (scannedBarcode:string) => {
+  const response = await axios.get(API.seller.getScanProduct+scannedBarcode);
+  return response;
+};
+
+export const contactUs = async (payload: ContactSupportType) => {
+  const response = await axios.post(API.buyer.contact, payload);
+  return response;
+};
+
+export const addAddress = async (payload: AddressPayloadType) => {
+  console.log(payload,"payload----");
+  
+  const response = await axios.post(API.buyer.addAddress, payload);
+  return response;
 };

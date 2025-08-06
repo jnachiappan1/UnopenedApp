@@ -42,23 +42,21 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
   const [selectedTab, setSelectedTab] = useState('All');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [termsModalVisible, setTermsModalVisible] = useState(false);
-const [termsContent, setTermsContent] = useState('');
-const [termsLoading, setTermsLoading] = useState(false);
-const [termsChecked, setTermsChecked] = useState(false);
-const [acceptLoading, setAcceptLoading] = useState(false);
+  const [termsContent, setTermsContent] = useState('');
+  const [termsLoading, setTermsLoading] = useState(false);
+  const [termsChecked, setTermsChecked] = useState(false);
+  const [acceptLoading, setAcceptLoading] = useState(false);
   const userData = useSelector((user: IRootState) => user.user.userData);
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-console.log(userData,"uese-------");
-
   useEffect(() => {
     if (!userData) {
       queryClient.removeQueries({ queryKey: ['getSellerDashboardCount'] });
       queryClient.removeQueries({ queryKey: ['getSellerOwnProductList'] });
     }
   }, [userData, queryClient]);
-  const { 
-    data: dashboardCountData, 
+  const {
+    data: dashboardCountData,
     refetch: refetchDashboardCountData,
     error: dashboardError,
     isError: isDashboardError,
@@ -80,12 +78,12 @@ console.log(userData,"uese-------");
     },
     retry: 1,
     retryDelay: 1000,
-    enabled: !!userData, 
-    staleTime: 0, 
+    enabled: !!userData,
+    staleTime: 0,
   });
 
-  const { 
-    data: sellerOwnProductList, 
+  const {
+    data: sellerOwnProductList,
     refetch: refetchsellerOwnProductList,
     error: productError,
     isError: isProductError,
@@ -120,20 +118,11 @@ console.log(userData,"uese-------");
               refetchDashboardCountData(),
               refetchsellerOwnProductList()
             ];
-            const results = await Promise.allSettled(refreshPromises);
-            results.forEach((result, index) => {
-              const apiName = index === 0 ? 'Dashboard' : 'Product';
-              if (result.status === 'fulfilled') {
-                console.log(`${apiName} API focus refresh successful`);
-              } else {
-                console.error(`${apiName} API focus refresh failed:`, result.reason);
-              }
-            });
           } catch (error) {
             console.error('Error during focus refresh:', error);
           }
         };
-        
+
         focusRefresh();
       } else {
         setSelectedTab('All');
@@ -146,7 +135,7 @@ console.log(userData,"uese-------");
       setIsRefreshing(false);
       return;
     }
-    setIsRefreshing(true);  
+    setIsRefreshing(true);
     try {
       const refreshPromises = [
         refetchDashboardCountData(),
@@ -164,10 +153,10 @@ console.log(userData,"uese-------");
   }, [userData, refetchDashboardCountData, refetchsellerOwnProductList]);
 
   const isAnyApiFetching = userData ? (isDashboardFetching || isProductFetching) : false;
-  
+
   const products: ProductData[] = React.useMemo(() => {
     if (!userData) {
-      return []; 
+      return [];
     }
     try {
       return sellerOwnProductList?.data?.product || [];
@@ -176,7 +165,7 @@ console.log(userData,"uese-------");
       return [];
     }
   }, [sellerOwnProductList, userData]);
-  
+
   const EmptyStateMessage = React.memo(({ selectedTab }: { selectedTab: string }) => {
     const getEmptyMessage = () => {
       switch (selectedTab) {
@@ -276,8 +265,8 @@ console.log(userData,"uese-------");
         return 'sold';
       case 'In Review':
         return 'in_review';
-        case 'Withdrawn':
-      return 'withdrawn';
+      case 'Withdrawn':
+        return 'withdrawn';
       default:
         return null;
     }
@@ -306,11 +295,9 @@ console.log(userData,"uese-------");
       dispatch(saveUserData(data.data.user));
       showLoader(false);
       setAcceptLoading(false);
-      
-      // Close the modal only after successful API call
       setTermsModalVisible(false);
       setTermsChecked(false);
-      
+
       showAlert({
         isVisible: true,
         type: 'success',
@@ -318,8 +305,7 @@ console.log(userData,"uese-------");
         description: 'You have successfully accepted the Terms & Conditions.',
         doneText: 'Okay',
         onDonePress: () => {
-          // Don't navigate back, just close the alert
-          // navigation.goBack();
+
         },
       });
     },
@@ -331,25 +317,23 @@ console.log(userData,"uese-------");
   });
   const handleTermsAcceptance = async () => {
     if (!termsChecked) return;
-    
+
     try {
       setAcceptLoading(true);
-      
+
       const formDataToSend = new FormData();
       // Fix: Convert boolean to string for FormData
       formDataToSend.append('is_terms_and_conditions_accepted', 'true');
-      
+
       showLoader(true);
       mutate(formDataToSend);
-      
-      console.log('Submitting terms acceptance...');
     } catch (error) {
       console.error('Error accepting terms:', error);
       setAcceptLoading(false);
       showLoader(false);
     }
   };
-  
+
   const filterData = React.useCallback(() => {
     try {
       if (selectedTab === 'All') {
@@ -390,15 +374,16 @@ console.log(userData,"uese-------");
   const renderProductItem = React.useCallback(({ item }: { item: ProductData }) => {
     try {
       return (
-        <ProductListingCard 
-          item={item} 
+        <ProductListingCard
+          item={item}
+          nameStyle={{width:260}}
           onSelect={(selectedItem) => {
             try {
               navigation.navigate(SCREENS.ProductDetailScreen, { productId: selectedItem.id });
             } catch (navError) {
               console.error('Navigation error:', navError);
             }
-          }} 
+          }}
         />
       );
     } catch (error) {
@@ -447,10 +432,10 @@ console.log(userData,"uese-------");
       isHome
       refreshing={isRefreshing || isAnyApiFetching}
       onRefresh={handleRefresh}
-      onSearchPress={() => { 
-        console.log('Search pressed');
+      onSearchPress={() => {
+       
       }}
-      profileImage={userData?.profile_picture} 
+      profileImage={userData?.profile_picture}
     >
       <FlatList
         data={dashboardAnalyticsData}
@@ -469,11 +454,11 @@ console.log(userData,"uese-------");
         <View style={styles.header}>
           <Text style={styles.title}>My Listing</Text>
           <Text style={styles.viewAllText}
-          onPress={()=>navigation.navigate(SCREENS.ProductListScreen)}
+            onPress={() => navigation.navigate(SCREENS.ProductListScreen)}
           >View All</Text>
         </View>
         <FlatList
-          data={['All', 'Active', 'Sold', 'In Review',"Withdrawn"]}
+          data={['All', 'Active', 'Sold', 'In Review', "Withdrawn"]}
           horizontal
           showsHorizontalScrollIndicator={false}
           renderItem={renderTab}
@@ -506,7 +491,7 @@ console.log(userData,"uese-------");
         <View style={styles.header}>
           <Text style={styles.title}>Recently Added Products</Text>
           <Text style={styles.viewAllText}
-           onPress={()=>navigation.navigate(SCREENS.ProductListScreen)}>View All</Text>
+            onPress={() => navigation.navigate(SCREENS.ProductListScreen)}>View All</Text>
         </View>
         {
           userData && products.length > 0 ? (
@@ -517,6 +502,7 @@ console.log(userData,"uese-------");
               renderItem={({ item }) => (
                 <ProductListingCard
                   item={item}
+                  nameStyle={{width:180}}
                   cardStyle={{ marginHorizontal: 5, width: 320 }}
                   onSelect={(selectedItem) => {
                     try {
@@ -548,22 +534,22 @@ console.log(userData,"uese-------");
         }
       </View>
       <TermsModal
-  visible={termsModalVisible}
-  onClose={() => {
-    // Only allow closing if terms are already accepted
-    if (userData?.is_terms_and_conditions_accepted) {
-      setTermsModalVisible(false);
-    }
-    // If terms are not accepted, don't close the modal (make it mandatory)
-  }}
-  content={termsContent}
-  loading={termsLoading}
-  checked={termsChecked}
-  onCheck={setTermsChecked}
-  onAccept={handleTermsAcceptance}
-  isMandatory={userData && !userData.is_terms_and_conditions_accepted}
-  acceptLoading={acceptLoading} // Add this prop
-/>
+        visible={termsModalVisible}
+        onClose={() => {
+          // Only allow closing if terms are already accepted
+          if (userData?.is_terms_and_conditions_accepted) {
+            setTermsModalVisible(false);
+          }
+          // If terms are not accepted, don't close the modal (make it mandatory)
+        }}
+        content={termsContent}
+        loading={termsLoading}
+        checked={termsChecked}
+        onCheck={setTermsChecked}
+        onAccept={handleTermsAcceptance}
+        isMandatory={userData && !userData.is_terms_and_conditions_accepted}
+        acceptLoading={acceptLoading} // Add this prop
+      />
     </HeaderHomeContainer>
   );
 }
@@ -633,11 +619,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginStart: 5
   },
-  recentProductView: { 
-    marginBottom: 100 
+  recentProductView: {
+    marginBottom: 100
   },
   contentContainerStyle: {
-    paddingVertical: 10, 
+    paddingVertical: 10,
     paddingHorizontal: 10
   },
   emptyStateContainer: {

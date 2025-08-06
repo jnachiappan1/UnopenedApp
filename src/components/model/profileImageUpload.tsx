@@ -45,9 +45,7 @@ const ProfileImageUpload = ({control, name, isVisible, setIsVisible}: IInputProp
                     };
                     onChange(imageObj);
                     setIsVisible(false);
-                  } else {
-                    console.log('No image selected from gallery');
-                  }
+                  } 
                 } catch (error) {
                   console.error('Error selecting image from gallery:', error);
                 }
@@ -67,8 +65,6 @@ const ProfileImageUpload = ({control, name, isVisible, setIsVisible}: IInputProp
                     };
                     onChange(imageObj);
                     setIsVisible(false);
-                  } else {
-                    console.log('No image captured from camera');
                   }
                 } catch (error) {
                   console.error('Error capturing image from camera:', error);

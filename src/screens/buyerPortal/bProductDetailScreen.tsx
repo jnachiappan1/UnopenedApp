@@ -116,9 +116,6 @@ const BProductDetailScreen: React.FC<LoginProps> = ({ route, navigation }) => {
                   source={{ uri: image_url + item.image }}
                   style={styles.productImage}
                   resizeMode="contain"
-                  onError={(e) =>
-                    console.log('Image load error:', e.nativeEvent.error)
-                  }
                 />
               </View>
             )}

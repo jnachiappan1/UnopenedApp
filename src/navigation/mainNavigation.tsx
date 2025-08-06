@@ -32,9 +32,11 @@ import FilterSortScreen from '../screens/buyerPortal/filterSortScreen';
 import OrderTrackScreen from '../screens/buyerPortal/orderTrackScreen';
 import BProductDetailScreen from '../screens/buyerPortal/bProductDetailScreen';
 import ConfirmYourOrderScreen from '../screens/buyerPortal/confirmYourOrderScreen';
+import AddAddressScreen from '../screens/buyerPortal/addAddressScreen';
 import { useSelector } from 'react-redux';
 import { IRootState } from '../redux/store';
 import AddProductScreen from '../screens/sellerPortal/addProductScreen';
+import BarcodeScanner from '../screens/sellerPortal/barcodeScanner';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -108,6 +110,14 @@ const MainNavigation: React.FC = () => {
         name={SCREENS.ConfirmYourOrderScreen}
         component={ConfirmYourOrderScreen}
       />
+      <Stack.Screen
+        name={SCREENS.AddAddressScreen}
+        component={AddAddressScreen}
+      />
+      <Stack.Screen
+        name={SCREENS.BarcodeScanner}
+        component={BarcodeScanner}
+      />
 
     </Stack.Navigator>
     // </View>
@@ -144,7 +154,9 @@ export enum SCREENS {
   FilterSortScreen = 'FilterSortScreen',
   OrderTrackScreen = 'OrderTrackScreen',
   BProductDetailScreen = 'BProductDetailScreen',
-  ConfirmYourOrderScreen = 'ConfirmYourOrderScreen'
+  ConfirmYourOrderScreen = 'ConfirmYourOrderScreen',
+  AddAddressScreen = 'AddAddressScreen',
+  BarcodeScanner = 'BarcodeScanner'
 }
 
 export type RootStackParamList = {
@@ -154,7 +166,7 @@ export type RootStackParamList = {
   [SCREENS.BottomTab]: undefined;
   [SCREENS.SHomeScreen]: undefined;
   [SCREENS.BHomeScreen]: undefined;
-  [SCREENS.AddProductScreen]: undefined;
+  [SCREENS.AddProductScreen]:{ scannedBarcode?: string };
   [SCREENS.ProductListScreen]: undefined;
   [SCREENS.SalesScreen]: undefined;
   [SCREENS.WalletScreen]: undefined;
@@ -196,4 +208,6 @@ export type RootStackParamList = {
   [SCREENS.ConfirmYourOrderScreen]:{
     productId:  string | number | null | undefined
   };
+  [SCREENS.AddAddressScreen]: undefined;
+  [SCREENS.BarcodeScanner]: undefined;
 };

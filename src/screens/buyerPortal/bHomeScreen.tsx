@@ -405,7 +405,7 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
             <TopPicksSection
               title="Sold Product"
               products={soldProducts}
-              onViewAll={() => console.log('View All Top Picks')}
+              onViewAll={() => {}}
               onSelect={(item) =>  navigation.navigate(SCREENS.BProductDetailScreen, { productId: item?.id })}
 
             />

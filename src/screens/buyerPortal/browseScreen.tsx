@@ -298,7 +298,7 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
         <ProductSection
           title="Popular Products"
           products={productListResponse?.data?.product}
-          onViewAll={() => console.log('View All Pressed')}
+          onViewAll={() =>{} }
           showViewAll={false}
           onPress={(item) => {
             navigation.navigate(SCREENS.BProductDetailScreen, { productId: item?.id });

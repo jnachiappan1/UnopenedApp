@@ -124,8 +124,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation }) => 
         name: formData.profileImage.name || 'photo.jpg',
       });
     }
-  
-    console.log('Payload being sent:', formDataToSend);
     showLoader(true);
     mutate(formDataToSend);
   };
@@ -143,44 +141,27 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation }) => 
         city: user.city || '',
         pincode: user.pincode || '',
         gender: user.gender || '',
-        profileImage: user.profile_picture || '', // Fixed: use profile_picture instead of profile_image
+        profileImage: user.profile_picture || '', 
       };
-      
-      console.log('Form fields being set:', fields);
-      reset(fields); // ✅ this won't set form as dirty
+      reset(fields); 
     }
   }, [data, reset]);
-
-  // Function to get the image source
   const getImageSource = () => {
-    // Priority 1: Check for newly selected image (object with uri)
     if (watchedProfileImage && typeof watchedProfileImage === 'object' && watchedProfileImage.uri) {
-      console.log('Using newly selected image:', watchedProfileImage.uri);
       return { uri: watchedProfileImage.uri };
     }
-    
-    // Priority 2: Check for existing image URL from form (string)
     if (watchedProfileImage && typeof watchedProfileImage === 'string' && watchedProfileImage.trim().length > 0) {
-      console.log('Using form image URL:', watchedProfileImage);
-      // Check if it's a full URL or needs base URL
       const imageUrl = watchedProfileImage.startsWith('http') 
         ? watchedProfileImage 
         : `${image_url}${watchedProfileImage}`;
       return { uri: imageUrl };
     }
-    
-    // Priority 3: Check for image from API data (use profile_picture instead of profile_image)
     if (data?.data?.user?.profile_picture && data.data.user.profile_picture.trim().length > 0) {
-      console.log('Using API image:', data.data.user.profile_picture);
-      // Check if it's a full URL or needs base URL
       const imageUrl = data.data.user.profile_picture.startsWith('http') 
         ? data.data.user.profile_picture 
         : `${image_url}${data.data.user.profile_picture}`;
       return { uri: imageUrl };
     }
-    
-    // Priority 4: Default fallback image
-    console.log('Using default profile image');
     return IMAGE.profileImage;
   };
 

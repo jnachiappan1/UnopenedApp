@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { OS, height, width } from './utils';
+import { OS, fontSizes, height, width } from './utils';
 import colors from './colors';
 import fonts from '../assets/fonts/fonts';
 
@@ -14,10 +14,9 @@ const commonStyles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   placeholder: {
-    color: colors.placeholder,
-    fontSize: 16,
-    fontFamily: fonts.regular,
-    fontWeight: '400',
+    fontSize: fontSizes.regular,
+    color: colors.primaryBlack,
+    fontFamily: fonts.medium,
   },
   error: {
     color: 'red',

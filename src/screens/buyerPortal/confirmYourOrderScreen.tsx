@@ -116,7 +116,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation,route }) => {
       <View style={styles.productSection}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Billing Address</Text>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate(SCREENS.AddAddressScreen)}>
             <Text style={styles.changeButton}>Change</Text>
           </TouchableOpacity>
         </View>

@@ -132,7 +132,8 @@ const PhoneNumberInputs: React.FC<InputProps> = ({
         <View style={[styles.container, containerStyle]}>
           {label && <Text style={styles.label}>{label}</Text>}
           
-          <View style={[styles.input, containerStyle]}>
+          {/* <View style={[styles.input, containerStyle]}> */}
+          <View style={[styles.input]}>
           {I18nManager.isRTL === false && <TouchableOpacity
               activeOpacity={0.2}
               onPress={() => setShowCountryPicker(true)}

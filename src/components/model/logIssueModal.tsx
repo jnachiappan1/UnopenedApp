@@ -37,7 +37,7 @@ const LogOutModal: React.FC<LogOutModalProps> = ({
       style={styles.modelStyle}
     >
       <View style={styles.modalContainer}>
-        <StatusBar barStyle="dark-content" backgroundColor="white" />
+        <StatusBar barStyle="dark-content" backgroundColor={colors.modalBackGround}  />
         <View style={styles.modalContent}>
         <IconsSvg name="successCheckMark" />
           <Text style={styles.headingStyle}>{title}</Text>

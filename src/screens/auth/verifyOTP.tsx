@@ -59,6 +59,7 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({route, navigation}) => {
   const { mutate: resendMutate } = useMutation({
     mutationFn: (data: ResendInput) => resendOtpApi(type!, data),
     onSuccess: async (data: any) => {
+      showLoader(false);
       setResendOtp(data?.data?.otp);
       showAlert({
         isVisible: true,
@@ -104,6 +105,7 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({route, navigation}) => {
     mutationFn: ({ type, payload }: { type: string; payload: ResendInputPayloadType }) =>
       verifyOtpApi(type, payload),
     onSuccess: async (data: any) => {
+      showLoader(false);
       const newType = 'buyer';
       dispatch(saveUserType(newType));
       dispatch(setAuthToken(data.data.token));

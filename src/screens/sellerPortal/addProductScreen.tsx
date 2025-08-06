@@ -24,19 +24,16 @@ import WhiteButton from '../../components/button/whiteButton';
 import colors from '../../utils/colors';
 import fonts from '../../assets/fonts/fonts';
 import ImageUpload from '../../components/input/ImageUpload';
-import { categoryOptions } from '../../utils/static';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
-import { useFocusEffect } from '@react-navigation/native';
 import ProductImageUpload from '../../components/model/productImageUpload';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { addProduct, getCategoryDetail, getProductPriceDetail } from '../../utils/apiAction';
+import { addProduct, getCategoryDetail, getProductPriceDetail, getScanProductDetail } from '../../utils/apiAction';
 import { showAlert } from '../../components/cAlert';
-import { CategoryAPIResponse, errorMsg } from '../../utils/types';
-import { showLoader } from '../../components/loader/loader';
 import { fontSizes } from '../../utils/utils';
 import { IRootState } from '../../redux/store';
 import { useSelector } from 'react-redux';
 import { calculateDiscount, handleError, handleSettled } from '../../utils/method';
+import { showLoader } from '../../components/loader/loader';
 
 type MediaObject = {
   uri: string;
@@ -71,6 +68,10 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
   route,
   navigation,
 }) => {
+  const {
+    scannedBarcode
+  } = route.params || {};
+  console.log(scannedBarcode,"scannedBarcode----");
   const [uploadedImages, setUploadedImages] = useState<MediaObject[]>([]);
   const [isNavigatingToPreview, setIsNavigatingToPreview] = useState(false);
   const userData = useSelector((user: IRootState) => user.user.userData);
@@ -88,8 +89,16 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     queryFn: () => getProductPriceDetail(),
     enabled: isLogged,
   });
+  const {
+    data: scanProductData,
+    refetch: refetchScanProductData,
+    isFetching: isScanFetching,
+  } = useQuery({
+    queryKey: ['getScanProductDetail', scannedBarcode],
+    queryFn: () => getScanProductDetail(scannedBarcode as string),
+    enabled: !!scannedBarcode,
+  });
   const discountPercentage = ProductPriceData?.data?.product_price?.price
-
   const transformCategoryData = (apiData: any): DropDownType[] => {
     if (apiData?.status === 'success' && apiData?.data?.category) {
       const transformed = apiData.data.category
@@ -132,6 +141,41 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       productImages: [],
     }
   });
+  useEffect(() => {
+    if ( scanProductData?.data?.product) {
+      const productData = scanProductData.data.product;
+      const scannedCategoryName = productData.category || '';
+      const matchedCategory = dropdownData.find((cat) =>
+        scannedCategoryName.toLowerCase().includes(cat.name.toLowerCase()) ||
+        cat.name.toLowerCase().includes(scannedCategoryName.toLowerCase())
+      );
+      if (matchedCategory) {
+        setValue('category', matchedCategory);
+      }
+      setValue('brandName', productData.brand || '');
+      setValue('productName', productData.title || '');
+      setValue('barcode', productData.ean || productData.upc || scannedBarcode || '');
+      setValue('description', productData.description || '');
+      setValue('dimensions', productData.dimension || '');
+      setValue('weight', productData.weight ? productData.weight.toString() : '');
+      if (productData.images && productData.images.length > 0) {
+        const imageObjects: MediaObject[] = productData.images.slice(0, 6).map((url: string, index: number) => ({
+          uri: url,
+          name: `product_image_${index + 1}.jpg`,
+          type: 'image/jpeg'
+        }));
+        setUploadedImages(imageObjects);
+        setValue('productImages', imageObjects);
+  
+        if (imageObjects.length >= 2) {
+          clearErrors('productImages');
+          setImageError('');
+        }
+      }
+      clearErrors();
+    }
+  }, [scanProductData, dropdownData, setValue, clearErrors, scannedBarcode]);
+
   const handleImageUpload = (selectedImages: MediaObject[]) => {
     setUploadedImages(selectedImages);
     setValue('productImages', selectedImages);
@@ -146,7 +190,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
         message: errorMessage
       });
     }
-
     setIsModalVisible(false);
   };
   const validateImages = () => {
@@ -170,37 +213,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     return isFormValid && isImagesValid;
   };
 
-  // const handlePreviewAndConfirm = async (data: FormData) => {
-  //   const isValid = await validateAllFields();
-  //   if (!isValid) {
-  //     Alert.alert(
-  //       'Validation Error',
-  //       'Please fill all required fields and upload at least 2 product images.'
-  //     );
-  //     return;
-  //   }
-  //   setIsNavigatingToPreview(true);
-  //   const categoryValue = typeof data.category === 'object' && data.category !== null
-  //     ? data.category.name
-  //     : typeof data.category === 'string'
-  //       ? data.category
-  //       : '';
-  //   const productData = {
-  //     name: data.productName,
-  //     brand: data.brandName,
-  //     barcode: data.barcode,
-  //     category: categoryValue,
-  //     msrp: `$${data.msrp}`,
-  //     listingPrice: `$${data.price}`,
-  //     description: data.description || 'No description provided',
-  //     images: uploadedImages.length > 0 ? uploadedImages.map(img => img.uri) : [
-  //       'https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?w=400&h=300&fit=crop',
-  //     ],
-  //     sku: 'SKU-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
-  //   };
-  //   navigation.navigate(SCREENS.PreviewConfirmScreen, { productData });
-  //   setIsNavigatingToPreview(false);
-  // };
   const handlePreviewAndConfirm = async (productInput: FormData) => {
     const isValid = await validateAllFields();
     if (!isValid) {
@@ -210,13 +222,8 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       );
       return;
     }
-
     setIsNavigatingToPreview(true);
-
-    // 1. Create FormData for API
     const formDataForAPI = prepareFormDataForAPI(productInput);
-
-    // 2. Create productData for display
     const categoryValue =
       typeof productInput.category === 'object' && productInput.category !== null
         ? productInput.category.name
@@ -269,9 +276,11 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
 
     return formData;
   };
+
   const { mutate } = useMutation({
     mutationFn: (data: globalThis.FormData) => addProduct(data),
     onSuccess: data => {
+      showLoader(false);
       showAlert({
         isVisible: true,
         type: 'success',
@@ -282,13 +291,14 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
           reset();
           setUploadedImages([]);
           setImageError('');
-          navigation.goBack();
+          navigation.navigate(SCREENS.BottomTab);
         },
       });
     },
     onError: handleError,
     onSettled: handleSettled,
   });
+
   const Submit = async (data: FormData) => {
     const isValid = await validateAllFields();
     if (!isValid) {
@@ -299,14 +309,19 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       return;
     }
     const apiFormData = prepareFormDataForAPI(data);
-    mutate(apiFormData)
+    console.log("apiFormData=======",apiFormData);
+    showLoader(true);
+     mutate(apiFormData)
   };
+
   const handleUploadPress = () => {
     setIsModalVisible(true);
   };
+
   const isVideo = (mediaObj: MediaObject) => {
     return mediaObj.type && mediaObj.type.includes('video');
   };
+
   const removeImage = (index: number) => {
     Alert.alert(
       'Remove Media',
@@ -360,17 +375,38 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     );
   };
 
+  // Render scan section with loading state
+  const renderScanSection = () => (
+    <View style={styles.scanSection}>
+      <IconsSvg name="scannerIcon" />
+      <Text style={styles.scanTitle}>Scan Product Barcode</Text>
+      <Text style={styles.scanSubtitle}>
+        {isScanFetching 
+          ? 'Loading product data...' 
+          : 'Automatically fill product details by\nscanning the barcode.'
+        }
+      </Text>
+      <WhiteButton 
+        style={[styles.scanButton, isScanFetching && { opacity: 0.6 }]} 
+        title={isScanFetching ? "Loading..." : "Scan Now"} 
+        onPress={() => {
+          if (!isScanFetching) {
+            navigation.navigate(SCREENS.BarcodeScanner);
+          }
+        }}
+      />
+      {scannedBarcode && (
+        <Text style={styles.scannedBarcodeText}>
+          Scanned: {scannedBarcode}
+        </Text>
+      )}
+    </View>
+  );
+
   return (
     <TitleBackHeaderContainer isBack title="Add Product">
       <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.scanSection}>
-          <IconsSvg name="scannerIcon" />
-          <Text style={styles.scanTitle}>Scan Product Barcode</Text>
-          <Text style={styles.scanSubtitle}>
-            Automatically fill product details by{'\n'}scanning the barcode.
-          </Text>
-          <WhiteButton style={styles.scanButton} title="Scan Now" />
-        </View>
+        {renderScanSection()}
         <View style={styles.detailsSection}>
           <Text style={styles.sectionTitle}>Product Details & Media</Text>
           <Input
@@ -500,7 +536,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             control={control}
             name="description"
             label={'Product Description *'}
-            containerStyle={styles.emailContainer}
+            containerStyle={{height:120}}
             inputProps={{
               placeholder: 'Enter Product Description...',
             }}
@@ -509,8 +545,8 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
               message: 'Product description is required',
             }}
             error={errors}
-            maxLength={200}
-            inputStyle={styles.inputStyle}
+            maxLength={500}
+            inputStyle={styles.productDesc}
             multiline
           />
           <View style={styles.imageUploadContainer}>
@@ -605,6 +641,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     </TitleBackHeaderContainer>
   );
 };
+
 export default AddProductScreen;
 
 const styles = StyleSheet.create({
@@ -649,6 +686,18 @@ const styles = StyleSheet.create({
   emailContainer: {
     marginTop: 20,
   },
+  productDesc: {
+
+    fontSize: fontSizes.regular,
+    minHeight:  100,
+    paddingVertical: 12 ,
+    borderRadius: 16,
+    color: colors.primaryBlack,
+    fontFamily: fonts.medium,
+    width: '100%',
+    textAlignVertical: 'top'
+
+},
   inputStyle: {
     width: '100%',
   },
@@ -810,5 +859,12 @@ const styles = StyleSheet.create({
   },
   categoryStyle: {
     marginTop: 10
-  }
+  },
+  scannedBarcodeText: {
+    fontSize: fontSizes.small,
+    color: colors.primary || '#4CAF50',
+    fontFamily: fonts.medium,
+    marginTop: 10,
+    textAlign: 'center',
+  },
 });

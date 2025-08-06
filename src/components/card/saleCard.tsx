@@ -27,7 +27,6 @@ const SaleCard: React.FC<Props> = ({ item ,onSelect}) => {
           source={{ uri: imageUrl }}
           resizeMode='cover'
           style={styles.image}
-          onError={(e) => console.log('Image load error:', e.nativeEvent.error)}
         />
         <StatusBadge
           status={item.product_activity_status}

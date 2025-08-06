@@ -23,6 +23,7 @@ import { useMutation } from '@tanstack/react-query';
 import { addProduct } from '../../utils/apiAction';
 import { showAlert } from '../../components/cAlert';
 import { handleError, handleSettled } from '../../utils/method';
+import { showLoader } from '../../components/loader/loader';
 
 const {width} = Dimensions.get('window');
 
@@ -60,6 +61,7 @@ const PreviewConfirmScreen: React.FC<PreviewProps> = ({route, navigation}) => {
   const { mutate } = useMutation({
     mutationFn: (data: globalThis.FormData) => addProduct(data),
     onSuccess: data => {
+      showLoader(false);
       showAlert({
         isVisible: true,
         type: 'success',
@@ -80,7 +82,7 @@ const PreviewConfirmScreen: React.FC<PreviewProps> = ({route, navigation}) => {
       // Alert.alert('Error', 'Form data is missing');
       return;
     }
-  
+    showLoader(true);
     mutate(formData); // this will call the API with FormData
   };
 
@@ -116,9 +118,6 @@ const PreviewConfirmScreen: React.FC<PreviewProps> = ({route, navigation}) => {
                   source={{uri: item}}
                   style={styles.productImage}
                   resizeMode="cover"
-                  onError={e =>
-                    console.log('Image load error:', e.nativeEvent.error)
-                  }
                 />
               )}
               contentContainerStyle={styles.flatListContent}

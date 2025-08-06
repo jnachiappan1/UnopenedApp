@@ -1,5 +1,4 @@
 import {
-  FlatList,
   Image,
   StyleSheet,
   Text,
@@ -16,9 +15,16 @@ import colors from '../../utils/colors';
 import StatusBadge from '../../components/card/statusBadge';
 import fonts from '../../assets/fonts/fonts';
 import IconsSvg from '../../assets/svg/iconsSvg';
-import { getProductDetailByID } from '../../utils/apiAction';
-import { useQuery } from '@tanstack/react-query';
+import { contactUs, getProductDetailByID } from '../../utils/apiAction';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { image_url } from '../../utils/api';
+import ContactSupportModal from '../../components/model/contactSupportModal';
+import { useSelector } from 'react-redux';
+import { IRootState } from '../../redux/store';
+import { ContactSupportType } from '../../utils/types';
+import { showLoader } from '../../components/loader/loader';
+import { showAlert } from '../../components/cAlert';
+import { handleError, handleSettled } from '../../utils/method';
 
 type OrderTrackScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -27,12 +33,13 @@ type OrderTrackScreenProps = NativeStackScreenProps<
 
 const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({navigation, route}) => {
   const productId = route.params;
+  const [isContactSupportModalVisible, setIsContactSupportModalVisible] = useState(false);
+  const [modalKey, setModalKey] = useState(0);
+  const userData = useSelector((state: IRootState) => state.user.userData);
   const { data: productDetail, refetch: refetchAllProduct } = useQuery({
     queryKey: ['getProductDetailByID', productId?.productId],
     queryFn: () => getProductDetailByID(productId?.productId),
   });
-  console.log(JSON.stringify(productDetail),"productDetail----");
-  
   const generateTrackingSteps = (status: string) => {
     const baseSteps = [
       {
@@ -78,7 +85,36 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({navigation, route}) 
   };
 
   const trackingSteps = generateTrackingSteps(productDetail?.data?.product[0]?.status);
-
+  const { mutate } = useMutation({
+    mutationFn: contactUs,
+    onSuccess: (data) => {
+      showLoader(false);
+      showAlert({
+        isVisible: true,
+        type: 'success',
+        title: 'Support Request Sent',
+        description: 'Your message has been sent successfully. Our support team will contact you shortly.',
+        doneText: 'Okay',
+        onDonePress: () => {
+          navigation.goBack();
+        },
+      });
+    },
+    onError: handleError,
+    onSettled: handleSettled,
+  });
+  const handleMessageSubmit = (message: string) => {
+    showLoader(true);
+    const supportPayload: ContactSupportType = {
+      full_name: userData?.full_name, 
+      country_code:  userData?.country_code,  
+      phone_number: userData?.phone_number, 
+      email:  userData?.email, 
+      message: message,
+      product_id: productDetail?.data?.product[0]?.id,
+    };
+    mutate(supportPayload);
+  }
   const renderTrackingStep = (item: any, index: number) => {
     return (
       <View key={item.id} style={styles.trackingStepContainer}>
@@ -147,7 +183,13 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({navigation, route}) 
         <View style={styles.helpSection}>
           <Text style={styles.headingText}>Need help with your order?</Text>
           <View style={styles.lineStyle} />
-          <TouchableOpacity style={styles.helpOption}>
+          <TouchableOpacity 
+            style={styles.helpOption}
+            onPress={() => {
+              setModalKey(prev => prev + 1);
+              setIsContactSupportModalVisible(true);
+            }}
+          >
             <View style={styles.helpIconContainer}>
               <IconsSvg name="helpSupportIcon" />
             </View>
@@ -162,6 +204,13 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({navigation, route}) 
           </TouchableOpacity> */}
         </View>
       </ScrollView>
+      
+      <ContactSupportModal
+        key={modalKey}
+        isModalVisible={isContactSupportModalVisible}
+        setModalVisible={setIsContactSupportModalVisible}
+        onMessageSubmit={handleMessageSubmit}
+      />
     </TitleBackHeaderContainer>
   );
 };

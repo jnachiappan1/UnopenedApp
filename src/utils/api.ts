@@ -16,6 +16,8 @@ export const API = {
     getWallet: `${base_url}/api/v1/wallet`,
     getTransactionList: `${base_url}/api/v1/wallet/transaction`,
     getProductList: `${base_url}/api/v1/common/product-list`,
+    contact: `${base_url}/api/v1/contact-us`,
+    addAddress: `${base_url}/api/v1/address`,
   },
   seller: {
     sign_up: `${base_url}/api/v1/users/auth/create`,
@@ -30,6 +32,7 @@ export const API = {
     getProductList: `${base_url}/api/v1/common/product-list`,
     getProductPrice: `${base_url}/api/v1/common/product-price`,
     getMyOrderList: `${base_url}/api/v1/product/purchase-product`,
+    getScanProduct: `${base_url}/api/v1/product/scan-product?barcode=`,
 
   },
   location: {

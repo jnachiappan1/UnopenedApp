@@ -15,6 +15,7 @@ import moment from 'moment';
 import { handleError, handleSettled } from '../../utils/method';
 import { showAlert } from '../../components/cAlert';
 import { image_url } from '../../utils/api';
+import { showLoader } from '../../components/loader/loader';
 
 type ProductDetailScreenProps = NativeStackScreenProps<RootStackParamList, SCREENS.ProductDetailScreen>;
 interface ProductImage {
@@ -35,6 +36,7 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ navigation, r
   const { mutate } = useMutation({
     mutationFn: (data: globalThis.FormData) => updateProductStatus(productId, data),
     onSuccess: data => {
+      showLoader(false);
       showAlert({
         isVisible: true,
         type: 'success',
@@ -58,6 +60,7 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ navigation, r
       onDonePress: () => {
         const formData = new FormData()
         formData.append('product_status', "withdrawn");
+        showLoader(true);
         mutate(formData);
       },
       onDeletePress: () => {
@@ -88,9 +91,6 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ navigation, r
               source={{ uri: image_url+item.image }}
               style={styles.productImage}
               resizeMode="cover"
-              onError={(e) =>
-                console.log('Image load error:', e.nativeEvent.error)
-              }
             />
           )}
         />
@@ -103,7 +103,7 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ navigation, r
         <Text style={styles.titleStyle}>{productDetail?.data?.product[0]?.name}</Text>
         <Text style={styles.descriptionStyle}>{productDetail?.data?.product[0]?.description}</Text>
         <InfoRow title="Brand" subtitle={
-          productDetail?.data?.product[0]?.description
+          productDetail?.data?.product[0]?.brand
         }
           subtitleStyle={styles.subtitleStyle} />
         <InfoRow title="Category" subtitle={

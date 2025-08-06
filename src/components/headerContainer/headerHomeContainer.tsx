@@ -83,7 +83,7 @@ const HeaderHomeContainer: React.FC<HeaderHomeContainerProps> = props => {
     <RefreshControl
       refreshing={refreshing}
       onRefresh={onRefresh || (() => {
-        console.log('RefreshControl triggered but no onRefresh handler provided');
+     
       })}
       tintColor={colors.primary}
       enabled={!!onRefresh} // Only enable pull-to-refresh when onRefresh is provided

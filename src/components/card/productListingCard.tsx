@@ -1,6 +1,6 @@
 // components/DashboardCard.tsx
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, StyleProp, ViewStyle } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, StyleProp, ViewStyle, TextStyle } from 'react-native';
 import { fontSizes } from '../../utils/utils';
 import { ProductData } from '../../utils/types';
 import colors from '../../utils/colors';
@@ -13,10 +13,11 @@ import { image_url } from '../../utils/api';
 interface ProductListingCardProps {
   item: ProductData;
   cardStyle?: StyleProp<ViewStyle> | undefined;
+  nameStyle?: StyleProp<TextStyle> | undefined;
   onSelect?: (item: ProductData) => void;
 }
 
-const ProductListingCard: React.FC<ProductListingCardProps> = ({ item,cardStyle ,onSelect}) => {
+const ProductListingCard: React.FC<ProductListingCardProps> = ({ item,cardStyle ,nameStyle,onSelect}) => {
   const handleCardPress = () => {
     onSelect?.(item);
   };
@@ -28,7 +29,7 @@ const ProductListingCard: React.FC<ProductListingCardProps> = ({ item,cardStyle 
   style={styles.cardImage}
 />
         <View>
-          <Text style={styles.cardTitle}>{item?.name}</Text>
+          <Text style={[styles.cardTitle,nameStyle]} numberOfLines={2}>{item?.name}</Text>
           <Text style={styles.cardPosted}>Posted {calculateDaysAgo(item?.createdAt)} Days Ago</Text>
           <Text style={styles.cardPrice}>${item?.price}</Text>
         </View>
@@ -75,7 +76,7 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.medium,
     fontFamily: fonts.bold,
     color: '#1F1F1F',
-    paddingVertical: 2
+    paddingVertical: 2,
   },
   cardPrice: {
     fontSize: fontSizes.medium,

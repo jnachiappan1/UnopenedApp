@@ -44,6 +44,7 @@ const LoginScreen: React.FC<LoginProps> = ({route, navigation}) => {
   const {mutate} = useMutation({
     mutationFn: (data: Inputs) => signInApi('otp', data),
     onSuccess: async (data: any) => {
+      showLoader(false);
         showAlert({
           isVisible: true,
           type: 'success',

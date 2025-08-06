@@ -59,6 +59,7 @@ const ProfileVerifyScreen: React.FC<ProfileVerifyScreenProps> = ({
     mutationFn: ({ type, payload }: { type: string; payload: ResendInputPayloadType }) =>
       verifyOtpApi(type, payload),
     onSuccess: async (data: any) => {
+      showLoader(false);
       dispatch(setAuthToken(data.data.token));
       dispatch(saveUserData(data.data.user));
       showAlert({

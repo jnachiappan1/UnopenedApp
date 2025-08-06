@@ -173,3 +173,23 @@ export type selectedCountryType = {
   region: string;
   subregion: string;
 };
+
+export type ContactSupportType = {
+  full_name: string
+  country_code: string
+  phone_number: string
+  email: string
+  message: string
+  product_id: number
+};
+
+export interface AddressPayloadType {
+  full_name: string;
+  phone_number: string;
+  address: string;
+  country: string;
+  state: string;
+  city: string;
+  pincode: string;
+  country_code: string;
+}
