@@ -23,7 +23,9 @@ import { getProductDetailByID, getWalletDetail, soldProduct } from '../../utils/
 import { image_url } from '../../utils/api';
 import { useSelector } from 'react-redux';
 import { IRootState } from '../../redux/store';
+import { AddressType } from '../../utils/types';
 import { showLoader } from '../../components/loader/loader';
+import { showAlert } from '../../components/cAlert';
 import { handleError, handleSettled } from '../../utils/method';
 
 const { width } = Dimensions.get('window');
@@ -39,6 +41,8 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation,route }) => {
   const [quantity, setQuantity] = useState(4);
   const [walletBalance, setWalletBalance] = useState(2430.00);
   const [isSelected, setIsSelected] = useState(true);
+  const [selectedAddress, setSelectedAddress] = useState<AddressType | null>(null);
+  const [isAddressChanged, setIsAddressChanged] = useState(false);
   const itemPrice = 350;
   const totalPrice = itemPrice * quantity;
   const [isModalVisible, setModalVisible] = useState(false);
@@ -78,6 +82,15 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation,route }) => {
     setModalVisible(false);
     navigation.navigate(SCREENS.MyOrderScreen);
   };
+
+  const handleChangeAddress = () => {
+    navigation.navigate(SCREENS.AddressSelectionScreen, {
+      onAddressSelect: (address: AddressType) => {
+        setSelectedAddress(address);
+        setIsAddressChanged(true);
+      },
+    });
+  };
   return (
     <TitleBackHeaderContainer title="Confirm Your Order" isBack>
       <View style={styles.productSection}>
@@ -116,26 +129,58 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation,route }) => {
       <View style={styles.productSection}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Billing Address</Text>
-          <TouchableOpacity onPress={() => navigation.navigate(SCREENS.AddAddressScreen)}>
+          <TouchableOpacity onPress={handleChangeAddress}>
             <Text style={styles.changeButton}>Change</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.summaryDivider} />
-        <View style={styles.addressCard}>
-          <View style={styles.personInfo}>
-            <Text style={styles.personName}>Person Name</Text>
-            <Text style={styles.phoneNumber}>{userData?.phone_number}</Text>
-          </View>
-          <View style={styles.summaryDivider} />
-          <View style={styles.addressInfo}>
-            <IconsSvg
-              name='locationIcon'
-            />
-            <Text style={styles.addressText}>
-              {userData?.address}
+        {isAddressChanged && selectedAddress ? (
+          // Show selected address after user changes it
+          <View style={styles.addressCard}>
+            <View style={styles.personInfo}>
+              <Text style={styles.personName}>{selectedAddress.full_name}</Text>
+              <Text style={styles.phoneNumber}>
+                {selectedAddress.country_code} {selectedAddress.phone_number}
+              </Text>
+            </View>
+            <View style={styles.summaryDivider} />
+            <View style={styles.addressInfo}>
+              <IconsSvg name='locationIcon' />
+              <Text style={styles.addressText}>
+                {selectedAddress.address}
+              </Text>
+            </View>
+            <View style={styles.summaryDivider} />
+            <Text style={styles.addressLocation}>
+              {selectedAddress.city}, {selectedAddress.state}, {selectedAddress.country} - {selectedAddress.pincode}
             </Text>
           </View>
-        </View>
+        ) : userData?.address ? (
+          // Show user's default address initially
+          <View style={styles.addressCard}>
+            <View style={styles.personInfo}>
+              <Text style={styles.personName}>{userData?.full_name || 'Person Name'}</Text>
+              <Text style={styles.phoneNumber}>
+                {userData?.country_code || '+91'} {userData?.phone_number}
+              </Text>
+            </View>
+            <View style={styles.summaryDivider} />
+            <View style={styles.addressInfo}>
+              <IconsSvg name='locationIcon' />
+              <Text style={styles.addressText}>
+                {userData?.address}
+              </Text>
+            </View>
+          </View>
+        ) : (
+          // Show no address state if user has no default address
+          <View style={styles.noAddressContainer}>
+            <Text style={styles.noAddressText}>No address selected</Text>
+            <TouchableOpacity style={styles.addAddressButton} onPress={handleChangeAddress}>
+              <Text style={styles.addAddressButtonText}>Add Address</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
       <View style={styles.productSection}>
         <Text style={styles.sectionTitle}>Estimated Delivery</Text>
@@ -395,5 +440,32 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: '#e5e5e5',
     marginVertical: 8,
+  },
+  addressLocation: {
+    fontSize: fontSizes.small,
+    fontFamily: fonts.regular,
+    color: colors.text3,
+    marginTop: 4,
+  },
+  noAddressContainer: {
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  noAddressText: {
+    fontSize: fontSizes.regular,
+    fontFamily: fonts.medium,
+    color: colors.text3,
+    marginBottom: 12,
+  },
+  addAddressButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  addAddressButtonText: {
+    fontSize: fontSizes.regular,
+    fontFamily: fonts.bold,
+    color: colors.white,
   },
 });

@@ -238,3 +238,8 @@ export const addAddress = async (payload: AddressPayloadType) => {
   const response = await axios.post(API.buyer.addAddress, payload);
   return response;
 };
+
+export const getAddresses = async () => {
+  const response = await axios.get(API.buyer.getAddresses);
+  return response;
+};

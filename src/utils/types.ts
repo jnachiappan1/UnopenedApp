@@ -193,3 +193,17 @@ export interface AddressPayloadType {
   pincode: string;
   country_code: string;
 }
+
+export interface AddressType {
+  id: number;
+  full_name: string;
+  phone_number: string;
+  address: string;
+  country: string;
+  state: string;
+  city: string;
+  pincode: string;
+  country_code: string;
+  created_at: string;
+  updated_at: string;
+}

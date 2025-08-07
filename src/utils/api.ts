@@ -18,6 +18,7 @@ export const API = {
     getProductList: `${base_url}/api/v1/common/product-list`,
     contact: `${base_url}/api/v1/contact-us`,
     addAddress: `${base_url}/api/v1/address`,
+    getAddresses: `${base_url}/api/v1/address`,
   },
   seller: {
     sign_up: `${base_url}/api/v1/users/auth/create`,

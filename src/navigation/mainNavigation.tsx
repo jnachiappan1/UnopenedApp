@@ -37,6 +37,7 @@ import { useSelector } from 'react-redux';
 import { IRootState } from '../redux/store';
 import AddProductScreen from '../screens/sellerPortal/addProductScreen';
 import BarcodeScanner from '../screens/sellerPortal/barcodeScanner';
+import AddressSelectionScreen from '../screens/buyerPortal/addressSelectionScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -115,6 +116,10 @@ const MainNavigation: React.FC = () => {
         component={AddAddressScreen}
       />
       <Stack.Screen
+        name={SCREENS.AddressSelectionScreen}
+        component={AddressSelectionScreen}
+      />
+      <Stack.Screen
         name={SCREENS.BarcodeScanner}
         component={BarcodeScanner}
       />
@@ -156,6 +161,7 @@ export enum SCREENS {
   BProductDetailScreen = 'BProductDetailScreen',
   ConfirmYourOrderScreen = 'ConfirmYourOrderScreen',
   AddAddressScreen = 'AddAddressScreen',
+  AddressSelectionScreen = 'AddressSelectionScreen',
   BarcodeScanner = 'BarcodeScanner'
 }
 
@@ -209,5 +215,8 @@ export type RootStackParamList = {
     productId:  string | number | null | undefined
   };
   [SCREENS.AddAddressScreen]: undefined;
+  [SCREENS.AddressSelectionScreen]: {
+    onAddressSelect: (address: any) => void;
+  };
   [SCREENS.BarcodeScanner]: undefined;
 };

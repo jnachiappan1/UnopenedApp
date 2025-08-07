@@ -23,7 +23,7 @@ import { useSelector } from 'react-redux';
 import { IRootState } from '../../redux/store';
 import CountryPicker, { Country } from 'react-native-country-picker-modal';
 import { selectedCountryType } from '../../utils/types';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { addAddress } from '../../utils/apiAction';
 import { AddressPayloadType } from '../../utils/types';
 import { showLoader } from '../../components/loader/loader';
@@ -49,6 +49,7 @@ interface AddressFormData {
 
 const AddAddressScreen: React.FC<AddAddressProps> = ({ navigation }) => {
   const userData = useSelector((user: IRootState) => user.user.userData);
+  const queryClient = useQueryClient();
   const [selectedState, setSelectedState] = useState<string>('');
   const [selectedCity, setSelectedCity] = useState<string>('');
   const [selectedCountry, setPhoneCountry] = useState<selectedCountryType>({
@@ -103,6 +104,8 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({ navigation }) => {
     mutationFn: addAddress,
     onSuccess: (data) => {
       showLoader(false);
+      // Invalidate and refetch addresses
+      queryClient.invalidateQueries({ queryKey: ['getAddresses'] });
       showAlert({
         isVisible: true,
         type: 'success',
