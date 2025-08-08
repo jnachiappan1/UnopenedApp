@@ -69,8 +69,9 @@ const FilterSortScreen: React.FC<FilterSortScreenProps> = ({
   const { data: categoryData, refetch: refetchcategoryDetail } = useQuery({
     queryKey: ['getCategoryDetail'],
     queryFn: () => getCategoryDetail(),
-    enabled: isLogged,
+    // enabled: isLogged,
   });
+console.log(categoryData,"categoryData-----");
 
   const activeCategories: ProductCategory[] = categoryData?.data?.category
     ?.filter((category: any) => category.status === 'active')

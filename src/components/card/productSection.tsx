@@ -72,8 +72,8 @@ const ProductSection: React.FC<Props> = ({
                   ]}
                 />
                 <View style={styles.productInfo}>
-                  <Text style={styles.productName}>{item.item?.name}</Text>
-                  <Text style={styles.productDescription}>
+                  <Text style={styles.productName} numberOfLines={1}>{item.item?.name}</Text>
+                  <Text style={styles.productDescription} numberOfLines={1}>
                     {item.item?.description}
                   </Text>
                   {
@@ -106,7 +106,7 @@ export default ProductSection;
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 16,
-    paddingTop: 20,
+    // paddingTop: 20,
   },
   sectionHeader: {
     flexDirection: 'row',

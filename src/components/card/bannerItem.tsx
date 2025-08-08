@@ -3,7 +3,7 @@ import React from 'react';
 import {View, Text, StyleSheet, Image} from 'react-native';
 import IconsSvg, {IconName} from '../../assets/svg/iconsSvg';
 import colors from '../../utils/colors';
-import {fontSizes} from '../../utils/utils';
+import {fontSizes, width} from '../../utils/utils';
 import fonts from '../../assets/fonts/fonts';
 import IMAGE from '../../assets/images';
 
@@ -53,7 +53,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 20,
     marginTop: 20,
-    height:140
+    height:140,
+    width:width-40
   },
   bannerContent: {
     flex: 1,

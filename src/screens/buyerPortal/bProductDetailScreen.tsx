@@ -165,7 +165,7 @@ const BProductDetailScreen: React.FC<LoginProps> = ({ route, navigation }) => {
           <InfoRow
             title="Brand"
             showColon
-            subtitle={currentProduct?.description}
+            subtitle={currentProduct?.brand}
             style={styles.mainContainerStyle}
             subtitleStyle={styles.subtitleStyle}
           />

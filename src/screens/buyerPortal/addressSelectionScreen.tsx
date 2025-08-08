@@ -16,10 +16,12 @@ import { fontSizes } from '../../utils/utils';
 import fonts from '../../assets/fonts/fonts';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getAddresses } from '../../utils/apiAction';
-import { AddressType } from '../../utils/types';
+import { AddressType, IUser } from '../../utils/types';
 import { showLoader } from '../../components/loader/loader';
 import { showAlert } from '../../components/cAlert';
 import IconsSvg from '../../assets/svg/iconsSvg';
+import { useSelector } from 'react-redux';
+import { IRootState } from '../../redux/store';
 
 type AddressSelectionScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -32,6 +34,7 @@ const AddressSelectionScreen: React.FC<AddressSelectionScreenProps> = ({
 }) => {
   const { onAddressSelect } = route.params;
   const queryClient = useQueryClient();
+  const userData = useSelector((user: IRootState) => user.user.userData);
 
   const { data: addressesData, isLoading, refetch, error } = useQuery({
     queryKey: ['getAddresses'],
@@ -57,6 +60,35 @@ const AddressSelectionScreen: React.FC<AddressSelectionScreenProps> = ({
   );
 
   const addresses = addressesData?.data?.address || [];
+console.log(userData,"userData---");
+
+  // Convert user data to address format if user has address information
+  const getUserAddress = (): AddressType | null => {
+    if (!userData || !userData.address) return null;
+    
+    return {
+      id: -1, // Use negative ID to distinguish from saved addresses
+      full_name: `${userData.full_name || ''}`.trim(),
+      phone_number: userData.phone_number || '',
+      address: userData.address || '',
+      country: userData.country || '',
+      state: userData.state || '',
+      city: userData.city || '',
+      pincode: userData.pincode,
+      country_code: userData.country_code || '',
+      created_at: userData.createdAt || '',
+      updated_at: userData.updatedAt || '',
+    };
+  };
+
+  // Combine user address with saved addresses
+  const allAddresses = React.useMemo(() => {
+    const userAddress = getUserAddress();
+    if (userAddress) {
+      return [userAddress, ...addresses];
+    }
+    return addresses;
+  }, [userData, addresses]);
 
   const handleAddressSelect = (address: AddressType) => {
     onAddressSelect(address);
@@ -67,23 +99,37 @@ const AddressSelectionScreen: React.FC<AddressSelectionScreenProps> = ({
     navigation.navigate(SCREENS.AddAddressScreen);
   };
 
-  const renderAddressItem = ({ item }: { item: AddressType }) => (
-    <TouchableOpacity
-      style={styles.addressCard}
-      onPress={() => handleAddressSelect(item)}
-    >
-      <View style={styles.addressHeader}>
-        <Text style={styles.addressName}>{item.full_name}</Text>
-        <Text style={styles.addressPhone}>
-          {item.country_code} {item.phone_number}
+  const renderAddressItem = ({ item }: { item: AddressType }) => {
+    const isUserAddress = item.id === -1;
+    
+    return (
+      <TouchableOpacity
+        style={[
+          styles.addressCard,
+          isUserAddress && styles.userAddressCard
+        ]}
+        onPress={() => handleAddressSelect(item)}
+      >
+        <View style={styles.addressHeader}>
+          <Text style={styles.addressName}>{item.full_name}</Text>
+          <View style={styles.addressHeaderRight}>
+            {isUserAddress && (
+              <View style={styles.userAddressBadge}>
+                <Text style={styles.userAddressBadgeText}>My Address</Text>
+              </View>
+            )}
+            <Text style={styles.addressPhone}>
+              {item.country_code} {item.phone_number}
+            </Text>
+          </View>
+        </View>
+        <Text style={styles.addressText}>{item.address}</Text>
+        <Text style={styles.addressLocation}>
+          {item.city}, {item.state}, {item.country}{item.pincode ? ` - ${item.pincode}` : ''}
         </Text>
-      </View>
-      <Text style={styles.addressText}>{item.address}</Text>
-      <Text style={styles.addressLocation}>
-        {item.city}, {item.state}, {item.country} - {item.pincode}
-      </Text>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
@@ -104,7 +150,7 @@ const AddressSelectionScreen: React.FC<AddressSelectionScreenProps> = ({
         ) : (
           <>
             <FlatList
-              data={addresses}
+              data={allAddresses}
               renderItem={renderAddressItem}
               keyExtractor={(item) => item.id.toString()}
               showsVerticalScrollIndicator={false}
@@ -151,6 +197,25 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
+  },
+  addressHeaderRight: {
+    alignItems: 'flex-end',
+  },
+  userAddressCard: {
+    borderColor: colors.primary,
+    borderWidth: 2,
+  },
+  userAddressBadge: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginBottom: 4,
+  },
+  userAddressBadgeText: {
+    fontSize: fontSizes.small,
+    fontFamily: fonts.bold,
+    color: colors.white,
   },
   addressName: {
     fontSize: fontSizes.medium,

@@ -73,6 +73,7 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ navigation, r
     const index = Math.round(event.nativeEvent.contentOffset.x / (width - 32));
     setCurrentIndex(index);
   };
+console.log(productDetail?.data,"productDetail?.data?.----");
 
   return (
     <TitleBackHeaderContainer isBack title='Product Details' >

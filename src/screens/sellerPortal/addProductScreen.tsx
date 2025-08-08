@@ -141,8 +141,10 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       productImages: [],
     }
   });
+  console.log(scanProductData,"scanProductData----");
+  
   useEffect(() => {
-    if ( scanProductData?.data?.product) {
+    if (scanProductData?.data?.product) {
       const productData = scanProductData.data.product;
       const scannedCategoryName = productData.category || '';
       const matchedCategory = dropdownData.find((cat) =>
@@ -155,9 +157,26 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       setValue('brandName', productData.brand || '');
       setValue('productName', productData.title || '');
       setValue('barcode', productData.ean || productData.upc || scannedBarcode || '');
+      
+      console.log(productData.highest_recorded_price, "productData.highest_recorded_price ----");
+      
+      // Set MSRP
+      const msrpValue = productData.highest_recorded_price || '';
+      setValue('msrp', msrpValue.toString());
+      
+      // Calculate and set price based on MSRP and discount
+      if (msrpValue && discountPercentage) {
+        const { amountToPay } = calculateDiscount(parseFloat(msrpValue), discountPercentage);
+        setValue('price', amountToPay.toFixed(2));
+        console.log('Calculated price:', amountToPay.toFixed(2));
+      } else {
+        setValue('price', '');
+      }
+      
       setValue('description', productData.description || '');
       setValue('dimensions', productData.dimension || '');
       setValue('weight', productData.weight ? productData.weight.toString() : '');
+      
       if (productData.images && productData.images.length > 0) {
         const imageObjects: MediaObject[] = productData.images.slice(0, 6).map((url: string, index: number) => ({
           uri: url,
@@ -174,7 +193,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       }
       clearErrors();
     }
-  }, [scanProductData, dropdownData, setValue, clearErrors, scannedBarcode]);
+  }, [scanProductData, dropdownData, setValue, clearErrors, scannedBarcode, discountPercentage]);
 
   const handleImageUpload = (selectedImages: MediaObject[]) => {
     setUploadedImages(selectedImages);
@@ -376,32 +395,41 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
   };
 
   // Render scan section with loading state
-  const renderScanSection = () => (
-    <View style={styles.scanSection}>
-      <IconsSvg name="scannerIcon" />
-      <Text style={styles.scanTitle}>Scan Product Barcode</Text>
-      <Text style={styles.scanSubtitle}>
-        {isScanFetching 
-          ? 'Loading product data...' 
-          : 'Automatically fill product details by\nscanning the barcode.'
-        }
-      </Text>
-      <WhiteButton 
-        style={[styles.scanButton, isScanFetching && { opacity: 0.6 }]} 
-        title={isScanFetching ? "Loading..." : "Scan Now"} 
-        onPress={() => {
-          if (!isScanFetching) {
-            navigation.navigate(SCREENS.BarcodeScanner);
+  const renderScanSection = () => {
+    const getScanButtonText = () => {
+      if (isScanFetching) {
+        return "Loading...";
+      }
+      return scannedBarcode ? "Scan Again" : "Scan Now";
+    };
+
+    return (
+      <View style={styles.scanSection}>
+        <IconsSvg name="scannerIcon" />
+        <Text style={styles.scanTitle}>Scan Product Barcode</Text>
+        <Text style={styles.scanSubtitle}>
+          {isScanFetching 
+            ? 'Loading product data...' 
+            : 'Automatically fill product details by\nscanning the barcode.'
           }
-        }}
-      />
-      {scannedBarcode && (
-        <Text style={styles.scannedBarcodeText}>
-          Scanned: {scannedBarcode}
         </Text>
-      )}
-    </View>
-  );
+        <WhiteButton 
+          style={[styles.scanButton, isScanFetching && { opacity: 0.6 }]} 
+          title={getScanButtonText()} 
+          onPress={() => {
+            if (!isScanFetching) {
+              navigation.replace(SCREENS.BarcodeScanner);
+            }
+          }}
+        />
+        {scannedBarcode && (
+          <Text style={styles.scannedBarcodeText}>
+            Scanned: {scannedBarcode}
+          </Text>
+        )}
+      </View>
+    );
+  };
 
   return (
     <TitleBackHeaderContainer isBack title="Add Product">

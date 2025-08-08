@@ -72,7 +72,8 @@ const LoginScreen: React.FC<LoginProps> = ({route, navigation}) => {
   return (
     <ImageBackgroundHeader
       containerStyle={[container, styles.container]}
-      hideBack={true}>
+      hideBack={false}
+      onBackPress={()=>navigation.goBack()}>
       <View style={styles.content}>
         <IconsSvg name="box" />
         <Text style={styles.title}>Get Started now</Text>

@@ -95,21 +95,36 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
     queryKey: ['getAllProductList', userData?.id],
     queryFn: () => getAllProductList(userData?.id),
   });
+
+  // SOLUTION 1: Reset data when user logs out and conditionally enable query
   const { data: sellerOwnProductList, refetch: refetchsellerOwnProductList } = useQuery({
-    queryKey: ['getMyOrderList'],
+    queryKey: ['getMyOrderList', userData?.id], // Add userData?.id to invalidate cache when user changes
     queryFn: () => getMyOrderList(),
-    enabled: !!userData,
+    enabled: !!userData && !!userData.id, // Only enable when userData exists
+    // Reset data when query is disabled
+    placeholderData: undefined,
+    // Force refetch when user logs in
+    staleTime: 0,
+    refetchOnMount: true,
   });
-  const sellerOwnProductData = Array.isArray(sellerOwnProductList?.data?.product) &&
+
+  console.log(userData, "userData-------");
+
+  // SOLUTION 2: Only process data when user is logged in
+  const sellerOwnProductData = isLogged && 
+    Array.isArray(sellerOwnProductList?.data?.product) &&
     sellerOwnProductList.data.product.every((item: any) => item && typeof item === 'object' && 'id' in item)
     ? (sellerOwnProductList.data.product as ProductData[])
     : [];
-  const latestData = sellerOwnProductData.sort(
+
+  const latestData = sellerOwnProductData.length > 0 ? sellerOwnProductData.sort(
     (a, b) =>
       new Date(b.updatedAt || b.createdAt).getTime() -
       new Date(a.updatedAt || a.createdAt).getTime()
-  );
+  ) : [];
+
   const oneLatestItem = latestData.slice(0, 1);
+
   const { data: productList, refetch: refetchProductList, isLoading, isFetching } = useQuery({
     queryKey: [
       'getProductList',
@@ -301,6 +316,11 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
   );
   const showEmptyState = !isLoading && !isFetching && (!displayProducts || displayProducts.length === 0);
   const showRecentlyListed = !hasActiveFilters() && allProducts && allProducts.length > 0;
+  
+  // SOLUTION 3: Only show "My Purchase" section when user is logged in AND has data
+  const shouldShowMyPurchase = isLogged && oneLatestItem && oneLatestItem.length > 0;
+  
+  console.log(oneLatestItem, "oneLatestItem----");
 
   return (
     <HeaderHomeContainer
@@ -310,7 +330,8 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
       profileImage={userData?.profile_picture}
       onSearchPress={() => { }}>
 
-      {(!oneLatestItem || oneLatestItem.length === 0)?(
+      {/* Only show banner when no recent purchase or user not logged in */}
+      {!shouldShowMyPurchase ? (
         <FlatList
           data={bannerData}
           keyExtractor={item => item.id}
@@ -318,9 +339,9 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
           horizontal
           showsHorizontalScrollIndicator={false}
         />
-      ):
-      <View style={{height:10}}/>
-      }
+      ) : (
+        <View style={{ height: 10 }} />
+      )}
 
       <SearchBar
         value={searchQuery}
@@ -334,27 +355,24 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
         selectedCategoryId={selectedCategoryId}
         onSelectCategory={handleCategorySelect}
       />
-      {
-        oneLatestItem &&
+
+      {/* Only render "My Purchase" section when user is logged in and has data */}
+      {shouldShowMyPurchase && (
         <>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>{'My Purchase'}</Text>
-
             <TouchableOpacity onPress={() => navigation.navigate(SCREENS.MyOrderScreen)}>
               <Text style={styles.viewAllText}>View All</Text>
             </TouchableOpacity>
-
           </View>
+
           <FlashList
             data={oneLatestItem}
             renderItem={({ item }) => (
               <View style={{ paddingHorizontal: 10 }}>
                 <OrderListingCard
                   item={item}
-                  cardStyle={{
-                    marginBottom: 0,
-
-                  }}
+                  cardStyle={{ marginBottom: 0 }}
                   onSelect={() =>
                     navigation.navigate(SCREENS.OrderTrackScreen, {
                       productId: item?.id,
@@ -368,7 +386,7 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
             showsVerticalScrollIndicator={false}
           />
         </>
-      }
+      )}
 
       {showEmptyState ? (
         <EmptyStateMessage
@@ -384,11 +402,8 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
               navigation.navigate(SCREENS.BrowseScreen);
             }}
             onPress={(item) => {
-
               navigation.navigate(SCREENS.BProductDetailScreen, { productId: item?.id });
-
             }}
-          // isLoading={isLoading || isFetching}
           />
 
           {showRecentlyListed && (
@@ -397,7 +412,6 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
               products={allProducts?.slice(0, 4)}
               onPress={(item) => {
                 navigation.navigate(SCREENS.BProductDetailScreen, { productId: item?.id });
-
               }}
             />
           )}
@@ -405,19 +419,10 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
             <TopPicksSection
               title="Sold Product"
               products={soldProducts}
-              onViewAll={() => {}}
-              onSelect={(item) =>  navigation.navigate(SCREENS.BProductDetailScreen, { productId: item?.id })}
-
+              onViewAll={() => { }}
+              onSelect={(item) => navigation.navigate(SCREENS.BProductDetailScreen, { productId: item?.id })}
             />
           )}
-          {/* {showRecentlyListed && (
-            <TopPicksSection
-              title="Top Withdrawn Product"
-              products={withdrawnProducts}
-              onViewAll={() => console.log('View All Top Picks')}
-              onSelect={(item) =>  navigation.navigate(SCREENS.BProductDetailScreen, { productId: item?.id })}
-            />
-          )} */}
         </>
       )}
 

@@ -25,10 +25,27 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ navigation }) => {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scannedCode, setScannedCode] = useState<string | null>(null);
   const [lastScanTime, setLastScanTime] = useState(0);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [countdown, setCountdown] = useState(0);
 
   useEffect(() => {
     requestPermissions();
   }, []);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (countdown > 0) {
+      timer = setTimeout(() => {
+        setCountdown(countdown - 1);
+      }, 1000);
+    } else if (countdown === 0 && isProcessing) {
+      setIsProcessing(false);
+      setIsScanning(true);
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [countdown, isProcessing]);
 
   const requestPermissions = async () => {
     if (Platform.OS === 'android') {
@@ -54,34 +71,38 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ navigation }) => {
   const handleBarcodeScan = async (event: { nativeEvent: { codeStringValue: string } }) => {
     const code = event.nativeEvent.codeStringValue;
     
-    if (!code || !isScanning) return;
+    if (!code || !isScanning || isProcessing) return;
 
     // Prevent duplicate scans within 2 seconds
     const now = Date.now();
     if (now - lastScanTime < 2000) {
       return;
     }
+    
     setLastScanTime(now);
     setScannedCode(code);
     setIsScanning(false);
+    setIsProcessing(true);
+    setCountdown(10); // Start 10 second countdown for camera adjustment
 
     // Show confirmation alert
     Alert.alert(
-      'Barcode Scanned',
-      `Code: ${code}`,
+      'Barcode Scanned Successfully!',
+      `Code: ${code}\n\nTake your time to adjust the camera position for the next scan.`,
       [
         {
           text: 'Scan Again',
           style: 'cancel',
           onPress: () => {
             setScannedCode(null);
-            setIsScanning(true);
+            setIsProcessing(true);
+            setCountdown(10); // Start 10 second countdown for camera adjustment
           }
         },
         {
           text: 'Use This Code',
           onPress: () => {
-            navigation.navigate(SCREENS.AddProductScreen, {
+            navigation.replace(SCREENS.AddProductScreen, {
               scannedBarcode: code,
             });
           }
@@ -95,6 +116,8 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ navigation }) => {
   };
 
   const toggleScanning = () => {
+    if (isProcessing) return; // Prevent toggling while processing
+    
     setIsScanning(!isScanning);
     if (scannedCode) {
       setScannedCode(null);
@@ -162,14 +185,13 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ navigation }) => {
               scanBarcode={true}
               onReadCode={handleBarcodeScan}
               showFrame={false}
-              hideControls={true}
             />
             
             {/* Scanner Overlay */}
             <View style={styles.overlay}>
               <View style={styles.overlayTop}>
                 <Text style={styles.instructionText}>
-                  Position the barcode within the frame
+                  Hold steady and position the barcode within the green frame
                 </Text>
               </View>
               
@@ -190,7 +212,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ navigation }) => {
               
               <View style={styles.overlayBottom}>
                 <Text style={styles.hintText}>
-                  Make sure the barcode is clearly visible and well-lit
+                  Ensure good lighting and keep the barcode clearly visible\nAvoid shadows and reflections for best results
                 </Text>
               </View>
             </View>
@@ -200,16 +222,28 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ navigation }) => {
             <Text style={styles.pausedText}>
               {scannedCode ? `Scanned: ${scannedCode}` : 'Scanning paused'}
             </Text>
-            <TouchableOpacity style={styles.button} onPress={toggleScanning}>
+            {isProcessing && (
+              <Text style={styles.processingText}>
+                {countdown > 0 
+                  ? `Camera adjustment time: ${countdown}s\nPosition your next barcode in the frame`
+                  : 'Camera ready! You can start scanning again'
+                }
+              </Text>
+            )}
+            <TouchableOpacity 
+              style={[styles.button, isProcessing && styles.buttonDisabled]} 
+              onPress={toggleScanning}
+              disabled={isProcessing}
+            >
               <Text style={styles.buttonText}>
                 {scannedCode ? 'Scan Again' : 'Resume Scanning'}
               </Text>
             </TouchableOpacity>
-            {scannedCode && (
+            {scannedCode && !isProcessing && (
               <TouchableOpacity 
                 style={[styles.button, styles.useCodeButton]} 
                 onPress={() => {
-                  navigation.navigate(SCREENS.AddProductScreen, {
+                  navigation.replace(SCREENS.AddProductScreen, {
                     scannedBarcode: scannedCode,
                   });
                 }}
@@ -224,8 +258,9 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ navigation }) => {
       {/* Bottom Controls */}
       <View style={styles.bottomControls}>
         <TouchableOpacity 
-          style={[styles.controlButton, !isScanning && styles.controlButtonActive]} 
+          style={[styles.controlButton, !isScanning && styles.controlButtonActive, isProcessing && styles.controlButtonDisabled]} 
           onPress={toggleScanning}
+          disabled={isProcessing}
         >
           <Text style={styles.controlButtonText}>
             {isScanning ? 'Pause' : 'Resume'}
@@ -295,7 +330,7 @@ const styles = StyleSheet.create({
   },
   overlayTop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(0,0,0,0.9)',
     justifyContent: 'flex-end',
     alignItems: 'center',
     paddingBottom: 20,
@@ -306,14 +341,14 @@ const styles = StyleSheet.create({
   },
   overlayBottom: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(0,0,0,0.9)',
     justifyContent: 'flex-start',
     alignItems: 'center',
     paddingTop: 20,
   },
   overlaySide: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(0,0,0,0.9)',
   },
   scannerFrame: {
     width: SCANNER_SIZE,
@@ -321,6 +356,8 @@ const styles = StyleSheet.create({
     position: 'relative',
     justifyContent: 'center',
     alignItems: 'center',
+    // This makes the scanner frame transparent so camera shows through
+    backgroundColor: 'transparent',
   },
   corner: {
     position: 'absolute',
@@ -402,6 +439,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontFamily: 'monospace',
   },
+  processingText: {
+    color: '#FFA500',
+    fontSize: 16,
+    marginBottom: 20,
+    textAlign: 'center',
+    fontStyle: 'italic',
+    lineHeight: 22,
+    paddingHorizontal: 20,
+  },
   button: {
     backgroundColor: '#007AFF',
     paddingVertical: 14,
@@ -410,6 +456,10 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     minWidth: 160,
     alignItems: 'center',
+  },
+  buttonDisabled: {
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    opacity: 0.7,
   },
   useCodeButton: {
     backgroundColor: '#00C851',
@@ -441,6 +491,11 @@ const styles = StyleSheet.create({
   controlButtonActive: {
     backgroundColor: 'rgba(255,255,255,0.2)',
     borderColor: 'rgba(255,255,255,0.4)',
+  },
+  controlButtonDisabled: {
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderColor: 'rgba(255,255,255,0.1)',
+    opacity: 0.7,
   },
   controlButtonText: {
     color: '#fff',
