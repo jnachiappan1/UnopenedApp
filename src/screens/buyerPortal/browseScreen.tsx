@@ -18,7 +18,7 @@ import {products} from '../../utils/static';
 import fonts from '../../assets/fonts/fonts';
 import colors from '../../utils/colors';
 import IconsSvg from '../../assets/svg/iconsSvg';
-import {ScrollView} from 'react-native-gesture-handler';
+import {ScrollView} from 'react-native';
 import {ProductCategory} from '../../utils/types';
 import { useQuery } from '@tanstack/react-query';
 import { getProductList } from '../../utils/apiAction';

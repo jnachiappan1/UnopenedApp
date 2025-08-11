@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>Unopened</string>
+	<string>Unopened_Mobile</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -27,12 +27,24 @@
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
-		<false/>
+		<true/>
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>45.248.33.161</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+				<key>NSExceptionMinimumTLSVersion</key>
+				<string>TLSv1.0</string>
+				<key>NSExceptionRequiresForwardSecrecy</key>
+				<false/>
+			</dict>
+		</dict>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string/>
+	<string></string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>
@@ -47,24 +59,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>UIAppFonts</key>
-	<array>
-		<string>Satoshi-Black.ttf</string>
-		<string>Satoshi-BlackItalic.ttf</string>
-		<string>Satoshi-Bold.ttf</string>
-		<string>Satoshi-BoldItalic.ttf</string>
-		<string>Satoshi-Italic.ttf</string>
-		<string>Satoshi-Light.ttf</string>
-		<string>Satoshi-LightItalic.ttf</string>
-		<string>Satoshi-Medium.ttf</string>
-		<string>Satoshi-MediumItalic.ttf</string>
-		<string>Satoshi-Regular.ttf</string>
-		<string>Satoshi-Variable.ttf</string>
-		<string>Satoshi-VariableItalic.ttf</string>
-	</array>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Your message to user when the photo library is accessed for the first time</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Your message to user when the photo library is accessed for the first time</string>
 </dict>
 </plist>

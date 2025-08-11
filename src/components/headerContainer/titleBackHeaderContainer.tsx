@@ -100,7 +100,7 @@ const TitleBackHeaderContainer: React.FC<
             onRefresh={onRefresh}
             tintColor={colors.primary}
           />
-        ) : <></>
+        ) : undefined
       }>
       {children}
     </ScrollView>
@@ -120,7 +120,7 @@ const TitleBackHeaderContainer: React.FC<
                   tintColor={colors.primary}
                 />
               ) : (
-                <></>
+                undefined
               )
             }>
            {children}

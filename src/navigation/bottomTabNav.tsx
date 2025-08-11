@@ -351,8 +351,8 @@ const getFlatStyles = (colors: IColors) =>
       width: '100%',
       height: '100%',
       zIndex: 1,
-
-      //paddingBottom: OS === 'android' ? 15 : 0,
+// backgroundColor:'red',
+      paddingBottom: OS === 'android' ? 0 : 20,
     },
   });
 
@@ -379,6 +379,7 @@ const getCurvedStyles = (c: IColors) =>
       width: '100%',
       height: '100%',
       zIndex: 1,
+      paddingBottom: OS === 'android' ? 0 : 20,
     },
     tab: {
       flex: 1,
