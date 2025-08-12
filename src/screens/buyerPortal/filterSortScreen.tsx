@@ -14,7 +14,7 @@ import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
 import fonts from '../../assets/fonts/fonts';
 import colors from '../../utils/colors';
 import Button from '../../components/button/buttons';
-import { height, width } from '../../utils/utils';
+import { height, OS, width } from '../../utils/utils';
 import IconsSvg from '../../assets/svg/iconsSvg';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import { getCategoryDetail } from '../../utils/apiAction';
@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     backgroundColor: colors.white,
     borderTopRightRadius: 24,
-    height: height + 50,
+    height: OS === 'ios' ? height : height + 50,
     justifyContent: 'space-between',
   },
   sidebarText: {
@@ -364,6 +364,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
     paddingVertical: 20,
+    marginBottom: 150,
   },
   categoryItem: {
     paddingVertical: 10,

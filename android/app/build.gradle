@@ -11,13 +11,15 @@ react {
 }
 
 def enableProguardInReleaseBuilds = false
-def jscFlavor = 'org.webkit:android-jsc:+'
-
+// def jscFlavor = 'org.webkit:android-jsc:+'
+def jscFlavor = 'io.github.react-native-community:jsc-android:2026004'
 android {
     namespace "com.unopened_mobile"
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
+    
+
 
     defaultConfig {
         applicationId "com.unopened_mobile"

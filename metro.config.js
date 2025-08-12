@@ -2,9 +2,9 @@ const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
 
 /**
  * Metro configuration
- * https://reactnative.dev/docs/metro
+ * https://metrobundler.dev/docs/configuration
  *
- * @type {import('@react-native/metro-config').MetroConfig}
+ * @type {import('metro-config').MetroConfig}
  */
 const config = {};
 
