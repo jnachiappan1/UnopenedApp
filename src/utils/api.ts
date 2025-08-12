@@ -32,6 +32,7 @@ export const API = {
     getLegalcontent: `${base_url}/api/v1/common/legalcontent/`,
     getProductList: `${base_url}/api/v1/common/product-list`,
     getProductPrice: `${base_url}/api/v1/common/product-price`,
+    getProductPriceCharge: `${base_url}/api/v1/common/product-price-charge`,
     getMyOrderList: `${base_url}/api/v1/product/purchase-product`,
     getScanProduct: `${base_url}/api/v1/product/scan-product?barcode=`,
 

@@ -107,9 +107,6 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
     staleTime: 0,
     refetchOnMount: true,
   });
-
-  console.log(userData, "userData-------");
-
   // SOLUTION 2: Only process data when user is logged in
   const sellerOwnProductData = isLogged && 
     Array.isArray(sellerOwnProductList?.data?.product) &&
@@ -301,7 +298,6 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
     setSelectedCategoryId(null);
     setSearchQuery('');
   };
-
   const displayProducts = (productList?.data?.product || []).filter(
     (item: ProductData) => item.product_status === 'active'
   );
@@ -320,8 +316,6 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
   // SOLUTION 3: Only show "My Purchase" section when user is logged in AND has data
   const shouldShowMyPurchase = isLogged && oneLatestItem && oneLatestItem.length > 0;
   
-  console.log(oneLatestItem, "oneLatestItem----");
-
   return (
     <HeaderHomeContainer
       title={'Welcome,'}
@@ -354,6 +348,7 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
         categories={categories}
         selectedCategoryId={selectedCategoryId}
         onSelectCategory={handleCategorySelect}
+        onSeeMorePress={handleFilterPress}
       />
 
       {/* Only render "My Purchase" section when user is logged in and has data */}

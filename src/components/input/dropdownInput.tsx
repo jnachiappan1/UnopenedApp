@@ -87,53 +87,66 @@ const DropdownInput: React.FC<InputProps> = props => {
       rules={{
         required: required,
       }}
-      render={({field: {onChange}}) => (
-        <View style={[styles.container, containerStyle]}>
-          <Text style={styles.label}>{label}</Text>
-          <Dropdown
-            style={styles.dropDownContainer}
-            placeholderStyle={styles.placeholderStyle}
-            selectedTextStyle={styles.selectedTextStyle}
-            inputSearchStyle={styles.inputSearchStyle}
-            iconStyle={styles.iconStyle}
-            itemTextStyle={styles.itemTextStyle}
-            data={data}
-            search={isSearch}
-            maxHeight={300}
-            value={value}            
-            labelField={labelField}
-            valueField={valueField}
-            disable={isDisable}
-            searchPlaceholder="Search..."
-            placeholder={placeholder}
-            onChange={item => {
-              onChange(item);
-              onChangeValue && onChangeValue(item);
-            }}
-            containerStyle={styles.dropdownContainerStyle}
-            activeColor={colors.white}
-            renderLeftIcon={() =>
-              I18nManager.isRTL ? <IconsSvg name="downArrow" /> : <></>
+      render={({field: {onChange, value: fieldValue}}) => {
+        // Find the selected item from data based on fieldValue
+        const selectedItem = data.find(item => {
+          if (valueField && fieldValue) {
+            if (typeof fieldValue === 'object' && fieldValue.id) {
+              return item[valueField] === fieldValue.id;
             }
-            renderRightIcon={() =>
-              !I18nManager.isRTL ? <IconsSvg name="downArrow" /> : <></>
-            }
-          />
+            return item[valueField] === fieldValue;
+          }
+          return false;
+        });
 
-          {productErr ? (
-            <Text style={commonStyles.error} numberOfLines={2}>
-              {productErr}
-            </Text>
-          ) : err ? (
-            <Text style={commonStyles.error} numberOfLines={2}>
-              {err?.toString()}
-            </Text>
-          ) : null}
-          {/* <Text style={commonStyles.error} numberOfLines={2}>
-            {err}
-          </Text> */}
-        </View>
-      )}
+        return (
+          <View style={[styles.container, containerStyle]}>
+            <Text style={styles.label}>{label}</Text>
+            <Dropdown
+              style={styles.dropDownContainer}
+              placeholderStyle={styles.placeholderStyle}
+              selectedTextStyle={styles.selectedTextStyle}
+              inputSearchStyle={styles.inputSearchStyle}
+              iconStyle={styles.iconStyle}
+              itemTextStyle={styles.itemTextStyle}
+              data={data}
+              search={isSearch}
+              maxHeight={300}
+              value={selectedItem || null}
+              labelField={labelField}
+              valueField={valueField}
+              disable={isDisable}
+              searchPlaceholder="Search..."
+              placeholder={placeholder}
+              onChange={item => {
+                onChange(item);
+                onChangeValue && onChangeValue(item);
+              }}
+              containerStyle={styles.dropdownContainerStyle}
+              activeColor={colors.white}
+              renderLeftIcon={() =>
+                I18nManager.isRTL ? <IconsSvg name="downArrow" /> : <></>
+              }
+              renderRightIcon={() =>
+                !I18nManager.isRTL ? <IconsSvg name="downArrow" /> : <></>
+              }
+            />
+
+            {productErr ? (
+              <Text style={commonStyles.error} numberOfLines={2}>
+                {productErr}
+              </Text>
+            ) : err ? (
+              <Text style={commonStyles.error} numberOfLines={2}>
+                {err?.toString()}
+              </Text>
+            ) : null}
+            {/* <Text style={commonStyles.error} numberOfLines={2}>
+              {err}
+            </Text> */}
+          </View>
+        );
+      }}
     />
   );
 };
@@ -177,17 +190,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: fonts.medium,
     color: colors.primaryBlack,
-    textAlign: 'left',
+  },
+  inputSearchStyle: {
+    height: 40,
+    fontSize: 16,
   },
   iconStyle: {
     width: 20,
     height: 20,
-  },
-  inputSearchStyle: {
-    height: 50,
-    fontSize: 12,
-    fontFamily: fonts.medium,
-    color: colors.primaryBlack,
-    borderRadius: 5,
   },
 });

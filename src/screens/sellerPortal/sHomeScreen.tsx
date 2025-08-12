@@ -346,6 +346,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
       return [];
     }
   }, [selectedTab, products, getStatusForTab]);
+console.log("calll======");
 
   const getTabCounts = React.useCallback(() => {
     try {

@@ -130,8 +130,6 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({ navigation }) => {
   });
 
   const onSubmit = (data: AddressFormData) => {
-    console.log(data,"data--------");
-    
     showLoader(true);
     const payload: AddressPayloadType = {
       full_name: data.fullName,

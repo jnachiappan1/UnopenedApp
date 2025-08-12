@@ -27,7 +27,7 @@ import ImageUpload from '../../components/input/ImageUpload';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
 import ProductImageUpload from '../../components/model/productImageUpload';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { addProduct, getCategoryDetail, getProductPriceDetail, getScanProductDetail } from '../../utils/apiAction';
+import { addProduct, getCategoryDetail, getProductPriceChargeDetail, getProductPriceDetail, getScanProductDetail } from '../../utils/apiAction';
 import { showAlert } from '../../components/cAlert';
 import { fontSizes } from '../../utils/utils';
 import { IRootState } from '../../redux/store';
@@ -48,6 +48,8 @@ type FormData = {
   category: DropDownType | string;
   msrp: string;
   price: string;
+  platform_fee: string;
+  seller_final_price: string;
   dimensions: string;
   weight: string;
   description: string;
@@ -71,7 +73,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
   const {
     scannedBarcode
   } = route.params || {};
-  console.log(scannedBarcode,"scannedBarcode----");
   const [uploadedImages, setUploadedImages] = useState<MediaObject[]>([]);
   const [isNavigatingToPreview, setIsNavigatingToPreview] = useState(false);
   const userData = useSelector((user: IRootState) => user.user.userData);
@@ -87,6 +88,11 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
   const { data: ProductPriceData, refetch: refetchProductPriceData } = useQuery({
     queryKey: ['getProductPriceDetail'],
     queryFn: () => getProductPriceDetail(),
+    enabled: isLogged,
+  });
+  const { data: ProductPriceChargeData, refetch: refetchProductPriceChargeData } = useQuery({
+    queryKey: ['getProductPriceChargeDetail'],
+    queryFn: () => getProductPriceChargeDetail(),
     enabled: isLogged,
   });
   const {
@@ -127,6 +133,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     setError,
     clearErrors,
     trigger,
+    watch,
   } = useForm<FormData>({
     defaultValues: {
       brandName: '',
@@ -135,31 +142,72 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       category: '',
       msrp: '',
       price: '',
+      platform_fee: '',
+      seller_final_price: '',
       description: '',
       dimensions: '',
       weight: '',
       productImages: [],
     }
   });
-  console.log(scanProductData,"scanProductData----");
-  
+
+  // Monitor category value changes
+  useEffect(() => {
+    const subscription = watch((value, { name }) => {
+      if (name === 'category') {
+       
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [watch]);
+
+  // Monitor price changes to recalculate platform fee and seller final price
+  useEffect(() => {
+    const subscription = watch((value, { name }) => {
+      if (name === 'price' && value.price && ProductPriceChargeData?.data?.product_price?.price_charge) {
+        const priceAmount = parseFloat(value.price);
+        const platformFeePercentage = ProductPriceChargeData.data.product_price.price_charge;
+        
+        // Calculate platform fee (17% of price)
+        const platformFee = (priceAmount * platformFeePercentage) / 100;
+        setValue('platform_fee', platformFee.toFixed(2));
+        
+        // Calculate seller final price (price - platform fee)
+        const sellerFinalPrice = priceAmount - platformFee;
+        setValue('seller_final_price', sellerFinalPrice.toFixed(2));
+        
+        
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [watch, ProductPriceChargeData, setValue]);
+      
   useEffect(() => {
     if (scanProductData?.data?.product) {
       const productData = scanProductData.data.product;
       const scannedCategoryName = productData.category || '';
-      const matchedCategory = dropdownData.find((cat) =>
-        scannedCategoryName.toLowerCase().includes(cat.name.toLowerCase()) ||
-        cat.name.toLowerCase().includes(scannedCategoryName.toLowerCase())
-      );
+      
+      // Extract the first part before ">" for better category matching
+      const primaryCategory = scannedCategoryName.split('>')[0]?.trim() || scannedCategoryName;
+      const matchedCategory = dropdownData.find((cat) => {
+        // Check if the category name is contained in the scanned category
+        const isContained = primaryCategory.toLowerCase().includes(cat.name.toLowerCase()) ||
+                           cat.name.toLowerCase().includes(primaryCategory.toLowerCase());
+        const isExactMatch = cat.name.toLowerCase() === primaryCategory.toLowerCase();
+        return isContained || isExactMatch;
+      });
+      
       if (matchedCategory) {
         setValue('category', matchedCategory);
+      } else {
+        // No category match found
       }
+      
       setValue('brandName', productData.brand || '');
       setValue('productName', productData.title || '');
       setValue('barcode', productData.ean || productData.upc || scannedBarcode || '');
       
-      console.log(productData.highest_recorded_price, "productData.highest_recorded_price ----");
-      
+ 
       // Set MSRP
       const msrpValue = productData.highest_recorded_price || '';
       setValue('msrp', msrpValue.toString());
@@ -168,9 +216,18 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       if (msrpValue && discountPercentage) {
         const { amountToPay } = calculateDiscount(parseFloat(msrpValue), discountPercentage);
         setValue('price', amountToPay.toFixed(2));
-        console.log('Calculated price:', amountToPay.toFixed(2));
+        if (ProductPriceChargeData?.data?.product_price?.price_charge) {
+          const platformFeePercentage = ProductPriceChargeData.data.product_price.price_charge;
+          const priceAmount = parseFloat(amountToPay.toFixed(2));
+          const platformFee = (priceAmount * platformFeePercentage) / 100;
+          setValue('platform_fee', platformFee.toFixed(2));
+          const sellerFinalPrice = priceAmount - platformFee;
+          setValue('seller_final_price', sellerFinalPrice.toFixed(2));
+        }
       } else {
         setValue('price', '');
+        setValue('platform_fee', '');
+        setValue('seller_final_price', '');
       }
       
       setValue('description', productData.description || '');
@@ -284,6 +341,8 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     data?.dimensions && formData.append('dimensions', data.dimensions);
     data?.weight && formData.append('weight', data.weight);
     formData.append('price', data.price);
+    formData.append('platform_fee', data.platform_fee);
+    formData.append('seller_final_price', data.seller_final_price);
     formData.append('description', data.description);
     uploadedImages.forEach((media, index) => {
       formData.append(`images`, {
@@ -328,7 +387,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       return;
     }
     const apiFormData = prepareFormDataForAPI(data);
-    console.log("apiFormData=======",apiFormData);
     showLoader(true);
      mutate(apiFormData)
   };
@@ -488,7 +546,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             required={{ value: true, message: 'Category is required' }}
             error={errors}
             onChangeValue={(selectedItem) => {
-              console.log('Selected Item:', selectedItem);
+              // Category selected
             }}
             containerStyle={styles.categoryStyle}
           />
@@ -510,9 +568,25 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
               if (!isNaN(msrpValue) && discountPercentage) {
                 const { amountToPay } = calculateDiscount(msrpValue, discountPercentage);
                 setValue('price', amountToPay.toFixed(2));
+                
+                // Calculate platform fee and seller final price when MSRP changes
+                if (ProductPriceChargeData?.data?.product_price?.price_charge) {
+                  const platformFeePercentage = ProductPriceChargeData.data.product_price.price_charge;
+                  const priceAmount = parseFloat(amountToPay.toFixed(2));
+                  
+                  // Calculate platform fee (17% of price)
+                  const platformFee = (priceAmount * platformFeePercentage) / 100;
+                  setValue('platform_fee', platformFee.toFixed(2));
+                  
+                  // Calculate seller final price (price - platform fee)
+                  const sellerFinalPrice = priceAmount - platformFee;
+                  setValue('seller_final_price', sellerFinalPrice.toFixed(2));
+                }
               }
               else {
                 setValue('price', '');
+                setValue('platform_fee', '');
+                setValue('seller_final_price', '');
               }
             }}
           />
@@ -526,6 +600,38 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
               editable: false,
             }}
             required={{ value: true, message: 'Price is required' }}
+            error={errors}
+            maxLength={40}
+            keyboardType={'numeric'}
+            inputStyle={styles.inputStyle}
+            disabled
+          />
+          <Input
+            control={control}
+            name="platform_fee"
+            label={'Platform Fees *'}
+            containerStyle={styles.emailContainer}
+            inputProps={{
+              placeholder: 'Enter Platform Fees',
+              editable: false,
+            }}
+            required={{ value: true, message: 'Platform Fees is required' }}
+            error={errors}
+            maxLength={40}
+            keyboardType={'numeric'}
+            inputStyle={styles.inputStyle}
+            disabled
+          />
+          <Input
+            control={control}
+            name="seller_final_price"
+            label={'Seller Final Price *'}
+            containerStyle={styles.emailContainer}
+            inputProps={{
+              placeholder: 'Enter Seller Final Price',
+              editable: false,
+            }}
+            required={{ value: true, message: 'Seller Final Price is required' }}
             error={errors}
             maxLength={40}
             keyboardType={'numeric'}

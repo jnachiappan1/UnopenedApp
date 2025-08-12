@@ -150,7 +150,10 @@ export const getProductPriceDetail = async () => {
   const response = await axios.get(API.seller.getProductPrice);
   return response;
 };
-
+export const getProductPriceChargeDetail = async () => {
+  const response = await axios.get(API.seller.getProductPriceCharge);
+  return response;
+};
 export const getSalesProductList = async () => {
   const response = await axios.get(API.seller.sales_product_List);
   return response;
@@ -233,8 +236,6 @@ export const contactUs = async (payload: ContactSupportType) => {
 };
 
 export const addAddress = async (payload: AddressPayloadType) => {
-  console.log(payload,"payload----");
-  
   const response = await axios.post(API.buyer.addAddress, payload);
   return response;
 };

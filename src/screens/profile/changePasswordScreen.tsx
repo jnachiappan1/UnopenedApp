@@ -40,7 +40,7 @@ const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({
     formState: { errors },
   } = useForm<Inputs>({ defaultValues });
   const submit = (data: Inputs) => {
-    console.log('Password change data:', data);
+  
   
   };
   const newPassword = watch('newPassword');
