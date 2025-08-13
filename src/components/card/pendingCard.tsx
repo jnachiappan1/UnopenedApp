@@ -20,6 +20,18 @@ type Props = {
 };
 
 const PendingCard: React.FC<Props> = ({ item }) => {
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '';
+    
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    
+    return `${day}/${month}/${year}`;
+  };
+
   return (
     <View style={styles.card}>
     <View style={styles.badge}>
@@ -35,7 +47,7 @@ const PendingCard: React.FC<Props> = ({ item }) => {
     <IconsSvg name={'celender'} width={20} height={20} />
       <Text style={styles.dateText}>
         {item.isExpected ? 'Expected: ' : 'Delivered on: '}
-        <Text style={styles.date}>{item.date}</Text>
+        <Text style={styles.date}>{formatDate(item.date)}</Text>
       </Text>
     </View>
   </View>

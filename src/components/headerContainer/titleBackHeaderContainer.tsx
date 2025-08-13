@@ -94,11 +94,12 @@ const TitleBackHeaderContainer: React.FC<
     <ScrollView
       showsVerticalScrollIndicator={false}
       refreshControl={
-        refreshing ? (
+        onRefresh ? (
           <RefreshControl
-            refreshing={refreshing}
+            refreshing={refreshing || false}
             onRefresh={onRefresh}
             tintColor={colors.primary}
+            colors={[colors.primary]}
           />
         ) : undefined
       }>

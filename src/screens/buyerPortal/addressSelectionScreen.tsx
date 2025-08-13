@@ -60,35 +60,19 @@ const AddressSelectionScreen: React.FC<AddressSelectionScreenProps> = ({
   );
 
   const addresses = addressesData?.data?.address || [];
-console.log(userData,"userData---");
 
-  // Convert user data to address format if user has address information
-  const getUserAddress = (): AddressType | null => {
-    if (!userData || !userData.address) return null;
-    
-    return {
-      id: -1, // Use negative ID to distinguish from saved addresses
-      full_name: `${userData.full_name || ''}`.trim(),
-      phone_number: userData.phone_number || '',
-      address: userData.address || '',
-      country: userData.country || '',
-      state: userData.state || '',
-      city: userData.city || '',
-      pincode: userData.pincode,
-      country_code: userData.country_code || '',
-      created_at: userData.createdAt || '',
-      updated_at: userData.updatedAt || '',
-    };
-  };
-
-  // Combine user address with saved addresses
+  // Set first address as default if available
   const allAddresses = React.useMemo(() => {
-    const userAddress = getUserAddress();
-    if (userAddress) {
-      return [userAddress, ...addresses];
+    if (addresses && addresses.length > 0) {
+      // Mark the first address as default
+      const addressesWithDefault = addresses.map((address: AddressType, index: number) => ({
+        ...address,
+        isDefault: index === 0
+      }));
+      return addressesWithDefault;
     }
-    return addresses;
-  }, [userData, addresses]);
+    return [];
+  }, [addresses]);
 
   const handleAddressSelect = (address: AddressType) => {
     onAddressSelect(address);
@@ -99,23 +83,23 @@ console.log(userData,"userData---");
     navigation.navigate(SCREENS.AddAddressScreen);
   };
 
-  const renderAddressItem = ({ item }: { item: AddressType }) => {
-    const isUserAddress = item.id === -1;
+  const renderAddressItem = ({ item }: { item: AddressType & { isDefault?: boolean } }) => {
+    const isDefaultAddress = item.isDefault;
     
     return (
       <TouchableOpacity
         style={[
           styles.addressCard,
-          isUserAddress && styles.userAddressCard
+          isDefaultAddress && styles.defaultAddressCard
         ]}
         onPress={() => handleAddressSelect(item)}
       >
         <View style={styles.addressHeader}>
           <Text style={styles.addressName}>{item.full_name}</Text>
           <View style={styles.addressHeaderRight}>
-            {isUserAddress && (
-              <View style={styles.userAddressBadge}>
-                <Text style={styles.userAddressBadgeText}>My Address</Text>
+            {isDefaultAddress && (
+              <View style={styles.defaultAddressBadge}>
+                <Text style={styles.defaultAddressBadgeText}>Default</Text>
               </View>
             )}
             <Text style={styles.addressPhone}>
@@ -201,18 +185,18 @@ const styles = StyleSheet.create({
   addressHeaderRight: {
     alignItems: 'flex-end',
   },
-  userAddressCard: {
+  defaultAddressCard: {
     borderColor: colors.primary,
     borderWidth: 2,
   },
-  userAddressBadge: {
+  defaultAddressBadge: {
     backgroundColor: colors.primary,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 4,
     marginBottom: 4,
   },
-  userAddressBadgeText: {
+  defaultAddressBadgeText: {
     fontSize: fontSizes.small,
     fontFamily: fonts.bold,
     color: colors.white,

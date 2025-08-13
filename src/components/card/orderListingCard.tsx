@@ -28,7 +28,7 @@ const OrderListingCard: React.FC<OrderListingCardProps> = ({ item, cardStyle, on
           style={styles.cardImage}
         />
         <View>
-          <Text style={styles.cardTitle}>{item?.name}</Text>
+          <Text style={styles.cardTitle} numberOfLines={2}>{item?.name}</Text>
           <Text style={styles.cardPosted}>Posted {calculateDaysAgo(item?.createdAt)} Days Ago</Text>
           <Text style={styles.cardPrice}>${item?.price}</Text>
         </View>
@@ -75,7 +75,8 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.medium,
     fontFamily: fonts.bold,
     color: '#1F1F1F',
-    paddingVertical: 2
+    paddingVertical: 2,
+    width: 280
   },
   cardPrice: {
     fontSize: fontSizes.medium,

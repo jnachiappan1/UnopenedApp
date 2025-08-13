@@ -299,10 +299,10 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
     setSearchQuery('');
   };
   const displayProducts = (productList?.data?.product || []).filter(
-    (item: ProductData) => item.product_status === 'active'
+    (item: ProductData) => item.product_status === 'active' || item.product_status === 'sold'
   );
   const allProducts = (allProductList?.data?.product || []).filter(
-    (item: ProductData) => item.product_status === 'active'
+    (item: ProductData) => item.product_status === 'active' || item.product_status === 'sold'
   );
   const soldProducts = (allProductList?.data?.product || []).filter(
     (item: ProductData) => item.product_status === 'sold'
@@ -466,7 +466,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   list: {
-    paddingBottom: 20,
+    paddingBottom: 50,
   },
   sectionHeader: {
     flexDirection: 'row',

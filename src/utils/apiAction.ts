@@ -162,8 +162,8 @@ export const getProductDetailByID = async (productId: string | number | null | u
   const response = await axios.get(API.seller.getProductDetailByID+productId);
   return response;
 };
-export const soldProduct = async (productId: string | number | null | undefined) => {
-  const response = await axios.patch(`${API.seller.soldProduct}${productId}`);
+export const soldProduct = async (productId: string | number | null | undefined, payload?: { address_id: number }) => {
+  const response = await axios.patch(`${API.seller.soldProduct}${productId}`, payload);
   return response.data;
 };export const getMyOrderList = async () => {
   const response = await axios.get(API.seller.getMyOrderList);
@@ -242,5 +242,16 @@ export const addAddress = async (payload: AddressPayloadType) => {
 
 export const getAddresses = async () => {
   const response = await axios.get(API.buyer.getAddresses);
+  return response;
+};
+export const getPublishKeyAction = async () => {
+  const response = await axios.get(API.buyer.getPublishKey);
+  return response;
+};
+
+export const makePayment = async (productId: string | number | null | undefined, payload: { amount: string; address_id: number }) => {
+  console.log(productId,"productId======",payload);
+  
+  const response = await axios.post(`${API.buyer.makePayment}/${productId}`, payload);
   return response;
 };

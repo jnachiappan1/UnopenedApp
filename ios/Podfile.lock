@@ -1726,7 +1726,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - TOCropViewController (~> 2.7.4)
     - Yoga
-  - RNReanimated (3.19.1):
+  - RNReanimated (4.0.2):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1748,10 +1748,10 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNReanimated/reanimated (= 3.19.1)
-    - RNReanimated/worklets (= 3.19.1)
+    - RNReanimated/reanimated (= 4.0.2)
+    - RNWorklets
     - Yoga
-  - RNReanimated/reanimated (3.19.1):
+  - RNReanimated/reanimated (4.0.2):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1773,9 +1773,10 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNReanimated/reanimated/apple (= 3.19.1)
+    - RNReanimated/reanimated/apple (= 4.0.2)
+    - RNWorklets
     - Yoga
-  - RNReanimated/reanimated/apple (3.19.1):
+  - RNReanimated/reanimated/apple (4.0.2):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1797,53 +1798,7 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - Yoga
-  - RNReanimated/worklets (3.19.1):
-    - DoubleConversion
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2024.11.18.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-hermes
-    - React-ImageManager
-    - React-jsi
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - RNReanimated/worklets/apple (= 3.19.1)
-    - Yoga
-  - RNReanimated/worklets/apple (3.19.1):
-    - DoubleConversion
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2024.11.18.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-hermes
-    - React-ImageManager
-    - React-jsi
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
+    - RNWorklets
     - Yoga
   - RNScreens (4.13.1):
     - DoubleConversion
@@ -1933,7 +1888,155 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - RNWorklets (0.4.1):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - RNWorklets/worklets (= 0.4.1)
+    - Yoga
+  - RNWorklets/worklets (0.4.1):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - RNWorklets/worklets/apple (= 0.4.1)
+    - Yoga
+  - RNWorklets/worklets/apple (0.4.1):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - SocketRocket (0.7.1)
+  - Stripe (24.19.0):
+    - StripeApplePay (= 24.19.0)
+    - StripeCore (= 24.19.0)
+    - StripePayments (= 24.19.0)
+    - StripePaymentsUI (= 24.19.0)
+    - StripeUICore (= 24.19.0)
+  - stripe-react-native (0.50.3):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Stripe (~> 24.19.0)
+    - stripe-react-native/NewArch (= 0.50.3)
+    - StripeApplePay (~> 24.19.0)
+    - StripeFinancialConnections (~> 24.19.0)
+    - StripePayments (~> 24.19.0)
+    - StripePaymentSheet (~> 24.19.0)
+    - StripePaymentsUI (~> 24.19.0)
+    - Yoga
+  - stripe-react-native/NewArch (0.50.3):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Stripe (~> 24.19.0)
+    - StripeApplePay (~> 24.19.0)
+    - StripeFinancialConnections (~> 24.19.0)
+    - StripePayments (~> 24.19.0)
+    - StripePaymentSheet (~> 24.19.0)
+    - StripePaymentsUI (~> 24.19.0)
+    - Yoga
+  - StripeApplePay (24.19.0):
+    - StripeCore (= 24.19.0)
+  - StripeCore (24.19.0)
+  - StripeFinancialConnections (24.19.0):
+    - StripeCore (= 24.19.0)
+    - StripeUICore (= 24.19.0)
+  - StripePayments (24.19.0):
+    - StripeCore (= 24.19.0)
+    - StripePayments/Stripe3DS2 (= 24.19.0)
+  - StripePayments/Stripe3DS2 (24.19.0):
+    - StripeCore (= 24.19.0)
+  - StripePaymentSheet (24.19.0):
+    - StripeApplePay (= 24.19.0)
+    - StripeCore (= 24.19.0)
+    - StripePayments (= 24.19.0)
+    - StripePaymentsUI (= 24.19.0)
+  - StripePaymentsUI (24.19.0):
+    - StripeCore (= 24.19.0)
+    - StripePayments (= 24.19.0)
+    - StripeUICore (= 24.19.0)
+  - StripeUICore (24.19.0):
+    - StripeCore (= 24.19.0)
   - TOCropViewController (2.7.4)
   - Yoga (0.0.0)
 
@@ -2016,11 +2119,21 @@ DEPENDENCIES:
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNSVG (from `../node_modules/react-native-svg`)
+  - RNWorklets (from `../node_modules/react-native-worklets`)
+  - "stripe-react-native (from `../node_modules/@stripe/stripe-react-native`)"
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
   trunk:
     - SocketRocket
+    - Stripe
+    - StripeApplePay
+    - StripeCore
+    - StripeFinancialConnections
+    - StripePayments
+    - StripePaymentSheet
+    - StripePaymentsUI
+    - StripeUICore
     - TOCropViewController
 
 EXTERNAL SOURCES:
@@ -2177,6 +2290,10 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-screens"
   RNSVG:
     :path: "../node_modules/react-native-svg"
+  RNWorklets:
+    :path: "../node_modules/react-native-worklets"
+  stripe-react-native:
+    :path: "../node_modules/@stripe/stripe-react-native"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -2254,10 +2371,20 @@ SPEC CHECKSUMS:
   RNFlashList: 3badc5badd3342f1e75515f911e34a34dd0fcb96
   RNGestureHandler: 40441ef32129430d603720d61845c4e3084cc70b
   RNImageCropPicker: f21a39400ac4318512c53f014d83829cda036568
-  RNReanimated: 4f414b5e58e4249329d58839a2b613c480567805
+  RNReanimated: cab0db80f5064b79fa15bff372e7d83472a10184
   RNScreens: ef16970d0f91f1750ca82ba0db5d521fc0055fba
   RNSVG: 8ad5c94593e5e4a6e133e6934e2188e3c688d27a
+  RNWorklets: 0ecd89f6dcc442bcdb56e148f5220556c98304d4
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
+  Stripe: d1824162e4bcb6ead10401a0dc8e8a3d5ffee41f
+  stripe-react-native: 12186cb3d6ac553558b3d59571165a66af878cc1
+  StripeApplePay: eb64705d3c919492b1b28876652fd0aca2db38cc
+  StripeCore: b5bee05167f0c8ccce936244a031a9972fdeade8
+  StripeFinancialConnections: fd6c661f86f47b1d26a32f588b3a0b09826aba84
+  StripePayments: cf00b3c85cd7b57e40f622493f81bdf361cb3982
+  StripePaymentSheet: b126816213ae4f56ff4525ad25f94bb985a43e27
+  StripePaymentsUI: 05d4be35b34f821d5ddc8617dee04219f3646253
+  StripeUICore: d07bd63a4b53dee8cab4d6f81ce5a7ab3e28511e
   TOCropViewController: 80b8985ad794298fb69d3341de183f33d1853654
   Yoga: afd04ff05ebe0121a00c468a8a3c8080221cb14c
 

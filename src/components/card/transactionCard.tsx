@@ -85,6 +85,18 @@ const getTypeStyles = (rawType: string) => {
 const TransactionCard: React.FC<Props> = ({ item }) => {
   const { amountColor, prefix, iconName } = getTypeStyles(item.transactionType);
 
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '';
+    
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    
+    return `${day}/${month}/${year}`;
+  };
+
   return (
     <View style={styles.card}>
       <View style={styles.left}>
@@ -96,7 +108,8 @@ const TransactionCard: React.FC<Props> = ({ item }) => {
           <View style={{flexDirection:'row',paddingVertical:5}}>
             <IconsSvg name={'celender'} width={20} height={20} />
             <Text style={styles.subtitle}>
-              {item.notes}</Text>
+              {item.notes || formatDate(item.createdAt)}
+            </Text>
           </View>
 
         </View>
