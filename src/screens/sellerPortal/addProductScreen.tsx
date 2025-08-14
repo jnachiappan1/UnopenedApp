@@ -593,13 +593,13 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
           <Input
             control={control}
             name="price"
-            label={'Price *'}
+            label={'Unopen Price *'}
             containerStyle={styles.emailContainer}
             inputProps={{
-              placeholder: 'Enter Price',
+              placeholder: 'Enter Unopen Price',
               editable: false,
             }}
-            required={{ value: true, message: 'Price is required' }}
+            required={{ value: true, message: 'Unopen price is required' }}
             error={errors}
             maxLength={40}
             keyboardType={'numeric'}
@@ -615,7 +615,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
               placeholder: 'Enter Platform Fees',
               editable: false,
             }}
-            required={{ value: true, message: 'Platform Fees is required' }}
+            required={{ value: true, message: 'Platform fees is required' }}
             error={errors}
             maxLength={40}
             keyboardType={'numeric'}
@@ -625,13 +625,13 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
           <Input
             control={control}
             name="seller_final_price"
-            label={'Seller Final Price *'}
+            label={'Seller Final Amount *'}
             containerStyle={styles.emailContainer}
             inputProps={{
-              placeholder: 'Enter Seller Final Price',
+              placeholder: 'Enter Seller Final Amount',
               editable: false,
             }}
-            required={{ value: true, message: 'Seller Final Price is required' }}
+            required={{ value: true, message: 'Seller final amount is required' }}
             error={errors}
             maxLength={40}
             keyboardType={'numeric'}

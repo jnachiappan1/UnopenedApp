@@ -1,4 +1,4 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View, ScrollView } from 'react-native'
 import React, { useEffect, useState, useCallback } from 'react'
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer'
 import colors from '../../utils/colors'
@@ -21,6 +21,7 @@ type WalletScreenProps = NativeStackScreenProps<RootStackParamList, SCREENS.Wall
 const WalletScreen: React.FC<WalletScreenProps> = ({ navigation }) => {
   const userData = useSelector((user: IRootState) => user.user.userData);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState<string>('all');
   
   const { data: walletData, refetch: refetchWalletDetail, isFetching: isWalletFetching, error: walletError } = useQuery({
     queryKey: ['getWalletDetail', userData?.id],
@@ -49,18 +50,6 @@ const WalletScreen: React.FC<WalletScreenProps> = ({ navigation }) => {
     retry: 3,
     retryDelay: 1000,
   });
-  
-  console.log("Query states:", {
-    walletFetching: isWalletFetching,
-    transactionFetching: isTransactionFetching,
-    walletData: !!walletData,
-    transactionData: !!transactionData,
-    userData: !!userData,
-    transactionCount: transactionData?.data?.transaction?.length || 0,
-    walletAmount: walletData?.data?.wallet?.amount || 'N/A',
-    walletError: walletError?.message || 'None',
-    transactionError: transactionError?.message || 'None'
-  });
 
   // Check if any API is currently fetching (following SHomeScreen pattern)
   const isAnyApiFetching = userData ? (isWalletFetching || isTransactionFetching) : false;
@@ -70,7 +59,6 @@ const WalletScreen: React.FC<WalletScreenProps> = ({ navigation }) => {
   // Auto-focus API calls when screen loads
   useEffect(() => {
     if (userData) {
-      console.log("User data found, triggering initial data fetch...");
       // Use setTimeout to ensure the component is fully mounted
       setTimeout(() => {
         refetchWalletDetail();
@@ -100,68 +88,37 @@ const WalletScreen: React.FC<WalletScreenProps> = ({ navigation }) => {
     }, [userData, refetchWalletDetail, refetchTransactionData])
   );
 
-  // Log data changes
-  useEffect(() => {
-    console.log("Data changed:", {
-      walletData: !!walletData,
-      transactionData: !!transactionData,
-      transactionCount: transactionData?.data?.transaction?.length || 0
-    });
-  }, [walletData, transactionData]);
-  
   // Pull to refresh handler following SHomeScreen pattern
   const handleRefresh = useCallback(async () => {
-    console.log("handleRefresh called - starting refresh process");
-    
     if (!userData) {
-      console.log("No user data, skipping refresh");
       setIsRefreshing(false);
       return;
     }
     
-    console.log("Setting refresh state to true");
     setIsRefreshing(true);
     
     try {
-      console.log("Starting API refresh calls...");
       const refreshPromises = [
         refetchWalletDetail(),
         refetchTransactionData()
       ];
       
-      console.log("Waiting for API calls to complete...");
-      const results = await Promise.allSettled(refreshPromises);
-      
-      console.log("API calls completed, processing results...");
-      results.forEach((result, index) => {
-        const apiName = index === 0 ? 'Wallet' : 'Transaction';
-        if (result.status === 'fulfilled') {
-          console.log(`${apiName} refresh successful:`, result.value);
-        } else {
-          console.error(`${apiName} refresh failed:`, result.reason);
-        }
-      });
-      
-      console.log("Refresh completed successfully");
+      await Promise.allSettled(refreshPromises);
     } catch (error) {
       console.error('Error during refresh:', error);
     } finally {
-      console.log("Setting refresh state to false");
       setIsRefreshing(false);
     }
   }, [userData, refetchWalletDetail, refetchTransactionData]);
 
   // Force refresh function as fallback
   const forceRefresh = useCallback(async () => {
-    console.log("Force refresh called");
     try {
       setIsRefreshing(true);
-      console.log("Force refresh: calling APIs directly");
       await Promise.all([
         getWalletDetail(),
         getTransactionList()
       ]);
-      console.log("Force refresh: APIs completed successfully");
     } catch (error) {
       console.error("Force refresh fallback failed:", error);
     } finally {
@@ -169,18 +126,67 @@ const WalletScreen: React.FC<WalletScreenProps> = ({ navigation }) => {
     }
   }, []);
 
-  // Monitor refresh function availability
-  useEffect(() => {
-    console.log("Refresh function status:", {
-      handleRefreshAvailable: !!handleRefresh,
-      forceRefreshAvailable: !!forceRefresh,
-      isRefreshing,
-      userData: !!userData
+  // Calculate transaction summaries
+  const getTransactionSummary = () => {
+    if (!transactionData?.data?.transaction) return null;
+    
+    const transactions = transactionData.data.transaction;
+    
+    const summary = transactions.reduce((acc: {
+      walletFunds: number;
+      addFunds: number;
+      buyProduct: number;
+      buyProductWallet: number;
+      other: number;
+    }, transaction: any) => {
+      const { payment_transaction_type, amount, wallet_amount } = transaction;
+      const numAmount = Number(amount) || 0;
+      const numWalletAmount = Number(wallet_amount) || 0;
+      
+      switch (payment_transaction_type) {
+        case 'wallet_funds':
+          acc.walletFunds += numWalletAmount;
+          break;
+        case 'add_funds':
+          acc.addFunds += numWalletAmount;
+          break;
+        case 'buy_product':
+          acc.buyProduct += numAmount;
+          acc.buyProductWallet += numWalletAmount;
+          break;
+        default:
+          acc.other += numAmount;
+      }
+      
+      return acc;
+    }, {
+      walletFunds: 0,
+      addFunds: 0,
+      buyProduct: 0,
+      buyProductWallet: 0,
+      other: 0
     });
-  }, [handleRefresh, forceRefresh, isRefreshing, userData]);
+    
+    return summary;
+  };
 
+  const transactionSummary = getTransactionSummary();
 
-  
+  // Filter transactions based on selected filter
+  const getFilteredTransactions = () => {
+    if (!transactionData?.data?.transaction) return [];
+    
+    const transactions = transactionData.data.transaction;
+    
+    if (selectedFilter === 'all') return transactions;
+    
+    return transactions.filter((transaction: any) => 
+      transaction.payment_transaction_type === selectedFilter
+    );
+  };
+
+  const filteredTransactions = getFilteredTransactions();
+
   // Show loading state when initially loading and no data exists
   if ((isTransactionLoading || isWalletFetching) && !transactionData && !walletData) {
     return (
@@ -198,6 +204,7 @@ const WalletScreen: React.FC<WalletScreenProps> = ({ navigation }) => {
       refreshing={isRefreshing}
       onRefresh={handleRefresh}
     >
+      <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.transactionsContainer}>
           <View style={styles.innerBalanceContainer}>
             <Text style={styles.availableText}>Available Balance</Text>
@@ -219,26 +226,68 @@ const WalletScreen: React.FC<WalletScreenProps> = ({ navigation }) => {
                 Cash Out
               </Text>
             </TouchableOpacity>
-
           </View>
-
         </View>
+
+     
+
         <View style={styles.header}>
           <Text style={styles.title}>Transactions History</Text>
           <Text style={styles.viewAllText}>View All</Text>
         </View>
+
+        {/* Filter Section */}
+        <View style={styles.filterContainer}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <TouchableOpacity 
+              style={[styles.filterButton, selectedFilter === 'all' && styles.filterButtonActive]}
+              onPress={() => setSelectedFilter('all')}
+            >
+              <Text style={[styles.filterText, selectedFilter === 'all' && styles.filterTextActive]}>
+                All
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.filterButton, selectedFilter === 'wallet_funds' && styles.filterButtonActive]}
+              onPress={() => setSelectedFilter('wallet_funds')}
+            >
+              <Text style={[styles.filterText, selectedFilter === 'wallet_funds' && styles.filterTextActive]}>
+                Wallet Funds
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.filterButton, selectedFilter === 'add_funds' && styles.filterButtonActive]}
+              onPress={() => setSelectedFilter('add_funds')}
+            >
+              <Text style={[styles.filterText, selectedFilter === 'add_funds' && styles.filterTextActive]}>
+                Added Funds
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.filterButton, selectedFilter === 'buy_product' && styles.filterButtonActive]}
+              onPress={() => setSelectedFilter('buy_product')}
+            >
+              <Text style={[styles.filterText, selectedFilter === 'buy_product' && styles.filterTextActive]}>
+                Purchases
+              </Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
+
         <View style={styles.transactionsList}>
           {isTransactionLoading ? (
             <View style={styles.loadingState}>
               <Text style={styles.loadingStateText}>Loading transactions...</Text>
             </View>
-          ) : transactionData?.data?.transaction && transactionData.data.transaction.length > 0 ? (
-            transactionData.data.transaction.map((item: TransactionType) => (
+          ) : filteredTransactions && filteredTransactions.length > 0 ? (
+            filteredTransactions.map((item: TransactionType) => (
               <TransactionCard key={item.id} item={item} />
             ))
           ) : (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyStateText}>No transactions found</Text>
+              <Text style={styles.emptyStateText}>
+                {selectedFilter === 'all' ? 'No transactions found' : `No ${selectedFilter.replace('_', ' ')} transactions found`}
+              </Text>
             </View>
           )}
         </View>
@@ -249,6 +298,7 @@ const WalletScreen: React.FC<WalletScreenProps> = ({ navigation }) => {
           ))}
         </View>
         <View style={{ height: 110 }} />
+      </ScrollView>
     </TitleBackHeaderContainer>
   )
 }
@@ -354,6 +404,78 @@ const styles = StyleSheet.create({
     fontFamily: fonts.regular,
     color: colors.label,
     textAlign: 'center',
+  },
+
+  summaryContainer: {
+    backgroundColor: colors.white,
+    marginHorizontal: 10,
+    marginTop: 15,
+    borderRadius: 20,
+    padding: 15,
+  },
+  summaryTitle: {
+    fontSize: fontSizes.large,
+    fontFamily: fonts.bold,
+    color: colors.label,
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  summaryGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  summaryItem: {
+    width: '48%',
+    backgroundColor: colors.primary,
+    borderRadius: 15,
+    padding: 12,
+    marginBottom: 10,
+    alignItems: 'center',
+  },
+  summaryLabel: {
+    fontSize: fontSizes.small,
+    fontFamily: fonts.medium,
+    color: colors.white,
+    textAlign: 'center',
+    marginBottom: 5,
+  },
+  summaryAmount: {
+    fontSize: fontSizes.medium,
+    fontFamily: fonts.bold,
+    color: colors.white,
+    textAlign: 'center',
+  },
+
+  filterContainer: {
+    flexDirection: 'row',
+    marginHorizontal: 15,
+    marginBottom: 10,
+    backgroundColor: '#F4F5F7',
+    borderRadius: 10,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+  },
+  filterButton: {
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginHorizontal: 5,
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  filterButtonActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  filterText: {
+    fontSize: fontSizes.small,
+    fontFamily: fonts.medium,
+    color: colors.label,
+  },
+  filterTextActive: {
+    color: colors.white,
   },
 
 })

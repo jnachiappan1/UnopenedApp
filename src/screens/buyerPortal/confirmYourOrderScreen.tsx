@@ -36,6 +36,15 @@ type LoginProps = NativeStackScreenProps<
 >;
 
 const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation,route }) => {
+  // Wallet Payment Implementation:
+  // - Wallet payment is enabled and set as default
+  // - Uses makePayment API with 'wallet_funds' type for full wallet payments
+  // - Hybrid payments: Uses 'buy_product' type with both wallet_amount and amount
+  // - Payload structure:
+  //   * Full wallet: { wallet_amount: "total", address_id: id }
+  //   * Hybrid: { amount: "stripe_amount", wallet_amount: "wallet_amount", address_id: id }
+  // - Backend handles both wallet deduction and Stripe integration
+  
   const { productId } = route?.params;
   const userData = useSelector((user: IRootState) => user.user.userData);
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
@@ -54,7 +63,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation,route }) => {
     queryKey: ['getProductDetailByID', productId],
     queryFn: () => getProductDetailByID(productId),
   });
-  const { data: walletData, refetch: refetchWalletDetail } = useQuery({
+  const { data: walletData, refetch: refetchWalletDetail, isLoading: isWalletLoading } = useQuery({
     queryKey: ['getWalletDetail'],
     queryFn: () => getWalletDetail(),
     enabled: !!userData, 
@@ -65,20 +74,21 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation,route }) => {
     enabled: !!userData,
   });
 
-  // Set default address when addresses data is loaded
-  useEffect(() => {
-    if (addressesData?.data?.address && addressesData.data.address.length > 0) {
-      const firstAddress = addressesData.data.address[0];
-      setDefaultAddress(firstAddress);
-      
-      // If no address has been manually selected, use the default
-      if (!selectedAddress && !isAddressChanged) {
-        setSelectedAddress(firstAddress);
-      }
-      
-      console.log('Default address set:', firstAddress);
-    }
-  }, [addressesData, selectedAddress, isAddressChanged]);
+        // Set default address when addresses data is loaded
+      useEffect(() => {
+        if (addressesData?.data?.address && addressesData.data.address.length > 0) {
+          const firstAddress = addressesData.data.address[0];
+          setDefaultAddress(firstAddress);
+          
+          // If no address has been manually selected, use the default
+          if (!selectedAddress && !isAddressChanged) {
+            setSelectedAddress(firstAddress);
+          }
+        }
+      }, [addressesData, selectedAddress, isAddressChanged]);
+
+        // Monitor wallet balance changes (no longer auto-switching, just for UI updates)
+
   const increaseQuantity = () => {
     setQuantity(prev => prev + 1);
   };
@@ -107,46 +117,247 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation,route }) => {
       });
     },
   });
-  console.log(addressesData,"addressesData-----------");
   
   const handleBuyNow = async () => {
-    // Get current address ID
-    const addressId = getCurrentAddressId();
-    
-    console.log('Buy Now - Current address state:', {
-      selectedAddress: selectedAddress?.full_name,
-      defaultAddress: defaultAddress?.full_name,
-      isAddressChanged,
-      addressId
-    });
-    
-    if (!addressId) {
+    try {
+      
+      // Check if productId is valid
+      if (!productId) {
+        showAlert({
+          isVisible: true,
+          type: 'error',
+          title: 'Error',
+          description: 'Product ID is missing. Please try again.',
+        });
+        return;
+      }
+      
+      // Check if product data is loaded
+      if (!allProductList?.data?.product?.[0]) {
+        showAlert({
+          isVisible: true,
+          type: 'error',
+          title: 'Error',
+          description: 'Product information not loaded. Please try again.',
+        });
+        return;
+      }
+      
+      // Get current address ID
+      const addressId = getCurrentAddressId();
+      
+      if (!addressId) {
+        showAlert({
+          isVisible: true,
+          type: 'error',
+          title: 'Error',
+          description: 'Please select an address before proceeding.',
+        });
+        return;
+      }
+
+      // Get product price
+      const productPrice = getSafeNumber(allProductList.data.product[0].price);
+      
+      if (!productPrice || productPrice <= 0) {
+        showAlert({
+          isVisible: true,
+          type: 'error',
+          title: 'Error',
+          description: 'Invalid product price. Please try again.',
+        });
+        return;
+      }
+      
+      // Prepare payment payload
+      const paymentPayload = {
+        amount: productPrice.toString(),
+        address_id: addressId
+      };
+
+      if (paymentMethod === 'wallet') {
+        // Check if wallet balance is sufficient
+        const currentWalletBalance = getSafeNumber(walletData?.data?.wallet?.amount);
+        
+        if (currentWalletBalance >= productPrice) {
+          // Full wallet payment - sufficient balance
+          showLoader(true);
+          // Use makePayment API for wallet payment - the backend will deduct from wallet
+          // Note: For wallet_funds type, pass wallet_amount and address_id
+          const walletPaymentPayload = {
+            wallet_amount: productPrice.toString(), // Backend will use this for wallet deduction
+            address_id: addressId
+          };
+          
+          try {
+            const walletPaymentResponse = await makePayment('wallet_funds', productId, walletPaymentPayload);
+            
+            if (walletPaymentResponse?.data?.status === 'success' || 
+                walletPaymentResponse?.data?.success === true) {
+              showLoader(false);
+              setModalVisible(true);
+            } else {
+              showLoader(false);
+              showAlert({
+                isVisible: true,
+                type: 'error',
+                title: 'Wallet Payment Failed',
+                description: walletPaymentResponse?.data?.message || 'Wallet payment failed. Please try again.',
+              });
+            }
+          } catch (walletError: any) {
+            showLoader(false);
+            showAlert({
+              isVisible: true,
+              type: 'error',
+              title: 'Wallet Payment Error',
+              description: walletError?.response?.data?.message || 'Wallet payment failed. Please try again.',
+            });
+          }
+        } else {
+          // Hybrid payment - insufficient wallet balance, use wallet + Stripe for remaining
+          const walletAmount = getSafeNumber(currentWalletBalance);
+          const remainingAmount = productPrice - walletAmount;
+          
+          // Show confirmation for hybrid payment
+          showAlert({
+            isVisible: true,
+            type: 'info',
+            title: 'Hybrid Payment',
+            description: `Use $${Number(walletAmount).toFixed(2)} from wallet + $${Number(remainingAmount).toFixed(2)} via Stripe?`,
+            doneText: 'Proceed',
+            deleteText: 'Cancel',
+            onDonePress: async () => {
+              try {
+                showLoader(true);
+                
+                // Step 1: Call makePayment API to get Stripe credentials for the remaining amount
+                
+                const stripePaymentPayload = {
+                  amount: remainingAmount.toString(),
+                  address_id: addressId
+                };
+                
+                // Get Stripe credentials from backend
+                const stripeCredentialsResponse = await makePayment('buy_product', productId, stripePaymentPayload);
+                
+                                                  if (stripeCredentialsResponse?.data?.status === 'success' && 
+                    stripeCredentialsResponse?.data?.data?.clientSecret) {
+                  
+                  // Extract Stripe credentials
+                  const { clientSecret, ephemeralKey, customer, paymentIntentId } = stripeCredentialsResponse.data.data;
+                    
+                    // Initialize Stripe payment sheet
+                    const { error: initError } = await initPaymentSheet({
+                      merchantDisplayName: 'Unopened Mobile',
+                      customerId: customer,
+                      customerEphemeralKeySecret: ephemeralKey,
+                      paymentIntentClientSecret: clientSecret,
+                      allowsDelayedPaymentMethods: true,
+                      defaultBillingDetails: {
+                        name: userData?.full_name || 'Customer',
+                      },
+                      returnURL: 'https://your-app.com/return',
+                    });
+                    
+                    if (initError) {
+                      showLoader(false);
+                      showAlert({
+                        isVisible: true,
+                        type: 'error',
+                        title: 'Payment Initialization Error',
+                        description: `Failed to initialize payment: ${initError.message}`,
+                      });
+                      return;
+                    }
+                    
+                                      // Present Stripe payment sheet
+                  const { error: presentError } = await presentPaymentSheet();
+                    
+                    if (presentError) {
+                      showLoader(false);
+                      showAlert({
+                        isVisible: true,
+                        type: 'error',
+                        title: 'Payment Presentation Error',
+                        description: `Payment sheet error: ${presentError.message}`,
+                      });
+                      return;
+                    }
+                    
+                                      // Stripe payment successful, now process wallet deduction
+                  const walletDeductionPayload = {
+                      wallet_amount: walletAmount.toString(),
+                      address_id: addressId
+                    };
+                    
+                    // Process wallet deduction
+                    const walletResponse = await makePayment('wallet_funds', productId, walletDeductionPayload);
+                    
+                                      if (walletResponse?.data?.status === 'success' || 
+                      walletResponse?.data?.success === true) {
+                    
+                    showLoader(false);
+                    setModalVisible(true);
+                  } else {
+                    // Wallet deduction failed - need to handle refund for Stripe
+                    showLoader(false);
+                    showAlert({
+                      isVisible: true,
+                      type: 'error',
+                      title: 'Wallet Deduction Failed',
+                      description: 'Stripe payment was successful but wallet deduction failed. Please contact support for assistance.',
+                    });
+                  }
+                  } else {
+                    showLoader(false);
+                    showAlert({
+                      isVisible: true,
+                      type: 'error',
+                      title: 'Stripe Setup Failed',
+                      description: stripeCredentialsResponse?.data?.message || 'Failed to setup Stripe payment. Please try again.',
+                    });
+                  }
+              } catch (hybridError: any) {
+                showLoader(false);
+                showAlert({
+                  isVisible: true,
+                  type: 'error',
+                  title: 'Hybrid Payment Error',
+                  description: hybridError?.response?.data?.message || 'Hybrid payment failed. Please try again.',
+                });
+              }
+            },
+            onDeletePress: () => {
+              // User cancelled hybrid payment, allow them to choose different method
+              showAlert({
+                isVisible: true,
+                type: 'info',
+                title: 'Payment Cancelled',
+                description: 'You can choose a different payment method or add funds to your wallet.',
+              });
+            }
+          });
+        }
+      } else if (paymentMethod === 'stripe') {
+        handleStripePayment(paymentPayload);
+      } else {
+        showAlert({
+          isVisible: true,
+          type: 'error',
+          title: 'Error',
+          description: 'Invalid payment method selected.',
+        });
+      }
+    } catch (error) {
+      console.error('Error in handleBuyNow:', error);
+      showLoader(false);
       showAlert({
         isVisible: true,
         type: 'error',
         title: 'Error',
-        description: 'Please select an address before proceeding.',
+        description: 'An unexpected error occurred. Please try again.',
       });
-      return;
-    }
-
-    // Get product price
-    const productPrice = allProductList?.data?.product[0]?.price || '0';
-    
-    // Prepare payment payload
-    const paymentPayload = {
-      amount: productPrice.toString(),
-      address_id: addressId
-    };
-
-    console.log('Payment payload prepared:', paymentPayload);
-
-    if (paymentMethod === 'wallet') {
-      showLoader(true);
-      // Use old wallet payment API (soldProduct) with address_id
-      mutate({ productId, address_id: addressId });
-    } else if (paymentMethod === 'stripe') {
-      handleStripePayment(paymentPayload);
     }
   };
 
@@ -154,30 +365,59 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation,route }) => {
     try {
       showLoader(true);
       
+      // Ensure productId is valid before proceeding
+      if (!productId) {
+        showLoader(false);
+        showAlert({
+          isVisible: true,
+          type: 'error',
+          title: 'Error',
+          description: 'Product ID is missing. Please try again.',
+        });
+        return;
+      }
+      
       // First, call your backend to create payment intent and get Stripe credentials
-      const paymentResponse = await makePayment(productId, paymentPayload);
+      const paymentResponse = await makePayment('buy_product', productId, paymentPayload);
       
-      console.log('Payment API Response:', paymentResponse);
+      // Check if we have a valid response
+      if (!paymentResponse || !paymentResponse.data) {
+        showLoader(false);
+        showAlert({
+          isVisible: true,
+          type: 'error',
+          title: 'Payment Error',
+          description: 'No response received from payment server. Please try again.',
+        });
+        return;
+      }
       
-      if (paymentResponse?.data?.status === 'success') {
+      // Check for success status - be more flexible with the response structure
+      const isSuccess = paymentResponse.data.status === 'success' || 
+                       paymentResponse.data.success === true ||
+                       paymentResponse.data.paymentIntentId;
+      
+      if (isSuccess) {
         const { clientSecret, ephemeralKey, customer, paymentIntentId } = paymentResponse.data;
         
-        console.log('Stripe Credentials:', { clientSecret, ephemeralKey, customer, paymentIntentId });
+        // Validate Stripe credentials - be more specific about what's missing
+        const missingCredentials = [];
+        if (!clientSecret) missingCredentials.push('Client Secret');
+        if (!ephemeralKey) missingCredentials.push('Ephemeral Key');
+        if (!customer) missingCredentials.push('Customer ID');
         
-        // Validate Stripe credentials
-        if (!clientSecret || !ephemeralKey || !customer) {
+        if (missingCredentials.length > 0) {
           showLoader(false);
           showAlert({
             isVisible: true,
             type: 'error',
-            title: 'Payment Error',
-            description: 'Invalid payment credentials received. Please try again.',
+            title: 'Payment Configuration Error',
+            description: `Missing payment credentials: ${missingCredentials.join(', ')}. Please contact support.`,
           });
           return;
         }
         
         // Initialize Stripe payment sheet with real data from your backend
-        console.log('Initializing Stripe payment sheet...');
         const { error } = await initPaymentSheet({
           merchantDisplayName: 'Unopened Mobile',
           customerId: customer,
@@ -189,53 +429,67 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation,route }) => {
           },
           returnURL: 'https://your-app.com/return',
         });
-        console.log('Stripe initPaymentSheet result:', { error });
 
         if (error) {
           showLoader(false);
           showAlert({
             isVisible: true,
             type: 'error',
-            title: 'Error',
-            description: error.message,
+            title: 'Payment Initialization Error',
+            description: `Failed to initialize payment: ${error.message}`,
           });
           return;
         }
 
-        console.log('Presenting Stripe payment sheet...');
         const { error: presentError } = await presentPaymentSheet();
-        console.log('Stripe presentPaymentSheet result:', { presentError });
         
         if (presentError) {
           showLoader(false);
           showAlert({
             isVisible: true,
             type: 'error',
-            title: 'Error',
-            description: presentError.message,
+            title: 'Payment Presentation Error',
+            description: `Payment sheet error: ${presentError.message}`,
           });
         } else {
-          // Stripe payment successful - no need to call payment API again since it was already called
-          console.log('Stripe payment completed successfully');
+          // Stripe payment successful
           showLoader(false);
           setModalVisible(true);
         }
       } else {
+        // Handle different response structures
+        const errorMessage = paymentResponse.data.message || 
+                           paymentResponse.data.error || 
+                           'Unknown payment error';
+        
         showLoader(false);
         showAlert({
           isVisible: true,
           type: 'error',
           title: 'Payment Failed',
-          description: 'Failed to create payment intent. Please try again.',
+          description: `Payment setup failed: ${errorMessage}`,
         });
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Stripe payment error:', error);
       showLoader(false);
+      
+      // Provide more specific error messages
+      let errorDescription = 'Payment failed. Please try again.';
+      
+      if (error?.response?.data?.message) {
+        errorDescription = error.response.data.message;
+      } else if (error?.message) {
+        errorDescription = error.message;
+      } else if (error?.code) {
+        errorDescription = `Payment error (${error.code}). Please try again.`;
+      }
+      
       showAlert({
         isVisible: true,
         type: 'error',
-        title: 'Error',
-        description: 'Payment failed. Please try again.',
+        title: 'Payment Error',
+        description: errorDescription,
       });
     }
   };
@@ -251,7 +505,6 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation,route }) => {
   const handleChangeAddress = () => {
     navigation.navigate(SCREENS.AddressSelectionScreen, {
       onAddressSelect: (address: AddressType) => {
-        console.log('Address selected:', address.full_name);
         setSelectedAddress(address);
         setIsAddressChanged(true);
       },
@@ -261,7 +514,6 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation,route }) => {
   // Function to reset to default address
   const resetToDefaultAddress = () => {
     if (defaultAddress) {
-      console.log('Resetting to default address:', defaultAddress.full_name);
       setSelectedAddress(defaultAddress);
       setIsAddressChanged(false);
     }
@@ -281,11 +533,50 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation,route }) => {
   const getCurrentAddressId = () => {
     const currentAddress = getCurrentAddress();
     if (currentAddress?.id) {
-      console.log('Using address ID:', currentAddress.id, 'for address:', currentAddress.full_name);
       return currentAddress.id;
     }
-    console.log('No valid address ID found');
     return null;
+  };
+
+  // Helper function to safely get numeric values
+  const getSafeNumber = (value: any, defaultValue: number = 0): number => {
+    if (value === null || value === undefined || value === '') {
+      return defaultValue;
+    }
+    const num = Number(value);
+    return isNaN(num) ? defaultValue : num;
+  };
+
+  // Helper function to get payment breakdown
+  const getPaymentBreakdown = () => {
+    // Safety check - return default values if data is not loaded
+    if (isWalletLoading || !walletData?.data?.wallet?.amount || !allProductList?.data?.product?.[0]?.price) {
+      return {
+        walletAmount: 0,
+        stripeAmount: 0,
+        isHybrid: false,
+        message: 'Loading payment details...'
+      };
+    }
+    
+    const currentWalletBalance = getSafeNumber(walletData.data.wallet.amount);
+    const productPrice = getSafeNumber(allProductList.data.product[0].price);
+    
+    if (currentWalletBalance >= productPrice) {
+      return {
+        walletAmount: productPrice,
+        stripeAmount: 0,
+        isHybrid: false,
+        message: `Full payment from wallet: $${productPrice.toFixed(2)}`
+      };
+    } else {
+      return {
+        walletAmount: currentWalletBalance,
+        stripeAmount: productPrice - currentWalletBalance,
+        isHybrid: true,
+        message: `Hybrid payment: $${currentWalletBalance.toFixed(2)} from wallet + $${(productPrice - currentWalletBalance).toFixed(2)} via Stripe`
+      };
+    }
   };
   return (
     <TitleBackHeaderContainer title="Confirm Your Order" isBack>
@@ -404,10 +695,47 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation,route }) => {
         <TouchableOpacity 
           style={[
             styles.paymentCard,
-            paymentMethod === 'wallet' && styles.selectedPaymentCard
+            paymentMethod === 'wallet' && styles.selectedPaymentCard,
+            getSafeNumber(walletData?.data?.wallet?.amount) < getSafeNumber(allProductList?.data?.product[0]?.price) && styles.disabledPaymentCard
           ]}
+          
+          onPress={() => {
+            // Don't allow selection while loading
+            if (isWalletLoading) {
+              return;
+            }
+            
+            const paymentBreakdown = getPaymentBreakdown();
+            
+            if (paymentBreakdown.isHybrid) {
+              showAlert({
+                isVisible: true,
+                type: 'info',
+                title: 'Hybrid Payment',
+                description: 'Use wallet + Stripe?',
+                doneText: 'Yes',
+                deleteText: 'No',
+                onDonePress: () => {
+                  setPaymentMethod('wallet');
+                  // Don't trigger handleBuyNow here - let user click the button manually
+                  showAlert({
+                    isVisible: true,
+                    type: 'info',
+                    title: 'Hybrid Payment Selected',
+                    description: 'Click "Pay with Wallet + Stripe" button to proceed with hybrid payment.',
+                    doneText: 'OK',
+                  });
+                },
+                onDeletePress: () => {
+                  setPaymentMethod('stripe');
+                }
+              });
+              return;
+            }
+            setPaymentMethod('wallet');
+          }}
+          // disabled={isWalletLoading}
           disabled={true}
-          onPress={() => setPaymentMethod('wallet')}
         >
           <View style={styles.paymentOption}>
             <View
@@ -423,9 +751,17 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation,route }) => {
               <Text style={styles.paymentAmount}>
                 ${allProductList?.data?.product[0]?.price || '0.00'}
               </Text>
-              <Text style={styles.walletBalanceText}>
-                Available: ${walletData?.data?.wallet?.amount || '0.00'}
+              <Text style={[
+                styles.walletBalanceText,
+                { color: getSafeNumber(walletData?.data?.wallet?.amount) < getSafeNumber(allProductList?.data?.product[0]?.price) ? '#FF6B6B' : colors.text3 }
+              ]}>
+                {isWalletLoading ? 'Loading...' : `$${getSafeNumber(walletData?.data?.wallet?.amount).toFixed(2)} available`}
               </Text>
+              {!isWalletLoading && getSafeNumber(walletData?.data?.wallet?.amount) < getSafeNumber(allProductList?.data?.product[0]?.price) && (
+                <Text style={styles.hybridPaymentInfo}>
+                  💳 Hybrid payment available
+                </Text>
+              )}
             </View>
           </View>
           <TouchableOpacity onPress={(e) => {
@@ -469,8 +805,35 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation,route }) => {
           </TouchableOpacity> */}
         </TouchableOpacity>
       </View>
+      {/* Payment Summary */}
+      {!isWalletLoading && paymentMethod === 'wallet' && getSafeNumber(walletData?.data?.wallet?.amount) < getSafeNumber(allProductList?.data?.product[0]?.price) && (
+        <View style={styles.productSection}>
+          <Text style={styles.sectionTitle}>Payment Summary</Text>
+          <View style={styles.summaryDivider} />
+          <View style={styles.paymentSummaryCard}>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Wallet:</Text>
+              <Text style={[styles.summaryAmount, { color: colors.primary }]}>${getSafeNumber(walletData?.data?.wallet?.amount).toFixed(2)}</Text>
+            </View>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Stripe:</Text>
+              <Text style={styles.summaryAmount}>${getSafeNumber(getSafeNumber(allProductList?.data?.product[0]?.price) - getSafeNumber(walletData?.data?.wallet?.amount)).toFixed(2)}</Text>
+            </View>
+          </View>
+        </View>
+      )}
+      
       <View style={styles.buyContainer}>
-        <Button title='Confirm Purchase' onPress={handleBuyNow} />
+        <Button 
+          title={
+            !isWalletLoading && paymentMethod === 'wallet' && getSafeNumber(walletData?.data?.wallet?.amount) < getSafeNumber(allProductList?.data?.product[0]?.price)
+              ? `Pay with Wallet + Stripe`
+              : paymentMethod === 'stripe' 
+                ? 'Pay with Card'
+                : 'Confirm Purchase'
+          } 
+          onPress={handleBuyNow} 
+        />
       </View>
       <OrderSuccessfulModal
         isModalVisible={isModalVisible}
@@ -903,5 +1266,44 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.small,
     fontFamily: fonts.medium,
     color: colors.white,
+  },
+  disabledPaymentCard: {
+    opacity: 0.6,
+    backgroundColor: '#f5f5f5',
+  },
+  hybridPaymentInfo: {
+    fontSize: fontSizes.small,
+    fontFamily: fonts.medium,
+    color: colors.primary,
+    marginTop: 6,
+    textAlign: 'center',
+    backgroundColor: '#f0f8f0',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: colors.primary,
+  },
+  // Payment Summary Styles
+  paymentSummaryCard: {
+    backgroundColor: '#F5F7F2',
+    borderRadius: 8,
+    padding: 16,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  summaryLabel: {
+    fontSize: fontSizes.regular,
+    fontFamily: fonts.medium,
+    color: colors.text2,
+  },
+  summaryAmount: {
+    fontSize: fontSizes.medium,
+    fontFamily: fonts.bold,
+    color: colors.black,
   },
 });

@@ -163,7 +163,9 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({route, navigation}) => {
           value: /^[0-9]{6}$/,
           message: 'OTP must be a 6-digit number',
         }}
+        containerStyle={{width: 350}}
         error={errors}
+        
       />
       <Button
         title={'Verify'}

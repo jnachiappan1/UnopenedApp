@@ -44,6 +44,7 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
   const isLogged = userData ? true : false;
   const searchQueryRef = useRef(searchQuery);
   const insets = useSafeAreaInsets();
+  
   useEffect(() => {
     loadRecentSearches();
   }, []);
@@ -59,6 +60,7 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
       console.error('Error loading recent searches:', error);
     }
   };
+  
   const saveRecentSearches = async (searches: string[]) => {
     try {
       await AsyncStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(searches));
@@ -66,6 +68,7 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
       console.error('Error saving recent searches:', error);
     }
   };
+  
   const addToRecentSearches = async (query: string) => {
     const trimmedQuery = query.trim();
     if (trimmedQuery === '') return;
@@ -74,6 +77,7 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
     setRecentSearches(updatedSearches);
     await saveRecentSearches(updatedSearches);
   };
+  
   const getApiParams = () => {
     const params: any = {};
     if (searchQuery.trim() !== '') {
@@ -98,11 +102,13 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
     }
     return params;
   };
+  
   const { data: productListResponse, refetch: refetchProductList, isLoading } = useQuery({
     queryKey: ['getProductList', searchQuery, selectedSort?.id, selectedPriceRange, selectedCategories], 
     queryFn: () => getProductList(getApiParams()),
     staleTime: 5 * 60 * 1000, 
   });
+  
   const apiProducts = productListResponse?.data?.product || [];
   const displayProducts = isLogged ? apiProducts : products;
 
@@ -261,7 +267,7 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
           onSubmit={handleSearch}
           onFilterPress={handleFilterPress}
         />
-         <ScrollView>
+         <ScrollView showsVerticalScrollIndicator={false}>
         {recentSearches.length > 0 && (
           <View style={styles.recentSearchesContainer}>
             <View style={styles.sectionHeader}>
@@ -287,6 +293,7 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
                 </View>
               )}
               showsVerticalScrollIndicator={false}
+              scrollEnabled={false}
             />
           </View>
         )}

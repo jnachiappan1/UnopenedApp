@@ -249,9 +249,22 @@ export const getPublishKeyAction = async () => {
   return response;
 };
 
-export const makePayment = async (productId: string | number | null | undefined, payload: { amount: string; address_id: number }) => {
-  console.log(productId,"productId======",payload);
+export const makePayment = async (
+  type: 'add_funds' | 'buy_product' | 'wallet_funds',
+  productId: string | number | null,
+  payload: { 
+    amount?: string; // Optional when wallet_amount is present
+    address_id: number;
+    wallet_amount?: string; // Optional wallet amount for hybrid payments
+  }
+) => {
+
+  console.log('type---',type,productId,"========",payload);
   
-  const response = await axios.post(`${API.buyer.makePayment}/${productId}`, payload);
+  const url = `${API.buyer.makePayment}/?type=${type}&product_id=${productId ?? 'null'}`;
+  
+  console.log('makePayment URL:', url, 'payload:', payload);
+
+  const response = await axios.post(url, payload);
   return response;
 };
