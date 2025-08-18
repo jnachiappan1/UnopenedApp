@@ -50,7 +50,7 @@ const AddFundScreen: React.FC<AddFundScreenProps> = ({ navigation }) => {
   // Add Stripe payment mutation
   const { mutate: addFundsMutation } = useMutation({
     mutationFn: (data: { amount: string }) => 
-      makePayment('add_funds', null, { amount: data.amount, address_id: 0 }),
+      makePayment('add_funds', { amount: data.amount }),  
     onSuccess: (data: any) => {
       console.log('Add funds API response:', data);
       handleStripePayment(data);

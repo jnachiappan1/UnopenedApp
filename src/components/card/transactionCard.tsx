@@ -107,9 +107,16 @@ const getTransactionDisplayInfo = (item: TransactionType) => {
       return {
         displayAmount: amount,
         label: 'Product Purchase',
+        showBoth: false,
+        description: 'Product purchase transaction'
+      };
+    case 'wallet_buy_product_funds':
+      return {
+        displayAmount: amount,
+        label: 'Purchase (Wallet + Card)',
         showBoth: true,
         walletAmount: wallet_amount,
-        description: 'Product purchase transaction'
+        description: 'Product purchase paid with wallet and external payment'
       };
     default:
       return {

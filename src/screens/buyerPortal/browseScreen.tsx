@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,19 +7,20 @@ import {
   FlatList,
   SafeAreaView,
   StatusBar,
+  RefreshControl,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
 import SearchBar from '../../components/card/searchBar';
 import TopPicksSection from '../../components/card/topPicksSection';
 import ProductSection from '../../components/card/productSection';
-import {products} from '../../utils/static';
+import { products } from '../../utils/static';
 import fonts from '../../assets/fonts/fonts';
 import colors from '../../utils/colors';
 import IconsSvg from '../../assets/svg/iconsSvg';
-import {ScrollView} from 'react-native';
-import {ProductCategory} from '../../utils/types';
+import { ScrollView } from 'react-native';
+import { ProductCategory } from '../../utils/types';
 import { useQuery } from '@tanstack/react-query';
 import { getProductList } from '../../utils/apiAction';
 import { useSelector } from 'react-redux';
@@ -34,17 +35,18 @@ type BrowseScreenProps = NativeStackScreenProps<
 const RECENT_SEARCHES_KEY = 'recent_searches';
 const MAX_RECENT_SEARCHES = 5;
 
-const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
+const BrowseScreen: React.FC<BrowseScreenProps> = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<ProductCategory[]>([]);
   const [selectedSort, setSelectedSort] = useState<{ id: string; name: string } | null>(null);
-  const [selectedPriceRange, setSelectedPriceRange] = useState<{min: number; max: number} | null>(null);
+  const [selectedPriceRange, setSelectedPriceRange] = useState<{ min: number; max: number } | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const userData = useSelector((user: IRootState) => user.user.userData);
   const isLogged = userData ? true : false;
   const searchQueryRef = useRef(searchQuery);
   const insets = useSafeAreaInsets();
-  
+
   useEffect(() => {
     loadRecentSearches();
   }, []);
@@ -60,7 +62,7 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
       console.error('Error loading recent searches:', error);
     }
   };
-  
+
   const saveRecentSearches = async (searches: string[]) => {
     try {
       await AsyncStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(searches));
@@ -68,7 +70,7 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
       console.error('Error saving recent searches:', error);
     }
   };
-  
+
   const addToRecentSearches = async (query: string) => {
     const trimmedQuery = query.trim();
     if (trimmedQuery === '') return;
@@ -77,7 +79,7 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
     setRecentSearches(updatedSearches);
     await saveRecentSearches(updatedSearches);
   };
-  
+
   const getApiParams = () => {
     const params: any = {};
     if (searchQuery.trim() !== '') {
@@ -85,12 +87,12 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
     }
     if (selectedSort?.id) {
       const sortMapping: { [key: string]: string } = {
-      'price_low_to_high': 'price_low_to_high',
+        'price_low_to_high': 'price_low_to_high',
         'price_high_to_low': 'price_high_to_low',
         'newest_first': 'newest_first',
       };
       params.sort_by = sortMapping[selectedSort.id] || selectedSort.id;
-    }  
+    }
     if (selectedPriceRange) {
       params.price = `${selectedPriceRange.min}-${selectedPriceRange.max}`;
     }
@@ -102,13 +104,14 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
     }
     return params;
   };
-  
+
   const { data: productListResponse, refetch: refetchProductList, isLoading } = useQuery({
-    queryKey: ['getProductList', searchQuery, selectedSort?.id, selectedPriceRange, selectedCategories], 
+    queryKey: ['getProductList', searchQuery, selectedSort?.id, selectedPriceRange, selectedCategories],
     queryFn: () => getProductList(getApiParams()),
-    staleTime: 5 * 60 * 1000, 
+    staleTime: 5 * 60 * 1000,
   });
-  
+  console.log(JSON.stringify(productListResponse?.data?.product));
+
   const apiProducts = productListResponse?.data?.product || [];
   const displayProducts = isLogged ? apiProducts : products;
 
@@ -146,19 +149,36 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
     await addToRecentSearches(searchTerm);
   };
 
+  // Pull-to-refresh handler
+  const onRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      if (isLogged) {
+        // Refetch product list for logged-in users
+        await refetchProductList();
+      }
+      // Reload recent searches
+      await loadRecentSearches();
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   const getFilteredProducts = () => {
     if (isLogged) {
-      return apiProducts; 
+      return apiProducts;
     }
-    
+
     let result = [...products];
 
     if (selectedCategories.length > 0) {
       result = result.filter(product => {
         const productCategory = (product as any).category;
         if (productCategory) {
-          return selectedCategories.some(category => 
-            category.id === productCategory || 
+          return selectedCategories.some(category =>
+            category.id === productCategory ||
             category.name === productCategory ||
             String(category.id) === String(productCategory)
           );
@@ -176,42 +196,42 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
 
     if (selectedPriceRange) {
       result = result.filter(product => {
-        const productPrice = typeof product.price === 'string' 
-          ? parseFloat(product.price.replace(/[^0-9.-]+/g, '')) 
+        const productPrice = typeof product.price === 'string'
+          ? parseFloat(product.price.replace(/[^0-9.-]+/g, ''))
           : product.price;
 
         if (isNaN(productPrice)) return false;
-        
+
         return productPrice >= selectedPriceRange.min && productPrice <= selectedPriceRange.max;
       });
     }
 
     if (selectedSort?.id === 'Price: Low to High') {
       result = result.sort((a, b) => {
-        const priceA = typeof a.price === 'string' 
+        const priceA = typeof a.price === 'string'
           ? parseFloat(a.price.replace(/[^0-9.-]+/g, ''))
           : a.price;
-        const priceB = typeof b.price === 'string' 
+        const priceB = typeof b.price === 'string'
           ? parseFloat(b.price.replace(/[^0-9.-]+/g, ''))
           : b.price;
         if (isNaN(priceA) && isNaN(priceB)) return 0;
         if (isNaN(priceA)) return 1;
-        if (isNaN(priceB)) return -1; 
+        if (isNaN(priceB)) return -1;
         return priceA - priceB;
       });
     } else if (selectedSort?.id === 'Price: High to Low') {
       result = result.sort((a, b) => {
-        const priceA = typeof a.price === 'string' 
+        const priceA = typeof a.price === 'string'
           ? parseFloat(a.price.replace(/[^0-9.-]+/g, ''))
           : a.price;
-        const priceB = typeof b.price === 'string' 
+        const priceB = typeof b.price === 'string'
           ? parseFloat(b.price.replace(/[^0-9.-]+/g, ''))
           : b.price;
-        
+
         if (isNaN(priceA) && isNaN(priceB)) return 0;
         if (isNaN(priceA)) return 1;
         if (isNaN(priceB)) return -1;
-        
+
         return priceB - priceA;
       });
     } else if (selectedSort?.id === 'Newest First') {
@@ -242,80 +262,90 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
       setSelectedSort(selectedSort);
       setSelectedPriceRange(selectedPriceRange);
     };
-  
+
     navigation.navigate(SCREENS.FilterSortScreen, {
       onApplyFilters,
       initialFilters: selectedCategories,
-      initialSort: selectedSort, 
+      initialSort: selectedSort,
       initialPriceRange: selectedPriceRange,
     });
   };
 
   return (
     <>
-    <View style={{ height: insets.top, backgroundColor: colors.background }}>
-      <StatusBar
-        backgroundColor={colors.background}
-        barStyle="dark-content"
-        translucent={false}
-      />
-    </View>
-    <SafeAreaView style={{flex: 1}}> 
+      <View style={{ height: insets.top, backgroundColor: colors.background }}>
+        <StatusBar
+          backgroundColor={colors.background}
+          barStyle="dark-content"
+          translucent={false}
+        />
+      </View>
+      <SafeAreaView style={{ flex: 1 }}>
         <SearchBar
           value={searchQuery}
           onChangeText={setSearchQuery}
           onSubmit={handleSearch}
           onFilterPress={handleFilterPress}
         />
-         <ScrollView showsVerticalScrollIndicator={false}>
-        {recentSearches.length > 0 && (
-          <View style={styles.recentSearchesContainer}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Recent Searches</Text>
-              <TouchableOpacity onPress={handleClearAll} style={styles.clearAllButton}>
-                <Text style={styles.clearAllText}>Clear All</Text>
-              </TouchableOpacity>
-            </View>
-            <FlatList
-              data={recentSearches}
-              keyExtractor={(item, index) => `${item}-${index}`}
-              renderItem={({item, index}) => (
-                <View style={styles.recentSearchItem}>
-                  <TouchableOpacity 
-                    style={styles.recentSearchTextContainer}
-                    onPress={() => handleRecentSearchClick(item)}
-                  >
-                    <Text style={styles.recentSearchText}>{item}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => removeSearch(index)}>
-                    <IconsSvg name="cancel" />
-                  </TouchableOpacity>
-                </View>
-              )}
-              showsVerticalScrollIndicator={false}
-              scrollEnabled={false}
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={onRefresh}
+              colors={[colors.primary]} // Android
+              tintColor={colors.primary} // iOS
             />
-          </View>
-        )}
-        {/* <TopPicksSection
+          }
+        >
+          {recentSearches.length > 0 && (
+            <View style={styles.recentSearchesContainer}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Recent Searches</Text>
+                <TouchableOpacity onPress={handleClearAll} style={styles.clearAllButton}>
+                  <Text style={styles.clearAllText}>Clear All</Text>
+                </TouchableOpacity>
+              </View>
+              <FlatList
+                data={recentSearches}
+                keyExtractor={(item, index) => `${item}-${index}`}
+                renderItem={({ item, index }) => (
+                  <View style={styles.recentSearchItem}>
+                    <TouchableOpacity
+                      style={styles.recentSearchTextContainer}
+                      onPress={() => handleRecentSearchClick(item)}
+                    >
+                      <Text style={styles.recentSearchText}>{item}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => removeSearch(index)}>
+                      <IconsSvg name="cancel" />
+                    </TouchableOpacity>
+                  </View>
+                )}
+                showsVerticalScrollIndicator={false}
+                scrollEnabled={false}
+              />
+            </View>
+          )}
+          {/* <TopPicksSection
           title="Trending Searches"
           products={topPicks}
           onViewAll={() => console.log('View All Top Picks')}
         /> */}
-        <ProductSection
-          title="Popular Products"
-          products={productListResponse?.data?.product}
-          onViewAll={() =>{} }
-          showViewAll={false}
-          onPress={(item) => {
-            navigation.navigate(SCREENS.BProductDetailScreen, { productId: item?.id });
-          }}
-        />
-        <View style={{height: 100}} />
-      </ScrollView>
-    </SafeAreaView>
-  </>
- 
+          <ProductSection
+            title="Popular Products"
+            products={productListResponse?.data?.product?.filter((product: any) => product.product_status !== 'withdrawn') || []}
+            onViewAll={() => { }}
+            showViewAll={false}
+            onPress={(item) => {
+              navigation.navigate(SCREENS.BProductDetailScreen, { productId: item?.id });
+            }}
+          />
+          <View style={{ height: 100 }} />
+        </ScrollView>
+      </SafeAreaView>
+    </>
+
   );
 };
 

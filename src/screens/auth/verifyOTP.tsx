@@ -18,7 +18,7 @@ import {capitalizeFirstLetter} from '../../utils/utils';
 import {verifyOtpApi, resendOtpApi} from '../../utils/apiAction';
 import { handleError, handleSettled } from '../../utils/method';
 import { ResendInputPayloadType } from '../../utils/payload';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { saveUserData, saveUserType, setAuthToken } from '../../redux/reducers/user/UserReducer';
 
 type Inputs = {
@@ -33,7 +33,7 @@ type VerifyOTPProps = NativeStackScreenProps<
 >;
 
 const VerifyOTP: React.FC<VerifyOTPProps> = ({route, navigation}) => {
-  // let userType = useSelector((type: any) => type.user.userType);
+   let userType = useSelector((type: any) => type.user.userType);
   const {otp, email, type} = route.params;
   const [resendOtp, setResendOtp] = useState('');
   const dispatch = useDispatch();
@@ -106,7 +106,7 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({route, navigation}) => {
       verifyOtpApi(type, payload),
     onSuccess: async (data: any) => {
       showLoader(false);
-      const newType = 'buyer';
+      const newType =userType ? userType : 'buyer';
       dispatch(saveUserType(newType));
       dispatch(setAuthToken(data.data.token));
       dispatch(saveUserData(data.data.user));

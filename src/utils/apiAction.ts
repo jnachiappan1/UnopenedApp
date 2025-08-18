@@ -250,20 +250,23 @@ export const getPublishKeyAction = async () => {
 };
 
 export const makePayment = async (
-  type: 'add_funds' | 'buy_product' | 'wallet_funds',
-  productId: string | number | null,
+  type: 'add_funds' | 'buy_product' | 'wallet_funds' | 'wallet_buy_product_funds',
   payload: { 
-    amount?: string; // Optional when wallet_amount is present
-    address_id: number;
-    wallet_amount?: string; // Optional wallet amount for hybrid payments
-  }
+    amount?: string;
+    address_id?: number;
+    wallet_amount?: string;
+  },
+  productId?: string | number
 ) => {
+  console.log('type---', type, productId, "========", payload);
 
-  console.log('type---',type,productId,"========",payload);
-  
-  const url = `${API.buyer.makePayment}/?type=${type}&product_id=${productId ?? 'null'}`;
-  
-  console.log('makePayment URL:', url, 'payload:', payload);
+  // Build URL dynamically
+  let url = `${API.buyer.makePayment}/?type=${type}`;
+  if (type !== 'add_funds' && productId !== undefined && productId !== null) {
+    url += `&product_id=${productId}`;
+  }
+
+  console.log('makePayment URL:', JSON.stringify(url), 'payload:', payload);
 
   const response = await axios.post(url, payload);
   return response;
