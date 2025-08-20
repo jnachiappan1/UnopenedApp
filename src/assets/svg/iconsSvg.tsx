@@ -33,6 +33,7 @@ export type IconName =
   | 'productListIcon'
   | 'leftArrow'
   | 'downArrow'
+  | 'arrowUp'
   | 'search'
   | 'success'
   | 'notificationIcon'
@@ -539,6 +540,19 @@ const IconsSvg = (props: IconsSvgProps) => {
             </ClipPath>
           </Defs>
         </Svg>
+      );
+    case 'arrowUp':
+      return (
+        <Svg width={48} height={48} viewBox="0 0 24 24" fill="none" {...props}>
+        <Path
+          d="M18 14l-4.528-4.593a1.365 1.365 0 00-1.944 0L7 14"
+          stroke={color ? color : '#262626'}
+          strokeWidth={2}  
+          strokeMiterlimit={10}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </Svg>
       );
     case 'downArrow':
       return (

@@ -21,7 +21,7 @@ type WalletScreenProps = NativeStackScreenProps<RootStackParamList, SCREENS.Wall
 const WalletScreen: React.FC<WalletScreenProps> = ({ navigation }) => {
   const userData = useSelector((user: IRootState) => user.user.userData);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [selectedFilter, setSelectedFilter] = useState<string>('all');
+  const [selectedTab, setSelectedTab] = useState<'all' | 'wallet' | 'cards'>('all');
   
   const { data: walletData, refetch: refetchWalletDetail, isFetching: isWalletFetching, error: walletError } = useQuery({
     queryKey: ['getWalletDetail', userData?.id],
@@ -172,17 +172,31 @@ const WalletScreen: React.FC<WalletScreenProps> = ({ navigation }) => {
 
   const transactionSummary = getTransactionSummary();
 
-  // Filter transactions based on selected filter
+  // Filter transactions based on selected tab
   const getFilteredTransactions = () => {
     if (!transactionData?.data?.transaction) return [];
     
     const transactions = transactionData.data.transaction;
-    
-    if (selectedFilter === 'all') return transactions;
-    
-    return transactions.filter((transaction: any) => 
-      transaction.payment_transaction_type === selectedFilter
-    );
+    let filtered = transactions;
+
+    if (selectedTab === 'wallet') {
+      filtered = filtered.filter((t: any) => {
+        const total = Number(t?.amount) || 0;
+        const walletAmt = Number(t?.wallet_amount) || 0;
+        const hasWalletByType = ['wallet_funds', 'add_funds'].includes(t?.payment_transaction_type);
+        return hasWalletByType || walletAmt > 0 || (total > 0 && walletAmt === total);
+      });
+    } else if (selectedTab === 'cards') {
+      filtered = filtered.filter((t: any) => {
+        const total = Number(t?.amount) || 0;
+        const walletAmt = Number(t?.wallet_amount) || 0;
+        const externalAmt = Math.max(total - walletAmt, 0);
+        const hasExternal = externalAmt > 0 || (!!t?.payment_type && t?.payment_type !== 'wallet');
+        return hasExternal;
+      });
+    }
+
+    return filtered;
   };
 
   const filteredTransactions = getFilteredTransactions();
@@ -229,49 +243,20 @@ const WalletScreen: React.FC<WalletScreenProps> = ({ navigation }) => {
           </View>
         </View>
 
-     
-
         <View style={styles.header}>
-          <Text style={styles.title}>Transactions History</Text>
-          <Text style={styles.viewAllText}>View All</Text>
+          <Text style={styles.title}>Transaction History</Text>
         </View>
 
-        {/* Filter Section */}
-        <View style={styles.filterContainer}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <TouchableOpacity 
-              style={[styles.filterButton, selectedFilter === 'all' && styles.filterButtonActive]}
-              onPress={() => setSelectedFilter('all')}
-            >
-              <Text style={[styles.filterText, selectedFilter === 'all' && styles.filterTextActive]}>
-                All
+        {/* Tabs */}
+        <View style={styles.tabsContainer}>
+          {(['all','wallet','cards'] as const).map(tab => (
+            <TouchableOpacity key={tab} style={styles.tabItem} onPress={() => setSelectedTab(tab)}>
+              <Text style={[styles.tabText, selectedTab === tab && styles.tabTextActive]}>
+                {tab === 'all' ? 'All' : tab === 'wallet' ? 'Wallet' : 'Cards'}
               </Text>
+              {selectedTab === tab ? <View style={styles.tabIndicator} /> : <View style={styles.tabIndicatorHidden} />}
             </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.filterButton, selectedFilter === 'wallet_funds' && styles.filterButtonActive]}
-              onPress={() => setSelectedFilter('wallet_funds')}
-            >
-              <Text style={[styles.filterText, selectedFilter === 'wallet_funds' && styles.filterTextActive]}>
-                Wallet Funds
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.filterButton, selectedFilter === 'add_funds' && styles.filterButtonActive]}
-              onPress={() => setSelectedFilter('add_funds')}
-            >
-              <Text style={[styles.filterText, selectedFilter === 'add_funds' && styles.filterTextActive]}>
-                Added Funds
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.filterButton, selectedFilter === 'buy_product' && styles.filterButtonActive]}
-              onPress={() => setSelectedFilter('buy_product')}
-            >
-              <Text style={[styles.filterText, selectedFilter === 'buy_product' && styles.filterTextActive]}>
-                Purchases
-              </Text>
-            </TouchableOpacity>
-          </ScrollView>
+          ))}
         </View>
 
         <View style={styles.transactionsList}>
@@ -286,7 +271,7 @@ const WalletScreen: React.FC<WalletScreenProps> = ({ navigation }) => {
           ) : (
             <View style={styles.emptyState}>
               <Text style={styles.emptyStateText}>
-                {selectedFilter === 'all' ? 'No transactions found' : `No ${selectedFilter.replace('_', ' ')} transactions found`}
+                {selectedTab === 'all' ? 'No transactions found' : `No ${selectedTab} transactions found`}
               </Text>
             </View>
           )}
@@ -447,35 +432,37 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  filterContainer: {
+  // Tabs
+  tabsContainer: {
     flexDirection: 'row',
+    justifyContent: 'flex-start',
     marginHorizontal: 15,
-    marginBottom: 10,
-    backgroundColor: '#F4F5F7',
-    borderRadius: 10,
-    paddingVertical: 5,
-    paddingHorizontal: 10,
+    marginBottom: 20,
   },
-  filterButton: {
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginHorizontal: 5,
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.border,
+  tabItem: {
+    marginRight: 24,
+    alignItems: 'center',
   },
-  filterButtonActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  filterText: {
-    fontSize: fontSizes.small,
+  tabText: {
+    fontSize: fontSizes.regular,
     fontFamily: fonts.medium,
     color: colors.label,
   },
-  filterTextActive: {
-    color: colors.white,
+  tabTextActive: {
+    color: colors.primary,
+    fontFamily: fonts.bold,
   },
-
+  tabIndicator: {
+    marginTop: 6,
+    height: 3,
+    width: 24,
+    backgroundColor: colors.primary,
+    borderRadius: 2,
+  },
+  tabIndicatorHidden: {
+    marginTop: 6,
+    height: 3,
+    width: 24,
+    backgroundColor: 'transparent',
+  },
 })
