@@ -66,11 +66,11 @@ const IconBackHeaderContainer: React.FC<IconBackHeaderContainerProps> = ({
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={HEADER_MIN_HEIGHT}>
-          <ScrollView
+          {/* <ScrollView
             showsVerticalScrollIndicator={false}
-            style={{ flex: 1 }}>
+            style={{ flex: 1 }}> */}
             {children}
-          </ScrollView>
+          {/* </ScrollView> */}
         </KeyboardAvoidingView>
       </View>
     </SafeAreaView>
