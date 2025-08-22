@@ -52,6 +52,11 @@
 			</dict>
 		</dict>
 	</dict>
+  <key>NSCameraUsageDescription</key>
+  <string>Unopened needs access to your camera to capture photos for product and scan QR code</string>
+  <key>NSPhotoLibraryUsageDescription</key>
+  <string>Unopened needs access to your photo library to allow uploading product pictures </string>
+
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>
 	<key>UILaunchStoryboardName</key>
