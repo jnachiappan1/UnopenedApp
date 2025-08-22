@@ -207,3 +207,24 @@ export interface AddressType {
   created_at: string;
   updated_at: string;
 }
+export interface CouponsItem {
+  id: number;
+  code: string;
+  title: string;
+  subTitle: string;
+  usage_limit: number;
+  start_date: string;
+  end_date: string;
+  type: string;
+  minPurchaseAmount: string;
+  maxDiscountAmount: string;
+  applicableCategories: string[];
+  applicableUser: string[];
+  isSpecificCoupon: number;
+  isExpired: number;
+  status: string;
+  count: number;
+  createdAt: string;
+  updatedAt: string;
+  is_available: boolean;
+}

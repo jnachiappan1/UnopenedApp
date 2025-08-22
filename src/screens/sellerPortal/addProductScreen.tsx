@@ -34,6 +34,7 @@ import { IRootState } from '../../redux/store';
 import { useSelector } from 'react-redux';
 import { calculateDiscount, handleError, handleSettled } from '../../utils/method';
 import { showLoader } from '../../components/loader/loader';
+import ApplyOfferInput from '../../components/input/applyOfferInput';
 
 type MediaObject = {
   uri: string;
@@ -75,11 +76,13 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
   } = route.params || {};
   const [uploadedImages, setUploadedImages] = useState<MediaObject[]>([]);
   const [isNavigatingToPreview, setIsNavigatingToPreview] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
   const userData = useSelector((user: IRootState) => user.user.userData);
   const isLogged = userData ? true : false;
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [imageError, setImageError] = useState<string>('');
   const [dropdownData, setDropdownData] = useState<DropDownType[]>([]);
+  
   const { data: categoryData, refetch: refetchcategoryDetail } = useQuery({
     queryKey: ['getCategoryDetail'],
     queryFn: () => getCategoryDetail(),
@@ -135,6 +138,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     trigger,
     watch,
   } = useForm<FormData>({
+    mode: 'onChange', // Enable real-time validation
     defaultValues: {
       brandName: '',
       productName: '',
@@ -234,16 +238,29 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       setValue('dimensions', productData.dimension || '');
       setValue('weight', productData.weight ? productData.weight.toString() : '');
       
+      // Handle images from scanned product - only set the first image, user can add more
       if (productData.images && productData.images.length > 0) {
-        const imageObjects: MediaObject[] = productData.images.slice(0, 6).map((url: string, index: number) => ({
-          uri: url,
-          name: `product_image_${index + 1}.jpg`,
+        console.log('Scanned product images:', productData.images);
+        console.log('Number of scanned images:', productData.images.length);
+        
+        // Clear any existing images first to ensure clean state
+        setUploadedImages([]);
+        setValue('productImages', []);
+        
+        // Only take the first image from scanned product, not all images
+        const scannedImage: MediaObject = {
+          uri: productData.images[0], // Only first image
+          name: 'scanned_product_image.jpg',
           type: 'image/jpeg'
-        }));
-        setUploadedImages(imageObjects);
-        setValue('productImages', imageObjects);
-  
-        if (imageObjects.length >= 2) {
+        };
+        
+        console.log('Selected scanned image:', scannedImage);
+        
+        // Set only the scanned image, user can add more through camera
+        setUploadedImages([scannedImage]);
+        setValue('productImages', [scannedImage]);
+    
+        if (scannedImage) {
           clearErrors('productImages');
           setImageError('');
         }
@@ -253,13 +270,48 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
   }, [scanProductData, dropdownData, setValue, clearErrors, scannedBarcode, discountPercentage]);
 
   const handleImageUpload = (selectedImages: MediaObject[]) => {
-    setUploadedImages(selectedImages);
-    setValue('productImages', selectedImages);
-    if (selectedImages.length >= 2) {
+    console.log('handleImageUpload called with:', selectedImages);
+    console.log('Current uploadedImages:', uploadedImages);
+    
+    // If we already have images (from scan or previous upload), merge with new ones
+    // If this is the first time, start fresh
+    let finalImages;
+    
+    if (uploadedImages.length > 0) {
+      // Merge new images with existing ones, avoiding duplicates
+      const uniqueNewImages = selectedImages.filter(newImage => 
+        !uploadedImages.some(existingImage => existingImage.uri === newImage.uri)
+      );
+      
+      console.log('Unique new images:', uniqueNewImages);
+      
+      // Put camera images first, then scanned images
+      // Check if existing images are scanned images (have 'scanned_product_image.jpg' name)
+      const scannedImages = uploadedImages.filter(img => img.name === 'scanned_product_image.jpg');
+      const nonScannedImages = uploadedImages.filter(img => img.name !== 'scanned_product_image.jpg');
+      
+      console.log('Scanned images:', scannedImages);
+      console.log('Non-scanned images:', nonScannedImages);
+      
+      // Order: new camera images first, then existing non-scanned images, then scanned images
+      const mergedImages = [...uniqueNewImages, ...nonScannedImages, ...scannedImages];
+      finalImages = mergedImages.slice(0, 6);
+      
+      console.log('Final merged images:', finalImages);
+    } else {
+      // First time upload, start fresh
+      finalImages = selectedImages.slice(0, 6);
+      console.log('First time upload, final images:', finalImages);
+    }
+    
+    setUploadedImages(finalImages);
+    setValue('productImages', finalImages);
+    
+    if (finalImages.length >= 2) {
       clearErrors('productImages');
       setImageError('');
     } else {
-      const errorMessage = `Please select at least 2 images. Currently selected: ${selectedImages.length}`;
+      const errorMessage = `Please select at least 2 images. Currently selected: ${finalImages.length}`;
       setImageError(errorMessage);
       setError('productImages', {
         type: 'manual',
@@ -268,6 +320,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     }
     setIsModalVisible(false);
   };
+
   const validateImages = () => {
     if (uploadedImages.length < 2) {
       const errorMessage = `Minimum 2 images required. Currently selected: ${uploadedImages.length}`;
@@ -387,6 +440,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       return;
     }
     const apiFormData = prepareFormDataForAPI(data);
+    console.log(JSON.stringify(apiFormData),"apiFormData=====");
     showLoader(true);
      mutate(apiFormData)
   };
@@ -452,6 +506,35 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     );
   };
 
+  const goToNextStep = async () => {
+    console.log('Next Step button clicked');
+    
+    // Trigger validation for Step 1 fields
+    const isStep1Valid = await trigger(['brandName', 'productName', 'barcode', 'category', 'dimensions', 'weight', 'description']);
+    console.log('Step 1 validation result:', isStep1Valid);
+    
+    // Also validate images
+    const isImagesValid = validateImages();
+    console.log('Images validation result:', isImagesValid);
+    
+    // Log current errors
+    console.log('Current form errors:', errors);
+    
+    if (isStep1Valid && isImagesValid) {
+      // All validations passed, move to next step
+      console.log('All validations passed, moving to Step 2');
+      setCurrentStep(1);
+    } else {
+      // Validation failed, errors will be displayed by react-hook-form
+      console.log('Step 1 validation failed');
+      console.log('Form errors:', errors);
+    }
+  };
+
+  const goToPreviousStep = () => {
+    setCurrentStep(0);
+  };
+
   // Render scan section with loading state
   const renderScanSection = () => {
     const getScanButtonText = () => {
@@ -463,7 +546,9 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
 
     return (
       <View style={styles.scanSection}>
-        <IconsSvg name="scannerIcon" />
+        <View style={styles.scanIconContainer}>
+          <IconsSvg name="scannerIcon" />
+        </View>
         <Text style={styles.scanTitle}>Scan Product Barcode</Text>
         <Text style={styles.scanSubtitle}>
           {isScanFetching 
@@ -481,20 +566,28 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
           }}
         />
         {scannedBarcode && (
-          <Text style={styles.scannedBarcodeText}>
-            Scanned: {scannedBarcode}
-          </Text>
+          <View style={styles.scannedBarcodeContainer}>
+            <Text style={styles.scannedBarcodeText}>
+              Scanned: {scannedBarcode}
+            </Text>
+          </View>
         )}
       </View>
     );
   };
 
-  return (
-    <TitleBackHeaderContainer isBack title="Add Product">
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {renderScanSection()}
-        <View style={styles.detailsSection}>
-          <Text style={styles.sectionTitle}>Product Details & Media</Text>
+  // Step 1: Basic Product Details
+  const renderStep1 = () => (
+    <ScrollView 
+      showsVerticalScrollIndicator={false} 
+      style={styles.stepContainer}
+      contentContainerStyle={styles.stepContentContainer}
+      nestedScrollEnabled
+    >
+      {renderScanSection()}
+      <View style={styles.detailsSection}>
+        <Text style={styles.sectionTitle}>Product Details & Media</Text>
+        <View style={styles.formFieldsContainer}>
           <Input
             control={control}
             name="brandName"
@@ -550,6 +643,148 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             }}
             containerStyle={styles.categoryStyle}
           />
+          <Input
+            control={control}
+            name="dimensions"
+            label={'Dimensions *'}
+            containerStyle={styles.emailContainer}
+            inputProps={{
+              placeholder: 'Enter Dimensions'
+            }}
+            required={{ value: true, message: 'Dimensions is required' }}
+            error={errors}
+            maxLength={40}
+            keyboardType={'numeric'}
+            inputStyle={styles.inputStyle}
+          />
+          <Input
+            control={control}
+            name="weight"
+            label={'Weight *'}
+            containerStyle={styles.emailContainer}
+            inputProps={{
+              placeholder: 'Enter Weight'
+            }}
+            required={{ value: true, message: 'Weight is required' }}
+            error={errors}
+            maxLength={40}
+            keyboardType={'numeric'}
+            inputStyle={styles.inputStyle}
+          />
+          <Input
+            control={control}
+            name="description"
+            label={'Product Description *'}
+            containerStyle={styles.descriptionContainer}
+            inputProps={{
+              placeholder: 'Enter Product Description...',
+              multiline: true,
+              textAlignVertical: 'top',
+            }}
+            required={{
+              value: true,
+              message: 'Product description is required',
+            }}
+            error={errors}
+            maxLength={500}
+            inputStyle={styles.descriptionInputStyle}
+            multiline={true}
+          />
+        </View>
+        <View style={styles.imageUploadContainer}>
+          <Text style={styles.imageUploadLabel}>Product Images/Video *</Text>
+          <ImageUpload
+            onUpload={handleUploadPress}
+            title="Upload Product Media"
+            subtitle={`Min 2 images or 1 video (${uploadedImages.length} selected)`}
+            uploadTitle={uploadedImages.length > 0 ? "Add More Images/Video" : "Upload Your Product Photos/Video"}
+            uploadSubtitle={uploadedImages.length > 0 ? "Add additional images or video to your product" : "Minimum 720p quality. Ensure files are not corrupted or blurred."}
+          />
+          {imageError ? (
+            <Text style={styles.imageErrorText}>{imageError}</Text>
+          ) : null}
+          {uploadedImages.length > 0 && (
+            <View style={styles.selectedImagesContainer}>
+              <View style={styles.selectedImagesHeader}>
+                <Text style={styles.selectedImagesText}>
+                  ✅ {uploadedImages.length} media file(s) selected
+                </Text>
+                {uploadedImages.length >= 2 && (
+                  <Text style={styles.validationSuccessText}>
+                    Minimum requirement met!
+                  </Text>
+                )}
+              </View>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.imagesPreviewScroll}
+                contentContainerStyle={styles.imagesPreviewContent}
+              >
+                {uploadedImages.map((mediaObj, index) => (
+                  <View key={index} style={styles.previewImageContainer}>
+                    {isVideo(mediaObj) ? (
+                      <View style={styles.videoPreviewContainer}>
+                        <Text style={styles.videoPreviewIcon}>🎥</Text>
+                        <Text style={styles.videoPreviewText}>Video {index + 1}</Text>
+                        <Text style={styles.videoFileName} numberOfLines={1}>
+                          {mediaObj.name}
+                        </Text>
+                      </View>
+                    ) : (
+                      <Image
+                        source={{ uri: mediaObj.uri }}
+                        style={styles.previewImage}
+                        resizeMode="cover"
+                      />
+                    )}
+                    <TouchableOpacity
+                      style={styles.removeImageButton}
+                      onPress={() => removeImage(index)}
+                    >
+                      <Text style={styles.removeImageText}>×</Text>
+                    </TouchableOpacity>
+                    <View style={styles.imageNumberBadge}>
+                      <Text style={styles.imageNumberText}>{index + 1}</Text>
+                    </View>
+                  </View>
+                ))}
+              </ScrollView>
+              <View style={styles.imageActionsContainer}>
+                <TouchableOpacity
+                  style={styles.clearAllButton}
+                  onPress={clearAllImages}
+                >
+                  <Text style={styles.clearAllButtonText}>🗑️ Clear All</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+        </View>
+      </View>
+      <View style={styles.step1Buttons}>
+        
+        <Button
+          title="Next Step"
+          style={styles.nextStepButton}
+          onPress={goToNextStep}
+          disabled={false}
+        />
+      </View>
+    </ScrollView>
+  );
+
+  // Step 2: Pricing Information
+  const renderStep2 = () => (
+    <ScrollView 
+      showsVerticalScrollIndicator={false} 
+      style={styles.stepContainer}
+      contentContainerStyle={styles.stepContentContainer}
+      nestedScrollEnabled
+    >
+      <View style={styles.detailsSection}>
+        <Text style={styles.sectionTitle}>Pricing Information</Text>
+        <View style={styles.formFieldsContainer}>
           <Input
             control={control}
             name="msrp"
@@ -638,127 +873,16 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             inputStyle={styles.inputStyle}
             disabled
           />
-          <Input
-            control={control}
-            name="dimensions"
-            label={'Dimensions'}
-            containerStyle={styles.emailContainer}
-            inputProps={{
-              placeholder: 'Enter Dimensions'
-            }}
-            required={{ value: true, message: 'Dimensions is required' }}
-            error={errors}
-            maxLength={40}
-            keyboardType={'numeric'}
-            inputStyle={styles.inputStyle}
-          />
-          <Input
-            control={control}
-            name="weight"
-            label={'Weight'}
-            containerStyle={styles.emailContainer}
-            inputProps={{
-              placeholder: 'Enter Weight'
-            }}
-            required={{ value: true, message: 'Weight is required' }}
-            error={errors}
-            maxLength={40}
-            keyboardType={'numeric'}
-            inputStyle={styles.inputStyle}
-          />
-          <Input
-            control={control}
-            name="description"
-            label={'Product Description *'}
-            containerStyle={{height:120}}
-            inputProps={{
-              placeholder: 'Enter Product Description...',
-            }}
-            required={{
-              value: true,
-              message: 'Product description is required',
-            }}
-            error={errors}
-            maxLength={500}
-            inputStyle={styles.productDesc}
-            multiline
-          />
-          <View style={styles.imageUploadContainer}>
-            <Text style={styles.imageUploadLabel}>Product Images/Video *</Text>
-            <ImageUpload
-              onUpload={handleUploadPress}
-              title="Upload Product Media"
-              subtitle={`Min 2 images or 1 video (${uploadedImages.length} selected)`}
-              uploadTitle="Upload Your Product Photos/Video"
-              uploadSubtitle="Minimum 720p quality. Ensure files are not corrupted or blurred."
-            />
-            {imageError ? (
-              <Text style={styles.imageErrorText}>{imageError}</Text>
-            ) : null}
-            {uploadedImages.length > 0 && (
-              <View style={styles.selectedImagesContainer}>
-                <View style={styles.selectedImagesHeader}>
-                  <Text style={styles.selectedImagesText}>
-                    ✅ {uploadedImages.length} media file(s) selected
-                  </Text>
-                  {uploadedImages.length >= 2 && (
-                    <Text style={styles.validationSuccessText}>
-                      Minimum requirement met!
-                    </Text>
-                  )}
-                </View>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  style={styles.imagesPreviewScroll}
-                  contentContainerStyle={styles.imagesPreviewContent}
-                >
-                  {uploadedImages.map((mediaObj, index) => (
-                    <View key={index} style={styles.previewImageContainer}>
-                      {isVideo(mediaObj) ? (
-                        <View style={styles.videoPreviewContainer}>
-                          <Text style={styles.videoPreviewIcon}>🎥</Text>
-                          <Text style={styles.videoPreviewText}>Video {index + 1}</Text>
-                          <Text style={styles.videoFileName} numberOfLines={1}>
-                            {mediaObj.name}
-                          </Text>
-                        </View>
-                      ) : (
-                        <Image
-                          source={{ uri: mediaObj.uri }}
-                          style={styles.previewImage}
-                          resizeMode="cover"
-                        />
-                      )}
-                      <TouchableOpacity
-                        style={styles.removeImageButton}
-                        onPress={() => removeImage(index)}
-                      >
-                        <Text style={styles.removeImageText}>×</Text>
-                      </TouchableOpacity>
-                      <View style={styles.imageNumberBadge}>
-                        <Text style={styles.imageNumberText}>{index + 1}</Text>
-                      </View>
-                    </View>
-                  ))}
-                </ScrollView>
-                <TouchableOpacity
-                  style={styles.clearAllButton}
-                  onPress={clearAllImages}
-                >
-                  <Text style={styles.clearAllButtonText}>🗑️ Clear All</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-          <ProductImageUpload
-            isVisible={isModalVisible}
-            setIsVisible={setIsModalVisible}
-            onImageSelected={handleImageUpload}
-            selectedImages={uploadedImages}
-          />
+         
         </View>
-        <View style={styles.bottomButtons}>
+      </View>
+      <View style={styles.step2Buttons}>
+        <WhiteButton
+          title="Previous Step"
+          style={styles.previousStepButton}
+          onPress={goToPreviousStep}
+        />
+        <View style={styles.step2ActionButtons}>
           <WhiteButton
             title="Preview & Confirm"
             style={styles.submitButton}
@@ -769,9 +893,42 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             style={styles.submitReviewButton}
             onPress={handleSubmit(Submit)}
           />
-          <View style={{ height: 130 }} />
         </View>
-      </ScrollView>
+      </View>
+    </ScrollView>
+  );
+
+  return (
+    <TitleBackHeaderContainer 
+      isBack 
+      title="Add Product"
+      isNormalHeader={false}
+    >
+      {/* Step Indicator */}
+      <View style={styles.stepIndicator}>
+        <View style={styles.stepIndicatorContainer}>
+          <View style={[styles.stepDot, currentStep === 0 && styles.stepDotActive]} />
+          <Text style={[styles.stepText, currentStep === 0 && styles.stepTextActive]}>Step 1</Text>
+        </View>
+        <View style={styles.stepIndicatorLine} />
+        <View style={styles.stepIndicatorContainer}>
+          <View style={[styles.stepDot, currentStep === 1 && styles.stepDotActive]} />
+          <Text style={[styles.stepText, currentStep === 1 && styles.stepTextActive]}>Step 2</Text>
+        </View>
+      </View>
+
+      {/* PagerView */}
+      <View style={styles.pagerContainer}>
+        {currentStep === 0 && renderStep1()}
+        {currentStep === 1 && renderStep2()}
+      </View>
+
+      <ProductImageUpload
+        isVisible={isModalVisible}
+        setIsVisible={setIsModalVisible}
+        onImageSelected={handleImageUpload}
+        selectedImages={uploadedImages}
+      />
     </TitleBackHeaderContainer>
   );
 };
@@ -779,49 +936,145 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
 export default AddProductScreen;
 
 const styles = StyleSheet.create({
-  scanSection: {
-    backgroundColor: colors.white,
-    margin: 20,
-    borderRadius: 12,
-    padding: 30,
+  stepIndicator: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    marginHorizontal: 20,
+    marginTop: 10,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    // elevation: 5,
+  },
+  stepIndicatorContainer: {
+    alignItems: 'center',
+  },
+  stepDot: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.border,
+    marginBottom: 8,
+  },
+  stepDotActive: {
+    backgroundColor: colors.primary,
+  },
+  stepText: {
+    fontSize: fontSizes.small,
+    fontFamily: fonts.medium,
+    color: colors.label,
+  },
+  stepTextActive: {
+    color: colors.primary,
+    fontFamily: fonts.bold,
+  },
+  stepIndicatorLine: {
+    width: 80,
+    height: 2,
+    backgroundColor: colors.border,
+    marginHorizontal: 20,
+  },
+  pagerContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(245, 247, 242, 0.8)',
+  },
+  stepContainer: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
+  stepContentContainer: {
+    flexGrow: 1,
+    paddingBottom: 30,
+  },
+  scanSection: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    margin: 20,
+    borderRadius: 16,
+    padding: 32,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+
+  },
+  scanIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.lightGreen,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   scanTitle: {
     fontSize: fontSizes.huge,
     fontFamily: fonts.bold,
     color: colors.primaryBlack,
-    marginBottom: 10,
+    marginBottom: 12,
+    textAlign: 'center',
   },
   scanSubtitle: {
     fontSize: fontSizes.regular,
     color: colors.text,
     fontFamily: fonts.regular,
     textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: 25,
+    lineHeight: 22,
+    marginBottom: 28,
+    paddingHorizontal: 10,
   },
   scanButton: {
     width: '100%',
     backgroundColor: 'transparent',
-    borderRadius: 25,
-    borderWidth: 1,
+    borderRadius: 28,
+    borderWidth: 1.5,
     borderColor: '#4CAF50',
     justifyContent: 'center',
     alignItems: 'center',
+    paddingVertical: 16,
+    shadowColor: '#4CAF50',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    // elevation: 2,
   },
   detailsSection: {
     padding: 20,
+    backgroundColor: 'transparent',
+    // marginHorizontal: 20,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
   },
   sectionTitle: {
     fontSize: fontSizes.large,
     color: colors.primaryBlack,
     fontFamily: fonts.bold,
+    marginBottom: 8,
   },
   emailContainer: {
-    marginTop: 20,
+    marginTop: 24,
   },
   productDesc: {
-
     fontSize: fontSizes.regular,
     minHeight:  100,
     paddingVertical: 12 ,
@@ -830,29 +1083,28 @@ const styles = StyleSheet.create({
     fontFamily: fonts.medium,
     width: '100%',
     textAlignVertical: 'top'
-
-},
+  },
   inputStyle: {
     width: '100%',
   },
   imageUploadContainer: {
-    marginTop: 20,
+    marginTop: 24,
   },
   imageUploadLabel: {
     fontSize: fontSizes.medium,
     color: colors.primaryBlack,
     fontFamily: fonts.medium,
-    marginBottom: 10,
+    marginBottom: 12,
   },
   imageErrorText: {
     color: '#FF3B30',
     fontSize: fontSizes.small,
     fontFamily: fonts.regular,
-    marginTop: 5,
+    marginTop: 8,
     marginLeft: 5,
   },
   selectedImagesContainer: {
-    marginTop: 10,
+    marginTop: 16,
   },
   selectedImagesText: {
     color: colors.primary || '#4CAF50',
@@ -864,57 +1116,117 @@ const styles = StyleSheet.create({
     color: '#4CAF50',
     fontSize: fontSizes.small,
     fontFamily: fonts.regular,
-    marginTop: 2,
+    marginTop: 4,
     marginLeft: 5,
   },
-  bottomButtons: {
+  step1Buttons: {
+    paddingHorizontal: 20,
+    paddingBottom: 30,
+    paddingTop: 20,
+  },
+  step2Buttons: {
+    paddingHorizontal: 20,
+    paddingBottom: 30,
+    paddingTop: 20,
+  },
+  step2ActionButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginHorizontal: 10,
-    paddingBottom: 50,
-    alignSelf: "center"
+    marginTop: 24,
   },
-  submitButton: {
+  nextStepButton: {
+    borderRadius: 28,
+    borderWidth: 1.5,
+    borderColor: '#4CAF50',
+    marginHorizontal: 0,
+    paddingVertical: 16,
+    shadowColor: '#4CAF50',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    // elevation: 2,
+  },
+  previousStepButton: {
     backgroundColor: 'transparent',
-    borderRadius: 25,
-    borderWidth: 1,
+    borderRadius: 28,
+    borderWidth: 1.5,
     borderColor: '#4CAF50',
     justifyContent: 'center',
     alignItems: 'center',
     marginHorizontal: 0,
-    marginEnd: 10
+    marginBottom: 20,
+    paddingVertical: 16,
+    shadowColor: '#4CAF50',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    // elevation: 2,
+  },
+  submitButton: {
+    backgroundColor: 'transparent',
+    borderRadius: 28,
+    borderWidth: 1.5,
+    borderColor: '#4CAF50',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: 0,
+    marginEnd: 10,
+    paddingVertical: 16,
+    shadowColor: '#4CAF50',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    // elevation: 2,
   },
   submitReviewButton: {
-    borderRadius: 25,
-    borderWidth: 1,
+    borderRadius: 28,
+    borderWidth: 1.5,
     borderColor: '#4CAF50',
     marginHorizontal: 0,
+    paddingVertical: 16,
+    shadowColor: '#4CAF50',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    // elevation: 2,
   },
   selectedImagesHeader: {
-    marginBottom: 12,
+    marginBottom: 16,
   },
   imagesPreviewScroll: {
-    marginBottom: 12,
+    marginBottom: 16,
   },
   imagesPreviewContent: {
-    paddingVertical: 4,
+    paddingVertical: 6,
   },
   previewImageContainer: {
     position: 'relative',
-    marginRight: 12,
-    borderRadius: 8,
+    marginRight: 16,
+    borderRadius: 12,
     overflow: 'hidden',
   },
   previewImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 8,
+    width: 110,
+    height: 110,
+    borderRadius: 12,
     backgroundColor: '#f0f0f0',
   },
   videoPreviewContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 8,
+    width: 110,
+    height: 110,
+    borderRadius: 12,
     backgroundColor: '#f0f0f0',
     justifyContent: 'center',
     alignItems: 'center',
@@ -924,7 +1236,7 @@ const styles = StyleSheet.create({
   },
   videoPreviewIcon: {
     fontSize: fontSizes.huge,
-    marginBottom: 4,
+    marginBottom: 6,
   },
   videoPreviewText: {
     fontSize: fontSizes.tiny,
@@ -934,11 +1246,11 @@ const styles = StyleSheet.create({
   },
   removeImageButton: {
     position: 'absolute',
-    top: 2,
-    right: 5,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    top: 4,
+    right: 6,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: '#dc3545',
     justifyContent: 'center',
     alignItems: 'center',
@@ -949,21 +1261,21 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    elevation: 5,
+    // elevation: 5,
   },
   removeImageText: {
     color: 'white',
     fontSize: fontSizes.medium,
     fontWeight: 'bold',
-    lineHeight: 16,
+    lineHeight: 18,
   },
   imageNumberBadge: {
     position: 'absolute',
-    bottom: 4,
-    left: 4,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    bottom: 6,
+    left: 6,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'center',
     alignItems: 'center',
@@ -975,10 +1287,18 @@ const styles = StyleSheet.create({
   },
   clearAllButton: {
     backgroundColor: '#dc3545',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 6,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
     alignSelf: 'center',
+    shadowColor: '#dc3545',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    // elevation: 3,
   },
   clearAllButtonText: {
     color: 'white',
@@ -989,16 +1309,66 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.xTiny,
     color: '#666',
     textAlign: 'center',
-    marginTop: 2,
+    marginTop: 4,
   },
   categoryStyle: {
-    marginTop: 10
+    marginTop: 12
   },
   scannedBarcodeText: {
     fontSize: fontSizes.small,
     color: colors.primary || '#4CAF50',
     fontFamily: fonts.medium,
-    marginTop: 10,
+    marginTop: 12,
     textAlign: 'center',
+    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(76, 175, 80, 0.3)',
+  },
+  scannedBarcodeContainer: {
+    marginTop: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  descriptionContainer: {
+    marginTop: 24,
+  },
+  descriptionInputStyle: {
+    width: '100%',
+    paddingVertical: 16,
+    borderRadius: 16,
+    color: colors.primaryBlack,
+    fontFamily: fonts.medium,
+    textAlignVertical: 'top',
+    height: 120,
+    paddingHorizontal: 16,
+  },
+  testContent: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  testText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  formFieldsContainer: {
+    marginTop: 24,
+  },
+  imageActionsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 16,
+    paddingHorizontal: 20,
   },
 });

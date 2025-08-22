@@ -158,8 +158,15 @@ export const getSalesProductList = async () => {
   const response = await axios.get(API.seller.sales_product_List);
   return response;
 };
-export const getProductDetailByID = async (productId: string | number | null | undefined) => {
-  const response = await axios.get(API.seller.getProductDetailByID+productId);
+export const getProductDetailByID = async (productID?: string | number | null | undefined) => {
+  const response = await axios.get(API.buyer.getProductList + "/" + productID);
+  return response;
+};
+
+export const validateCoupon = async (data: { coupon_code: string; purchase_amount: number }) => {
+  const response = await axios.post(API.buyer.validateCoupon, data);
+  console.log(response,"response---");
+  
   return response;
 };
 export const soldProduct = async (productId: string | number | null | undefined, payload?: { address_id: number }) => {

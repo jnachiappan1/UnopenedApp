@@ -19,7 +19,7 @@ import IconsSvg from '../../assets/svg/iconsSvg';
 import Button from '../../components/button/buttons';
 import OrderSuccessfulModal from '../../components/model/orderSuccessfulModal';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { getProductDetailByID, getWalletDetail, getAddresses, makePayment, soldProduct } from '../../utils/apiAction';
+import { getProductDetailByID, getWalletDetail, getAddresses, makePayment, soldProduct, validateCoupon } from '../../utils/apiAction';
 import { image_url } from '../../utils/api';
 import { useSelector } from 'react-redux';
 import { IRootState } from '../../redux/store';
@@ -27,6 +27,8 @@ import { AddressType } from '../../utils/types';
 import { showLoader } from '../../components/loader/loader';
 import { showAlert } from '../../components/cAlert';
 import { useStripe } from '@stripe/stripe-react-native';
+import { useForm } from 'react-hook-form';
+import ApplyOfferInput from '../../components/input/applyOfferInput';
 
 const { width } = Dimensions.get('window');
 
@@ -49,6 +51,124 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
   const totalPrice = itemPrice * quantity;
   const [isModalVisible, setModalVisible] = useState(false);
   const [isStripeModalVisible, setStripeModalVisible] = useState(false);
+  const [discountAmount, setDiscountAmount] = useState<number>(0);
+
+  // Form setup for discount code
+  const {
+    control,
+    formState: { errors },
+    handleSubmit,
+    watch,
+  } = useForm({
+    defaultValues: {
+      discount_code: '',
+    }
+  });
+
+  // Watch the discount code value
+  const discountCode = watch('discount_code');
+
+  // Handle discount code application
+  const handleDiscountCodeApply = async (code: string) => {
+    console.log('=== DISCOUNT CODE APPLIED ===');
+    console.log('Code entered:', code);
+    console.log('Product ID:', productId);
+    console.log('Product price:', allProductList?.data?.product[0]?.price);
+    console.log('Wallet balance:', walletData?.data?.wallet?.amount);
+    console.log('================================');
+    
+    try {
+      // Prepare the API payload
+      const purchaseAmount = getSafeNumber(allProductList?.data?.product[0]?.price);
+      if (!purchaseAmount || purchaseAmount <= 0) {
+        showAlert({
+          isVisible: true,
+          type: 'error',
+          title: 'Invalid Product Price',
+          description: 'Product price is not available. Please try again.',
+          doneText: 'OK',
+        });
+        return;
+      }
+
+      const couponPayload = {
+        coupon_code: code,
+        purchase_amount: purchaseAmount
+      };
+
+      console.log('Coupon validation payload:', couponPayload);
+
+      // Make API call to validate coupon
+      const response = await validateCoupon(couponPayload);
+      
+      console.log('Coupon validation response:', JSON.stringify(response));
+
+      // Access the response data properly from axios response
+      const responseData = response;
+
+      if (responseData?.data?.is_valid && responseData?.data?.is_available) {
+        const couponData = responseData.data.coupon;
+        const discountAmountValue = parseFloat(couponData.discount_amount);
+        const minimumPurchase = couponData.minimum_purchase_amount;
+        
+        // Store the discount amount for payment calculations
+        setDiscountAmount(discountAmountValue);
+        
+        showAlert({
+          isVisible: true,
+          type: 'success',
+          title: 'Coupon Applied Successfully!',
+          description: `Coupon "${couponData.title}" applied! You get $${discountAmountValue} off on minimum purchase of $${minimumPurchase}`,
+          doneText: 'OK',
+        });
+        
+        // You can store the coupon data for later use
+        console.log('Coupon details:', {
+          id: couponData.id,
+          title: couponData.title,
+          subtitle: couponData.subtitle,
+          discountAmount: discountAmountValue,
+          minimumPurchase: minimumPurchase
+        });
+      } else {
+        // Check specific validation failures
+        if (responseData?.data?.is_valid === false) {
+          showAlert({
+            isVisible: true,
+            type: 'error',
+            title: 'Invalid Coupon',
+            description: 'This coupon code is not valid. Please check and try again.',
+            doneText: 'OK',
+          });
+        } else if (responseData?.data?.is_available === false) {
+          showAlert({
+            isVisible: true,
+            type: 'error',
+            title: 'Coupon Not Available',
+            description: 'This coupon is no longer available or has expired.',
+            doneText: 'OK',
+          });
+        } else {
+          showAlert({
+            isVisible: true,
+            type: 'error',
+            title: 'Coupon Validation Failed',
+            description: responseData?.data?.message || 'Failed to validate coupon. Please try again.',
+            doneText: 'OK',
+          });
+        }
+      }
+    } catch (error: any) {
+      console.error('Coupon validation error:', error);
+      showAlert({
+        isVisible: true,
+        type: 'error',
+        title: 'Coupon Validation Error',
+        description: error?.response?.data?.message || 'Failed to validate coupon. Please try again.',
+        doneText: 'OK',
+      });
+    }
+  };
 
   const { data: allProductList, refetch: refetchAllProduct } = useQuery({
     queryKey: ['getProductDetailByID', productId],
@@ -183,11 +303,12 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
 
       if (paymentMethod === 'wallet') {
         const currentWalletBalance = getSafeNumber(walletData?.data?.wallet?.amount);
+        const finalAmount = getFinalAmount(); // Use discounted amount
 
-        if (currentWalletBalance >= productPrice) {
+        if (currentWalletBalance >= finalAmount) {
           showLoader(true);
           const walletPaymentPayload = {
-            wallet_amount: productPrice.toString(),
+            wallet_amount: finalAmount.toString(), // Use discounted amount
             address_id: addressId
           };
 
@@ -218,9 +339,11 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
           }
         } else {
           const walletAmount = getSafeNumber(currentWalletBalance);
-          const remainingAmount = productPrice - walletAmount;
+          const remainingAmount = finalAmount - walletAmount; // Use discounted amount
           console.log('Hybrid payment calculation:');
-          console.log('Product price:', productPrice);
+          console.log('Product price:', getSafeNumber(allProductList?.data?.product[0]?.price));
+          console.log('Discount amount:', discountAmount);
+          console.log('Final amount after discount:', finalAmount);
           console.log('Wallet balance:', currentWalletBalance);
           console.log('Wallet amount to use:', walletAmount);
           console.log('Remaining amount for Stripe:', remainingAmount);
@@ -236,8 +359,8 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
               try {
                 showLoader(true);
                 const hybridPaymentPayload = {
-                  amount: remainingAmount.toString(),      
-                  wallet_amount: walletAmount.toString(), 
+                  amount: remainingAmount.toString(),      // Stripe amount (discounted)
+                  wallet_amount: walletAmount.toString(), // Wallet amount
                   address_id: addressId
                 };
                 console.log('Single hybrid payment API call payload:', hybridPaymentPayload);
@@ -328,7 +451,12 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
           });
         }
       } else if (paymentMethod === 'stripe') {
-        handleStripePayment(paymentPayload);
+        const finalAmount = getFinalAmount(); // Use discounted amount
+        const stripePaymentPayload = {
+          amount: finalAmount.toString(), // Use discounted amount
+          address_id: addressId
+        };
+        handleStripePayment(stripePaymentPayload);
       } else {
         showAlert({
           isVisible: true,
@@ -513,8 +641,27 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
     return isNaN(num) ? defaultValue : num;
   };
 
+  // Calculate final amount after applying discount
+  const getFinalAmount = (): number => {
+    const productPrice = getSafeNumber(allProductList?.data?.product[0]?.price);
+    return Math.max(0, productPrice - discountAmount);
+  };
+
+  // Get discount display text
+  const getDiscountDisplay = (): string => {
+    if (discountAmount > 0) {
+      return `-$${discountAmount.toFixed(2)}`;
+    }
+    return '';
+  };
+
+  // Clear discount amount
+  const clearDiscount = () => {
+    setDiscountAmount(0);
+  };
+
   const getPaymentBreakdown = () => {
-    if (isWalletLoading || !walletData?.data?.wallet?.amount || !allProductList?.data?.product?.[0]?.price) {
+    if (isWalletLoading || !walletData?.data?.wallet?.amount || !allProductList?.data?.product[0]?.price) {
       return {
         walletAmount: 0,
         stripeAmount: 0,
@@ -524,21 +671,21 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
     }
 
     const currentWalletBalance = getSafeNumber(walletData.data.wallet.amount);
-    const productPrice = getSafeNumber(allProductList.data.product[0].price);
+    const finalAmount = getFinalAmount(); // Use discounted amount
 
-    if (currentWalletBalance >= productPrice) {
+    if (currentWalletBalance >= finalAmount) {
       return {
-        walletAmount: productPrice,
+        walletAmount: finalAmount,
         stripeAmount: 0,
         isHybrid: false,
-        message: `Full payment from wallet: $${productPrice.toFixed(2)}`
+        message: `Full payment from wallet: $${finalAmount.toFixed(2)}`
       };
     } else {
       return {
         walletAmount: currentWalletBalance,
-        stripeAmount: productPrice - currentWalletBalance,
+        stripeAmount: finalAmount - currentWalletBalance,
         isHybrid: true,
-        message: `Hybrid payment: $${currentWalletBalance.toFixed(2)} from wallet + $${(productPrice - currentWalletBalance).toFixed(2)} via Stripe`
+        message: `Hybrid payment: $${currentWalletBalance.toFixed(2)} from wallet + $${(finalAmount - currentWalletBalance).toFixed(2)} via Stripe`
       };
     }
   };
@@ -558,9 +705,21 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
               <Text style={styles.productTitle}>
                 {allProductList?.data?.product[0]?.name}
               </Text>
-              <Text style={styles.productPrice}>
-                ${allProductList?.data?.product[0]?.price}
-              </Text>
+              <View style={styles.priceContainer}>
+                <Text style={styles.productPrice}>
+                  ${allProductList?.data?.product[0]?.price}
+                </Text>
+                {discountAmount > 0 && (
+                  <Text style={styles.discountText}>
+                    {getDiscountDisplay()}
+                  </Text>
+                )}
+              </View>
+              {discountAmount > 0 && (
+                <Text style={styles.finalPrice}>
+                  Final Price: ${getFinalAmount().toFixed(2)}
+                </Text>
+              )}
             </View>
           </View>
         </View>
@@ -737,7 +896,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
                   styles.paymentAmount,
                   isWalletPaymentDisabled() && { color: '#999999' }
                 ]}>
-                  ${allProductList?.data?.product[0]?.price || '0.00'}
+                  ${getFinalAmount().toFixed(2)}
                 </Text>
                 <Text style={[
                   styles.walletBalanceText,
@@ -808,29 +967,57 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
               <View style={styles.paymentDetails}>
                 <Text style={styles.paymentLabel}>Stripe</Text>
                 <Text style={styles.paymentAmount}>
-                  ${allProductList?.data?.product[0]?.price || '0.00'}
+                  ${getFinalAmount().toFixed(2)}
                 </Text>
               </View>
             </View>
           </TouchableOpacity>
         </View>
-
+       <ApplyOfferInput
+            control={control}
+            name="discount_code"
+            label={'Discount Code'}
+            containerStyle={styles.discountContainer}
+            inputStyle={{}}
+            inputProps={{
+              placeholder: 'Enter discount code',
+            }}
+            error={errors}
+            onApply={handleDiscountCodeApply}
+          />
         {/* Payment Summary */}
         {!isWalletLoading && 
          paymentMethod === 'wallet' && 
          !isWalletPaymentDisabled() &&
-         getSafeNumber(walletData?.data?.wallet?.amount) < getSafeNumber(allProductList?.data?.product[0]?.price) && (
+         getSafeNumber(walletData?.data?.wallet?.amount) < getFinalAmount() && (
           <View style={styles.productSection}>
             <Text style={styles.sectionTitle}>Payment Summary</Text>
             <View style={styles.summaryDivider} />
             <View style={styles.paymentSummaryCard}>
+              {discountAmount > 0 && (
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Original Price:</Text>
+                  <Text style={styles.summaryAmount}>${getSafeNumber(allProductList?.data?.product[0]?.price).toFixed(2)}</Text>
+                </View>
+              )}
+              {discountAmount > 0 && (
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Discount:</Text>
+                  <Text style={[styles.summaryAmount, { color: '#FF6B6B' }]}>{getDiscountDisplay()}</Text>
+                </View>
+              )}
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Final Amount:</Text>
+                <Text style={[styles.summaryAmount, { color: colors.primary, fontFamily: fonts.bold }]}>${getFinalAmount().toFixed(2)}</Text>
+              </View>
+              <View style={styles.summaryDivider} />
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Wallet:</Text>
                 <Text style={[styles.summaryAmount, { color: colors.primary }]}>${getSafeNumber(walletData?.data?.wallet?.amount).toFixed(2)}</Text>
               </View>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Stripe:</Text>
-                <Text style={styles.summaryAmount}>${getSafeNumber(getSafeNumber(allProductList?.data?.product[0]?.price) - getSafeNumber(walletData?.data?.wallet?.amount)).toFixed(2)}</Text>
+                <Text style={styles.summaryAmount}>${(getFinalAmount() - getSafeNumber(walletData?.data?.wallet?.amount)).toFixed(2)}</Text>
               </View>
             </View>
           </View>
@@ -840,11 +1027,11 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
       <View style={styles.buyContainer}>
         <Button
           title={
-            !isWalletLoading && paymentMethod === 'wallet' && !isWalletPaymentDisabled() && getSafeNumber(walletData?.data?.wallet?.amount) < getSafeNumber(allProductList?.data?.product[0]?.price)
-              ? `Pay with Wallet + Stripe`
+            !isWalletLoading && paymentMethod === 'wallet' && !isWalletPaymentDisabled() && getSafeNumber(walletData?.data?.wallet?.amount) < getFinalAmount()
+              ? `Pay $${getFinalAmount().toFixed(2)} (Wallet + Stripe)`
               : paymentMethod === 'stripe'
-                ? 'Pay with Card'
-                : 'Confirm Purchase'
+                ? `Pay $${getFinalAmount().toFixed(2)} with Card`
+                : `Confirm Purchase - $${getFinalAmount().toFixed(2)}`
           }
           onPress={handleBuyNow}
           disabled={!selectedAddress || !allProductList?.data?.product[0]} // Disable if no address or product
@@ -995,6 +1182,23 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.extraLarge,
     fontFamily: fonts.bold,
     color: colors.black,
+  },
+  priceContainer: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginBottom: 4,
+  },
+  discountText: {
+    fontSize: fontSizes.medium,
+    fontFamily: fonts.bold,
+    color: '#FF6B6B',
+    marginLeft: 8,
+  },
+  finalPrice: {
+    fontSize: fontSizes.small,
+    fontFamily: fonts.regular,
+    color: colors.text3,
+    marginTop: 4,
   },
   radioOuter: {
     width: 24,
@@ -1332,5 +1536,10 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.medium,
     fontFamily: fonts.bold,
     color: colors.black,
+  },
+  discountContainer: {
+    marginTop: 10,
+    marginBottom: 10,
+    marginHorizontal: 10,
   },
 });

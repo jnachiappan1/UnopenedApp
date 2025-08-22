@@ -220,9 +220,9 @@ const ProductImageUpload = ({
         </View>
 
         {/* Gallery Option */}
-        <TouchableOpacity style={styles.btn} onPress={openGallery}>
+        {/* <TouchableOpacity style={styles.btn} onPress={openGallery}>
           <Text style={styles.title}>📷 Gallery (Multiple Selection)</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         {/* Camera Option */}
         <TouchableOpacity style={styles.btn} onPress={openCamera}>

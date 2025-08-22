@@ -21,6 +21,7 @@ export const API = {
     getAddresses: `${base_url}/api/v1/address`,
     getPublishKey: `${base_url}/api/v1/payment/publish-key`,
     makePayment: `${base_url}/api/v1/payment/make-payment`,
+    validateCoupon: `${base_url}/api/v1/coupon/validate`,
   },
   seller: {
     sign_up: `${base_url}/api/v1/users/auth/create`,
