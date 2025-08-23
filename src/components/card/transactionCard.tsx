@@ -111,8 +111,10 @@ const getTransactionDisplayInfo = (item: TransactionType) => {
         description: 'Product purchase transaction'
       };
     case 'wallet_buy_product_funds':
+      // Calculate total amount (Stripe + wallet) for hybrid payments
+      const totalAmount = (Number(amount) + Number(wallet_amount)).toString();
       return {
-        displayAmount: amount,
+        displayAmount: totalAmount,
         label: 'Purchase (Wallet + Card)',
         showBoth: true,
         walletAmount: wallet_amount,
@@ -166,7 +168,15 @@ const TransactionCard: React.FC<Props> = ({ item }) => {
   const breakdown = useMemo(() => {
     const total = Number(item?.amount) || 0;
     const walletAmt = Number(item?.wallet_amount) || 0;
-    const externalAmt = Math.max(total - walletAmt, 0);
+    
+    // For wallet_buy_product_funds, amount is the Stripe amount, not total
+    let externalAmt = 0;
+    if (item?.payment_transaction_type === 'wallet_buy_product_funds') {
+      externalAmt = total; // amount field is the Stripe amount
+    } else {
+      externalAmt = Math.max(total - walletAmt, 0); // For other types, calculate as before
+    }
+    
     const hasWallet = walletAmt > 0 || ['wallet_funds', 'add_funds'].includes(item?.payment_transaction_type);
     const shouldShow = hasWallet || externalAmt > 0;
     const externalLabel = item?.payment_type || item?.method || 'Stripe Card';

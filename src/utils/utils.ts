@@ -49,3 +49,29 @@ export const capitalizeFirstLetter = (text: string) => {
     ?.map((word) => word?.charAt(0)?.toUpperCase() + word?.slice(1))
     ?.join(" ");
 };
+
+// HTML content sanitization to prevent iOS crashes with react-native-render-html
+export const sanitizeHtmlContent = (content: string): string => {
+  if (!content || typeof content !== 'string') {
+    return '<p>Content not available</p>';
+  }
+  
+  // Remove null characters and control characters that cause iOS crashes
+  let sanitized = content
+    .replace(/\0/g, '') // Remove null characters
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // Remove control characters
+    .replace(/[\uFFFD]/g, '') // Remove replacement characters
+    .trim();
+  
+  // Ensure it's valid HTML
+  if (!sanitized.startsWith('<')) {
+    sanitized = `<p>${sanitized}</p>`;
+  }
+  
+  // If content is empty after sanitization, return fallback
+  if (!sanitized || sanitized === '<p></p>') {
+    return '<p>Content not available</p>';
+  }
+  
+  return sanitized;
+};

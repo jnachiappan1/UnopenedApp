@@ -11,7 +11,7 @@ import {
   Dimensions,
   Alert
 } from 'react-native';
-import { Camera } from 'react-native-camera-kit';
+import { Camera, CameraType } from 'react-native-camera-kit';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
 
@@ -185,6 +185,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ navigation }) => {
               scanBarcode={true}
               onReadCode={handleBarcodeScan}
               showFrame={false}
+              cameraType={CameraType.Back}  
             />
             
             {/* Scanner Overlay */}

@@ -278,3 +278,11 @@ export const makePayment = async (
   const response = await axios.post(url, payload);
   return response;
 };
+
+export const applyCoupon = async (payload: {
+  coupon_code: string;
+  purchase_amount: number;
+}) => {
+  const response = await axios.post(API.buyer.applyCoupon, payload);
+  return response;
+};

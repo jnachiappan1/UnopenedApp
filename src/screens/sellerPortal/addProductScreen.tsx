@@ -907,7 +907,13 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       {/* Step Indicator */}
       <View style={styles.stepIndicator}>
         <View style={styles.stepIndicatorContainer}>
-          <View style={[styles.stepDot, currentStep === 0 && styles.stepDotActive]} />
+          {currentStep === 0 ? (
+            <View style={[styles.stepDot, styles.stepDotActive]} />
+          ) : (
+            <View style={styles.stepDotComplete}>
+              <Text style={styles.stepCheckIcon}>✓</Text>
+            </View>
+          )}
           <Text style={[styles.stepText, currentStep === 0 && styles.stepTextActive]}>Step 1</Text>
         </View>
         <View style={styles.stepIndicatorLine} />
@@ -966,6 +972,21 @@ const styles = StyleSheet.create({
   },
   stepDotActive: {
     backgroundColor: colors.primary,
+  },
+  stepDotComplete: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#4CAF50',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  stepCheckIcon: {
+    color: 'white',
+    fontSize: 16,
+    fontFamily: fonts.bold,
+    lineHeight: 20,
   },
   stepText: {
     fontSize: fontSizes.small,

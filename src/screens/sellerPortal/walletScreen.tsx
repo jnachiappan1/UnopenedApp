@@ -21,7 +21,7 @@ type WalletScreenProps = NativeStackScreenProps<RootStackParamList, SCREENS.Wall
 const WalletScreen: React.FC<WalletScreenProps> = ({ navigation }) => {
   const userData = useSelector((user: IRootState) => user.user.userData);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [selectedTab, setSelectedTab] = useState<'all' | 'wallet' | 'cards'>('all');
+  const [selectedTab, setSelectedTab] = useState<'all' | 'wallet'>('all');
   
   const { data: walletData, refetch: refetchWalletDetail, isFetching: isWalletFetching, error: walletError } = useQuery({
     queryKey: ['getWalletDetail', userData?.id],
@@ -154,6 +154,11 @@ const WalletScreen: React.FC<WalletScreenProps> = ({ navigation }) => {
           acc.buyProduct += numAmount;
           acc.buyProductWallet += numWalletAmount;
           break;
+        case 'wallet_buy_product_funds':
+          // For hybrid payments, add the total amount (Stripe + wallet)
+          acc.buyProduct += (numAmount + numWalletAmount);
+          acc.buyProductWallet += numWalletAmount;
+          break;
         default:
           acc.other += numAmount;
       }
@@ -185,14 +190,6 @@ const WalletScreen: React.FC<WalletScreenProps> = ({ navigation }) => {
         const walletAmt = Number(t?.wallet_amount) || 0;
         const hasWalletByType = ['wallet_funds', 'add_funds'].includes(t?.payment_transaction_type);
         return hasWalletByType || walletAmt > 0 || (total > 0 && walletAmt === total);
-      });
-    } else if (selectedTab === 'cards') {
-      filtered = filtered.filter((t: any) => {
-        const total = Number(t?.amount) || 0;
-        const walletAmt = Number(t?.wallet_amount) || 0;
-        const externalAmt = Math.max(total - walletAmt, 0);
-        const hasExternal = externalAmt > 0 || (!!t?.payment_type && t?.payment_type !== 'wallet');
-        return hasExternal;
       });
     }
 
@@ -249,10 +246,10 @@ const WalletScreen: React.FC<WalletScreenProps> = ({ navigation }) => {
 
         {/* Tabs */}
         <View style={styles.tabsContainer}>
-          {(['all','wallet','cards'] as const).map(tab => (
+          {(['all','wallet'] as const).map(tab => (
             <TouchableOpacity key={tab} style={styles.tabItem} onPress={() => setSelectedTab(tab)}>
               <Text style={[styles.tabText, selectedTab === tab && styles.tabTextActive]}>
-                {tab === 'all' ? 'All' : tab === 'wallet' ? 'Wallet' : 'Cards'}
+                {tab === 'all' ? 'All' : 'Wallet'}
               </Text>
               {selectedTab === tab ? <View style={styles.tabIndicator} /> : <View style={styles.tabIndicatorHidden} />}
             </TouchableOpacity>
@@ -271,7 +268,7 @@ const WalletScreen: React.FC<WalletScreenProps> = ({ navigation }) => {
           ) : (
             <View style={styles.emptyState}>
               <Text style={styles.emptyStateText}>
-                {selectedTab === 'all' ? 'No transactions found' : `No ${selectedTab} transactions found`}
+                {selectedTab === 'all' ? 'No transactions found' : 'No wallet transactions found'}
               </Text>
             </View>
           )}

@@ -103,6 +103,7 @@ const getStyles = () =>
     inputContainer: {
       flex: 1,
       marginRight: 10,
+      marginTop: -8,
     },
     inputInnerContainer: {
       marginTop: 0,

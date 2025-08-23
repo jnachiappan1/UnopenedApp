@@ -1,8 +1,8 @@
 import React from 'react';
-import { Modal, View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
+import { Modal, View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, Platform } from 'react-native';
 import RenderHTML from 'react-native-render-html';
 import colors from '../../utils/colors';
-import { fontSizes } from '../../utils/utils';
+import { fontSizes, sanitizeHtmlContent } from '../../utils/utils';
 import fonts from '../../assets/fonts/fonts';
 
 interface TermsModalProps {
@@ -28,6 +28,122 @@ const TermsModal: React.FC<TermsModalProps> = ({
   isMandatory = false,
   acceptLoading = false,
 }) => {
+  // Sanitize the content before rendering to prevent iOS crashes
+  const sanitizedContent = React.useMemo(() => {
+    console.log('Original content:', content);
+    console.log('Content type:', typeof content);
+    console.log('Content length:', content?.length);
+    
+    const sanitized = sanitizeHtmlContent(content);
+    console.log('Sanitized content:', sanitized);
+    console.log('Sanitized length:', sanitized?.length);
+    
+    return sanitized;
+  }, [content]);
+
+  // State to track if HTML rendering fails
+  const [htmlRenderFailed, setHtmlRenderFailed] = React.useState(false);
+  const [renderTimeout, setRenderTimeout] = React.useState(false);
+
+  // Reset HTML render state when content changes
+  React.useEffect(() => {
+    setHtmlRenderFailed(false);
+    setRenderTimeout(false);
+  }, [content]);
+
+  // Set a timeout for HTML rendering to prevent hanging
+  React.useEffect(() => {
+    if (!loading && content && !htmlRenderFailed) {
+      const timer = setTimeout(() => {
+        console.warn('HTML render timeout, falling back to plain text');
+        setRenderTimeout(true);
+      }, 5000); // 5 second timeout
+
+      return () => clearTimeout(timer);
+    }
+  }, [loading, content, htmlRenderFailed]);
+
+  // Function to strip HTML tags for fallback display
+  const stripHtmlTags = (html: string): string => {
+    return html.replace(/<[^>]*>/g, '').trim();
+  };
+
+  // Safe HTML renderer component with error boundary
+  const SafeHTMLRenderer = React.useCallback(() => {
+    try {
+      return (
+        <RenderHTML
+          source={{ html: sanitizedContent }}
+          contentWidth={300}
+          tagsStyles={{
+            p: styles.contentText,
+            h1: styles.contentText,
+            h3: styles.contentText,
+            ul: styles.contentText,
+            li: styles.contentText,
+          }}
+          baseStyle={{
+            fontSize: fontSizes.medium,
+            color: colors.label,
+            fontFamily: fonts.regular,
+          }}
+        />
+      );
+    } catch (error) {
+      console.warn('HTML render failed, falling back to plain text:', error);
+      setHtmlRenderFailed(true);
+      return null;
+    }
+  }, [sanitizedContent]);
+
+  // Error boundary component for HTML rendering
+  const HTMLRendererWithErrorBoundary = React.useCallback(() => {
+    const [hasError, setHasError] = React.useState(false);
+
+    React.useEffect(() => {
+      if (hasError) {
+        setHtmlRenderFailed(true);
+      }
+    }, [hasError]);
+
+    if (hasError) {
+      return (
+        <Text style={styles.contentText}>
+          {stripHtmlTags(sanitizedContent)}
+        </Text>
+      );
+    }
+
+    try {
+      return (
+        <RenderHTML
+          source={{ html: sanitizedContent }}
+          contentWidth={300}
+          tagsStyles={{
+            p: styles.contentText,
+            h1: styles.contentText,
+            h3: styles.contentText,
+            ul: styles.contentText,
+            li: styles.contentText,
+          }}
+          baseStyle={{
+            fontSize: fontSizes.medium,
+            color: colors.label,
+            fontFamily: fonts.regular,
+          }}
+        />
+      );
+    } catch (error) {
+      console.warn('HTML render error caught, falling back to plain text:', error);
+      setHasError(true);
+      return (
+        <Text style={styles.contentText}>
+          {stripHtmlTags(sanitizedContent)}
+        </Text>
+      );
+    }
+  }, [sanitizedContent]);
+
   return (
     <Modal 
       visible={visible} 
@@ -42,12 +158,10 @@ const TermsModal: React.FC<TermsModalProps> = ({
     >
       <View style={styles.overlay}>
         <View style={styles.modalContainer}>
-          {/* Only show close button if not mandatory */}
-          {!isMandatory && (
-            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-              <Text style={styles.closeButtonText}>✕</Text>
-            </TouchableOpacity>
-          )}
+          {/* Always show close button so user can close modal */}
+          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+            <Text style={styles.closeButtonText}>✕</Text>
+          </TouchableOpacity>
           
           <Text style={styles.title}>Terms & Conditions</Text>
           
@@ -64,18 +178,14 @@ const TermsModal: React.FC<TermsModalProps> = ({
                 <ActivityIndicator size="large" color={colors.primary} />
                 <Text style={styles.loadingText}>Loading Terms & Conditions...</Text>
               </View>
+            ) : htmlRenderFailed || renderTimeout ? (
+              // Fallback to plain text if HTML rendering fails or times out
+              <Text style={styles.contentText}>
+                {stripHtmlTags(sanitizedContent)}
+              </Text>
             ) : (
-              <RenderHTML
-                source={{ html: content }}
-                contentWidth={300}
-                tagsStyles={{
-                  p: styles.contentText,
-                  h1: styles.contentText,
-                  h3: styles.contentText,
-                  ul: styles.contentText,
-                  li: styles.contentText,
-                }}
-              />
+              // Try HTML rendering with error boundary
+              <HTMLRendererWithErrorBoundary />
             )}
           </ScrollView>
 

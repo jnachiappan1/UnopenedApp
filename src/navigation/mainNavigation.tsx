@@ -38,6 +38,8 @@ import { IRootState } from '../redux/store';
 import AddProductScreen from '../screens/sellerPortal/addProductScreen';
 import BarcodeScanner from '../screens/sellerPortal/barcodeScanner';
 import AddressSelectionScreen from '../screens/buyerPortal/addressSelectionScreen';
+import BHomeScreen from '../screens/buyerPortal/bHomeScreen';
+import SHomeScreen from '../screens/sellerPortal/sHomeScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -123,7 +125,8 @@ const MainNavigation: React.FC = () => {
         name={SCREENS.BarcodeScanner}
         component={BarcodeScanner}
       />
-
+ <Stack.Screen name={SCREENS.BHomeScreen} component={BHomeScreen} />
+ <Stack.Screen name={SCREENS.SHomeScreen} component={SHomeScreen} />
     </Stack.Navigator>
     // </View>
   );

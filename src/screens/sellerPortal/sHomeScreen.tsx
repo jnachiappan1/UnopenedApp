@@ -17,7 +17,7 @@ import { ProductData } from '../../utils/types';
 import { useFocusEffect } from '@react-navigation/native';
 import TermsModal from '../../components/model/termsModal';
 import { showLoader } from '../../components/loader/loader';
-import { saveUserData } from '../../redux/reducers/user/UserReducer';
+import { saveUserData, saveUserType } from '../../redux/reducers/user/UserReducer';
 import { showAlert } from '../../components/cAlert';
 import { handleError, handleSettled } from '../../utils/method';
 
@@ -46,6 +46,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
   const [termsLoading, setTermsLoading] = useState(false);
   const [termsChecked, setTermsChecked] = useState(false);
   const [acceptLoading, setAcceptLoading] = useState(false);
+  const [termsModalManuallyClosed, setTermsModalManuallyClosed] = useState(false);
   const userData = useSelector((user: IRootState) => user.user.userData);
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
@@ -273,19 +274,30 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
   }, []);
   useEffect(() => {
     // Auto-show terms modal if user hasn't accepted terms and conditions
-    if (userData && !userData.is_terms_and_conditions_accepted && !termsModalVisible) {
+    // AND user hasn't manually closed it
+    if (userData && !userData.is_terms_and_conditions_accepted && !termsModalVisible && !termsModalManuallyClosed) {
       openTermsModal();
     }
-  }, [userData, termsModalVisible]);
+  }, [userData, termsModalVisible, termsModalManuallyClosed]);
   const openTermsModal = async () => {
     setTermsModalVisible(true);
     setTermsLoading(true);
     setTermsChecked(false);
     try {
       const response = await getLegalcontent('terms_and_conditions');
-      setTermsContent(response.data.legalContent.content);
+      
+      // Validate the response content before setting it
+      if (response?.data?.legalContent?.content && 
+          typeof response.data.legalContent.content === 'string' &&
+          response.data.legalContent.content.trim()) {
+        setTermsContent(response.data.legalContent.content);
+      } else {
+        console.warn('Invalid or empty terms content received:', response);
+        setTermsContent('<p>Terms & Conditions content is not available at the moment.</p>');
+      }
     } catch (error) {
-      setTermsContent('<p>Failed to load Terms & Conditions.</p>');
+      console.error('Error fetching terms content:', error);
+      setTermsContent('<p>Failed to load Terms & Conditions. Please try again later.</p>');
     }
     setTermsLoading(false);
   };
@@ -297,6 +309,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
       setAcceptLoading(false);
       setTermsModalVisible(false);
       setTermsChecked(false);
+      setTermsModalManuallyClosed(false); // Reset the flag when terms are accepted
 
       showAlert({
         isVisible: true,
@@ -537,11 +550,13 @@ console.log("calll======");
       <TermsModal
         visible={termsModalVisible}
         onClose={() => {
-          // Only allow closing if terms are already accepted
-          if (userData?.is_terms_and_conditions_accepted) {
-            setTermsModalVisible(false);
-          }
-          // If terms are not accepted, don't close the modal (make it mandatory)
+          setTermsModalManuallyClosed(true);
+          setTermsModalVisible(false);
+          dispatch(saveUserType('buyer'));
+          setTimeout(() => {
+            navigation.replace(SCREENS.BottomTab);
+            console.log('Navigation replace successful');
+          }, 300); // adjust delay if needed
         }}
         content={termsContent}
         loading={termsLoading}
@@ -549,7 +564,7 @@ console.log("calll======");
         onCheck={setTermsChecked}
         onAccept={handleTermsAcceptance}
         isMandatory={userData && !userData.is_terms_and_conditions_accepted}
-        acceptLoading={acceptLoading} // Add this prop
+        acceptLoading={acceptLoading}
       />
     </HeaderHomeContainer>
   );

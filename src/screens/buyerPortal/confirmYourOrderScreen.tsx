@@ -19,7 +19,7 @@ import IconsSvg from '../../assets/svg/iconsSvg';
 import Button from '../../components/button/buttons';
 import OrderSuccessfulModal from '../../components/model/orderSuccessfulModal';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { getProductDetailByID, getWalletDetail, getAddresses, makePayment, soldProduct, validateCoupon } from '../../utils/apiAction';
+import { getProductDetailByID, getWalletDetail, getAddresses, makePayment, soldProduct, validateCoupon, applyCoupon } from '../../utils/apiAction';
 import { image_url } from '../../utils/api';
 import { useSelector } from 'react-redux';
 import { IRootState } from '../../redux/store';
@@ -67,6 +67,9 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
 
   // Watch the discount code value
   const discountCode = watch('discount_code');
+  
+  // Store the applied discount code for payment success flow
+  const [appliedDiscountCode, setAppliedDiscountCode] = useState<string>('');
 
   // Handle discount code application
   const handleDiscountCodeApply = async (code: string) => {
@@ -113,6 +116,8 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
         
         // Store the discount amount for payment calculations
         setDiscountAmount(discountAmountValue);
+        // Store the applied discount code for payment success flow
+        setAppliedDiscountCode(code);
         
         showAlert({
           isVisible: true,
@@ -120,6 +125,9 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
           title: 'Coupon Applied Successfully!',
           description: `Coupon "${couponData.title}" applied! You get $${discountAmountValue} off on minimum purchase of $${minimumPurchase}`,
           doneText: 'OK',
+          onDonePress: () => {
+            // Do nothing - just close the modal
+          },
         });
         
         // You can store the coupon data for later use
@@ -318,6 +326,8 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
             if (walletPaymentResponse?.data?.status === 'success' ||
               walletPaymentResponse?.data?.success === true) {
               showLoader(false);
+              // Apply coupon after successful wallet payment
+              await applyCouponAfterPayment();
               setModalVisible(true);
             } else {
               showLoader(false);
@@ -415,6 +425,8 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
                     });
                   } else {
                     showLoader(false);
+                    // Apply coupon after successful hybrid payment
+                    await applyCouponAfterPayment();
                     setModalVisible(true);
                   }
                 } else {
@@ -556,6 +568,8 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
           });
         } else {
           showLoader(false);
+          // Apply coupon after successful Stripe payment
+          await applyCouponAfterPayment();
           setModalVisible(true);
         }
       } else {
@@ -658,6 +672,33 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
   // Clear discount amount
   const clearDiscount = () => {
     setDiscountAmount(0);
+    setAppliedDiscountCode('');
+  };
+
+  // Apply coupon after successful payment
+  const applyCouponAfterPayment = async () => {
+    if (appliedDiscountCode && discountAmount > 0) {
+      try {
+        const purchaseAmount = getSafeNumber(allProductList?.data?.product[0]?.price);
+        if (purchaseAmount > 0) {
+          const couponPayload = {
+            coupon_code: appliedDiscountCode,
+            purchase_amount: purchaseAmount
+          };
+          
+          console.log('Applying coupon after payment success:', couponPayload);
+          const response = await applyCoupon(couponPayload);
+          console.log('Coupon applied successfully:', response);
+          
+          // Clear the discount after successful application
+          setDiscountAmount(0);
+          setAppliedDiscountCode('');
+        }
+      } catch (error) {
+        console.error('Failed to apply coupon after payment:', error);
+        // Don't show error to user as payment was successful
+      }
+    }
   };
 
   const getPaymentBreakdown = () => {
@@ -985,6 +1026,24 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
             error={errors}
             onApply={handleDiscountCodeApply}
           />
+          
+          {/* Applied Coupon Display */}
+          {discountAmount > 0 && appliedDiscountCode && (
+            <View style={styles.appliedCouponContainer}>
+              <View style={styles.appliedCouponBadge}>
+                <Text style={styles.appliedCouponText}>{appliedDiscountCode}</Text>
+              </View>
+              <Text style={styles.appliedCouponAmount}>
+                {getDiscountDisplay()}
+              </Text>
+              <TouchableOpacity 
+                style={styles.removeCouponButton}
+                onPress={clearDiscount}
+              >
+                <Text style={styles.removeCouponButtonText}>Remove</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         {/* Payment Summary */}
         {!isWalletLoading && 
          paymentMethod === 'wallet' && 
@@ -1541,5 +1600,41 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 10,
     marginHorizontal: 10,
+  },
+  appliedCouponContainer: {
+    backgroundColor: '#f0f8f0',
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  appliedCouponBadge: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  appliedCouponText: {
+    fontSize: fontSizes.small,
+    fontFamily: fonts.medium,
+    color: colors.white,
+  },
+  appliedCouponAmount: {
+    fontSize: fontSizes.medium,
+    fontFamily: fonts.bold,
+    color: colors.primary,
+  },
+  removeCouponButton: {
+    backgroundColor: '#ffebee',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  removeCouponButtonText: {
+    fontSize: fontSizes.small,
+    fontFamily: fonts.medium,
+    color: '#FF6B6B',
   },
 });
