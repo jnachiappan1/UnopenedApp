@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Dimensions,
   FlatList,
+  Animated,
 } from 'react-native';
 import React, { useState, useRef, useEffect } from 'react';
 import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
@@ -19,7 +20,7 @@ import IconsSvg from '../../assets/svg/iconsSvg';
 import Button from '../../components/button/buttons';
 import OrderSuccessfulModal from '../../components/model/orderSuccessfulModal';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { getProductDetailByID, getWalletDetail, getAddresses, makePayment, soldProduct, validateCoupon, applyCoupon } from '../../utils/apiAction';
+import { getProductDetailByID, getWalletDetail, getAddresses, makePayment, soldProduct, validateCoupon, applyCoupon, createShipping, getShippingRates } from '../../utils/apiAction';
 import { image_url } from '../../utils/api';
 import { useSelector } from 'react-redux';
 import { IRootState } from '../../redux/store';
@@ -29,6 +30,7 @@ import { showAlert } from '../../components/cAlert';
 import { useStripe } from '@stripe/stripe-react-native';
 import { useForm } from 'react-hook-form';
 import ApplyOfferInput from '../../components/input/applyOfferInput';
+import DropdownInput from '../../components/input/dropdownInput';
 
 const { width } = Dimensions.get('window');
 
@@ -62,6 +64,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
   } = useForm({
     defaultValues: {
       discount_code: '',
+      shipping_rate: '',
     }
   });
 
@@ -70,6 +73,122 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
   
   // Store the applied discount code for payment success flow
   const [appliedDiscountCode, setAppliedDiscountCode] = useState<string>('');
+
+  // Track shipping API calls
+  const [shippingApiCalled, setShippingApiCalled] = useState(false);
+  const [shippingRates, setShippingRates] = useState<any[]>([]);
+  const [selectedShippingRate, setSelectedShippingRate] = useState<any>(null);
+  const [isShippingRatesLoading, setIsShippingRatesLoading] = useState(false);
+  const spinValue = useRef(new Animated.Value(0)).current;
+
+  // Animated spinner effect
+  useEffect(() => {
+    if (isShippingRatesLoading) {
+      const spinAnimation = Animated.loop(
+        Animated.timing(spinValue, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        })
+      );
+      spinAnimation.start();
+    } else {
+      spinValue.setValue(0);
+    }
+  }, [isShippingRatesLoading, spinValue]);
+
+  const spin = spinValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
+  // Shipping API mutation
+  const { mutate: createShippingMutation, isPending: isShippingPending } = useMutation({
+    mutationFn: createShipping,
+    onSuccess: async (response) => {
+      console.log('✅ Shipping created successfully');
+      console.log('Full Response:', JSON.stringify(response));
+      console.log('Response type:', typeof response);
+      console.log('Response keys:', Object.keys(response || {}));
+      setShippingApiCalled(true);
+      
+      // Call shipping rates API if shipping was successful
+      if (response?.success && response?.shipping_record?.id) {
+        const shippingRecordId = response.shipping_record.id;
+        console.log('🚚 Calling shipping rates API for shipping record ID:', shippingRecordId);
+        
+        try {
+          setIsShippingRatesLoading(true);
+          const ratesResponse = await getShippingRates(shippingRecordId);
+          console.log('📦 Shipping rates response:', JSON.stringify(ratesResponse));
+          
+          if (ratesResponse?.rates) {
+            setShippingRates(ratesResponse.rates);
+            // Clear previously selected shipping rate when address changes
+            setSelectedShippingRate(null);
+            console.log('✅ Shipping rates loaded:', ratesResponse.rates.length, 'rates available');
+            console.log('📊 Sample rate:', ratesResponse.rates[0]);
+          } else {
+            console.log('⚠️ No shipping rates found in response');
+          }
+        } catch (ratesError) {
+          console.error('❌ Failed to fetch shipping rates:', ratesError);
+        } finally {
+          setIsShippingRatesLoading(false);
+        }
+      } else {
+        console.log('⚠️ Shipping response structure:', {
+          hasSuccess: !!response?.success,
+          hasShippingRecord: !!response?.shipping_record,
+          shippingRecordId: response?.shipping_record?.id
+        });
+      }
+    },
+    onError: (error: any) => {
+      console.error('❌ Shipping API error:', error);
+      setShippingApiCalled(false);
+    },
+  });
+
+  // Function to call shipping API
+  const callShippingAPI = (addressId: number) => {
+    // Validate inputs
+    if (!productId) {
+      console.log('❌ Shipping API: Missing productId');
+      return;
+    }
+    
+    if (!addressId || addressId <= 0) {
+      console.log('❌ Shipping API: Invalid addressId', { addressId });
+      return;
+    }
+
+    // Check if user is authenticated
+    if (!userData?.id) {
+      console.log('❌ Shipping API: User not authenticated');
+      return;
+    }
+
+    const shippingPayload = {
+      product_id: productId.toString(),
+      address_id: addressId
+    };
+
+    console.log('=== SHIPPING API CALL ===');
+    console.log('Timestamp:', new Date().toISOString());
+    console.log('Product ID:', productId);
+    console.log('Address ID:', addressId);
+    console.log('User ID:', userData.id);
+    console.log('Payload:', shippingPayload);
+    console.log('========================');
+    
+    createShippingMutation(shippingPayload);
+  };
+
+  // Reset shipping status
+  const resetShippingStatus = () => {
+    setShippingApiCalled(false);
+  };
 
   // Handle discount code application
   const handleDiscountCodeApply = async (code: string) => {
@@ -81,14 +200,14 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
     console.log('================================');
     
     try {
-      // Prepare the API payload
-      const purchaseAmount = getSafeNumber(allProductList?.data?.product[0]?.price);
-      if (!purchaseAmount || purchaseAmount <= 0) {
+      // Prepare the API payload - use subtotal (product + shipping)
+      const subtotal = getSubtotal();
+      if (subtotal <= 0) {
         showAlert({
           isVisible: true,
           type: 'error',
-          title: 'Invalid Product Price',
-          description: 'Product price is not available. Please try again.',
+          title: 'Invalid Amount',
+          description: 'Please select a shipping option before applying discount code.',
           doneText: 'OK',
         });
         return;
@@ -96,7 +215,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
 
       const couponPayload = {
         coupon_code: code,
-        purchase_amount: purchaseAmount
+        purchase_amount: subtotal
       };
 
       console.log('Coupon validation payload:', couponPayload);
@@ -220,6 +339,28 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
       setPaymentMethod('stripe');
     }
   }, [walletData, allProductList, isWalletLoading, paymentMethod]);
+
+  // Call shipping API when component mounts or address changes
+  useEffect(() => {
+    const currentAddressId = getCurrentAddressId();
+    if (currentAddressId && productId) {
+      console.log('Calling shipping API on mount/address change:', { productId, addressId: currentAddressId });
+      callShippingAPI(currentAddressId);
+    }
+  }, [productId, selectedAddress, defaultAddress, isAddressChanged]);
+
+  // Log initial state when component mounts
+  useEffect(() => {
+    console.log('=== CONFIRM ORDER SCREEN MOUNTED ===');
+    console.log('Product ID:', productId);
+    console.log('User Data:', userData?.id);
+    console.log('Initial Address State:', {
+      selectedAddress: selectedAddress?.id,
+      defaultAddress: defaultAddress?.id,
+      isAddressChanged
+    });
+    console.log('=====================================');
+  }, []);
 
   const increaseQuantity = () => {
     setQuantity(prev => prev + 1);
@@ -619,6 +760,12 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
       onAddressSelect: (address: AddressType) => {
         setSelectedAddress(address);
         setIsAddressChanged(true);
+        // Reset shipping status and call shipping API with new address
+        resetShippingStatus();
+        if (address?.id && productId) {
+          console.log('Calling shipping API with new address:', { productId, addressId: address.id });
+          callShippingAPI(address.id);
+        }
       },
     });
   };
@@ -627,6 +774,12 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
     if (defaultAddress) {
       setSelectedAddress(defaultAddress);
       setIsAddressChanged(false);
+      // Reset shipping status and call shipping API with default address
+      resetShippingStatus();
+      if (defaultAddress?.id && productId) {
+        console.log('Calling shipping API with default address:', { productId, addressId: defaultAddress.id });
+        callShippingAPI(defaultAddress.id);
+      }
     }
   };
 
@@ -655,10 +808,17 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
     return isNaN(num) ? defaultValue : num;
   };
 
-  // Calculate final amount after applying discount
-  const getFinalAmount = (): number => {
+  // Calculate subtotal (product price + shipping)
+  const getSubtotal = (): number => {
     const productPrice = getSafeNumber(allProductList?.data?.product[0]?.price);
-    return Math.max(0, productPrice - discountAmount);
+    const shippingCost = selectedShippingRate ? getSafeNumber(selectedShippingRate.rate) : 0;
+    return productPrice + shippingCost;
+  };
+
+  // Calculate final amount after applying discount and shipping
+  const getFinalAmount = (): number => {
+    const subtotal = getSubtotal();
+    return Math.max(0, subtotal - discountAmount);
   };
 
   // Get discount display text
@@ -756,10 +916,27 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
                   </Text>
                 )}
               </View>
-              {discountAmount > 0 && (
-                <Text style={styles.finalPrice}>
-                  Final Price: ${getFinalAmount().toFixed(2)}
-                </Text>
+              
+              {/* Shipping Cost Display */}
+              {selectedShippingRate && (
+                <View style={styles.shippingCostContainer}>
+                  <Text style={styles.shippingCostLabel}>Shipping:</Text>
+                  <Text style={styles.shippingCostAmount}>${selectedShippingRate.rate}</Text>
+                </View>
+              )}
+              
+              {/* Subtotal and Final Price */}
+              {selectedShippingRate && (
+                <View style={styles.totalContainer}>
+                  <Text style={styles.subtotalText}>
+                    Subtotal: ${getSubtotal().toFixed(2)}
+                  </Text>
+                  {discountAmount > 0 && (
+                    <Text style={styles.finalPrice}>
+                      Final Price: ${getFinalAmount().toFixed(2)}
+                    </Text>
+                  )}
+                </View>
               )}
             </View>
           </View>
@@ -828,6 +1005,20 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
           )}
         </View>
 
+        {/* Shipping Status Indicator */}
+        {shippingApiCalled && (
+          <View style={styles.shippingStatusContainer}>
+            <Text style={styles.shippingStatusText}>
+              🚚 Shipping details updated
+            </Text>
+            {shippingRates.length > 0 && (
+              <Text style={styles.shippingRatesText}>
+                📦 {shippingRates.length} shipping rates available
+              </Text>
+            )}
+          </View>
+        )}
+
         <View style={styles.productSection}>
           <Text style={styles.sectionTitle}>Estimated Delivery</Text>
           <View style={styles.summaryDivider} />
@@ -837,7 +1028,71 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
             </Text>
           </View>
         </View>
-
+   {/* Shipping Rates Selection */}
+   <View style={styles.productSection}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Shipping Options</Text>
+            <Text style={styles.requiredText}>* Required</Text>
+          </View>
+          <View style={styles.summaryDivider} />
+          
+          {isShippingRatesLoading ? (
+            <View style={styles.loadingContainer}>
+              <View style={styles.loaderSpinner}>
+                <Animated.View 
+                  style={[
+                    styles.spinner,
+                    { transform: [{ rotate: spin }] }
+                  ]} 
+                />
+              </View>
+              <Text style={styles.loadingText}>Loading shipping options...</Text>
+              <Text style={styles.loadingSubtext}>Please wait while we calculate shipping rates</Text>
+            </View>
+          ) : shippingRates.length > 0 ? (
+            <>
+              <DropdownInput
+                control={control}
+                name="shipping_rate"
+                label="Select Shipping Method"
+                placeholder="Choose your shipping option"
+                data={shippingRates.map(rate => ({
+                  _id: rate.id,
+                  type: 'shipping',
+                  name: `${rate.service} - $${rate.rate}`,
+                  value: rate.id,
+                  createdAt: '',
+                  updatedAt: '',
+                  __v: 0
+                }))}
+                valueField="_id"
+                labelField="name"
+                onChangeValue={(item) => {
+                  const selectedRate = shippingRates.find(rate => rate.id === item._id);
+                  setSelectedShippingRate(selectedRate);
+                  console.log('Selected shipping rate:', selectedRate);
+                }}
+                containerStyle={styles.shippingDropdownContainer}
+              />
+              
+              {selectedShippingRate && (
+                <View style={styles.selectedRateInfo}>
+                  <Text style={styles.selectedRateText}>
+                    Selected: {selectedShippingRate.carrier} - {selectedShippingRate.service}
+                  </Text>
+                  <Text style={styles.selectedRatePrice}>
+                    ${selectedShippingRate.rate} • {selectedShippingRate.delivery_days === 1 ? 'Next Day' : `${selectedShippingRate.delivery_days} Days`} Delivery
+                  </Text>
+                </View>
+              )}
+            </>
+          ) : shippingApiCalled && !isShippingRatesLoading ? (
+            <View style={styles.noRatesContainer}>
+              <Text style={styles.noRatesText}>No shipping options available</Text>
+              <Text style={styles.noRatesSubtext}>Please try a different address or contact support</Text>
+            </View>
+          ) : null}
+        </View>
         <View style={styles.productSection}>
           <Text style={styles.sectionTitle}>Payment mode</Text>
           <View style={styles.summaryDivider} />
@@ -1014,21 +1269,25 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
             </View>
           </TouchableOpacity>
         </View>
-       <ApplyOfferInput
-            control={control}
-            name="discount_code"
-            label={'Discount Code'}
-            containerStyle={styles.discountContainer}
-            inputStyle={{}}
-            inputProps={{
-              placeholder: 'Enter discount code',
-            }}
-            error={errors}
-            onApply={handleDiscountCodeApply}
-          />
+
+     
+
+
+        <ApplyOfferInput
+          control={control}
+          name="discount_code"
+          label={'Discount Code'}
+          containerStyle={styles.discountContainer}
+          inputStyle={{}}
+          inputProps={{
+            placeholder: 'Enter discount code',
+          }}
+          error={errors}
+          onApply={handleDiscountCodeApply}
+        />
           
-          {/* Applied Coupon Display */}
-          {discountAmount > 0 && appliedDiscountCode && (
+        {/* Applied Coupon Display */}
+        {discountAmount > 0 && appliedDiscountCode && (
             <View style={styles.appliedCouponContainer}>
               <View style={styles.appliedCouponBadge}>
                 <Text style={styles.appliedCouponText}>{appliedDiscountCode}</Text>
@@ -1045,42 +1304,85 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
             </View>
           )}
         {/* Payment Summary */}
-        {!isWalletLoading && 
-         paymentMethod === 'wallet' && 
-         !isWalletPaymentDisabled() &&
-         getSafeNumber(walletData?.data?.wallet?.amount) < getFinalAmount() && (
-          <View style={styles.productSection}>
-            <Text style={styles.sectionTitle}>Payment Summary</Text>
-            <View style={styles.summaryDivider} />
-            <View style={styles.paymentSummaryCard}>
-              {discountAmount > 0 && (
-                <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>Original Price:</Text>
-                  <Text style={styles.summaryAmount}>${getSafeNumber(allProductList?.data?.product[0]?.price).toFixed(2)}</Text>
-                </View>
-              )}
-              {discountAmount > 0 && (
-                <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>Discount:</Text>
-                  <Text style={[styles.summaryAmount, { color: '#FF6B6B' }]}>{getDiscountDisplay()}</Text>
-                </View>
-              )}
-              <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Final Amount:</Text>
-                <Text style={[styles.summaryAmount, { color: colors.primary, fontFamily: fonts.bold }]}>${getFinalAmount().toFixed(2)}</Text>
-              </View>
-              <View style={styles.summaryDivider} />
-              <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Wallet:</Text>
-                <Text style={[styles.summaryAmount, { color: colors.primary }]}>${getSafeNumber(walletData?.data?.wallet?.amount).toFixed(2)}</Text>
-              </View>
-              <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Stripe:</Text>
-                <Text style={styles.summaryAmount}>${(getFinalAmount() - getSafeNumber(walletData?.data?.wallet?.amount)).toFixed(2)}</Text>
-              </View>
+        <View style={styles.productSection}>
+          <Text style={styles.sectionTitle}>Payment Summary</Text>
+          <View style={styles.summaryDivider} />
+          <View style={styles.paymentSummaryCard}>
+            {/* Product Price */}
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Product Price:</Text>
+              <Text style={styles.summaryAmount}>${getSafeNumber(allProductList?.data?.product[0]?.price).toFixed(2)}</Text>
             </View>
+            
+            {/* Shipping Cost */}
+            {selectedShippingRate && (
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Shipping Cost:</Text>
+                <Text style={styles.summaryAmount}>${getSafeNumber(selectedShippingRate.rate).toFixed(2)}</Text>
+              </View>
+            )}
+            
+            {/* Subtotal */}
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Subtotal:</Text>
+              <Text style={[styles.summaryAmount, { fontFamily: fonts.bold }]}>${getSubtotal().toFixed(2)}</Text>
+            </View>
+            
+            {/* Discount */}
+            {discountAmount > 0 && (
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Discount:</Text>
+                <Text style={[styles.summaryAmount, { color: '#FF6B6B' }]}>{getDiscountDisplay()}</Text>
+              </View>
+            )}
+            
+            {/* Final Total */}
+            <View style={styles.summaryDivider} />
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Total Amount:</Text>
+              <Text style={[styles.summaryAmount, { color: colors.primary, fontFamily: fonts.bold, fontSize: fontSizes.huge }]}>${getFinalAmount().toFixed(2)}</Text>
+            </View>
+            
+            {/* Payment Method Breakdown */}
+            {paymentMethod === 'wallet' && !isWalletPaymentDisabled() && (
+              <>
+                <View style={styles.summaryDivider} />
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Payment Method:</Text>
+                  <Text style={[styles.summaryAmount, { color: colors.primary }]}>Wallet Payment</Text>
+                </View>
+                
+                {getSafeNumber(walletData?.data?.wallet?.amount) >= getFinalAmount() ? (
+                  <View style={styles.summaryRow}>
+                    <Text style={styles.summaryLabel}>Wallet Balance:</Text>
+                    <Text style={[styles.summaryAmount, { color: colors.primary }]}>${getSafeNumber(walletData?.data?.wallet?.amount).toFixed(2)}</Text>
+                  </View>
+                ) : (
+                  <>
+                    <View style={styles.summaryRow}>
+                      <Text style={styles.summaryLabel}>From Wallet:</Text>
+                      <Text style={[styles.summaryAmount, { color: colors.primary }]}>${getSafeNumber(walletData?.data?.wallet?.amount).toFixed(2)}</Text>
+                    </View>
+                    <View style={styles.summaryRow}>
+                      <Text style={styles.summaryLabel}>From Stripe:</Text>
+                      <Text style={styles.summaryAmount}>${(getFinalAmount() - getSafeNumber(walletData?.data?.wallet?.amount)).toFixed(2)}</Text>
+                    </View>
+                  </>
+                )}
+              </>
+            )}
+            
+            {paymentMethod === 'stripe' && (
+              <>
+                <View style={styles.summaryDivider} />
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Payment Method:</Text>
+                  <Text style={[styles.summaryAmount, { color: colors.primary }]}>Credit/Debit Card</Text>
+                </View>
+              </>
+            )}
           </View>
-        )}
+        </View>
       </ScrollView>
 
       <View style={styles.buyContainer}>
@@ -1093,8 +1395,22 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
                 : `Confirm Purchase - $${getFinalAmount().toFixed(2)}`
           }
           onPress={handleBuyNow}
-          disabled={!selectedAddress || !allProductList?.data?.product[0]} // Disable if no address or product
+          disabled={!selectedAddress || !allProductList?.data?.product[0] || !selectedShippingRate} // Disable if no address, product, or shipping
+          style={[
+            (!selectedAddress || !allProductList?.data?.product[0] || !selectedShippingRate) && styles.disabledButton
+          ]}
         />
+        
+        {/* Show helpful message when button is disabled */}
+        {(!selectedAddress || !allProductList?.data?.product[0] || !selectedShippingRate) && (
+          <View style={styles.disabledButtonMessage}>
+            <Text style={styles.disabledButtonText}>
+              {!selectedAddress ? '📍 Please select a delivery address' :
+               !allProductList?.data?.product[0] ? '📦 Product information is loading...' :
+               !selectedShippingRate ? '🚚 Please select a shipping option' : ''}
+            </Text>
+          </View>
+        )}
       </View>
 
       <OrderSuccessfulModal
@@ -1636,5 +1952,250 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.small,
     fontFamily: fonts.medium,
     color: '#FF6B6B',
+  },
+  shippingStatusContainer: {
+    backgroundColor: '#e0f7fa',
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 10,
+    marginHorizontal: 10,
+    alignItems: 'center',
+  },
+  shippingStatusText: {
+    fontSize: fontSizes.small,
+    fontFamily: fonts.medium,
+    color: colors.primary,
+  },
+  shippingRatesText: {
+    fontSize: fontSizes.small,
+    fontFamily: fonts.medium,
+    color: colors.text3,
+    marginTop: 4,
+  },
+  // Shipping Rates Styles
+  shippingRatesContainer: {
+    paddingVertical: 8,
+  },
+  shippingRatesLabel: {
+    fontSize: fontSizes.medium,
+    fontFamily: fonts.medium,
+    color: colors.text2,
+    marginBottom: 12,
+  },
+  shippingRatesList: {
+    gap: 8,
+  },
+  shippingRateItem: {
+    backgroundColor: '#f9f9f9',
+    borderRadius: 8,
+    padding: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  recommendedRate: {
+    backgroundColor: '#f0f8f0',
+    borderColor: colors.primary,
+    borderWidth: 2,
+  },
+  rateInfo: {
+    flex: 1,
+  },
+  rateHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  carrierName: {
+    fontSize: fontSizes.medium,
+    fontFamily: fonts.bold,
+    color: colors.black,
+    marginRight: 8,
+  },
+  recommendedBadge: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  recommendedText: {
+    fontSize: fontSizes.small,
+    fontFamily: fonts.medium,
+    color: colors.white,
+  },
+  serviceName: {
+    fontSize: fontSizes.regular,
+    fontFamily: fonts.medium,
+    color: colors.text2,
+    marginBottom: 4,
+  },
+  deliveryInfo: {
+    fontSize: fontSizes.small,
+    fontFamily: fonts.regular,
+    color: colors.text3,
+  },
+  deliveryDate: {
+    color: colors.primary,
+    fontFamily: fonts.medium,
+  },
+  ratePrice: {
+    alignItems: 'flex-end',
+  },
+  priceAmount: {
+    fontSize: fontSizes.huge,
+    fontFamily: fonts.bold,
+    color: colors.primary,
+  },
+  priceCurrency: {
+    fontSize: fontSizes.small,
+    fontFamily: fonts.regular,
+    color: colors.text3,
+  },
+  // Additional styles for shipping rates
+  requiredText: {
+    fontSize: fontSizes.small,
+    fontFamily: fonts.medium,
+    color: '#FF6B6B',
+  },
+  errorText: {
+    fontSize: fontSizes.small,
+    fontFamily: fonts.medium,
+    color: '#FF6B6B',
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  selectedRate: {
+    backgroundColor: '#e3f2fd',
+    borderColor: '#2196f3',
+    borderWidth: 2,
+  },
+  deliveryDateText: {
+    color: colors.primary,
+    fontFamily: fonts.medium,
+  },
+  // New dropdown styles
+  shippingDropdownContainer: {
+    marginTop: 8,
+  },
+  selectedRateInfo: {
+    backgroundColor: '#f0f8f0',
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 12,
+  },
+  selectedRateText: {
+    fontSize: fontSizes.medium,
+    fontFamily: fonts.bold,
+    color: colors.primary,
+    marginBottom: 4,
+  },
+  selectedRatePrice: {
+    fontSize: fontSizes.small,
+    fontFamily: fonts.medium,
+    color: colors.text2,
+  },
+  // New pricing display styles
+  shippingCostContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
+    paddingVertical: 4,
+  },
+  shippingCostLabel: {
+    fontSize: fontSizes.small,
+    fontFamily: fonts.medium,
+    color: colors.text3,
+  },
+  shippingCostAmount: {
+    fontSize: fontSizes.small,
+    fontFamily: fonts.bold,
+    color: colors.primary,
+  },
+  totalContainer: {
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+  },
+  subtotalText: {
+    fontSize: fontSizes.small,
+    fontFamily: fonts.bold,
+    color: colors.text2,
+    marginBottom: 4,
+  },
+  loadingContainer: {
+    paddingVertical: 20,
+    alignItems: 'center',
+  },
+  loaderSpinner: {
+    width: 40,
+    height: 40,
+    marginBottom: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  spinner: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 3,
+    borderColor: colors.primary,
+    borderTopColor: 'transparent',
+  },
+  loadingText: {
+    fontSize: fontSizes.medium,
+    fontFamily: fonts.medium,
+    color: colors.text3,
+    marginBottom: 4,
+  },
+  loadingSubtext: {
+    fontSize: fontSizes.small,
+    fontFamily: fonts.regular,
+    color: colors.text3,
+    textAlign: 'center',
+  },
+  noRatesContainer: {
+    paddingVertical: 20,
+    alignItems: 'center',
+    backgroundColor: '#FFF3E0',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#FFB74D',
+  },
+  noRatesText: {
+    fontSize: fontSizes.medium,
+    fontFamily: fonts.medium,
+    color: '#E65100',
+    marginBottom: 4,
+  },
+  noRatesSubtext: {
+    fontSize: fontSizes.small,
+    fontFamily: fonts.regular,
+    color: '#E65100',
+    textAlign: 'center',
+  },
+  disabledButton: {
+    backgroundColor: '#E0E0E0',
+    opacity: 0.6,
+  },
+  disabledButtonMessage: {
+    marginTop: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#FFF3E0',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#FFB74D',
+    alignItems: 'center',
+  },
+  disabledButtonText: {
+    fontSize: fontSizes.small,
+    fontFamily: fonts.medium,
+    color: '#E65100',
+    textAlign: 'center',
+    lineHeight: 18,
   },
 });

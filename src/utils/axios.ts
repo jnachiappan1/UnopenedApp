@@ -38,7 +38,7 @@ instance.interceptors.request.use(
 
 instance.interceptors.response.use(
   async response => {
-    if (response.data?.statusCode === 200 || response?.status === 200) {
+    if (response.data?.statusCode === 200 || response?.status === 200 || response?.status === 201) {
       return Promise.resolve(response.data);
     } else {
       return Promise.reject(response.data);

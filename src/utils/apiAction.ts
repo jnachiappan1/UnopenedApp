@@ -286,3 +286,13 @@ export const applyCoupon = async (payload: {
   const response = await axios.post(API.buyer.applyCoupon, payload);
   return response;
 };
+
+export const createShipping = async (payload: { product_id: string; address_id: number }) => {
+  const response = await axios.post(API.buyer.createShipping, payload);
+  return response;
+};
+
+export const getShippingRates = async (shippingRecordId: number) => {
+  const response = await axios.get(`${API.buyer.getShippingRates}/${shippingRecordId}/rates`);
+  return response;
+};

@@ -23,6 +23,8 @@ export const API = {
     makePayment: `${base_url}/api/v1/payment/make-payment`,
     validateCoupon: `${base_url}/api/v1/coupon/validate`,
     applyCoupon: `${base_url}/api/v1/coupon/apply`,
+    createShipping: `${base_url}/api/v1/shipping/create`,
+    getShippingRates: `${base_url}/api/v1/shipping`,
   },
   seller: {
     sign_up: `${base_url}/api/v1/users/auth/create`,
