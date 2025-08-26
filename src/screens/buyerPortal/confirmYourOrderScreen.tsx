@@ -30,7 +30,6 @@ import { showAlert } from '../../components/cAlert';
 import { useStripe } from '@stripe/stripe-react-native';
 import { useForm } from 'react-hook-form';
 import ApplyOfferInput from '../../components/input/applyOfferInput';
-import DropdownInput from '../../components/input/dropdownInput';
 
 const { width } = Dimensions.get('window');
 
@@ -64,7 +63,6 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
   } = useForm({
     defaultValues: {
       discount_code: '',
-      shipping_rate: '',
     }
   });
 
@@ -76,71 +74,71 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
 
   // Track shipping API calls
   const [shippingApiCalled, setShippingApiCalled] = useState(false);
-  const [shippingRates, setShippingRates] = useState<any[]>([]);
   const [selectedShippingRate, setSelectedShippingRate] = useState<any>(null);
   const [isShippingRatesLoading, setIsShippingRatesLoading] = useState(false);
-  const spinValue = useRef(new Animated.Value(0)).current;
+  const [priorityShippingRate, setPriorityShippingRate] = useState<any>(null);
+  const [shippingID, setShippingID] = useState<any>(null);
+  const [lastAddressId, setLastAddressId] = useState<number | null>(null);
 
-  // Animated spinner effect
-  useEffect(() => {
-    if (isShippingRatesLoading) {
-      const spinAnimation = Animated.loop(
-        Animated.timing(spinValue, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: true,
-        })
-      );
-      spinAnimation.start();
-    } else {
-      spinValue.setValue(0);
-    }
-  }, [isShippingRatesLoading, spinValue]);
 
-  const spin = spinValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
 
   // Shipping API mutation
   const { mutate: createShippingMutation, isPending: isShippingPending } = useMutation({
     mutationFn: createShipping,
     onSuccess: async (response) => {
-      console.log('✅ Shipping created successfully');
-      console.log('Full Response:', JSON.stringify(response));
-      console.log('Response type:', typeof response);
-      console.log('Response keys:', Object.keys(response || {}));
       setShippingApiCalled(true);
+      setIsShippingRatesLoading(false); // No need for loading state since we're using direct response
       
-      // Call shipping rates API if shipping was successful
-      if (response?.success && response?.shipping_record?.id) {
-        const shippingRecordId = response.shipping_record.id;
-        console.log('🚚 Calling shipping rates API for shipping record ID:', shippingRecordId);
+      // Use shipping rates directly from the shipping response (no need for separate API call)
+      if (response?.success && response?.shipment?.rates) {
+        setShippingID(response.shipment.id);
+        const shippingRates = response.shipment.rates;
         
-        try {
-          setIsShippingRatesLoading(true);
-          const ratesResponse = await getShippingRates(shippingRecordId);
-          console.log('📦 Shipping rates response:', JSON.stringify(ratesResponse));
+        if (Array.isArray(shippingRates) && shippingRates.length > 0) {
           
-          if (ratesResponse?.rates) {
-            setShippingRates(ratesResponse.rates);
-            // Clear previously selected shipping rate when address changes
-            setSelectedShippingRate(null);
-            console.log('✅ Shipping rates loaded:', ratesResponse.rates.length, 'rates available');
-            console.log('📊 Sample rate:', ratesResponse.rates[0]);
+          // First, try to find USPS Priority service
+          const uspsPriorityRate = shippingRates.find((rate: any) => 
+            rate.carrier === 'USPS' && rate.service === 'Priority'
+          );
+          
+          if (uspsPriorityRate) {
+            console.log('🔄 Setting USPS Priority shipping rate:', uspsPriorityRate);
+            setPriorityShippingRate(uspsPriorityRate);
+            setSelectedShippingRate(uspsPriorityRate);
           } else {
-            console.log('⚠️ No shipping rates found in response');
+            // Fallback: try to find any Priority service
+            const priorityRate = shippingRates.find((rate: any) => rate.service === 'Priority');
+            if (priorityRate) {
+              console.log('🔄 Setting Priority shipping rate (not USPS):', priorityRate);
+              setPriorityShippingRate(priorityRate);
+              setSelectedShippingRate(priorityRate);
+            } else {
+              console.log('⚠️ Priority service not found, using first available rate');
+              console.log('📋 Available services:', shippingRates.map((rate: any) => `${rate.carrier} - ${rate.service}`));
+              const firstRate = shippingRates[0];
+              setSelectedShippingRate(firstRate);
+              setPriorityShippingRate(firstRate); // Set as priority for display purposes
+              console.log('✅ First available rate selected:', firstRate);
+            }
           }
-        } catch (ratesError) {
-          console.error('❌ Failed to fetch shipping rates:', ratesError);
-        } finally {
-          setIsShippingRatesLoading(false);
+          
+          console.log('✅ Shipping rates loaded:', shippingRates.length, 'rates available');
+          console.log('📊 Sample rate:', shippingRates[0]);
+        } else {
+          console.log('⚠️ No shipping rates found in shipping response');
+          console.log('⚠️ Response structure analysis:', {
+            response: response?.data,
+            shipment: response?.data?.shipment,
+            rates: response?.data?.shipment?.rates,
+            ratesLength: response?.data?.shipment?.rates?.length
+          });
         }
       } else {
         console.log('⚠️ Shipping response structure:', {
-          hasSuccess: !!response?.success,
-          hasShippingRecord: !!response?.shipping_record,
-          shippingRecordId: response?.shipping_record?.id
+          hasSuccess: !!response?.data?.success,
+          hasShipment: !!response?.data?.shipment,
+          hasRates: !!response?.data?.shipment?.rates,
+          ratesLength: response?.data?.shipment?.rates?.length
         });
       }
     },
@@ -169,6 +167,15 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
       return;
     }
 
+    // Check if we're calling for the same address (prevent duplicate calls)
+    if (lastAddressId === addressId && shippingApiCalled) {
+      console.log('⚠️ Shipping API: Already called for this address, skipping duplicate call', { addressId, lastAddressId });
+      return;
+    }
+
+    // Update last address ID
+    setLastAddressId(addressId);
+
     const shippingPayload = {
       product_id: productId.toString(),
       address_id: addressId
@@ -179,15 +186,26 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
     console.log('Product ID:', productId);
     console.log('Address ID:', addressId);
     console.log('User ID:', userData.id);
+    console.log('Last Address ID:', lastAddressId);
     console.log('Payload:', shippingPayload);
     console.log('========================');
+    
+    // Reset shipping status before making new API call
+    setShippingApiCalled(false);
+    // Don't clear existing shipping rates - they will be updated by the API response
     
     createShippingMutation(shippingPayload);
   };
 
-  // Reset shipping status
+  // Reset shipping status when address changes
   const resetShippingStatus = () => {
+    console.log('🔄 Resetting shipping status for new address');
     setShippingApiCalled(false);
+    setLastAddressId(null);
+    // Don't clear shipping rates - keep them visible
+    // setSelectedShippingRate(null);
+    // setPriorityShippingRate(null);
+    setIsShippingRatesLoading(false);  // Don't show loading since we're not calling API
   };
 
   // Handle discount code application
@@ -323,6 +341,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
     return walletBalance <= 0 || productPrice <= 0 || isWalletLoading;
   };
 
+  // Set default address from API data
   useEffect(() => {
     if (addressesData?.data?.address && addressesData.data.address.length > 0) {
       const firstAddress = addressesData.data.address[0];
@@ -340,14 +359,36 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
     }
   }, [walletData, allProductList, isWalletLoading, paymentMethod]);
 
-  // Call shipping API when component mounts or address changes
+  // Call shipping API only when component first mounts
+  // Note: Shipping rates are NOT automatically updated when address changes
+  // Users must manually refresh rates if they need updated shipping costs for a new address
   useEffect(() => {
     const currentAddressId = getCurrentAddressId();
-    if (currentAddressId && productId) {
-      console.log('Calling shipping API on mount/address change:', { productId, addressId: currentAddressId });
+    console.log('🔄 useEffect triggered for shipping API (initial mount only):', { 
+      productId, 
+      currentAddressId,
+      selectedAddress: selectedAddress?.id,
+      defaultAddress: defaultAddress?.id,
+      isAddressChanged,
+      shippingApiCalled,
+      lastAddressId,
+      addressesLoaded: !!addressesData?.data?.address
+    });
+    
+    // Call API when addresses are loaded AND we have a valid address state
+    if (currentAddressId && productId && !shippingApiCalled && addressesData?.data?.address && defaultAddress) {
+      console.log('✅ Initial mount with address from API - calling shipping API');
       callShippingAPI(currentAddressId);
+    } else {
+      console.log('❌ Skipping shipping API call:', {
+        hasCurrentAddressId: !!currentAddressId,
+        hasProductId: !!productId,
+        alreadyCalled: shippingApiCalled,
+        addressesLoaded: !!addressesData?.data?.address,
+        hasDefaultAddress: !!defaultAddress
+      });
     }
-  }, [productId, selectedAddress, defaultAddress, isAddressChanged]);
+  }, [addressesData, defaultAddress]); // Wait for both addresses data AND defaultAddress state
 
   // Log initial state when component mounts
   useEffect(() => {
@@ -361,6 +402,47 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
     });
     console.log('=====================================');
   }, []);
+
+  // Monitor priorityShippingRate changes
+  useEffect(() => {
+    console.log('🔄 Priority shipping rate state changed:', {
+      priorityShippingRate: priorityShippingRate ? {
+        carrier: priorityShippingRate.carrier,
+        service: priorityShippingRate.service,
+        rate: priorityShippingRate.rate,
+        deliveryDays: priorityShippingRate.delivery_days
+      } : null,
+      selectedShippingRate: selectedShippingRate ? {
+        carrier: selectedShippingRate.carrier,
+        service: selectedShippingRate.service,
+        rate: selectedShippingRate.rate,
+        deliveryDays: selectedShippingRate.delivery_days
+      } : null,
+      shippingApiCalled,
+      isShippingRatesLoading
+    });
+  }, [priorityShippingRate, selectedShippingRate, shippingApiCalled, isShippingRatesLoading]);
+
+  // Debug shipping display state
+  useEffect(() => {
+    console.log('=== SHIPPING DISPLAY DEBUG ===', {
+      selectedShippingRate: selectedShippingRate ? {
+        id: selectedShippingRate.id,
+        carrier: selectedShippingRate.carrier,
+        service: selectedShippingRate.service,
+        rate: selectedShippingRate.rate,
+        delivery_days: selectedShippingRate.delivery_days
+      } : null,
+      isShippingRatesLoading,
+      shippingApiCalled,
+      priorityShippingRate: priorityShippingRate ? {
+        id: priorityShippingRate.id,
+        carrier: priorityShippingRate.carrier,
+        service: priorityShippingRate.service,
+        rate: priorityShippingRate.rate
+      } : null
+    });
+  }, [selectedShippingRate, isShippingRatesLoading, shippingApiCalled, priorityShippingRate]);
 
   const increaseQuantity = () => {
     setQuantity(prev => prev + 1);
@@ -423,6 +505,28 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
         return;
       }
 
+      // Check if shipping rate is selected
+      if (!selectedShippingRate) {
+        showAlert({
+          isVisible: true,
+          type: 'error',
+          title: 'Error',
+          description: 'Please select a shipping option before proceeding.',
+        });
+        return;
+      }
+
+      // Validate shipping rate has required properties
+      if (!selectedShippingRate.id || !selectedShippingRate.rate) {
+        showAlert({
+          isVisible: true,
+          type: 'error',
+          title: 'Error',
+          description: 'Selected shipping option is missing required information. Please try selecting a different shipping option.',
+        });
+        return;
+      }
+
       const productPrice = getSafeNumber(allProductList.data.product[0].price);
       if (!productPrice || productPrice <= 0) {
         showAlert({
@@ -450,6 +554,15 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
         address_id: addressId
       };
 
+      console.log('=== PAYMENT PAYLOAD DEBUG ===');
+      console.log('Product Price:', productPrice);
+      console.log('Address ID:', addressId);
+      console.log('Selected Shipping Rate:', selectedShippingRate);
+      console.log('Shipping API Called:', shippingApiCalled);
+      console.log('Final Amount:', getFinalAmount());
+      console.log('Discount Amount:', discountAmount);
+      console.log('================================');
+
       if (paymentMethod === 'wallet') {
         const currentWalletBalance = getSafeNumber(walletData?.data?.wallet?.amount);
         const finalAmount = getFinalAmount(); // Use discounted amount
@@ -462,6 +575,15 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
           };
 
           try {
+            // Prepare wallet payment payload with shipping details
+            const walletPaymentPayload = {
+              amount: finalAmount.toString(),
+              wallet_amount: finalAmount.toString(),
+              rate_amount: selectedShippingRate ? selectedShippingRate.rate.toString() : '0',
+              address_id: addressId,
+              rate_id: selectedShippingRate ? selectedShippingRate.id : '',
+              shipmentId: shippingID
+            };
             const walletPaymentResponse = await makePayment('wallet_funds', walletPaymentPayload, productId);
 
             if (walletPaymentResponse?.data?.status === 'success' ||
@@ -491,14 +613,6 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
         } else {
           const walletAmount = getSafeNumber(currentWalletBalance);
           const remainingAmount = finalAmount - walletAmount; // Use discounted amount
-          console.log('Hybrid payment calculation:');
-          console.log('Product price:', getSafeNumber(allProductList?.data?.product[0]?.price));
-          console.log('Discount amount:', discountAmount);
-          console.log('Final amount after discount:', finalAmount);
-          console.log('Wallet balance:', currentWalletBalance);
-          console.log('Wallet amount to use:', walletAmount);
-          console.log('Remaining amount for Stripe:', remainingAmount);
-
           showAlert({
             isVisible: true,
             type: 'info',
@@ -512,11 +626,12 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
                 const hybridPaymentPayload = {
                   amount: remainingAmount.toString(),      // Stripe amount (discounted)
                   wallet_amount: walletAmount.toString(), // Wallet amount
-                  address_id: addressId
+                  rate_amount: selectedShippingRate ? selectedShippingRate.rate.toString() : '0',
+                  address_id: addressId,
+                  rate_id: selectedShippingRate ? selectedShippingRate.id : '',
+                  shipmentId: shippingID
                 };
-                console.log('Single hybrid payment API call payload:', hybridPaymentPayload);
                 const hybridResponse = await makePayment('wallet_buy_product_funds', hybridPaymentPayload, productId);
-                console.log('Hybrid payment response:', hybridResponse);
                 if (hybridResponse?.data?.status === 'success' &&
                   hybridResponse?.data?.clientSecret) {
                   const { clientSecret, ephemeralKey, customer, paymentIntentId } = hybridResponse.data;
@@ -530,8 +645,6 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
                     });
                     return;
                   }
-                  console.log('Initializing Stripe payment sheet with client secret for amount:', remainingAmount);
-
                   const { error: initError } = await initPaymentSheet({
                     merchantDisplayName: 'Unopened Mobile',
                     customerId: customer,
@@ -605,10 +718,13 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
         }
       } else if (paymentMethod === 'stripe') {
         const finalAmount = getFinalAmount(); // Use discounted amount
-        const stripePaymentPayload = {
-          amount: finalAmount.toString(), // Use discounted amount
-          address_id: addressId
-        };
+              const stripePaymentPayload = {
+        amount: finalAmount.toString(), // Use discounted amount
+        rate_amount: selectedShippingRate ? selectedShippingRate.rate.toString() : '0',
+        address_id: addressId,
+        rate_id: selectedShippingRate ? selectedShippingRate.id : '',
+        shipmentId: shippingID 
+      };
         handleStripePayment(stripePaymentPayload);
       } else {
         showAlert({
@@ -630,7 +746,13 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
     }
   };
 
-  const handleStripePayment = async (paymentPayload: { amount: string; address_id: number }) => {
+  const handleStripePayment = async (paymentPayload: { 
+    amount: string; 
+    rate_amount: string;
+    address_id: number; 
+    rate_id: string;
+    shipmentId: string;
+  }) => {
     try {
       showLoader(true);
       if (!productId) {
@@ -757,13 +879,17 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
 
   const handleChangeAddress = () => {
     navigation.navigate(SCREENS.AddressSelectionScreen, {
-      onAddressSelect: (address: AddressType) => {
+      onAddressSelect: async (address: AddressType) => {
         setSelectedAddress(address);
         setIsAddressChanged(true);
-        // Reset shipping status and call shipping API with new address
-        resetShippingStatus();
+        setShippingApiCalled(false);
+        setLastAddressId(null);
+        setSelectedShippingRate(null);
+        setPriorityShippingRate(null);
+        
+        // Automatically fetch new shipping rates for the new address
         if (address?.id && productId) {
-          console.log('Calling shipping API with new address:', { productId, addressId: address.id });
+          console.log('🔄 Auto-fetching shipping rates for new address:', address.id);
           callShippingAPI(address.id);
         }
       },
@@ -772,12 +898,20 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
 
   const resetToDefaultAddress = () => {
     if (defaultAddress) {
+      console.log('🔄 Resetting to default address:', defaultAddress);
       setSelectedAddress(defaultAddress);
       setIsAddressChanged(false);
-      // Reset shipping status and call shipping API with default address
-      resetShippingStatus();
+      
+      // Reset shipping status for default address
+      console.log('🔄 Resetting to default address, fetching new shipping rates');
+      setShippingApiCalled(false);
+      setLastAddressId(null);
+      setSelectedShippingRate(null);
+      setPriorityShippingRate(null);
+      
+      // Automatically fetch new shipping rates for the default address
       if (defaultAddress?.id && productId) {
-        console.log('Calling shipping API with default address:', { productId, addressId: defaultAddress.id });
+        console.log('🔄 Auto-fetching shipping rates for default address:', defaultAddress.id);
         callShippingAPI(defaultAddress.id);
       }
     }
@@ -835,6 +969,11 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
     setAppliedDiscountCode('');
   };
 
+  // Helper function to generate shipment ID
+  const generateShipmentId = (): string => {
+    return 'shp_' + Math.random().toString(36).substr(2, 15);
+  };
+
   // Apply coupon after successful payment
   const applyCouponAfterPayment = async () => {
     if (appliedDiscountCode && discountAmount > 0) {
@@ -845,11 +984,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
             coupon_code: appliedDiscountCode,
             purchase_amount: purchaseAmount
           };
-          
-          console.log('Applying coupon after payment success:', couponPayload);
           const response = await applyCoupon(couponPayload);
-          console.log('Coupon applied successfully:', response);
-          
           // Clear the discount after successful application
           setDiscountAmount(0);
           setAppliedDiscountCode('');
@@ -1005,19 +1140,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
           )}
         </View>
 
-        {/* Shipping Status Indicator */}
-        {shippingApiCalled && (
-          <View style={styles.shippingStatusContainer}>
-            <Text style={styles.shippingStatusText}>
-              🚚 Shipping details updated
-            </Text>
-            {shippingRates.length > 0 && (
-              <Text style={styles.shippingRatesText}>
-                📦 {shippingRates.length} shipping rates available
-              </Text>
-            )}
-          </View>
-        )}
+
 
         <View style={styles.productSection}>
           <Text style={styles.sectionTitle}>Estimated Delivery</Text>
@@ -1031,64 +1154,70 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
    {/* Shipping Rates Selection */}
    <View style={styles.productSection}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Shipping Options</Text>
+            <Text style={styles.sectionTitle}>Shipping Option</Text>
             <Text style={styles.requiredText}>* Required</Text>
           </View>
+
           <View style={styles.summaryDivider} />
           
-          {isShippingRatesLoading ? (
+          {/* Show loading state while fetching shipping rates */}
+          {isShippingRatesLoading && (
             <View style={styles.loadingContainer}>
-              <View style={styles.loaderSpinner}>
-                <Animated.View 
-                  style={[
-                    styles.spinner,
-                    { transform: [{ rotate: spin }] }
-                  ]} 
-                />
-              </View>
-              <Text style={styles.loadingText}>Loading shipping options...</Text>
+              <Text style={styles.loadingText}>🔄 Loading shipping options...</Text>
               <Text style={styles.loadingSubtext}>Please wait while we calculate shipping rates</Text>
             </View>
-          ) : shippingRates.length > 0 ? (
-            <>
-              <DropdownInput
-                control={control}
-                name="shipping_rate"
-                label="Select Shipping Method"
-                placeholder="Choose your shipping option"
-                data={shippingRates.map(rate => ({
-                  _id: rate.id,
-                  type: 'shipping',
-                  name: `${rate.service} - $${rate.rate}`,
-                  value: rate.id,
-                  createdAt: '',
-                  updatedAt: '',
-                  __v: 0
-                }))}
-                valueField="_id"
-                labelField="name"
-                onChangeValue={(item) => {
-                  const selectedRate = shippingRates.find(rate => rate.id === item._id);
-                  setSelectedShippingRate(selectedRate);
-                  console.log('Selected shipping rate:', selectedRate);
-                }}
-                containerStyle={styles.shippingDropdownContainer}
-              />
-              
-              {selectedShippingRate && (
-                <View style={styles.selectedRateInfo}>
-                  <Text style={styles.selectedRateText}>
-                    Selected: {selectedShippingRate.carrier} - {selectedShippingRate.service}
-                  </Text>
-                  <Text style={styles.selectedRatePrice}>
-                    ${selectedShippingRate.rate} • {selectedShippingRate.delivery_days === 1 ? 'Next Day' : `${selectedShippingRate.delivery_days} Days`} Delivery
+          )}
+
+
+
+          {/* Show shipping option when available */}
+          {selectedShippingRate && !isShippingRatesLoading ? (
+            <View style={[
+              styles.shippingOptionCard,
+              selectedShippingRate.carrier === 'USPS' && selectedShippingRate.service === 'Priority' && styles.uspsPriorityCard
+            ]}>
+              <View style={styles.shippingOptionHeader}>
+                <View style={styles.shippingOptionInfo}>
+                  <View style={styles.shippingOptionTitleRow}>
+                    <Text style={styles.shippingOptionTitle}>
+                      {selectedShippingRate.carrier} - {selectedShippingRate.service}
+                    </Text>
+                    {selectedShippingRate.carrier === 'USPS' && selectedShippingRate.service === 'Priority' && (
+                      <View style={styles.priorityBadge}>
+                        <Text style={styles.priorityBadgeText}>⭐ Priority</Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text style={styles.shippingOptionSubtitle}>
+                    {selectedShippingRate.delivery_days === 1 ? 'Next Day Delivery' : `${selectedShippingRate.delivery_days} Days Delivery`}
                   </Text>
                 </View>
-              )}
-            </>
-          ) : shippingApiCalled && !isShippingRatesLoading ? (
+                <View style={styles.shippingOptionPrice}>
+                  <Text style={styles.shippingPriceAmount}>
+                    ${selectedShippingRate.rate}
+                  </Text>
+                  <Text style={styles.shippingPriceCurrency}>
+                    USD
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.shippingOptionDetails}>
+                <Text style={styles.shippingOptionDetailsText}>
+                  Estimated delivery: {selectedShippingRate.delivery_days === 1 ? 'Next business day' : `Within ${selectedShippingRate.delivery_days} business days`}
+                </Text>
+                {selectedShippingRate.carrier === 'USPS' && selectedShippingRate.service === 'Priority' && (
+                  <Text style={styles.uspsPriorityInfo}>
+                    🚀 USPS Priority Mail - Fastest reliable shipping option
+                  </Text>
+                )}
+              </View>
+            </View>
+          ) : null}
+
+          {/* Show no rates message when no shipping options available */}
+          {!selectedShippingRate && !isShippingRatesLoading && shippingApiCalled ? (
             <View style={styles.noRatesContainer}>
-              <Text style={styles.noRatesText}>No shipping options available</Text>
+              <Text style={styles.noRatesText}>⚠️ No shipping options available</Text>
               <Text style={styles.noRatesSubtext}>Please try a different address or contact support</Text>
             </View>
           ) : null}
@@ -1407,7 +1536,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
             <Text style={styles.disabledButtonText}>
               {!selectedAddress ? '📍 Please select a delivery address' :
                !allProductList?.data?.product[0] ? '📦 Product information is loading...' :
-               !selectedShippingRate ? '🚚 Please select a shipping option' : ''}
+               !selectedShippingRate ? (isAddressChanged ? '🚚 Shipping rates not available for new address - click refresh button above' : '🚚 Please select a shipping option') : ''}
             </Text>
           </View>
         )}
@@ -1455,7 +1584,10 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
                 const productPrice = allProductList?.data?.product[0]?.price || '0';
                 const paymentPayload = {
                   amount: productPrice.toString(),
-                  address_id: addressId || 0
+                  rate_amount: selectedShippingRate ? selectedShippingRate.rate.toString() : '0',
+                  address_id: addressId || 0,
+                  rate_id: selectedShippingRate ? selectedShippingRate.id : '',
+                  shipmentId: shippingID
                 };
                 handleStripePayment(paymentPayload);
               }}
@@ -1972,87 +2104,6 @@ const styles = StyleSheet.create({
     color: colors.text3,
     marginTop: 4,
   },
-  // Shipping Rates Styles
-  shippingRatesContainer: {
-    paddingVertical: 8,
-  },
-  shippingRatesLabel: {
-    fontSize: fontSizes.medium,
-    fontFamily: fonts.medium,
-    color: colors.text2,
-    marginBottom: 12,
-  },
-  shippingRatesList: {
-    gap: 8,
-  },
-  shippingRateItem: {
-    backgroundColor: '#f9f9f9',
-    borderRadius: 8,
-    padding: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-  },
-  recommendedRate: {
-    backgroundColor: '#f0f8f0',
-    borderColor: colors.primary,
-    borderWidth: 2,
-  },
-  rateInfo: {
-    flex: 1,
-  },
-  rateHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  carrierName: {
-    fontSize: fontSizes.medium,
-    fontFamily: fonts.bold,
-    color: colors.black,
-    marginRight: 8,
-  },
-  recommendedBadge: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  recommendedText: {
-    fontSize: fontSizes.small,
-    fontFamily: fonts.medium,
-    color: colors.white,
-  },
-  serviceName: {
-    fontSize: fontSizes.regular,
-    fontFamily: fonts.medium,
-    color: colors.text2,
-    marginBottom: 4,
-  },
-  deliveryInfo: {
-    fontSize: fontSizes.small,
-    fontFamily: fonts.regular,
-    color: colors.text3,
-  },
-  deliveryDate: {
-    color: colors.primary,
-    fontFamily: fonts.medium,
-  },
-  ratePrice: {
-    alignItems: 'flex-end',
-  },
-  priceAmount: {
-    fontSize: fontSizes.huge,
-    fontFamily: fonts.bold,
-    color: colors.primary,
-  },
-  priceCurrency: {
-    fontSize: fontSizes.small,
-    fontFamily: fonts.regular,
-    color: colors.text3,
-  },
   // Additional styles for shipping rates
   requiredText: {
     fontSize: fontSizes.small,
@@ -2075,27 +2126,7 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontFamily: fonts.medium,
   },
-  // New dropdown styles
-  shippingDropdownContainer: {
-    marginTop: 8,
-  },
-  selectedRateInfo: {
-    backgroundColor: '#f0f8f0',
-    borderRadius: 8,
-    padding: 12,
-    marginTop: 12,
-  },
-  selectedRateText: {
-    fontSize: fontSizes.medium,
-    fontFamily: fonts.bold,
-    color: colors.primary,
-    marginBottom: 4,
-  },
-  selectedRatePrice: {
-    fontSize: fontSizes.small,
-    fontFamily: fonts.medium,
-    color: colors.text2,
-  },
+
   // New pricing display styles
   shippingCostContainer: {
     flexDirection: 'row',
@@ -2126,37 +2157,7 @@ const styles = StyleSheet.create({
     color: colors.text2,
     marginBottom: 4,
   },
-  loadingContainer: {
-    paddingVertical: 20,
-    alignItems: 'center',
-  },
-  loaderSpinner: {
-    width: 40,
-    height: 40,
-    marginBottom: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  spinner: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 3,
-    borderColor: colors.primary,
-    borderTopColor: 'transparent',
-  },
-  loadingText: {
-    fontSize: fontSizes.medium,
-    fontFamily: fonts.medium,
-    color: colors.text3,
-    marginBottom: 4,
-  },
-  loadingSubtext: {
-    fontSize: fontSizes.small,
-    fontFamily: fonts.regular,
-    color: colors.text3,
-    textAlign: 'center',
-  },
+
   noRatesContainer: {
     paddingVertical: 20,
     alignItems: 'center',
@@ -2175,6 +2176,40 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.small,
     fontFamily: fonts.regular,
     color: '#E65100',
+    textAlign: 'center',
+  },
+  addressChangedContainer: {
+    paddingVertical: 20,
+    alignItems: 'center',
+    backgroundColor: '#FFF3E0',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#FFB74D',
+  },
+  addressChangedText: {
+    fontSize: fontSizes.medium,
+    fontFamily: fonts.medium,
+    color: '#E65100',
+    marginBottom: 4,
+  },
+  addressChangedSubtext: {
+    fontSize: fontSizes.small,
+    fontFamily: fonts.regular,
+    color: '#E65100',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  refreshRatesButton: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 6,
+    marginTop: 12,
+  },
+  refreshRatesButtonText: {
+    fontSize: fontSizes.small,
+    fontFamily: fonts.medium,
+    color: colors.white,
     textAlign: 'center',
   },
   disabledButton: {
@@ -2198,4 +2233,114 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 18,
   },
+
+  // Shipping Option Card Styles
+  shippingOptionCard: {
+    backgroundColor: '#f0f8f0',
+    borderRadius: 8,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.primary,
+  },
+  shippingOptionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  shippingOptionInfo: {
+    flex: 1,
+    marginRight: 16,
+  },
+  shippingOptionTitle: {
+    fontSize: fontSizes.medium,
+    fontFamily: fonts.bold,
+    color: colors.primary,
+    marginBottom: 4,
+  },
+  shippingOptionSubtitle: {
+    fontSize: fontSizes.small,
+    fontFamily: fonts.medium,
+    color: colors.text2,
+  },
+  shippingOptionPrice: {
+    alignItems: 'flex-end',
+  },
+  shippingPriceAmount: {
+    fontSize: fontSizes.huge,
+    fontFamily: fonts.bold,
+    color: colors.primary,
+  },
+  shippingPriceCurrency: {
+    fontSize: fontSizes.small,
+    fontFamily: fonts.regular,
+    color: colors.text3,
+  },
+  shippingOptionDetails: {
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+  },
+  shippingOptionDetailsText: {
+    fontSize: fontSizes.small,
+    fontFamily: fonts.regular,
+    color: colors.text3,
+    textAlign: 'center',
+  },
+
+  // Loading styles for shipping options
+  loadingContainer: {
+    paddingVertical: 20,
+    alignItems: 'center',
+    backgroundColor: '#E3F2FD',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#2196F3',
+  },
+  loadingText: {
+    fontSize: fontSizes.medium,
+    fontFamily: fonts.bold,
+    color: '#1976D2',
+    marginBottom: 4,
+  },
+  loadingSubtext: {
+    fontSize: fontSizes.small,
+    fontFamily: fonts.regular,
+    color: '#1976D2',
+    textAlign: 'center',
+  },
+
+  // USPS Priority specific styles
+  uspsPriorityCard: {
+    backgroundColor: '#e8f5e8',
+    borderColor: '#2e7d32',
+    borderWidth: 2,
+  },
+  shippingOptionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  priorityBadge: {
+    backgroundColor: '#ff9800',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginLeft: 8,
+  },
+  priorityBadgeText: {
+    fontSize: fontSizes.small,
+    fontFamily: fonts.bold,
+    color: colors.white,
+  },
+  uspsPriorityInfo: {
+    fontSize: fontSizes.small,
+    fontFamily: fonts.medium,
+    color: '#2e7d32',
+    textAlign: 'center',
+    marginTop: 8,
+    fontStyle: 'italic',
+  },
+
 });
