@@ -12,6 +12,9 @@ import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-quer
 import { LogBox } from 'react-native';
 import { StripeProvider } from '@stripe/stripe-react-native';
 import { getPublishKeyAction } from './src/utils/apiAction';
+import messaging from '@react-native-firebase/messaging';
+import { showMessages } from './src/utils/notificationHelper';
+import { OS } from './src/utils/utils';
 
 const queryClient = new QueryClient();
 
@@ -27,13 +30,36 @@ function AppContent() {
     enabled: !!token,
   });
 console.log(data,"data-----");
+const checkToken = async () => {
+  const fcmToken = await messaging().getToken();
+console.log(fcmToken,"fcmToken-----");
+  if (fcmToken) {
 
+  }
+  if (OS === "ios") {
+    messaging().onTokenRefresh((fcmToken) => {});
+
+  }
+};
+React.useEffect(() => {
+  checkToken();
+}, []);
   React.useEffect(() => {
     if (token) {
       setPublishKey(data?.data?.publishKey || '');
     }
   }, [data, error, token]);
-
+  React.useEffect(() => {
+    messaging().setBackgroundMessageHandler(async (remoteMessage) => {
+      showMessages(remoteMessage);
+    });
+    const unsubscribeOnMessage = messaging().onMessage(
+      async (remoteMessage) => {
+        showMessages(remoteMessage);
+      }
+    );
+    return () => unsubscribeOnMessage();
+  }, []);
   const NavigationContent = (
     <NavigationContainer>
       <MainNavigation />

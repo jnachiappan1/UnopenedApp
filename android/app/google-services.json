@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "85337266843",
+    "project_id": "unopened-31069",
+    "storage_bucket": "unopened-31069.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:85337266843:android:e98220ec098c616ce1043e",
+        "android_client_info": {
+          "package_name": "com.unopened_mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAJHWxndeqySsYf8frz7O8d58Zwlg3i5YY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

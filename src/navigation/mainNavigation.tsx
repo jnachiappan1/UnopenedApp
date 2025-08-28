@@ -33,18 +33,21 @@ import OrderTrackScreen from '../screens/buyerPortal/orderTrackScreen';
 import BProductDetailScreen from '../screens/buyerPortal/bProductDetailScreen';
 import ConfirmYourOrderScreen from '../screens/buyerPortal/confirmYourOrderScreen';
 import AddAddressScreen from '../screens/buyerPortal/addAddressScreen';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { IRootState } from '../redux/store';
 import AddProductScreen from '../screens/sellerPortal/addProductScreen';
 import BarcodeScanner from '../screens/sellerPortal/barcodeScanner';
 import AddressSelectionScreen from '../screens/buyerPortal/addressSelectionScreen';
 import BHomeScreen from '../screens/buyerPortal/bHomeScreen';
 import SHomeScreen from '../screens/sellerPortal/sHomeScreen';
+import { getFCMToken } from '../utils/notificationHelper';
+import { saveFcmToken } from '../redux/reducers/user/UserReducer';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
 const MainNavigation: React.FC = () => {
   const container = useContainer();
+  const dispatch = useDispatch();
   const userData = useSelector((user: IRootState) => user.user.userData);
 
   const renderFirstScreen =
@@ -59,7 +62,14 @@ const MainNavigation: React.FC = () => {
   //     planOwnerData || memberData || providerData
   //       ? SCREENS.BottomTab
   //       : SCREENS.SelectUserType;
-
+  const checkToken = async () => {
+    const fcmToken = await getFCMToken();
+    dispatch(saveFcmToken(fcmToken));
+  };
+  React.useEffect(() => {
+    checkToken();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   return (
     // <View style={container}>
     <Stack.Navigator
