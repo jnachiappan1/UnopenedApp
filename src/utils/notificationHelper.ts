@@ -1,70 +1,143 @@
 /* eslint-disable no-var */
-import {Alert, Platform} from 'react-native';
+import {getApp} from '@react-native-firebase/app';
+import {
+  AuthorizationStatus,
+  getMessaging,
+  getToken,
+  requestPermission,
+} from '@react-native-firebase/messaging';
+import {PermissionsAndroid, Platform} from 'react-native';
 import PushNotification, {Importance} from 'react-native-push-notification';
-import messaging from '@react-native-firebase/messaging';
-import {OS} from './utils';
-import notifee from '@notifee/react-native';
 
-export const requestUserPermission = async () => {
-  const authStatus = await messaging().requestPermission();
-  const enabled =
-    authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-    authStatus === messaging.AuthorizationStatus.PROVISIONAL;
-  if (enabled) {
-    console.log('Authorization status:', authStatus);
-  } else {
-    Alert.alert(
-      'Notification permission denied',
-      'Enable notifications from settings to receive updates.',
-    );
+export const requestNotificationPermission = async () => {
+  if (Platform.OS === 'android') {
+    if (Platform.Version >= 33) {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+        {
+          title: 'Notification Permission',
+          message: 'App needs notification permission to receive notifications',
+          buttonNeutral: 'Ask Me Later',
+          buttonNegative: 'Cancel',
+          buttonPositive: 'OK',
+        },
+      );
+      return granted === PermissionsAndroid.RESULTS.GRANTED;
+    }
+    return true;
   }
-  if (OS === 'ios') {
-    await notifee.requestPermission();
+  // For iOS
+  if (Platform.OS === 'ios') {
+    try {
+      // const app = getApp();
+      const messagingInstance = getMessaging();
+
+      const authStatus = await requestPermission(messagingInstance);
+      const enabled =
+        authStatus === AuthorizationStatus.AUTHORIZED ||
+        authStatus === AuthorizationStatus.PROVISIONAL;
+
+      if (enabled) {
+        console.log('iOS Authorization status:', authStatus);
+        return true;
+      }
+    } catch (e) {
+      console.log('Error requesting iOS permission:', e);
+    }
+    return false;
   }
 };
+
 export const getFCMToken = async () => {
   try {
-    await requestUserPermission();
-    const token = await messaging().getToken();
+    const permissionGranted = await requestNotificationPermission();
+    if (!permissionGranted) {
+      return null;
+    }
+
+    const app = getApp();
+    const messagingInstance = getMessaging(app);
+    const token = await getToken(messagingInstance);
+
+    console.log('token==>', token);
     return token;
-    //dispatch(saveFcmToken(token));
   } catch (e) {
-    console.error('Error getting FCM token:', e);
+    console.log('Error getting FCM token:', e);
+    return null;
   }
 };
 
-export const showMessages = (notification: any) => {
-  if (Platform.OS === 'ios') {
-    displayNotification(notification);
-  } else {
-    PushNotification.createChannel(
-      {
-        channelId: 'unopened-channel-id',
-        channelName: 'unopened',
-        channelDescription: 'unopened',
-        playSound: true,
-        soundName: 'default',
-        importance: Importance.HIGH,
-        vibrate: true,
-      },
-      (created: any) => {
-        displayNotification(notification);
-      },
-    );
-  }
-};
+export const showMessages = (
+  notification: any,
+  playSound: boolean,
+  vibrate: boolean,
+) => {
+  const isFromSystem = Platform.OS === 'ios' && notification?.notification;
 
-const displayNotification = async (notification: any) => {
+  if (isFromSystem) {
+    // Don't show local notification; system already displayed it
+    return;
+  }
+
+  // Otherwise, manually show
+  PushNotification.createChannel(
+    {
+      channelId: 'ReqLight',
+      channelName: 'ReqLight',
+      channelDescription: 'ReqLight',
+      playSound,
+      soundName: 'default',
+      importance: Importance.HIGH,
+      vibrate,
+    },
+    () => {
+      displayNotification(notification, playSound, vibrate);
+    },
+  );
+};
+// export const showMessages = (
+//   notification: any,
+//   playSound: boolean,
+//   vibrate: boolean,
+// ) => {
+//   if (Platform.OS === 'ios') {
+//     displayNotification(notification, playSound, vibrate);
+//   } else {
+//     PushNotification.createChannel(
+//       {
+//         channelId: 'ReqLight',
+//         channelName: 'ReqLight',
+//         channelDescription: 'ReqLight',
+//         playSound: playSound,
+//         soundName: 'default',
+//         importance: Importance.HIGH,
+//         vibrate: vibrate,
+//       },
+//       (created: any) => {
+//         displayNotification(notification, playSound, vibrate);
+//       },
+//     );
+//   }
+// };
+
+const displayNotification = async (
+  notification: any,
+  playSound: boolean,
+  vibrate: boolean,
+) => {
+  console.log(notification,"notification-----");
+  
   var title = notification?.notification?.title;
   var message = notification?.notification?.body;
   PushNotification.localNotification({
-    channelId: 'unopened-channel-id',
+    channelId: 'ReqLight',
     importance: 'high',
     title: title,
     message: message,
-    playSound: true,
+    playSound,
     soundName: 'default',
     userInfo: notification,
-    vibrate: true,
+    vibrate,
+    // largeIcon:
   });
 };

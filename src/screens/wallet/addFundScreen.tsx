@@ -52,7 +52,6 @@ const AddFundScreen: React.FC<AddFundScreenProps> = ({ navigation }) => {
     mutationFn: (data: { amount: string }) => 
       makePayment('add_funds', { amount: data.amount }),  
     onSuccess: (data: any) => {
-      console.log('Add funds API response:', data);
       handleStripePayment(data);
     },
     onError: (error: any) => {
@@ -68,8 +67,6 @@ const AddFundScreen: React.FC<AddFundScreenProps> = ({ navigation }) => {
 
   const handleStripePayment = async (paymentResponse: any) => {
     try {
-      console.log('Processing Stripe payment for add funds...');
-      
       if (paymentResponse?.data?.status !== 'success') {
         showLoader(false);
         showAlert({

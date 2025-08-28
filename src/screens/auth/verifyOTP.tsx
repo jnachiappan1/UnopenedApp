@@ -20,6 +20,7 @@ import { handleError, handleSettled } from '../../utils/method';
 import { ResendInputPayloadType } from '../../utils/payload';
 import { useDispatch, useSelector } from 'react-redux';
 import { saveUserData, saveUserType, setAuthToken } from '../../redux/reducers/user/UserReducer';
+import { IRootState } from '../../redux/store';
 
 type Inputs = {
   otp: string;
@@ -34,6 +35,7 @@ type VerifyOTPProps = NativeStackScreenProps<
 
 const VerifyOTP: React.FC<VerifyOTPProps> = ({route, navigation}) => {
    let userType = useSelector((type: any) => type.user.userType);
+   const fcmToken = useSelector((user: IRootState) => user.user.fcmToken);
   const {otp, email, type} = route.params;
   const [resendOtp, setResendOtp] = useState('');
   const dispatch = useDispatch();
@@ -132,10 +134,16 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({route, navigation}) => {
 
   const submit = (data: Inputs) => {
     if (!type) return;
-
+    // const payload = {
+    //   email: email,
+    //   ...data,
+    // };
     const payload = {
-      email: email,
+      email,
       ...data,
+      ...(type === "login" || type === "register"
+        ? { fcmToken: fcmToken }
+        : {}),
     };
     showLoader(true);
     mutate({ type, payload });

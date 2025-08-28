@@ -5,17 +5,18 @@ import {
   TouchableOpacity,
   View,
   ScrollView,
+  Linking,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
-import {fontSizes} from '../../utils/utils';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
+import { fontSizes } from '../../utils/utils';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
 import colors from '../../utils/colors';
 import StatusBadge from '../../components/card/statusBadge';
 import fonts from '../../assets/fonts/fonts';
 import IconsSvg from '../../assets/svg/iconsSvg';
-import { contactUs, getProductDetailByID } from '../../utils/apiAction';
+import { contactUs, getProductDetailByID, trackShipment } from '../../utils/apiAction';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { image_url } from '../../utils/api';
 import ContactSupportModal from '../../components/model/contactSupportModal';
@@ -26,65 +27,224 @@ import { showLoader } from '../../components/loader/loader';
 import { showAlert } from '../../components/cAlert';
 import { handleError, handleSettled } from '../../utils/method';
 
+// Add interface for tracking step data
+interface TrackingStep {
+  id: number;
+  title: string;
+  subtitle?: string;
+  date: string;
+  isCompleted: boolean;
+}
+
 type OrderTrackScreenProps = NativeStackScreenProps<
   RootStackParamList,
   SCREENS.OrderTrackScreen
 >;
 
-const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({navigation, route}) => {
+const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({ navigation, route }) => {
   const productId = route.params;
   const [isContactSupportModalVisible, setIsContactSupportModalVisible] = useState(false);
   const [modalKey, setModalKey] = useState(0);
   const userData = useSelector((state: IRootState) => state.user.userData);
+  const trackingUrl =
+  "https://track.easypost.com/djE6dHJrXzExZmEyZWUwNmY2NTRiM2FhMmJjZDRlNjg0ZmVhNThk";
+
   const { data: productDetail, refetch: refetchAllProduct } = useQuery({
     queryKey: ['getProductDetailByID', productId?.productId],
     queryFn: () => getProductDetailByID(productId?.productId),
   });
+
+  const { data: shippingTrackingData, isLoading: isTrackingLoading } = useQuery({
+    queryKey: ['trackShipment', productDetail?.data?.product[0]?.shipment_id],
+    queryFn: () => trackShipment(productDetail?.data?.product[0]?.shipment_id),
+    enabled: !!productDetail?.data?.product[0]?.shipment_id,
+  });
+
+  console.log(JSON.stringify(productDetail), "productDetail------");
+  console.log(JSON.stringify(shippingTrackingData), "shippingTrackingData------");
+
   const generateTrackingSteps = (status: string) => {
+    // If we have shipping tracking data, use it
+    if (shippingTrackingData?.tracking?.details) {
+      const trackingDetails = shippingTrackingData.tracking.details;
+      const overallStatus = shippingTrackingData.tracking.status;
+
+      // Group by status and get latest from each category
+      const preTransitSteps = trackingDetails.filter((step: any) => step.status === 'pre_transit');
+      const inTransitSteps = trackingDetails.filter((step: any) => step.status === 'in_transit');
+      const outForDeliverySteps = trackingDetails.filter((step: any) => step.status === 'out_for_delivery');
+      const deliveredSteps = trackingDetails.filter((step: any) => step.status === 'delivered');
+
+      const steps: TrackingStep[] = [];
+
+      // Helper function to get latest step from array
+      const getLatestStep = (stepsArray: any[]) => {
+        return stepsArray.sort((a: any, b: any) =>
+          new Date(b.datetime).getTime() - new Date(a.datetime).getTime()
+        )[0];
+      };
+
+      // Always add Pre-Transit step
+      if (preTransitSteps.length > 0) {
+        const latestPreTransit = getLatestStep(preTransitSteps);
+        console.log(latestPreTransit, "latestPreTransit===");
+        steps.push({
+          id: 1,
+          title: 'Pre-Transit',
+          subtitle: latestPreTransit.tracking_location?.city
+            ? `${latestPreTransit.tracking_location.city}, ${latestPreTransit.tracking_location.state}`
+            : '',
+          date: new Date(latestPreTransit.datetime).toLocaleDateString('en-US', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          }),
+          isCompleted: true,
+        });
+      }
+
+      // Add In Transit step only if it has occurred OR if we're past this stage
+      if (inTransitSteps.length > 0 || outForDeliverySteps.length > 0 || deliveredSteps.length > 0) {
+        if (inTransitSteps.length > 0) {
+          const latestInTransit = getLatestStep(inTransitSteps);
+          console.log(latestInTransit, "latestInTransit---");
+
+          steps.push({
+            id: 2,
+            // title: latestInTransit.message || 'In Transit',
+            title:  'In Transit',
+            subtitle: latestInTransit.tracking_location?.city
+              ? `${latestInTransit.tracking_location.city}, ${latestInTransit.tracking_location.state}`
+              : '',
+            date: new Date(latestInTransit.datetime).toLocaleDateString('en-US', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            }),
+            isCompleted: true,
+          });
+        } else {
+          // Show completed in transit if we're past this stage
+          steps.push({
+            id: 2,
+            title: 'In Transit',
+            subtitle: 'Package in transit',
+            date: 'Completed',
+            isCompleted: true,
+          });
+        }
+      }
+
+      // Add Out for Delivery step only if it has occurred OR if delivered
+      if (outForDeliverySteps.length > 0 || deliveredSteps.length > 0) {
+        if (outForDeliverySteps.length > 0) {
+          const latestOutForDelivery = getLatestStep(outForDeliverySteps);
+          steps.push({
+            id: 3,
+            title: 'Out for Delivery',
+            subtitle: latestOutForDelivery.tracking_location?.city
+              ? `${latestOutForDelivery.tracking_location.city}, ${latestOutForDelivery.tracking_location.state}`
+              : '',
+            date: new Date(latestOutForDelivery.datetime).toLocaleDateString('en-US', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            }),
+            isCompleted: true,
+          });
+        } else if (deliveredSteps.length > 0) {
+          // Show completed out for delivery if delivered
+          steps.push({
+            id: 3,
+            title: 'Out for Delivery',
+            subtitle: 'Package out for delivery',
+            date: 'Completed',
+            isCompleted: true,
+          });
+        }
+      }
+
+      // Add Delivered step
+      if (deliveredSteps.length > 0) {
+        const latestDelivered = getLatestStep(deliveredSteps);
+        steps.push({
+          id: 4,
+          title: 'Delivered',
+          subtitle: latestDelivered.tracking_location?.city
+            ? `${latestDelivered.tracking_location.city}, ${latestDelivered.tracking_location.state}`
+            : 'Package delivered successfully',
+          date: new Date(latestDelivered.datetime).toLocaleDateString('en-US', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          }),
+          isCompleted: true,
+        });
+      } else {
+        // Show next expected step based on current status
+        if (overallStatus === 'out_for_delivery') {
+          steps.push({
+            id: 4,
+            title: 'Delivered',
+            subtitle: 'Package will be delivered',
+            date: 'Expected soon',
+            isCompleted: false,
+          });
+        }
+        // Don't show delivered step if we're still in pre_transit or in_transit
+      }
+
+      return steps;
+    }
+
+    // Fallback to hardcoded steps if no shipping tracking data
     const baseSteps = [
       {
         id: 1,
-        title: 'Order Confirmed',
+        title: 'Pre Transit',
         date: '7 May 2023 | 23:11',
         isCompleted: true,
+        // isCompleted: status === 'pre_transit',
       },
       {
         id: 2,
         title: 'Label Sent',
         subtitle: 'Shipping label generated, sent to seller',
         date: '16 June 2025',
-        isCompleted: status === 'In Transit' || status === 'Delivered',
+        isCompleted: status === 'in_transit' || status === 'out_for_delivery' || status === 'delivered',
       },
       {
         id: 3,
         title: 'In Transit',
         subtitle: 'Package picked up and in transit',
         date: '17 June 2025',
-        isCompleted: status === 'Delivered',
+        isCompleted: status === 'out_for_delivery' || status === 'delivered',
       },
       {
         id: 4,
         title: 'Delivered',
         subtitle: 'Order delivered to your address',
         date: '20 June 2025',
-        isCompleted: status === 'Delivered',
+        isCompleted: status === 'delivered',
       },
     ];
 
-    // Filter steps based on status
-    switch (status) {
-      case 'Pending':
-        return baseSteps.slice(0, 1);
-      case 'In Transit':
-        return baseSteps.slice(0, 3);
-      case 'Delivered':
-        return baseSteps;
-      default:
-        return baseSteps;
-    }
+    return baseSteps;
   };
 
-  const trackingSteps = generateTrackingSteps(productDetail?.data?.product[0]?.status);
+  // Use shipping tracking status if available, otherwise use product status
+  const trackingSteps = generateTrackingSteps(
+    shippingTrackingData?.tracking?.status || productDetail?.data?.product[0]?.status
+  );
+
   const { mutate } = useMutation({
     mutationFn: contactUs,
     onSuccess: (data) => {
@@ -103,26 +263,35 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({navigation, route}) 
     onError: handleError,
     onSettled: handleSettled,
   });
+
   const handleMessageSubmit = (message: string) => {
     showLoader(true);
     const supportPayload: ContactSupportType = {
-      full_name: userData?.full_name, 
-      country_code:  userData?.country_code,  
-      phone_number: userData?.phone_number, 
-      email:  userData?.email, 
+      full_name: userData?.full_name,
+      country_code: userData?.country_code,
+      phone_number: userData?.phone_number,
+      email: userData?.email,
       message: message,
       product_id: productDetail?.data?.product[0]?.id,
     };
     mutate(supportPayload);
   }
+
   const renderTrackingStep = (item: any, index: number) => {
     return (
       <View key={item.id} style={styles.trackingStepContainer}>
         <View style={styles.trackingIconContainer}>
-          <IconsSvg name="trackOrderIcon" />
-          {/* <View style={[styles.trackingIcon, item.isCompleted && styles.completedIcon]}>
-            {item.isCompleted && <Text style={styles.checkMark}>✓</Text>}
-          </View> */}
+          {/* Render check mark for completed steps, gray circle for incomplete */}
+          <View style={[
+            styles.trackingIcon,
+            item.isCompleted && styles.completedIcon
+          ]}>
+            {item.isCompleted ? (
+              <Text style={styles.checkMark}>✓</Text>
+            ) : (
+              <View style={styles.grayCircle} />
+            )}
+          </View>
           {index < trackingSteps.length - 1 && (
             <View
               style={[
@@ -133,11 +302,35 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({navigation, route}) 
           )}
         </View>
         <View style={styles.trackingContent}>
-          <Text style={styles.trackingTitle}>{item.title}</Text>
-          {item.subtitle && (
-            <Text style={styles.trackingSubtitle}>{item.subtitle}</Text>
+          <Text style={[
+            styles.trackingTitle,
+            !item.isCompleted && styles.incompleteText
+          ]}>
+            {item.title}
+          </Text>
+          {item.isCompleted && item.subtitle && (
+            <Text
+              style={[
+                styles.trackingSubtitle,
+                !item.isCompleted && styles.incompleteText,
+              ]}
+            >
+              {item.subtitle}
+            </Text>
           )}
-          <Text style={styles.trackingDate}>Date: {item.date}</Text>
+
+          {/* Show date only if step is completed */}
+          {item.isCompleted && (
+            <Text
+              style={[
+                styles.trackingDate,
+                !item.isCompleted && styles.incompleteText,
+              ]}
+            >
+              Date: {item.date}
+            </Text>
+          )}
+
         </View>
       </View>
     );
@@ -153,7 +346,11 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({navigation, route}) 
               <Text style={styles.orderId}>{'ORD#11458'}</Text>
             </View>
             <View>
-              <StatusBadge status={productDetail?.data?.product[0]?.product_activity_status} />
+              <StatusBadge
+                status={
+                  productDetail?.data?.product[0]?.product_activity_status
+                }
+              />
             </View>
           </View>
           <View style={styles.borderLine} />
@@ -161,13 +358,21 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({navigation, route}) 
           <View style={styles.imageDetailContainer}>
             <View style={styles.productRow}>
               <Image
-                source={{uri: image_url + productDetail?.data?.product[0]?.product_image[0]?.image}}
+                source={{ uri: image_url + productDetail?.data?.product[0]?.product_image[0]?.image }}
                 style={styles.productImage}
-              /> 
+              />
               <View style={styles.productDetails}>
                 <Text style={styles.titleStyle}>{productDetail?.data?.product[0]?.name}</Text>
                 <Text style={styles.descriptionStyle}>
-                  Delivered On: {'15 Jun, 2025'}
+                  Delivered On: {
+                    shippingTrackingData?.tracking?.actual_delivery
+                      ? new Date(shippingTrackingData.tracking.actual_delivery).toLocaleDateString('en-US', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric'
+                      })
+                      : '15 Jun, 2025'
+                  }
                 </Text>
                 <Text style={[styles.mrspStyle]}>${productDetail?.data?.product[0]?.price}</Text>
               </View>
@@ -175,15 +380,27 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({navigation, route}) 
           </View>
         </View>
 
-        <Text style={styles.headingStyle}>Track Your Order</Text>
-        <View style={styles.container}>
-          {trackingSteps.map((item, index) => renderTrackingStep(item, index))}
-        </View>
+        {isTrackingLoading ? (
+          <Text style={{ padding: 16 }}>Loading tracking info...</Text>
+        ) : trackingSteps && trackingSteps.length > 0 ? (
+          <>
+            <Text style={styles.headingStyle}>Track Your Order</Text>
+            <View style={styles.container}>
+            <TouchableOpacity onPress={() => Linking.openURL(trackingUrl)}>
+  <Text style={styles.trackText}>Track your order</Text>
+</TouchableOpacity>
+            <View >
+              {trackingSteps.map((item, index) => renderTrackingStep(item, index))}
+            </View>
+            </View>
+          
+          </>
+        ) : null}
 
         <View style={styles.helpSection}>
           <Text style={styles.headingText}>Need help with your order?</Text>
           <View style={styles.lineStyle} />
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.helpOption}
             onPress={() => {
               setModalKey(prev => prev + 1);
@@ -195,16 +412,9 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({navigation, route}) 
             </View>
             <Text style={styles.helpText}>Contact Support</Text>
           </TouchableOpacity>
-
-          {/* <TouchableOpacity style={styles.helpOption}>
-            <View style={styles.helpIconContainer}>
-              <IconsSvg name="raiseTicketIcon" />
-            </View>
-            <Text style={styles.helpText}>Raise a Ticket</Text>
-          </TouchableOpacity> */}
         </View>
       </ScrollView>
-      
+
       <ContactSupportModal
         key={modalKey}
         isModalVisible={isContactSupportModalVisible}
@@ -225,7 +435,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     marginTop: 10,
   },
-
   borderLine: {
     borderWidth: 1,
     borderColor: colors.border,
@@ -254,10 +463,8 @@ const styles = StyleSheet.create({
     fontFamily: fonts.regular,
     color: colors.gray,
   },
-
   imageDetailContainer: {
     backgroundColor: colors.white,
-    // marginBottom: 16,
     marginHorizontal: 10,
     paddingVertical: 16,
   },
@@ -330,8 +537,14 @@ const styles = StyleSheet.create({
     borderColor: '#E5E5E5',
   },
   completedIcon: {
-    backgroundColor: '#4CAF50',
-    borderColor: '#4CAF50',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  grayCircle: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#CCCCCC',
   },
   checkMark: {
     color: colors.white,
@@ -341,7 +554,7 @@ const styles = StyleSheet.create({
   connectingLine: {
     width: 2,
     height: 50,
-    backgroundColor: colors.primary,
+    backgroundColor: '#E5E5E5',
   },
   completedLine: {
     backgroundColor: colors.primary,
@@ -366,6 +579,9 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.regular,
     fontFamily: fonts.medium,
     color: colors.text3,
+  },
+  incompleteText: {
+    color: '#CCCCCC',
   },
   helpSection: {
     backgroundColor: colors.white,
@@ -397,4 +613,9 @@ const styles = StyleSheet.create({
     color: colors.primary,
     textDecorationLine: 'underline',
   },
+  trackText:{
+    textAlign:'right',
+    paddingHorizontal:10,
+    paddingTop:10,
+    color:colors.primary,fontSize:fontSizes.small,fontFamily:fonts.bold,marginBottom:10}
 });

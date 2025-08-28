@@ -18,7 +18,8 @@ export type SignUpPayloadType = {
   password?: string | null;
 };
 export type ResendInputPayloadType = {
-  email: string | null | undefined
+  email: string | null | undefined;
+  fcmToken?: string | null;
 };
 export type ChangePasswordPayloadType = {
   oldPassword: string | null | undefined,

@@ -307,15 +307,10 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
   const soldProducts = (allProductList?.data?.product || []).filter(
     (item: ProductData) => item.product_status === 'sold'
   );
-  const withdrawnProducts = (allProductList?.data?.product || []).filter(
-    (item: ProductData) => item.product_status === 'withdrawn'
-  );
   const showEmptyState = !isLoading && !isFetching && (!displayProducts || displayProducts.length === 0);
   const showRecentlyListed = !hasActiveFilters() && allProducts && allProducts.length > 0;
   
-  // SOLUTION 3: Only show "My Purchase" section when user is logged in AND has data
   const shouldShowMyPurchase = isLogged && oneLatestItem && oneLatestItem.length > 0;
-  
   return (
     <HeaderHomeContainer
       title={'Welcome,'}

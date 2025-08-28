@@ -359,8 +359,6 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
       return [];
     }
   }, [selectedTab, products, getStatusForTab]);
-console.log("calll======");
-
   const getTabCounts = React.useCallback(() => {
     try {
       const counts: { [key: string]: number } = {
@@ -555,8 +553,7 @@ console.log("calll======");
           dispatch(saveUserType('buyer'));
           setTimeout(() => {
             navigation.replace(SCREENS.BottomTab);
-            console.log('Navigation replace successful');
-          }, 300); // adjust delay if needed
+          }, 300);
         }}
         content={termsContent}
         loading={termsLoading}

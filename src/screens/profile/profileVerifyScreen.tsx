@@ -24,7 +24,8 @@ import { resendOtpApi, verifyOtpApi } from '../../utils/apiAction';
 import { ResendInputPayloadType } from '../../utils/payload';
 import { saveUserData, setAuthToken } from '../../redux/reducers/user/UserReducer';
 import { CommonActions } from '@react-navigation/native';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { IRootState } from '../../redux/store';
 
 type ProfileVerifyScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -44,6 +45,7 @@ const ProfileVerifyScreen: React.FC<ProfileVerifyScreenProps> = ({
   const {otp, email, type} = route.params;
   const [resendOtp, setResendOtp] = useState('');
   const dispatch = useDispatch();
+  const fcmToken = useSelector((user: IRootState) => user.user.fcmToken);
 
   const defaultValues = {
     otp: ''
@@ -56,7 +58,7 @@ const ProfileVerifyScreen: React.FC<ProfileVerifyScreenProps> = ({
     formState: { errors },
   } = useForm<Inputs>({ defaultValues });
   const { mutate } = useMutation({
-    mutationFn: ({ type, payload }: { type: string; payload: ResendInputPayloadType }) =>
+    mutationFn: ({ type, payload }: { type: string; payload: any }) =>
       verifyOtpApi(type, payload),
     onSuccess: async (data: any) => {
       showLoader(false);
@@ -84,9 +86,16 @@ const ProfileVerifyScreen: React.FC<ProfileVerifyScreenProps> = ({
   const submit = (data: Inputs) => {
     if (!type) return;
 
+    // const payload = {
+    //   email: email,
+    //   ...data,
+    // };
     const payload = {
-      email: email,
+      email,
       ...data,
+      ...(type === "login" || type === "register"
+        ? { fcmToken: fcmToken }
+        : {}),
     };
     showLoader(true);
     mutate({ type, payload });

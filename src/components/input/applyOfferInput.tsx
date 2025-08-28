@@ -39,15 +39,7 @@ const ApplyOfferInput: React.FC<InputProps> = props => {
   const styles = getStyles();
 
   const handleApplyClick = () => {
-    // Get the current value from the form
     const currentValue = control._formValues?.[name] || '';
-    
-    // Log the discount code
-    console.log('Apply button clicked!');
-    console.log('Discount code:', currentValue);
-    console.log('Field name:', name);
-    
-    // Call the parent callback if provided
     if (onApply) {
       onApply(currentValue);
     }

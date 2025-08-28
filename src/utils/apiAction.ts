@@ -165,8 +165,6 @@ export const getProductDetailByID = async (productID?: string | number | null | 
 
 export const validateCoupon = async (data: { coupon_code: string; purchase_amount: number }) => {
   const response = await axios.post(API.buyer.validateCoupon, data);
-  console.log(response,"response---");
-  
   return response;
 };
 export const soldProduct = async (productId: string | number | null | undefined, payload?: { address_id: number }) => {
@@ -265,16 +263,11 @@ export const makePayment = async (
   },
   productId?: string | number
 ) => {
-  console.log('type---', type, productId, "========", payload);
-
   // Build URL dynamically
   let url = `${API.buyer.makePayment}/?type=${type}`;
   if (type !== 'add_funds' && productId !== undefined && productId !== null) {
     url += `&product_id=${productId}`;
   }
-
-  console.log('makePayment URL:', JSON.stringify(url), 'payload:', payload);
-
   const response = await axios.post(url, payload);
   return response;
 };
@@ -294,5 +287,10 @@ export const createShipping = async (payload: { product_id: string; address_id: 
 
 export const getShippingRates = async (shippingRecordId: number) => {
   const response = await axios.get(`${API.buyer.getShippingRates}/${shippingRecordId}/rates`);
+  return response;
+};
+
+export const trackShipment = async (shipmentId: string) => {
+  const response = await axios.get(`${API.buyer.trackShipment}/${shipmentId}/track`);
   return response;
 };

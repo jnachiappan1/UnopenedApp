@@ -43,8 +43,6 @@ type BottomTabNavProps = NativeStackScreenProps<
 
 const BottomTabNav: React.FC<BottomTabNavProps> = () => {
   const userType = useSelector((state: IRootState) => state.user.userType);
-console.log(userType,"userType-----");
-
   const sellerPortalTab = (
     <>
       <Tab.Screen name={SCREENS.SHomeScreen} component={sHomeScreen} />

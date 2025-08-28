@@ -29,7 +29,6 @@ function AppContent() {
     queryFn: getPublishKeyAction,
     enabled: !!token,
   });
-console.log(data,"data-----");
 const checkToken = async () => {
   const fcmToken = await messaging().getToken();
 console.log(fcmToken,"fcmToken-----");
@@ -51,11 +50,11 @@ React.useEffect(() => {
   }, [data, error, token]);
   React.useEffect(() => {
     messaging().setBackgroundMessageHandler(async (remoteMessage) => {
-      showMessages(remoteMessage);
+      showMessages(remoteMessage,true,true);
     });
     const unsubscribeOnMessage = messaging().onMessage(
       async (remoteMessage) => {
-        showMessages(remoteMessage);
+        showMessages(remoteMessage,true,true);
       }
     );
     return () => unsubscribeOnMessage();

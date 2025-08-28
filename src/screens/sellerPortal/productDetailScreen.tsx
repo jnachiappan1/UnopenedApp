@@ -101,8 +101,6 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ navigation, r
       [{ text: 'OK' }]
     );
   };
-console.log(productDetail?.data,"productDetail?.data?.----");
-
   return (
     <TitleBackHeaderContainer isBack title='Product Details' >
       <View style={styles.imageDetailContainer}>

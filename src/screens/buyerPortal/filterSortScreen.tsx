@@ -71,8 +71,6 @@ const FilterSortScreen: React.FC<FilterSortScreenProps> = ({
     queryFn: () => getCategoryDetail(),
     // enabled: isLogged,
   });
-console.log(categoryData,"categoryData-----");
-
   const activeCategories: ProductCategory[] = categoryData?.data?.category
     ?.filter((category: any) => category.status === 'active')
     ?.map((category: any) => ({

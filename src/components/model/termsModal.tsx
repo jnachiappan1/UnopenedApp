@@ -30,14 +30,7 @@ const TermsModal: React.FC<TermsModalProps> = ({
 }) => {
   // Sanitize the content before rendering to prevent iOS crashes
   const sanitizedContent = React.useMemo(() => {
-    console.log('Original content:', content);
-    console.log('Content type:', typeof content);
-    console.log('Content length:', content?.length);
-    
-    const sanitized = sanitizeHtmlContent(content);
-    console.log('Sanitized content:', sanitized);
-    console.log('Sanitized length:', sanitized?.length);
-    
+    const sanitized = sanitizeHtmlContent(content); 
     return sanitized;
   }, [content]);
 

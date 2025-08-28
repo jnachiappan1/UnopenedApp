@@ -110,11 +110,7 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({ navigation }) => {
     queryFn: () => getProductList(getApiParams()),
     staleTime: 5 * 60 * 1000,
   });
-  console.log(JSON.stringify(productListResponse?.data?.product));
-
   const apiProducts = productListResponse?.data?.product || [];
-  const displayProducts = isLogged ? apiProducts : products;
-
   useEffect(() => {
     searchQueryRef.current = searchQuery;
   }, [searchQuery]);

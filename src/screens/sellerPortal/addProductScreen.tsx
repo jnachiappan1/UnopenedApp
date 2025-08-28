@@ -240,9 +240,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       
       // Handle images from scanned product - only set the first image, user can add more
       if (productData.images && productData.images.length > 0) {
-        console.log('Scanned product images:', productData.images);
-        console.log('Number of scanned images:', productData.images.length);
-        
         // Clear any existing images first to ensure clean state
         setUploadedImages([]);
         setValue('productImages', []);
@@ -253,9 +250,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
           name: 'scanned_product_image.jpg',
           type: 'image/jpeg'
         };
-        
-        console.log('Selected scanned image:', scannedImage);
-        
         // Set only the scanned image, user can add more through camera
         setUploadedImages([scannedImage]);
         setValue('productImages', [scannedImage]);
@@ -270,38 +264,18 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
   }, [scanProductData, dropdownData, setValue, clearErrors, scannedBarcode, discountPercentage]);
 
   const handleImageUpload = (selectedImages: MediaObject[]) => {
-    console.log('handleImageUpload called with:', selectedImages);
-    console.log('Current uploadedImages:', uploadedImages);
-    
-    // If we already have images (from scan or previous upload), merge with new ones
-    // If this is the first time, start fresh
     let finalImages;
     
     if (uploadedImages.length > 0) {
-      // Merge new images with existing ones, avoiding duplicates
       const uniqueNewImages = selectedImages.filter(newImage => 
         !uploadedImages.some(existingImage => existingImage.uri === newImage.uri)
       );
-      
-      console.log('Unique new images:', uniqueNewImages);
-      
-      // Put camera images first, then scanned images
-      // Check if existing images are scanned images (have 'scanned_product_image.jpg' name)
       const scannedImages = uploadedImages.filter(img => img.name === 'scanned_product_image.jpg');
       const nonScannedImages = uploadedImages.filter(img => img.name !== 'scanned_product_image.jpg');
-      
-      console.log('Scanned images:', scannedImages);
-      console.log('Non-scanned images:', nonScannedImages);
-      
-      // Order: new camera images first, then existing non-scanned images, then scanned images
       const mergedImages = [...uniqueNewImages, ...nonScannedImages, ...scannedImages];
       finalImages = mergedImages.slice(0, 6);
-      
-      console.log('Final merged images:', finalImages);
     } else {
-      // First time upload, start fresh
       finalImages = selectedImages.slice(0, 6);
-      console.log('First time upload, final images:', finalImages);
     }
     
     setUploadedImages(finalImages);
@@ -465,7 +439,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       return;
     }
     const apiFormData = prepareFormDataForAPI(data);
-    console.log(JSON.stringify(apiFormData),"apiFormData=====");
     showLoader(true);
      mutate(apiFormData)
   };
@@ -542,26 +515,11 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
   };
 
   const goToNextStep = async () => {
-    console.log('Next Step button clicked');
-    
-    // Trigger validation for Step 1 fields
     const isStep1Valid = await trigger(['brandName', 'productName', 'barcode', 'category', 'dimensions', 'weight', 'description']);
-    console.log('Step 1 validation result:', isStep1Valid);
-    
-    // Also validate images
     const isImagesValid = validateImages();
-    console.log('Images validation result:', isImagesValid);
-    
-    // Log current errors
-    console.log('Current form errors:', errors);
-    
     if (isStep1Valid && isImagesValid) {
-      // All validations passed, move to next step
-      console.log('All validations passed, moving to Step 2');
       setCurrentStep(1);
     } else {
-      // Validation failed, errors will be displayed by react-hook-form
-      console.log('Step 1 validation failed');
       console.log('Form errors:', errors);
     }
   };

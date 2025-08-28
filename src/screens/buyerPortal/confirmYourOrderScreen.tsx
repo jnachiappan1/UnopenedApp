@@ -88,8 +88,6 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
     onSuccess: async (response) => {
       setShippingApiCalled(true);
       setIsShippingRatesLoading(false); // No need for loading state since we're using direct response
-      console.log(JSON.stringify(response),"response====");
-      
       // Use shipping rates directly from the shipping response (no need for separate API call)
       if (response?.success && response?.shipment?.rates) {
         setShippingID(response.shipment.id);
@@ -98,128 +96,62 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
         if (Array.isArray(shippingRates) && shippingRates.length > 0) {
           
           // First, try to find USPS Priority service
-          const uspsPriorityRate = shippingRates.find((rate: any) => 
-            rate.carrier === 'USPS' && rate.service === 'Priority'
+          const uspsPriorityRate = shippingRates.find(
+            (rate: any) =>
+              rate.carrier === "USPS" && rate.service?.trim().toLowerCase() === "priority"
           );
           
           if (uspsPriorityRate) {
-            console.log('🔄 Setting USPS Priority shipping rate:', uspsPriorityRate);
             setPriorityShippingRate(uspsPriorityRate);
             setSelectedShippingRate(uspsPriorityRate);
           } else {
             // Fallback: try to find any Priority service
             const priorityRate = shippingRates.find((rate: any) => rate.service === 'Priority');
             if (priorityRate) {
-              console.log('🔄 Setting Priority shipping rate (not USPS):', priorityRate);
               setPriorityShippingRate(priorityRate);
               setSelectedShippingRate(priorityRate);
             } else {
-              console.log('⚠️ Priority service not found, using first available rate');
-              console.log('📋 Available services:', shippingRates.map((rate: any) => `${rate.carrier} - ${rate.service}`));
               const firstRate = shippingRates[0];
               setSelectedShippingRate(firstRate);
-              setPriorityShippingRate(firstRate); // Set as priority for display purposes
-              console.log('✅ First available rate selected:', firstRate);
+              setPriorityShippingRate(firstRate); 
             }
           }
-          
-          console.log('✅ Shipping rates loaded:', shippingRates.length, 'rates available');
-          console.log('📊 Sample rate:', shippingRates[0]);
-        } else {
-          console.log('⚠️ No shipping rates found in shipping response');
-          console.log('⚠️ Response structure analysis:', {
-            response: response?.data,
-            shipment: response?.data?.shipment,
-            rates: response?.data?.shipment?.rates,
-            ratesLength: response?.data?.shipment?.rates?.length
-          });
-        }
-      } else {
-        console.log('⚠️ Shipping response structure:', {
-          hasSuccess: !!response?.data?.success,
-          hasShipment: !!response?.data?.shipment,
-          hasRates: !!response?.data?.shipment?.rates,
-          ratesLength: response?.data?.shipment?.rates?.length
-        });
-      }
+        } 
+      } 
     },
     onError: (error: any) => {
-      console.error('❌ Shipping API error:', error);
       setShippingApiCalled(false);
     },
   });
-
-  // Function to call shipping API
   const callShippingAPI = (addressId: number) => {
-    // Validate inputs
     if (!productId) {
-      console.log('❌ Shipping API: Missing productId');
       return;
     }
     
     if (!addressId || addressId <= 0) {
-      console.log('❌ Shipping API: Invalid addressId', { addressId });
       return;
     }
-
-    // Check if user is authenticated
     if (!userData?.id) {
-      console.log('❌ Shipping API: User not authenticated');
       return;
     }
-
-    // Check if we're calling for the same address (prevent duplicate calls)
     if (lastAddressId === addressId && shippingApiCalled) {
-      console.log('⚠️ Shipping API: Already called for this address, skipping duplicate call', { addressId, lastAddressId });
       return;
     }
-
-    // Update last address ID
     setLastAddressId(addressId);
-
     const shippingPayload = {
       product_id: productId.toString(),
       address_id: addressId
     };
-
-    console.log('=== SHIPPING API CALL ===');
-    console.log('Timestamp:', new Date().toISOString());
-    console.log('Product ID:', productId);
-    console.log('Address ID:', addressId);
-    console.log('User ID:', userData.id);
-    console.log('Last Address ID:', lastAddressId);
-    console.log('Payload:', shippingPayload);
-    console.log('========================');
-    
-    // Reset shipping status before making new API call
-    setShippingApiCalled(false);
-    // Don't clear existing shipping rates - they will be updated by the API response
-    
+    setShippingApiCalled(false);    
     createShippingMutation(shippingPayload);
   };
-
-  // Reset shipping status when address changes
   const resetShippingStatus = () => {
-    console.log('🔄 Resetting shipping status for new address');
     setShippingApiCalled(false);
     setLastAddressId(null);
-    // Don't clear shipping rates - keep them visible
-    // setSelectedShippingRate(null);
-    // setPriorityShippingRate(null);
-    setIsShippingRatesLoading(false);  // Don't show loading since we're not calling API
+    setIsShippingRatesLoading(false); 
   };
-
-  // Handle discount code application
   const handleDiscountCodeApply = async (code: string) => {
-    console.log('=== DISCOUNT CODE APPLIED ===');
-    console.log('Code entered:', code);
-    console.log('Product ID:', productId);
-    console.log('Product price:', allProductList?.data?.product[0]?.price);
-    console.log('Wallet balance:', walletData?.data?.wallet?.amount);
-    console.log('================================');
-    
     try {
-      // Prepare the API payload - use subtotal (product + shipping)
       const subtotal = getSubtotal();
       if (subtotal <= 0) {
         showAlert({
@@ -236,14 +168,8 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
         coupon_code: code,
         purchase_amount: subtotal
       };
-
-      console.log('Coupon validation payload:', couponPayload);
-
       // Make API call to validate coupon
       const response = await validateCoupon(couponPayload);
-      
-      console.log('Coupon validation response:', JSON.stringify(response));
-
       // Access the response data properly from axios response
       const responseData = response;
 
@@ -266,15 +192,6 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
           onDonePress: () => {
             // Do nothing - just close the modal
           },
-        });
-        
-        // You can store the coupon data for later use
-        console.log('Coupon details:', {
-          id: couponData.id,
-          title: couponData.title,
-          subtitle: couponData.subtitle,
-          discountAmount: discountAmountValue,
-          minimumPurchase: minimumPurchase
         });
       } else {
         // Check specific validation failures
@@ -359,50 +276,12 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
       setPaymentMethod('stripe');
     }
   }, [walletData, allProductList, isWalletLoading, paymentMethod]);
-
-  // Call shipping API only when component first mounts
-  // Note: Shipping rates are NOT automatically updated when address changes
-  // Users must manually refresh rates if they need updated shipping costs for a new address
   useEffect(() => {
     const currentAddressId = getCurrentAddressId();
-    console.log('🔄 useEffect triggered for shipping API (initial mount only):', { 
-      productId, 
-      currentAddressId,
-      selectedAddress: selectedAddress?.id,
-      defaultAddress: defaultAddress?.id,
-      isAddressChanged,
-      shippingApiCalled,
-      lastAddressId,
-      addressesLoaded: !!addressesData?.data?.address
-    });
-    
-    // Call API when addresses are loaded AND we have a valid address state
     if (currentAddressId && productId && !shippingApiCalled && addressesData?.data?.address && defaultAddress) {
-      console.log('✅ Initial mount with address from API - calling shipping API');
       callShippingAPI(currentAddressId);
-    } else {
-      console.log('❌ Skipping shipping API call:', {
-        hasCurrentAddressId: !!currentAddressId,
-        hasProductId: !!productId,
-        alreadyCalled: shippingApiCalled,
-        addressesLoaded: !!addressesData?.data?.address,
-        hasDefaultAddress: !!defaultAddress
-      });
-    }
-  }, [addressesData, defaultAddress]); // Wait for both addresses data AND defaultAddress state
-
-  // Log initial state when component mounts
-  useEffect(() => {
-    console.log('=== CONFIRM ORDER SCREEN MOUNTED ===');
-    console.log('Product ID:', productId);
-    console.log('User Data:', userData?.id);
-    console.log('Initial Address State:', {
-      selectedAddress: selectedAddress?.id,
-      defaultAddress: defaultAddress?.id,
-      isAddressChanged
-    });
-    console.log('=====================================');
-  }, []);
+    } 
+  }, [addressesData, defaultAddress]); 
 
   // Monitor priorityShippingRate changes
   useEffect(() => {
@@ -444,35 +323,6 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
       } : null
     });
   }, [selectedShippingRate, isShippingRatesLoading, shippingApiCalled, priorityShippingRate]);
-
-  const increaseQuantity = () => {
-    setQuantity(prev => prev + 1);
-  };
-
-  const decreaseQuantity = () => {
-    if (quantity > 1) {
-      setQuantity(prev => prev - 1);
-    }
-  };
-
-  const { mutate } = useMutation({
-    mutationFn: (data: { productId: string | number | null | undefined; address_id: number }) =>
-      soldProduct(data.productId, { address_id: data.address_id }),
-    onSuccess: (data: any) => {
-      showLoader(false);
-      setModalVisible(true);
-    },
-    onError: (error: any) => {
-      showLoader(false);
-      showAlert({
-        isVisible: true,
-        type: 'error',
-        title: 'Payment Failed',
-        description: 'Wallet payment failed. Please try again.',
-      });
-    },
-  });
-
   const handleBuyNow = async () => {
     try {
       if (!productId) {
@@ -554,29 +404,18 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
         amount: productPrice.toString(),
         address_id: addressId
       };
-
-      console.log('=== PAYMENT PAYLOAD DEBUG ===');
-      console.log('Product Price:', productPrice);
-      console.log('Address ID:', addressId);
-      console.log('Selected Shipping Rate:', selectedShippingRate);
-      console.log('Shipping API Called:', shippingApiCalled);
-      console.log('Final Amount:', getFinalAmount());
-      console.log('Discount Amount:', discountAmount);
-      console.log('================================');
-
       if (paymentMethod === 'wallet') {
         const currentWalletBalance = getSafeNumber(walletData?.data?.wallet?.amount);
-        const finalAmount = getFinalAmount(); // Use discounted amount
+        const finalAmount = getFinalAmount(); 
 
         if (currentWalletBalance >= finalAmount) {
           showLoader(true);
           const walletPaymentPayload = {
-            wallet_amount: finalAmount.toString(), // Use discounted amount
+            wallet_amount: finalAmount.toString(), 
             address_id: addressId
           };
 
           try {
-            // Prepare wallet payment payload with shipping details
             const walletPaymentPayload = {
               amount: finalAmount.toString(),
               wallet_amount: finalAmount.toString(),
@@ -890,7 +729,6 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
         
         // Automatically fetch new shipping rates for the new address
         if (address?.id && productId) {
-          console.log('🔄 Auto-fetching shipping rates for new address:', address.id);
           callShippingAPI(address.id);
         }
       },
@@ -899,12 +737,8 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
 
   const resetToDefaultAddress = () => {
     if (defaultAddress) {
-      console.log('🔄 Resetting to default address:', defaultAddress);
       setSelectedAddress(defaultAddress);
       setIsAddressChanged(false);
-      
-      // Reset shipping status for default address
-      console.log('🔄 Resetting to default address, fetching new shipping rates');
       setShippingApiCalled(false);
       setLastAddressId(null);
       setSelectedShippingRate(null);
@@ -912,7 +746,6 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
       
       // Automatically fetch new shipping rates for the default address
       if (defaultAddress?.id && productId) {
-        console.log('🔄 Auto-fetching shipping rates for default address:', defaultAddress.id);
         callShippingAPI(defaultAddress.id);
       }
     }
