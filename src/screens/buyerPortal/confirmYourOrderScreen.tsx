@@ -88,6 +88,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
     onSuccess: async (response) => {
       setShippingApiCalled(true);
       setIsShippingRatesLoading(false); // No need for loading state since we're using direct response
+      console.log(JSON.stringify(response),"response====");
       
       // Use shipping rates directly from the shipping response (no need for separate API call)
       if (response?.success && response?.shipment?.rates) {

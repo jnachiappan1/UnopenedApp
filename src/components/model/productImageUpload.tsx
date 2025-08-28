@@ -137,7 +137,6 @@ const ProductImageUpload = ({
         mediaType: 'any', // Allow both photos and videos
         multiple: true, // Enable multiple selection
         maxFiles: 10, // Maximum files that can be selected
-        quality: 0.8,
       };
 
       const media = await ImagePicker.openPicker(option);
@@ -146,7 +145,7 @@ const ProductImageUpload = ({
       const mediaArray = Array.isArray(media) ? media : [media];
       await handleImageSelection(mediaArray);
       
-    } catch (error) {
+    } catch (error: any) {
       if (error.code !== 'E_PICKER_CANCELLED') {
         console.error('Gallery error:', error);
         Alert.alert('Error', 'Failed to open gallery. Please try again.');
@@ -162,21 +161,67 @@ const ProductImageUpload = ({
         return;
       }
 
+      // Show options for photo or video
+      Alert.alert(
+        'Select Media Type',
+        'Choose what you want to capture:',
+        [
+          {
+            text: '📸 Photo',
+            onPress: () => openCameraForPhoto()
+          },
+          {
+            text: '🎥 Video',
+            onPress: () => openCameraForVideo()
+          },
+          {
+            text: 'Cancel',
+            style: 'cancel'
+          }
+        ]
+      );
+      
+    } catch (error: any) {
+      if (error.code !== 'E_PICKER_CANCELLED') {
+        console.error('Camera error:', error);
+        Alert.alert('Error', 'Failed to open camera. Please try again.');
+      }
+    }
+  };
+
+  const openCameraForPhoto = async () => {
+    try {
       const option: Options = {
         width: 400,
         height: 400,
         cropping: true,
-        mediaType: 'any', // Allow both photo and video
-        quality: 0.8,
+        mediaType: 'photo',
       };
 
       const media = await ImagePicker.openCamera(option);
       await handleImageSelection([media]);
       
-    } catch (error) {
+    } catch (error: any) {
       if (error.code !== 'E_PICKER_CANCELLED') {
-        console.error('Camera error:', error);
-        Alert.alert('Error', 'Failed to open camera. Please try again.');
+        console.error('Photo camera error:', error);
+        Alert.alert('Error', 'Failed to take photo. Please try again.');
+      }
+    }
+  };
+
+  const openCameraForVideo = async () => {
+    try {
+      const option: Options = {
+        mediaType: 'video',
+      };
+
+      const media = await ImagePicker.openCamera(option);
+      await handleImageSelection([media]);
+      
+    } catch (error: any) {
+      if (error.code !== 'E_PICKER_CANCELLED') {
+        console.error('Video camera error:', error);
+        Alert.alert('Error', 'Failed to record video. Please try again.');
       }
     }
   };
@@ -215,7 +260,7 @@ const ProductImageUpload = ({
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Select Media</Text>
           <Text style={styles.headerSubtitle}>
-            Min {minImages} images or 1 video required ({selectedImages.length} selected)
+            1 video + at least 1 image required ({selectedImages.length} selected)
           </Text>
         </View>
 

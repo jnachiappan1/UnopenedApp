@@ -307,11 +307,21 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     setUploadedImages(finalImages);
     setValue('productImages', finalImages);
     
-    if (finalImages.length >= 2) {
+    // Check if there's at least one video
+    const hasVideo = finalImages.some(media => isVideo(media));
+    
+    if (hasVideo && finalImages.length >= 2) {
       clearErrors('productImages');
       setImageError('');
+    } else if (!hasVideo) {
+      const errorMessage = 'Please upload a 360° view video of your product';
+      setImageError(errorMessage);
+      setError('productImages', {
+        type: 'manual',
+        message: errorMessage
+      });
     } else {
-      const errorMessage = `Please select at least 2 images. Currently selected: ${finalImages.length}`;
+      const errorMessage = `Minimum 2 media files required (1 video + at least 1 image). Currently selected: ${finalImages.length}`;
       setImageError(errorMessage);
       setError('productImages', {
         type: 'manual',
@@ -322,8 +332,11 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
   };
 
   const validateImages = () => {
-    if (uploadedImages.length < 2) {
-      const errorMessage = `Minimum 2 images required. Currently selected: ${uploadedImages.length}`;
+    // Check if there's at least one video
+    const hasVideo = uploadedImages.some(media => isVideo(media));
+    
+    if (!hasVideo) {
+      const errorMessage = 'Please upload a 360° view video of your product';
       setImageError(errorMessage);
       setError('productImages', {
         type: 'manual',
@@ -331,6 +344,18 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       });
       return false;
     }
+    
+    // Check if there are at least 2 total media files (1 video + at least 1 image)
+    if (uploadedImages.length < 2) {
+      const errorMessage = `Minimum 2 media files required (1 video + at least 1 image). Currently selected: ${uploadedImages.length}`;
+      setImageError(errorMessage);
+      setError('productImages', {
+        type: 'manual',
+        message: errorMessage
+      });
+      return false;
+    }
+    
     clearErrors('productImages');
     setImageError('');
     return true;
@@ -347,7 +372,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     if (!isValid) {
       Alert.alert(
         'Validation Error',
-        'Please fill all required fields and upload at least 2 product images.'
+        'Please fill all required fields and upload a 360° view video plus at least 1 product image.'
       );
       return;
     }
@@ -435,7 +460,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     if (!isValid) {
       Alert.alert(
         'Validation Error',
-        'Please fill all required fields and upload at least 2 product images.'
+        'Please fill all required fields and upload a 360° view video plus at least 1 product image.'
       );
       return;
     }
@@ -466,11 +491,21 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             const updatedImages = uploadedImages.filter((_, i) => i !== index);
             setUploadedImages(updatedImages);
             setValue('productImages', updatedImages);
-            if (updatedImages.length >= 2) {
+            // Check if there's at least one video
+            const hasVideo = updatedImages.some(media => isVideo(media));
+            
+            if (hasVideo && updatedImages.length >= 2) {
               clearErrors('productImages');
               setImageError('');
+            } else if (!hasVideo) {
+              const errorMessage = 'Please upload a 360° view video of your product';
+              setImageError(errorMessage);
+              setError('productImages', {
+                type: 'manual',
+                message: errorMessage
+              });
             } else {
-              const errorMessage = `Please select at least 2 images. Currently selected: ${updatedImages.length}`;
+              const errorMessage = `Minimum 2 media files required (1 video + at least 1 image). Currently selected: ${updatedImages.length}`;
               setImageError(errorMessage);
               setError('productImages', {
                 type: 'manual',
@@ -495,10 +530,10 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
           onPress: () => {
             setUploadedImages([]);
             setValue('productImages', []);
-            setImageError('Please select at least 2 images');
+            setImageError('Please upload a 360° view video and at least 1 image');
             setError('productImages', {
               type: 'manual',
-              message: 'Please select at least 2 images'
+              message: 'Please upload a 360° view video and at least 1 image'
             });
           }
         }
@@ -692,13 +727,13 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
           />
         </View>
         <View style={styles.imageUploadContainer}>
-          <Text style={styles.imageUploadLabel}>Product Images/Video *</Text>
+          <Text style={styles.imageUploadLabel}>Product 360° Video & Images *</Text>
           <ImageUpload
             onUpload={handleUploadPress}
             title="Upload Product Media"
-            subtitle={`Min 2 images or 1 video (${uploadedImages.length} selected)`}
+            subtitle={`1 video + at least 1 image (${uploadedImages.length} selected)`}
             uploadTitle={uploadedImages.length > 0 ? "Add More Images/Video" : "Upload Your Product Photos/Video"}
-            uploadSubtitle={uploadedImages.length > 0 ? "Add additional images or video to your product" : "Minimum 720p quality. Ensure files are not corrupted or blurred."}
+            uploadSubtitle={uploadedImages.length > 0 ? "Add additional images or video to your product" : "Upload a 360° view video and at least 1 product image. Minimum 720p quality."}
           />
           {imageError ? (
             <Text style={styles.imageErrorText}>{imageError}</Text>
@@ -709,9 +744,9 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
                 <Text style={styles.selectedImagesText}>
                   ✅ {uploadedImages.length} media file(s) selected
                 </Text>
-                {uploadedImages.length >= 2 && (
+                {uploadedImages.some(media => isVideo(media)) && uploadedImages.length >= 2 && (
                   <Text style={styles.validationSuccessText}>
-                    Minimum requirement met!
+                    ✓ 360° video uploaded ✓ Images uploaded
                   </Text>
                 )}
               </View>

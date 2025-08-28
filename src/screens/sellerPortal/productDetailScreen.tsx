@@ -1,4 +1,4 @@
-import { FlatList, Image, NativeScrollEvent, NativeSyntheticEvent, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Alert, FlatList, Image, NativeScrollEvent, NativeSyntheticEvent, StyleSheet, Text, TouchableOpacity, View, Dimensions } from 'react-native'
 import React, { useRef, useState } from 'react'
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer'
 import { fontSizes, width } from '../../utils/utils';
@@ -22,6 +22,7 @@ interface ProductImage {
   id: number;
   product_id: number;
   image: string;
+  type?: string; // Add type to distinguish between image and video
   createdAt: string;
   updatedAt: string;
 }
@@ -73,6 +74,33 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ navigation, r
     const index = Math.round(event.nativeEvent.contentOffset.x / (width - 32));
     setCurrentIndex(index);
   };
+
+  // Helper function to check if media is video
+  const isVideo = (mediaItem: ProductImage) => {
+    // Check if it's explicitly marked as video
+    if (mediaItem.type && mediaItem.type.includes('video')) {
+      return true;
+    }
+    // Fallback: check file extension for common video formats
+    if (mediaItem.image) {
+      const videoExtensions = ['.mp4', '.mov', '.avi', '.mkv', '.wmv', '.flv', '.webm'];
+      return videoExtensions.some(ext => 
+        mediaItem.image.toLowerCase().endsWith(ext)
+      );
+    }
+    return false;
+  };
+
+  // Handle video play
+  const handleVideoPlay = (videoUrl: string) => {
+    // TODO: Implement video player
+    // For now, show an alert with video info
+    Alert.alert(
+      'Video Player',
+      'Video player functionality will be implemented here.\nVideo URL: ' + videoUrl,
+      [{ text: 'OK' }]
+    );
+  };
 console.log(productDetail?.data,"productDetail?.data?.----");
 
   return (
@@ -87,14 +115,47 @@ console.log(productDetail?.data,"productDetail?.data?.----");
           keyExtractor={(item) => item.id.toString()}
           onScroll={handleScroll}
           renderItem={({ item }) => (
-            <Image
-              // source={{ uri: item.image }}
-              source={{ uri: image_url+item.image }}
-              style={styles.productImage}
-              resizeMode="cover"
-            />
+            <View style={styles.mediaContainer}>
+              {isVideo(item) ? (
+                // Video display
+                <View style={styles.videoContainer}>
+                  <View style={styles.videoPlaceholder}>
+                    <Text style={styles.videoIcon}>🎥</Text>
+                    <Text style={styles.videoText}>Video</Text>
+                    <Text style={styles.videoFileName} numberOfLines={1}>
+                      {item.image.split('/').pop() || 'video.mp4'}
+                    </Text>
+                  </View>
+                  <TouchableOpacity 
+                    style={styles.playButton}
+                    onPress={() => handleVideoPlay(image_url + item.image)}
+                  >
+                    <Text style={styles.playIcon}>▶️</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                // Image display
+                <Image
+                  source={{ uri: image_url+item.image }}
+                  style={styles.productImage}
+                  resizeMode="cover"
+                />
+              )}
+            </View>
           )}
         />
+
+        {/* Media Type Indicator */}
+        {productDetail?.data?.product[0]?.product_image && productDetail.data.product[0].product_image.length > 0 && (
+          <View style={styles.mediaIndicator}>
+            <Text style={styles.mediaIndicatorText}>
+              {currentIndex + 1} of {productDetail.data.product[0].product_image.length}
+              {isVideo(productDetail.data.product[0].product_image[currentIndex]) && (
+                <Text style={styles.videoIndicator}> • Video</Text>
+              )}
+            </Text>
+          </View>
+        )}
 
         {/* <Image
           source={{ uri: productDetail?.data?.product[0]?.product_image?.[0]?.image }}
@@ -219,5 +280,72 @@ const styles = StyleSheet.create({
   },
   flatListContent: {
     paddingHorizontal: 16,
+  },
+  mediaContainer: {
+    width: width - 32,
+    height: 210,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: 'hidden',
+  },
+  videoContainer: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#f0f0f0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  videoPlaceholder: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  videoIcon: {
+    fontSize: 48,
+    marginBottom: 8,
+  },
+  videoText: {
+    fontSize: fontSizes.medium,
+    fontFamily: fonts.medium,
+    color: colors.primaryBlack,
+    marginBottom: 4,
+  },
+  videoFileName: {
+    fontSize: fontSizes.small,
+    fontFamily: fonts.regular,
+    color: colors.gray,
+    textAlign: 'center',
+    maxWidth: width - 80,
+  },
+  playButton: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -25 }, { translateY: -25 }],
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  playIcon: {
+    fontSize: 24,
+    color: 'white',
+  },
+  mediaIndicator: {
+    alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  mediaIndicatorText: {
+    fontSize: fontSizes.small,
+    fontFamily: fonts.medium,
+    color: colors.gray,
+  },
+  videoIndicator: {
+    color: colors.primary,
+    fontFamily: fonts.bold,
   },
 })
