@@ -8,11 +8,22 @@ import colors from '../../utils/colors';
 type PayoutStatus = 'Success' | 'Pending' | 'Failed';
 
 export type PayoutItem = {
-  id: string;
-  title: string;
-  dateTime: string;
-  amount: number;
+  id: string | number;
+  title?: string;
+  dateTime?: string;
+  amount: number | string;
   status: PayoutStatus;
+  // API response fields
+  created_at?: string;
+  amount_requested?: string | number;
+  status_api?: string;
+  bank_details?: any;
+  // New API response fields
+  purpose?: string;
+  createdAt?: string;
+  transactionType?: string;
+  currency?: string;
+  notes?: string;
 };
 
 type Props = {
@@ -20,6 +31,42 @@ type Props = {
 };
 
 const PayoutCard: React.FC<Props> = ({ item }) => {
+  // Map API status to display status
+  const mapApiStatusToDisplay = (apiStatus: string | undefined): PayoutStatus => {
+    if (!apiStatus) return 'Pending';
+    
+    const status = apiStatus.toLowerCase();
+    if (status.includes('success') || status.includes('completed')) return 'Success';
+    if (status.includes('failed') || status.includes('rejected')) return 'Failed';
+    if (status.includes('pending') || status.includes('processing')) return 'Pending';
+    
+    return 'Pending';
+  };
+
+  // Format date to readable format
+  const formatDate = (dateString: string | undefined): string => {
+    if (!dateString) return 'N/A';
+    
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch (error) {
+      return 'Invalid Date';
+    }
+  };
+
+  // Get display values from API data or fallback to static data
+  const displayAmount = item.amount || item.amount_requested;
+  const displayDate = formatDate(item.createdAt || item.created_at);
+  const displayStatus = mapApiStatusToDisplay(item.status);
+  const displayTitle = item.purpose || item.title || 'Cash Out';
+
   const getStatusStyle = (status: PayoutStatus) => {
     switch (status) {
       case 'Success':
@@ -33,22 +80,24 @@ const PayoutCard: React.FC<Props> = ({ item }) => {
     }
   };
 
-  const { backgroundColor, color } = getStatusStyle(item.status);
+  const { backgroundColor, color } = getStatusStyle(displayStatus);
 
   return (
     <View style={styles.card}>
       <View style={styles.rowBetween}>
-        <Text style={styles.title}>{item.title}</Text>
+        <Text style={styles.title}>{displayTitle}</Text>
         <View style={[styles.statusBadge, { backgroundColor }]}>
-          <Text style={[styles.statusText, { color }]}>{item.status}</Text>
+          <Text style={[styles.statusText, { color }]}>{displayStatus}</Text>
         </View>
       </View>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
         <View style={styles.dateRow}>
           <IconsSvg name="celender" width={16} height={16} />
-          <Text style={styles.dateText}>{item.dateTime}</Text>
+          <Text style={styles.dateText}>{displayDate}</Text>
         </View>
-        <Text style={styles.amount}>${item.amount}</Text>
+        <Text style={styles.amount}>
+          {item.currency ? item.currency.toUpperCase() : '$'}{displayAmount}
+        </Text>
       </View>
     </View>
   );
@@ -63,7 +112,6 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
     marginHorizontal: 10,
-    elevation: 2,
   },
   rowBetween: {
     flexDirection: 'row',

@@ -12,6 +12,7 @@ import Svg, {
   Rect,
   Use,
 } from 'react-native-svg';
+import colors from '../../utils/colors';
 
 export type IconName =
   | 'box'
@@ -80,7 +81,13 @@ export type IconName =
   | 'back'
   | 'close'
   | 'filter'
-  |'dropDown';
+  |'dropDown'
+  |'iconArrowDown'
+  |'iconArrowLeft'
+  |'iconArrowRight'
+  |'iconArrowUp'
+|'calender'
+  ;
 
 export interface IconsSvgProps {
   name: IconName;
@@ -1655,6 +1662,50 @@ const IconsSvg = (props: IconsSvgProps) => {
               />
             </Svg>
           );
+          case 'iconArrowDown':
+            return (
+              <Svg
+                width={width ? width : 28}
+                height={height ? height : 15}
+                viewBox="0 0 25 12"
+                fill="none">
+                <Path
+                  d="M13.083 9.335c-.157 0-.303-.031-.438-.095a1.285 1.285 0 01-.387-.285L7.56 4.162a.968.968 0 01-.292-.71c0-.183.046-.352.14-.509.088-.156.209-.281.361-.374a.99.99 0 01.508-.133c.28 0 .529.107.749.323l4.062 4.183 4.056-4.183c.212-.216.46-.323.743-.323a.99.99 0 01.508.133c.152.093.273.218.362.374.093.157.14.326.14.508 0 .28-.096.516-.286.711l-4.697 4.793a1.126 1.126 0 01-.832.38z"
+                  fill={color ? color : colors.primary}
+                />
+              </Svg>
+            );
+          case 'iconArrowLeft':
+            return (
+              <Svg width={12} height={15} viewBox="0 0 8 11" fill="none">
+                <Path
+                  d="M7.138 9.533L3.064 5.5l4.074-4.034L5.884.227.547 5.5l5.337 5.273 1.254-1.24z"
+                  fill={colors.primary}
+                />
+              </Svg>
+            );
+          case 'iconArrowRight':
+            return (
+              <Svg width={12} height={15} viewBox="0 0 8 11" fill="none">
+                <Path
+                  d="M.862 9.533L4.936 5.5.862 1.466 2.116.227 7.453 5.5l-5.337 5.273-1.254-1.24z"
+                  fill={colors.primary}
+                />
+              </Svg>
+            );
+            case 'calender':
+              return (
+                <Svg width={18} height={18} viewBox="0 0 18 18" fill="none" {...props}>
+                  <Path
+                    d="M13.5 1.5V3m-9-1.5V3M8.997 9.75h.006m-.006 3h.006m2.99-3H12m-6 0h.007m-.007 3h.007M2.625 6h12.75M1.875 9.182c0-3.268 0-4.902.94-5.917.938-1.015 2.45-1.015 5.473-1.015h1.425c3.022 0 4.534 0 5.473 1.015.939 1.015.939 2.65.939 5.917v.386c0 3.268 0 4.902-.94 5.917-.938 1.015-2.45 1.015-5.473 1.015H8.287c-3.022 0-4.534 0-5.473-1.015-.939-1.015-.939-2.65-.939-5.917v-.386zM2.25 6h13.5"
+                    stroke={color ? color : colors.placeholder}
+                    strokeWidth={1.5}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </Svg>
+              );
+            
     default:
       return null;
   }

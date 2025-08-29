@@ -12,6 +12,7 @@ import { getMyOrderList } from '../../utils/apiAction';
 import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { IRootState } from '../../redux/store';
+import { useFocusEffect } from '@react-navigation/native';
 
 type MyOrderScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -27,6 +28,16 @@ const MyOrderScreen: React.FC<MyOrderScreenProps> = ({navigation}) => {
     queryFn: () => getMyOrderList(),
     enabled: !!userData, 
   });
+
+  // Use useFocusEffect to refetch data when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      if (userData) {
+        refetchsellerOwnProductList();
+      }
+    }, [userData, refetchsellerOwnProductList])
+  );
+
   const normalizeStatus = (status: string): string => {
     switch (status.toLowerCase()) {
       case 'pending':
@@ -84,21 +95,6 @@ const MyOrderScreen: React.FC<MyOrderScreenProps> = ({navigation}) => {
       />
     </View>
   );
-  
-  // const handleProductSelect = (item: ProductData) => {
-  //   navigation.navigate(SCREENS.OrderTrackScreen, {productId: item});
-  // };
-  
-  // Add loading and error states
-  // if (!sellerOwnProductList) {
-  //   return (
-  //     <TitleBackHeaderContainer title="My Orders">
-  //       <View style={styles.centerContainer}>
-  //         <Text>Loading...</Text>
-  //       </View>
-  //     </TitleBackHeaderContainer>
-  //   );
-  // }
 
   const filteredData = filterData();
 

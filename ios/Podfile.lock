@@ -1374,6 +1374,27 @@ PODS:
     - React-jsiexecutor
     - React-RCTFBReactNativeSpec
     - ReactCommon/turbomodule/core
+  - react-native-date-picker (5.0.13):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - react-native-pager-view (6.9.1):
     - DoubleConversion
     - glog
@@ -2262,6 +2283,7 @@ DEPENDENCIES:
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - React-Mapbuffer (from `../node_modules/react-native/ReactCommon`)
   - React-microtasksnativemodule (from `../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
+  - react-native-date-picker (from `../node_modules/react-native-date-picker`)
   - react-native-pager-view (from `../node_modules/react-native-pager-view`)
   - react-native-render-html (from `../node_modules/react-native-render-html`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
@@ -2418,6 +2440,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   React-microtasksnativemodule:
     :path: "../node_modules/react-native/ReactCommon/react/nativemodule/microtasks"
+  react-native-date-picker:
+    :path: "../node_modules/react-native-date-picker"
   react-native-pager-view:
     :path: "../node_modules/react-native-pager-view"
   react-native-render-html:
@@ -2568,6 +2592,7 @@ SPEC CHECKSUMS:
   React-logger: 018826bfd51b9f18e87f67db1590bc510ad20664
   React-Mapbuffer: 9fbb496e7d6f7c34d5e617365ee778bf96d14eae
   React-microtasksnativemodule: 36adde22631838680d1be62776e8ccb83186c06a
+  react-native-date-picker: 3b048da884ad001f1a328208478d0771f27edfc7
   react-native-pager-view: 9f70b7e25421b00907ae50a82906d9201d8c3bba
   react-native-render-html: 5afc4751f1a98621b3009432ef84c47019dcb2bd
   react-native-safe-area-context: 0bbc90d6f3f07a97c20bde638c19f61d45210e22

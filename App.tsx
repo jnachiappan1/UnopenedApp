@@ -5,7 +5,7 @@ import React from 'react';
 import SplashScreen from 'react-native-splash-screen';
 import Loader from './src/components/loader/loader';
 import CAlert from './src/components/cAlert';
-import { Provider as StoreProvider, useSelector } from 'react-redux';
+import { Provider as StoreProvider, useDispatch, useSelector } from 'react-redux';
 import { IRootState, store } from './src/redux/store';
 import MainNavigation from './src/navigation/mainNavigation';
 import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query';
@@ -15,6 +15,7 @@ import { getPublishKeyAction } from './src/utils/apiAction';
 import messaging from '@react-native-firebase/messaging';
 import { showMessages } from './src/utils/notificationHelper';
 import { OS } from './src/utils/utils';
+import { saveFcmToken } from './src/redux/reducers/user/UserReducer';
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ function AppContent() {
   const [publishKey, setPublishKey] = React.useState('');
   const token = useSelector((state: IRootState) => state.user.token);
   const isDarkMode = useColorScheme() === 'dark';
+  const dispatch = useDispatch();
 
   const { data, error }: any = useQuery({
     queryKey: ['getPublishKeyAction'],
@@ -33,7 +35,7 @@ const checkToken = async () => {
   const fcmToken = await messaging().getToken();
 console.log(fcmToken,"fcmToken-----");
   if (fcmToken) {
-
+    dispatch(saveFcmToken(fcmToken));
   }
   if (OS === "ios") {
     messaging().onTokenRefresh((fcmToken) => {});

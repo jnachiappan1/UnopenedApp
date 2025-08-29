@@ -46,9 +46,6 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({ navigation, route }
   const [isContactSupportModalVisible, setIsContactSupportModalVisible] = useState(false);
   const [modalKey, setModalKey] = useState(0);
   const userData = useSelector((state: IRootState) => state.user.userData);
-  const trackingUrl =
-  "https://track.easypost.com/djE6dHJrXzExZmEyZWUwNmY2NTRiM2FhMmJjZDRlNjg0ZmVhNThk";
-
   const { data: productDetail, refetch: refetchAllProduct } = useQuery({
     queryKey: ['getProductDetailByID', productId?.productId],
     queryFn: () => getProductDetailByID(productId?.productId),
@@ -59,10 +56,7 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({ navigation, route }
     queryFn: () => trackShipment(productDetail?.data?.product[0]?.shipment_id),
     enabled: !!productDetail?.data?.product[0]?.shipment_id,
   });
-
-  console.log(JSON.stringify(productDetail), "productDetail------");
-  console.log(JSON.stringify(shippingTrackingData), "shippingTrackingData------");
-
+  const trackingUrl = shippingTrackingData?.tracking?.tracking_url ;
   const generateTrackingSteps = (status: string) => {
     // If we have shipping tracking data, use it
     if (shippingTrackingData?.tracking?.details) {
@@ -87,13 +81,12 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({ navigation, route }
       // Always add Pre-Transit step
       if (preTransitSteps.length > 0) {
         const latestPreTransit = getLatestStep(preTransitSteps);
-        console.log(latestPreTransit, "latestPreTransit===");
         steps.push({
           id: 1,
           title: 'Pre-Transit',
           subtitle: latestPreTransit.tracking_location?.city
             ? `${latestPreTransit.tracking_location.city}, ${latestPreTransit.tracking_location.state}`
-            : '',
+            : latestPreTransit.message || 'Package information received',
           date: new Date(latestPreTransit.datetime).toLocaleDateString('en-US', {
             day: 'numeric',
             month: 'short',
@@ -105,72 +98,83 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({ navigation, route }
         });
       }
 
-      // Add In Transit step only if it has occurred OR if we're past this stage
-      if (inTransitSteps.length > 0 || outForDeliverySteps.length > 0 || deliveredSteps.length > 0) {
-        if (inTransitSteps.length > 0) {
-          const latestInTransit = getLatestStep(inTransitSteps);
-          console.log(latestInTransit, "latestInTransit---");
-
-          steps.push({
-            id: 2,
-            // title: latestInTransit.message || 'In Transit',
-            title:  'In Transit',
-            subtitle: latestInTransit.tracking_location?.city
-              ? `${latestInTransit.tracking_location.city}, ${latestInTransit.tracking_location.state}`
-              : '',
-            date: new Date(latestInTransit.datetime).toLocaleDateString('en-US', {
-              day: 'numeric',
-              month: 'short',
-              year: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
-            }),
-            isCompleted: true,
-          });
-        } else {
-          // Show completed in transit if we're past this stage
-          steps.push({
-            id: 2,
-            title: 'In Transit',
-            subtitle: 'Package in transit',
-            date: 'Completed',
-            isCompleted: true,
-          });
-        }
+      // Always add In Transit step - completed if it has occurred OR if we're past this stage
+      if (inTransitSteps.length > 0) {
+        const latestInTransit = getLatestStep(inTransitSteps);
+        steps.push({
+          id: 2,
+          title: 'In Transit',
+          subtitle: latestInTransit.tracking_location?.city
+            ? `${latestInTransit.tracking_location.city}, ${latestInTransit.tracking_location.state}`
+            : latestInTransit.message || 'Package in transit',
+          date: new Date(latestInTransit.datetime).toLocaleDateString('en-US', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          }),
+          isCompleted: true,
+        });
+      } else if (outForDeliverySteps.length > 0 || deliveredSteps.length > 0) {
+        // Show completed in transit if we're past this stage
+        steps.push({
+          id: 2,
+          title: 'In Transit',
+          subtitle: 'Package in transit',
+          date: 'Completed',
+          isCompleted: true,
+        });
+      } else {
+        // Show as upcoming step if we're still in pre_transit
+        steps.push({
+          id: 2,
+          title: 'In Transit',
+          subtitle: 'Package will be picked up',
+          date: 'Pending',
+          isCompleted: false,
+        });
       }
 
-      // Add Out for Delivery step only if it has occurred OR if delivered
-      if (outForDeliverySteps.length > 0 || deliveredSteps.length > 0) {
-        if (outForDeliverySteps.length > 0) {
-          const latestOutForDelivery = getLatestStep(outForDeliverySteps);
-          steps.push({
-            id: 3,
-            title: 'Out for Delivery',
-            subtitle: latestOutForDelivery.tracking_location?.city
-              ? `${latestOutForDelivery.tracking_location.city}, ${latestOutForDelivery.tracking_location.state}`
-              : '',
-            date: new Date(latestOutForDelivery.datetime).toLocaleDateString('en-US', {
-              day: 'numeric',
-              month: 'short',
-              year: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
-            }),
-            isCompleted: true,
-          });
-        } else if (deliveredSteps.length > 0) {
-          // Show completed out for delivery if delivered
-          steps.push({
-            id: 3,
-            title: 'Out for Delivery',
-            subtitle: 'Package out for delivery',
-            date: 'Completed',
-            isCompleted: true,
-          });
-        }
+      // Always add Out for Delivery step
+      if (outForDeliverySteps.length > 0) {
+        const latestOutForDelivery = getLatestStep(outForDeliverySteps);
+        steps.push({
+          id: 3,
+          title: 'Out for Delivery',
+          subtitle: latestOutForDelivery.tracking_location?.city
+            ? `${latestOutForDelivery.tracking_location.city}, ${latestOutForDelivery.tracking_location.state}`
+            : latestOutForDelivery.message || 'Package out for delivery',
+          date: new Date(latestOutForDelivery.datetime).toLocaleDateString('en-US', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          }),
+          isCompleted: true,
+        });
+      } else if (deliveredSteps.length > 0) {
+        // Show completed out for delivery if delivered
+        steps.push({
+          id: 3,
+          title: 'Out for Delivery',
+          subtitle: 'Package out for delivery',
+          date: 'Completed',
+          isCompleted: true,
+        });
+      } else {
+        // Show as upcoming step
+        steps.push({
+          id: 3,
+          title: 'Out for Delivery',
+          subtitle: 'Package will be out for delivery',
+          date: 'Pending',
+          isCompleted: false,
+        });
       }
 
-      // Add Delivered step
+      // Always add Delivered step
       if (deliveredSteps.length > 0) {
         const latestDelivered = getLatestStep(deliveredSteps);
         steps.push({
@@ -189,17 +193,20 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({ navigation, route }
           isCompleted: true,
         });
       } else {
-        // Show next expected step based on current status
-        if (overallStatus === 'out_for_delivery') {
-          steps.push({
-            id: 4,
-            title: 'Delivered',
-            subtitle: 'Package will be delivered',
-            date: 'Expected soon',
-            isCompleted: false,
-          });
-        }
-        // Don't show delivered step if we're still in pre_transit or in_transit
+        // Show as upcoming step
+        steps.push({
+          id: 4,
+          title: 'Delivered',
+          subtitle: 'Package will be delivered',
+          date: shippingTrackingData?.tracking?.estimated_delivery 
+            ? new Date(shippingTrackingData.tracking.estimated_delivery).toLocaleDateString('en-US', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric'
+              })
+            : 'Expected soon',
+          isCompleted: false,
+        });
       }
 
       return steps;
@@ -210,29 +217,29 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({ navigation, route }
       {
         id: 1,
         title: 'Pre Transit',
+        subtitle: 'Package information received',
         date: '7 May 2023 | 23:11',
         isCompleted: true,
-        // isCompleted: status === 'pre_transit',
       },
       {
         id: 2,
         title: 'Label Sent',
         subtitle: 'Shipping label generated, sent to seller',
-        date: '16 June 2025',
+        date: status === 'in_transit' || status === 'out_for_delivery' || status === 'delivered' ? '16 June 2025' : 'Pending',
         isCompleted: status === 'in_transit' || status === 'out_for_delivery' || status === 'delivered',
       },
       {
         id: 3,
         title: 'In Transit',
         subtitle: 'Package picked up and in transit',
-        date: '17 June 2025',
+        date: status === 'out_for_delivery' || status === 'delivered' ? '17 June 2025' : 'Pending',
         isCompleted: status === 'out_for_delivery' || status === 'delivered',
       },
       {
         id: 4,
         title: 'Delivered',
         subtitle: 'Order delivered to your address',
-        date: '20 June 2025',
+        date: status === 'delivered' ? '20 June 2025' : 'Expected soon',
         isCompleted: status === 'delivered',
       },
     ];
@@ -308,7 +315,9 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({ navigation, route }
           ]}>
             {item.title}
           </Text>
-          {item.isCompleted && item.subtitle && (
+          
+          {/* Always show subtitle if it exists */}
+          {item.subtitle && (
             <Text
               style={[
                 styles.trackingSubtitle,
@@ -319,18 +328,15 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({ navigation, route }
             </Text>
           )}
 
-          {/* Show date only if step is completed */}
-          {item.isCompleted && (
-            <Text
-              style={[
-                styles.trackingDate,
-                !item.isCompleted && styles.incompleteText,
-              ]}
-            >
-              Date: {item.date}
-            </Text>
-          )}
-
+          {/* Always show date/status */}
+          <Text
+            style={[
+              styles.trackingDate,
+              !item.isCompleted && styles.incompleteText,
+            ]}
+          >
+            {item.isCompleted ? `Date: ${item.date}` : `Status: ${item.date}`}
+          </Text>
         </View>
       </View>
     );
@@ -386,14 +392,13 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({ navigation, route }
           <>
             <Text style={styles.headingStyle}>Track Your Order</Text>
             <View style={styles.container}>
-            <TouchableOpacity onPress={() => Linking.openURL(trackingUrl)}>
-  <Text style={styles.trackText}>Track your order</Text>
-</TouchableOpacity>
-            <View >
-              {trackingSteps.map((item, index) => renderTrackingStep(item, index))}
+              <TouchableOpacity onPress={() => Linking.openURL(trackingUrl)}>
+                <Text style={styles.trackText}>Track your order</Text>
+              </TouchableOpacity>
+              <View>
+                {trackingSteps.map((item, index) => renderTrackingStep(item, index))}
+              </View>
             </View>
-            </View>
-          
           </>
         ) : null}
 
@@ -617,5 +622,6 @@ const styles = StyleSheet.create({
     textAlign:'right',
     paddingHorizontal:10,
     paddingTop:10,
-    color:colors.primary,fontSize:fontSizes.small,fontFamily:fonts.bold,marginBottom:10}
+    color:colors.primary,fontSize:fontSizes.small,fontFamily:fonts.bold,marginBottom:10
+  }
 });

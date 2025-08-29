@@ -4,7 +4,7 @@ import { base_url } from './api';
 
 const instance = axios.create({
   baseURL: base_url,
-  timeout: 100000,
+  timeout: 300000,
 });
 instance.interceptors.request.use(
   function (config: any) {
@@ -40,7 +40,10 @@ instance.interceptors.response.use(
   },
 
   function (error) {
+    console.log(error,"error.response------");
+
     if (error?.response) {
+      
       if (error.response?.data) {
         return Promise.reject(error.response?.data);
       }

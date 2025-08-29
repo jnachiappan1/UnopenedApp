@@ -50,12 +50,37 @@ export const getTransactionList = async () => {
   const response = await axios.get(API.buyer.getTransactionList);
   return response;
 };
+export const addBankAccount = async (data: any) => {
+  const response = await axios.post(API.buyer.addBankAccount, data);
+  return response;
+};
+
+export const getBankAccount = async () => {
+  const response = await axios.get(API.buyer.addBankAccount);
+  return response;
+};
+
+export const cashOut = async (data: { amount: string }) => {
+  console.log(data.amount,"amount---");
+  
+  const response = await axios.post(API.buyer.cashOut, data);
+  return response;
+};
+
+export const getCashOutHistory = async () => {
+  const response = await axios.get(API.buyer.cashOutHistory);
+  return response;
+};
 export const getCategoryDetail = async () => {
   const response = await axios.get(API.seller.getCategory);
   return response;
 };
-export const addProduct = async (data: globalThis.FormData) => {
+export const addProduct = async (data: FormData) => {
+  console.log("dataaddProduct===", JSON.stringify(data));
+  
   const response = await axiosmultipart.post(API.seller.add_Product, data);
+  console.log(response,"response--");
+
   return response;
 };
 export const getSellerDashboardCount = async () => {

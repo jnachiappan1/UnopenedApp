@@ -46,6 +46,7 @@ const ProfileVerifyScreen: React.FC<ProfileVerifyScreenProps> = ({
   const [resendOtp, setResendOtp] = useState('');
   const dispatch = useDispatch();
   const fcmToken = useSelector((user: IRootState) => user.user.fcmToken);
+  console.log(fcmToken,"fcmToken===");
 
   const defaultValues = {
     otp: ''
@@ -97,6 +98,9 @@ const ProfileVerifyScreen: React.FC<ProfileVerifyScreenProps> = ({
         ? { fcmToken: fcmToken }
         : {}),
     };
+    console.log(payload,"payload===");
+    console.log(type,"type===");
+    
     showLoader(true);
     mutate({ type, payload });
   };

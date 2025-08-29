@@ -1,5 +1,5 @@
 import { FlatList, StyleSheet, Text, View } from 'react-native';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
 import { fontSizes } from '../../utils/utils';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -11,14 +11,42 @@ import Input from '../../components/input/input';
 import { useForm } from 'react-hook-form';
 import { FlashList } from '@shopify/flash-list';
 import PaymentMethodCard from '../../components/card/paymentMethodCard';
-import { paymentMethods, payoutHistory } from '../../utils/static';
+import { paymentMethods } from '../../utils/static';
 import PayoutCard from '../../components/card/payoutCard';
+import BankDetailsCard from '../../components/card/bankDetailsCard';
+import { getBankAccount, cashOut, getCashOutHistory } from '../../utils/apiAction';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { showLoader } from '../../components/loader/loader';
+import { showAlert } from '../../components/cAlert';
+import { handleError, handleSettled } from '../../utils/method';
 
 type CashOutScreenProps = NativeStackScreenProps<RootStackParamList, SCREENS.CashOutScreen>;
 
 const CashOutScreen: React.FC<CashOutScreenProps> = ({ navigation }) => {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [paymentError, setPaymentError] = useState(false);
+
+  // Fetch bank account details
+  const { data: bankAccountData, isLoading: isLoadingBankDetails, refetch: refetchBankDetails } = useQuery({
+    queryKey: ['bankAccount'],
+    queryFn: getBankAccount,
+  });
+
+  // Fetch cash out history
+  const { data: cashOutHistoryData, isLoading: isLoadingHistory, refetch: refetchHistory } = useQuery({
+    queryKey: ['cashOutHistory'],
+    queryFn: getCashOutHistory,
+  });
+console.log(cashOutHistoryData,"cashOutHistoryData---------");
+
+  // Show loader while fetching bank details
+  useEffect(() => {
+    if (isLoadingBankDetails) {
+      showLoader(true);
+    } else {
+      showLoader(false);
+    }
+  }, [isLoadingBankDetails]);
 
   const {
     control,
@@ -28,18 +56,77 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({ navigation }) => {
     getValues,
   } = useForm<any>();
 
+  // Cash out mutation
+  const { mutate: cashOutMutation, isPending: isCashOutPending } = useMutation({
+    mutationFn: cashOut,
+    onSuccess: (data) => {
+      showLoader(false);
+      showAlert({
+        isVisible: true,
+        type: 'success',
+        title: 'Success!',
+        description: 'Cash out request submitted successfully',
+        doneText: 'Okay',
+        onDonePress: () => {
+          // Refresh bank details and payout history
+          refetchBankDetails();
+          refetchHistory();
+        },
+      });
+    },
+    onError: handleError,
+    onSettled: handleSettled,
+  });
+
   const onSubmit = (data: any) => {
-    if (selectedId === null) {
-      setPaymentError(true);
+    if (!bankAccountData?.data?.bankDetails) {
+      showAlert({
+        isVisible: true,
+        type: 'error',
+        title: 'Error!',
+        description: 'Please add bank details before proceeding with cash out.',
+        doneText: 'Okay',
+      });
+      return;
+    }
+
+    if (!data.amount || parseFloat(data.amount) <= 0) {
+      showAlert({
+        isVisible: true,
+        type: 'error',
+        title: 'Error!',
+        description: 'Please enter a valid amount.',
+        doneText: 'Okay',
+      });
       return;
     }
 
     setPaymentError(false);
-    // proceed with API or navigation
+    showLoader(true);
+
+    // Call cash out API
+    cashOutMutation({
+      amount: data.amount
+    });
   };
 
   return (
     <TitleBackHeaderContainer isBack title="Cash Out">
+      <View style={styles.container}>
+        {/* Show existing bank details if available, otherwise show Add Bank Details button */}
+        {bankAccountData?.data?.bankDetails ? (
+          <BankDetailsCard
+            bankDetails={bankAccountData.data.bankDetails}
+          />
+        ) : (
+          <Button
+            title="Add Bank details"
+            style={styles.addBankDetailsButton}
+            textStyle={styles.addBankDetailsText}
+            onPress={() => navigation.navigate(SCREENS.AddBankDetailsScreen)}
+          />
+        )}
+      </View>
       <View style={styles.container}>
         <Input
           control={control}
@@ -55,39 +142,54 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({ navigation }) => {
           maxLength={40}
           inputStyle={styles.inputStyle}
         />
-
-        <Text style={styles.titleStyle}>Choose Payment Method</Text>
-
-        <FlatList
-          data={paymentMethods}
-          scrollEnabled={false}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => (
-            <PaymentMethodCard
-              item={item}
-              selected={selectedId === item.id}
-              onPress={(selectedItem) => {
-                setSelectedId(selectedItem.id);
-                setPaymentError(false); // reset error
-              }}
-            />
-          )}
-        />
-
         {paymentError && (
           <Text style={styles.errorText}>Please select a payment method</Text>
         )}
 
-        <Button title="Cash Out" style={styles.cashOutButton} onPress={handleSubmit(onSubmit)} />
+        <Button
+          title={isCashOutPending ? "Processing..." : "Cash Out"}
+          style={[
+            styles.cashOutButton,
+            (!bankAccountData?.data?.bankDetails || isCashOutPending) && styles.disabledButton
+          ]}
+          textStyle={[
+            styles.cashOutButtonText,
+            (!bankAccountData?.data?.bankDetails || isCashOutPending) && styles.disabledButtonText
+          ]}
+          onPress={bankAccountData?.data?.bankDetails && !isCashOutPending ? handleSubmit(onSubmit) : undefined}
+          disabled={!bankAccountData?.data?.bankDetails || isCashOutPending}
+        />
+
+        {!bankAccountData?.data?.bankDetails && (
+          <Text style={styles.helpText}>
+            Please add bank details to enable cash out
+          </Text>
+        )}
+
+        {isCashOutPending && (
+          <Text style={styles.helpText}>
+            Processing your cash out request...
+          </Text>
+        )}
       </View>
 
       <Text style={styles.heading}>Payout History</Text>
-      <FlashList
-        data={payoutHistory}
-        renderItem={({ item }) => <PayoutCard item={item} />}
-        estimatedItemSize={100}
-        keyExtractor={(item) => item.id}
-      />
+      {isLoadingHistory ? (
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading payout history...</Text>
+        </View>
+      ) : (cashOutHistoryData?.data?.transactions && cashOutHistoryData.data.transactions.length > 0) ? (
+        <FlashList
+          data={cashOutHistoryData.data?.transactions}
+          renderItem={({ item }) => <PayoutCard item={item} />}
+          estimatedItemSize={100}
+          keyExtractor={(item: any) => item.id?.toString() || Math.random().toString()}
+        />
+      ) : (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>No payout history available</Text>
+        </View>
+      )}
     </TitleBackHeaderContainer>
   );
 };
@@ -103,7 +205,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   amountContainer: {
-    marginTop: 10,
     paddingStart: 10,
   },
   inputStyle: {
@@ -123,10 +224,64 @@ const styles = StyleSheet.create({
   cashOutButton: {
     backgroundColor: colors.primary,
     width: '90%',
+    marginVertical: 20,
+    marginHorizontal: 0,
+    paddingHorizontal: 0,
+    alignSelf: 'center',
+  },
+  cashOutButtonText: {
+    color: colors.white,
+    fontSize: fontSizes.regular,
+    fontFamily: fonts.bold,
+  },
+  disabledButton: {
+    backgroundColor: colors.border,
+    opacity: 0.6,
+  },
+  disabledButtonText: {
+    color: colors.text,
+  },
+  helpText: {
+    color: colors.text,
+    fontSize: fontSizes.small,
+    fontFamily: fonts.regular,
+    textAlign: 'center',
+    marginTop: 8,
+    fontStyle: 'italic',
+  },
+  loadingContainer: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  loadingText: {
+    color: colors.text,
+    fontSize: fontSizes.regular,
+    fontFamily: fonts.medium,
+  },
+  emptyContainer: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  emptyText: {
+    color: colors.text,
+    fontSize: fontSizes.regular,
+    fontFamily: fonts.medium,
+    fontStyle: 'italic',
+  },
+  addBankDetailsButton: {
+    backgroundColor: colors.white,
+    borderColor: colors.primary,
+    borderWidth: 1,
+    width: '90%',
     marginVertical: 10,
     marginHorizontal: 0,
     paddingHorizontal: 0,
     alignSelf: 'center',
+  },
+  addBankDetailsText: {
+    color: colors.primary,
+    fontSize: fontSizes.regular,
+    fontFamily: fonts.bold,
   },
   heading: {
     fontSize: fontSizes.extraLarge,
@@ -144,4 +299,5 @@ const styles = StyleSheet.create({
     marginTop: -6,
     marginBottom: 10,
   },
+
 });

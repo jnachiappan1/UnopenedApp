@@ -40,10 +40,12 @@ type InputProps = {
   labelStyle?: string;
   inputBgColor?: string;
   keyboardType?: string | any;
+  rightIconName?: string | any;
   maxLength?: number;
   disabled?: boolean;
   multiline?: boolean;
   isPassword?: boolean;
+  isRightIcon?: boolean;
   onValueChange?: (text: string) => void; // ✅ NEW PROP
 };
 
@@ -63,10 +65,12 @@ const Input: React.FC<InputProps> = props => {
     labelStyle,
     inputBgColor,
     keyboardType,
+    rightIconName,
     maxLength,
     multiline = false,
     disabled = false,
     isPassword = false,
+    isRightIcon = false,
     onValueChange, // ✅ DESTRUCTURE NEW PROP
   } = props;
 
@@ -85,7 +89,9 @@ const Input: React.FC<InputProps> = props => {
     error[name]?.message
       ? error[name]?.message?.toString()
       : '';
-
+      const renderRightIcon = isRightIcon && (
+        <IconsSvg name={rightIconName} style={styles.rightIconStyle} />
+      );
   return (
     <Controller
       control={control}
@@ -114,7 +120,7 @@ const Input: React.FC<InputProps> = props => {
                 styles.input,
                 {
                   backgroundColor: inputBgColor ? inputBgColor : colors.white,
-                  paddingRight: isPassword ? 50 : 16,
+                  paddingRight: isPassword ? 50 : isRightIcon ? 50 : 16,
                 },
                 inputStyle,
               ]}
@@ -142,6 +148,12 @@ const Input: React.FC<InputProps> = props => {
               >
                 <IconsSvg name={showText ? 'eye' : 'eyeOff'} />
               </TouchableOpacity>
+            )}
+
+            {isRightIcon && rightIconName && (
+              <View style={styles.rightIconView}>
+                <IconsSvg name={rightIconName} style={styles.rightIconStyle} />
+              </View>
             )}
           </View>
 
@@ -193,10 +205,24 @@ const getStyles = (colors: IColors, multiline: boolean) =>
       width: 40,
       height: 53,
     },
+    rightIconView: {
+      position: 'absolute',
+      right: 16,
+      top: 0,
+      bottom: 0,
+      justifyContent: 'center',
+      alignItems: 'center',
+      width: 40,
+      height: 53,
+    },
     error: {
       color: 'red',
       fontSize: 14,
       minHeight: 12,
       marginVertical: 5,
+    },
+    rightIconStyle: {
+      alignSelf: 'center',
+      marginEnd: 10,
     },
   });

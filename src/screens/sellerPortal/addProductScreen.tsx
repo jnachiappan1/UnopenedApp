@@ -35,6 +35,7 @@ import { useSelector } from 'react-redux';
 import { calculateDiscount, handleError, handleSettled } from '../../utils/method';
 import { showLoader } from '../../components/loader/loader';
 import ApplyOfferInput from '../../components/input/applyOfferInput';
+import { API } from '../../utils/api';
 
 type MediaObject = {
   uri: string;
@@ -51,7 +52,9 @@ type FormData = {
   price: string;
   platform_fee: string;
   seller_final_price: string;
-  dimensions: string;
+  package_dimension_length: string;
+  package_dimension_width: string;
+  package_dimension_height: string;
   weight: string;
   description: string;
   productImages: MediaObject[];
@@ -149,7 +152,9 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       platform_fee: '',
       seller_final_price: '',
       description: '',
-      dimensions: '',
+      package_dimension_length: '',
+      package_dimension_width: '',
+      package_dimension_height: '',
       weight: '',
       productImages: [],
     }
@@ -235,10 +240,53 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       }
       
       setValue('description', productData.description || '');
-      setValue('dimensions', productData.dimension || '');
-      setValue('weight', productData.weight ? productData.weight.toString() : '');
+
+      // Handle dimensions - split dimension string into length, width, height
+      if (productData.dimension) {
+        console.log("Original dimension:", productData.dimension);
+        
+        // Split by both uppercase and lowercase X, and remove "inches" text
+        const cleanDimension = productData.dimension.replace(/\s*inches?/i, '').trim();
+        console.log("Cleaned dimension:", cleanDimension);
+        
+        const dimensionParts = cleanDimension.split(/[xX]/).map((part: string) => part.trim());
+        console.log("Dimension parts:", dimensionParts);
+        
+        if (dimensionParts.length >= 3) {
+          setValue('package_dimension_length', dimensionParts[0] || '');
+          setValue('package_dimension_width', dimensionParts[1] || '');
+          setValue('package_dimension_height', dimensionParts[2] || '');
+          console.log("Set dimensions - Length:", dimensionParts[0], "Width:", dimensionParts[1], "Height:", dimensionParts[2]);
+        } else if (dimensionParts.length === 1) {
+          // If only one part, put it in length field
+          setValue('package_dimension_length', dimensionParts[0] || '');
+          setValue('package_dimension_width', '');
+          setValue('package_dimension_height', '');
+          console.log("Single dimension set to length:", dimensionParts[0]);
+        } else {
+          setValue('package_dimension_length', '');
+          setValue('package_dimension_width', '');
+          setValue('package_dimension_height', '');
+        }
+      } else {
+        setValue('package_dimension_length', '');
+        setValue('package_dimension_width', '');
+        setValue('package_dimension_height', '');
+      }
       
-      // Handle images from scanned product - only set the first image, user can add more
+              setValue('weight', productData.weight ? productData.weight.toString() : '');
+        
+        // Log the final form values to verify they were set correctly
+        setTimeout(() => {
+          console.log("Form values after setting:", {
+            length: getValues('package_dimension_length'),
+            width: getValues('package_dimension_width'),
+            height: getValues('package_dimension_height'),
+            weight: getValues('weight')
+          });
+        }, 100);
+        
+        // Handle images from scanned product - only set the first image, user can add more
       if (productData.images && productData.images.length > 0) {
         // Clear any existing images first to ensure clean state
         setUploadedImages([]);
@@ -287,21 +335,23 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     if (hasVideo && finalImages.length >= 2) {
       clearErrors('productImages');
       setImageError('');
-    } else if (!hasVideo) {
-      const errorMessage = 'Please upload a 360° view video of your product';
-      setImageError(errorMessage);
-      setError('productImages', {
-        type: 'manual',
-        message: errorMessage
-      });
-    } else {
-      const errorMessage = `Minimum 2 media files required (1 video + at least 1 image). Currently selected: ${finalImages.length}`;
-      setImageError(errorMessage);
-      setError('productImages', {
-        type: 'manual',
-        message: errorMessage
-      });
-    }
+    } 
+    // else if (!hasVideo) {
+    //   const errorMessage = 'Please upload a 360° view video of your product';
+    //   setImageError(errorMessage);
+    //   setError('productImages', {
+    //     type: 'manual',
+    //     message: errorMessage
+    //   });
+    // } 
+    // else {
+    //   const errorMessage = `Minimum 2 media files required (1 video + at least 1 image). Currently selected: ${finalImages.length}`;
+    //   setImageError(errorMessage);
+    //   setError('productImages', {
+    //     type: 'manual',
+    //     message: errorMessage
+    //   });
+    // }
     setIsModalVisible(false);
   };
 
@@ -309,26 +359,26 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     // Check if there's at least one video
     const hasVideo = uploadedImages.some(media => isVideo(media));
     
-    if (!hasVideo) {
-      const errorMessage = 'Please upload a 360° view video of your product';
-      setImageError(errorMessage);
-      setError('productImages', {
-        type: 'manual',
-        message: errorMessage
-      });
-      return false;
-    }
+    // if (!hasVideo) {
+    //   const errorMessage = 'Please upload a 360° view video of your product';
+    //   setImageError(errorMessage);
+    //   setError('productImages', {
+    //     type: 'manual',
+    //     message: errorMessage
+    //   });
+    //   return false;
+    // }
     
     // Check if there are at least 2 total media files (1 video + at least 1 image)
-    if (uploadedImages.length < 2) {
-      const errorMessage = `Minimum 2 media files required (1 video + at least 1 image). Currently selected: ${uploadedImages.length}`;
-      setImageError(errorMessage);
-      setError('productImages', {
-        type: 'manual',
-        message: errorMessage
-      });
-      return false;
-    }
+    // if (uploadedImages.length < 2) {
+    //   const errorMessage = `Minimum 2 media files required (1 video + at least 1 image). Currently selected: ${uploadedImages.length}`;
+    //   setImageError(errorMessage);
+    //   setError('productImages', {
+    //     type: 'manual',
+    //     message: errorMessage
+    //   });
+    //   return false;
+    // }
     
     clearErrors('productImages');
     setImageError('');
@@ -380,33 +430,111 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     setIsNavigatingToPreview(false);
   };
 
-  const prepareFormDataForAPI = (data: FormData) => {
-    const formData = new FormData()
-    formData.append('brand', data.brandName);
-    formData.append('name', data.productName);
-    formData.append('barcode', data.barcode);
-    const categoryId = typeof data.category === 'object' && data.category !== null
-      ? data.category.id
-      : '';
-    formData.append('category_id', categoryId);
-    formData.append('msrp', data.msrp);
-    data?.dimensions && formData.append('dimensions', data.dimensions);
-    data?.weight && formData.append('weight', data.weight);
-    formData.append('price', data.price);
-    formData.append('platform_fee', data.platform_fee);
-    formData.append('seller_final_price', data.seller_final_price);
-    formData.append('description', data.description);
-    uploadedImages.forEach((media, index) => {
-      formData.append(`images`, {
-        uri: media.uri,
-        name: media.name,
-        type: media.type,
-      });
+  // const prepareFormDataForAPI = (data: FormData) => {
+    
+  //   const formData = new FormData()
+  //   formData.append('brand', data.brandName);
+  //   formData.append('name', data.productName);
+  //   formData.append('barcode', data.barcode);
+  //   const categoryId = typeof data.category === 'object' && data.category !== null
+  //     ? data.category.id
+  //     : '';
+  //   formData.append('category_id', categoryId);
+  //   formData.append('msrp', data.msrp);
+  //   data?.package_dimension_length && formData.append('length', data.package_dimension_length);
+  //   data?.package_dimension_width && formData.append('width', data.package_dimension_width);
+  //   data?.package_dimension_height && formData.append('height', data.package_dimension_height);
+  //   data?.weight && formData.append('weight', data.weight);
+  //   formData.append('price', data.price);
+  //   formData.append('platform_fee', data.platform_fee);
+  //   formData.append('seller_final_price', data.seller_final_price);
+  //   formData.append('description', data.description);
+  //   images: data?.images || []
+  //   // formData.append('images[0]',{
+  //   //       uri: uploadedImages[0].uri,
+  //   //       name: uploadedImages[0].name || `image_${0}.jpg`,
+  //   //       type: uploadedImages[0].type || 'image/jpeg',
+  //   //     } );
+    
+  //   // uploadedImages.forEach((media, index) => {
+  //   //   formData.append(`images[${index}]`, {
+  //   //     uri: media.uri,
+  //   //     name: media.name || `image_${index}.jpg`,
+  //   //     type: media.type || 'image/jpeg',
+  //   //   });
+  //   // });
+    
+  //   // const imageArray = uploadedImages.map(media => ({
+  //   //   uri: media.uri,
+  //   //   name: media.name,
+  //   //   type: media.type,
+  //   // }));
+  
+  //   // // Append as stringified array
+  //   // formData.append('images', JSON.stringify(imageArray));
+  //   // uploadedImages.forEach((media, index) => {
+  //   //   formData.append('images', {
+  //   //     uri: media.uri,
+  //   //     name: media.name || `image_${index}.jpg`,
+  //   //     type: media.type || 'image/jpeg',
+  //   //   });
+  //   // });
+  //   // uploadedImages.forEach((media, index) => {
+  //   //   formData.append('images', {
+  //   //     uri: media.uri,
+  //   //     name: media.name || `image_${index}.jpg`,
+  //   //     type: media.type || 'image/jpeg',
+  //   //   });
+  //   // });
+  //   return formData;
+  // };
+  const prepareFormDataForAPI = (data: any) => {
+    const formData = new FormData();
+  
+    // Build payload first
+    const payload: Record<string, any> = {
+      brand: data.brandName,
+      name: data.productName,
+      barcode: data.barcode,
+      category_id:
+        typeof data.category === 'object' && data.category !== null
+          ? data.category.id
+          : '',
+      msrp: data.msrp,
+      length: data?.package_dimension_length,
+      width: data?.package_dimension_width,
+      height: data?.package_dimension_height,
+      weight: data?.weight,
+      price: data.price,
+      platform_fee: data.platform_fee,
+      seller_final_price: data.seller_final_price,
+      description: data.description,
+      images: data?.images || [], // images array
+    };
+  
+    Object.keys(payload).forEach((key) => {
+      if (key === 'images' && Array.isArray(payload.images)) {
+        payload.images.forEach((img, index) => {
+          // Append only local images (file:// or content:// for Android)
+          if (img?.uri?.startsWith('file://') || img?.uri?.startsWith('content://')) {
+            formData.append(`images[${index}]`, {
+              uri: img.uri,
+              name: img.name || `image_${index}.jpg`,
+              type: img.type || 'image/jpeg',
+            } as any);
+          }
+        });
+      } else if (
+        payload[key] !== undefined &&
+        payload[key] !== null &&
+        payload[key] !== ''
+      ) {
+        formData.append(key, payload[key]);
+      }
     });
-
+  
     return formData;
   };
-
   const { mutate } = useMutation({
     mutationFn: (data: globalThis.FormData) => addProduct(data),
     onSuccess: data => {
@@ -431,17 +559,87 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
 
   const Submit = async (data: FormData) => {
     const isValid = await validateAllFields();
-    if (!isValid) {
-      Alert.alert(
-        'Validation Error',
-        'Please fill all required fields and upload a 360° view video plus at least 1 product image.'
-      );
-      return;
-    }
+    // if (!isValid) {
+    //   Alert.alert(
+    //     'Validation Error',
+    //     'Please fill all required fields and upload a 360° view video plus at least 1 product image.'
+    //   );
+    //   return;
+    // }
     const apiFormData = prepareFormDataForAPI(data);
+    console.log(JSON.stringify(apiFormData),"apiFormData---------");
     showLoader(true);
      mutate(apiFormData)
   };
+  // const Submit = async (data: FormData) => {
+  //   const isValid = await validateAllFields();
+  //   if (!isValid) {
+  //     Alert.alert(
+  //       'Validation Error',
+  //       'Please fill all required fields and upload a 360° view video plus at least 1 product image.'
+  //     );
+  //     return;
+  //   }
+    
+  //   const apiFormData = prepareFormDataForAPI(data);
+  //   console.log(JSON.stringify(apiFormData), "apiFormData---------");
+  //   showLoader(true);
+    
+  //   try {
+  //     // Get the auth token from your storage/context
+  //     const token = userData?.token || ''; // Adjust based on your token storage
+      
+  //     const response = await fetch(`${API.seller.add_Product}`, {
+  //       method: 'POST',
+  //       headers: {
+  //         'Authorization': `Bearer ${token}`,
+  //         'Content-Type': 'multipart/form-data',
+  //         'Accept': 'application/json',
+  //       },
+  //       body: apiFormData,
+  //     });
+      
+  //     const responseData = await response.json();
+      
+  //     if (response.ok) {
+  //       showLoader(false);
+  //       showAlert({
+  //         isVisible: true,
+  //         type: 'success',
+  //         title: 'Product',
+  //         description: 'Product added successfully',
+  //         doneText: 'Okay',
+  //         onDonePress: () => {
+  //           reset();
+  //           setUploadedImages([]);
+  //           setImageError('');
+  //           navigation.navigate(SCREENS.BottomTab);
+  //         },
+  //       });
+  //     } else {
+  //       showLoader(false);
+  //       showAlert({
+  //         isVisible: true,
+  //         type: 'error',
+  //         title: 'Error',
+  //         description: responseData.message || 'Failed to add product',
+  //         doneText: 'Okay',
+  //         onDonePress: () => {},
+  //       });
+  //     }
+  //   } catch (error) {
+  //     showLoader(false);
+  //     console.error('Error adding product:', error);
+  //     showAlert({
+  //       isVisible: true,
+  //       type: 'error',
+  //       title: 'Error',
+  //       description: 'Network error occurred. Please try again.',
+  //       doneText: 'Okay',
+  //       onDonePress: () => {},
+  //     });
+  //   }
+  // };
 
   const handleUploadPress = () => {
     setIsModalVisible(true);
@@ -470,21 +668,23 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             if (hasVideo && updatedImages.length >= 2) {
               clearErrors('productImages');
               setImageError('');
-            } else if (!hasVideo) {
-              const errorMessage = 'Please upload a 360° view video of your product';
-              setImageError(errorMessage);
-              setError('productImages', {
-                type: 'manual',
-                message: errorMessage
-              });
-            } else {
-              const errorMessage = `Minimum 2 media files required (1 video + at least 1 image). Currently selected: ${updatedImages.length}`;
-              setImageError(errorMessage);
-              setError('productImages', {
-                type: 'manual',
-                message: errorMessage
-              });
-            }
+            } 
+            // else if (!hasVideo) {
+            //   const errorMessage = 'Please upload a 360° view video of your product';
+            //   setImageError(errorMessage);
+            //   setError('productImages', {
+            //     type: 'manual',
+            //     message: errorMessage
+            //   });
+            // } 
+            // else {
+            //   const errorMessage = `Minimum 2 media files required (1 video + at least 1 image). Currently selected: ${updatedImages.length}`;
+            //   setImageError(errorMessage);
+            //   setError('productImages', {
+            //     type: 'manual',
+            //     message: errorMessage
+            //   });
+            // }
           }
         }
       ]
@@ -503,11 +703,11 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
           onPress: () => {
             setUploadedImages([]);
             setValue('productImages', []);
-            setImageError('Please upload a 360° view video and at least 1 image');
-            setError('productImages', {
-              type: 'manual',
-              message: 'Please upload a 360° view video and at least 1 image'
-            });
+            // setImageError('Please upload a 360° view video and at least 1 image');
+            // setError('productImages', {
+            //   type: 'manual',
+            //   message: 'Please upload a 360° view video and at least 1 image'
+            // });
           }
         }
       ]
@@ -515,7 +715,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
   };
 
   const goToNextStep = async () => {
-    const isStep1Valid = await trigger(['brandName', 'productName', 'barcode', 'category', 'dimensions', 'weight', 'description']);
+    const isStep1Valid = await trigger(['brandName', 'productName', 'barcode', 'category', 'package_dimension_length', 'package_dimension_width', 'package_dimension_height', 'weight', 'description']);
     const isImagesValid = validateImages();
     if (isStep1Valid && isImagesValid) {
       setCurrentStep(1);
@@ -636,24 +836,59 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             }}
             containerStyle={styles.categoryStyle}
           />
-          <Input
-            control={control}
-            name="dimensions"
-            label={'Dimensions *'}
-            containerStyle={styles.emailContainer}
-            inputProps={{
-              placeholder: 'Enter Dimensions'
-            }}
-            required={{ value: true, message: 'Dimensions is required' }}
-            error={errors}
-            maxLength={40}
-            keyboardType={'numeric'}
-            inputStyle={styles.inputStyle}
-          />
+          <View style={styles.dimensionContainer}>
+            <Text style={styles.dimensionLabel}>Dimensions *</Text>
+            <View style={styles.dimensionInputsRow}>
+              <Input
+                control={control}
+                name="package_dimension_length"
+                label={''}
+                containerStyle={styles.dimensionInputContainer}
+                inputProps={{
+                  placeholder: 'Length',
+                }}
+                required={{ value: true, message: 'Please enter length' }}
+                error={errors}
+                maxLength={10}
+                keyboardType="numeric"
+                inputStyle={styles.dimensionInputStyle}
+              />
+              <Text style={styles.xLabel}>X</Text>
+              <Input
+                control={control}
+                name="package_dimension_width"
+                label={''}
+                containerStyle={styles.dimensionInputContainer}
+                inputProps={{
+                  placeholder: 'Width',
+                }}
+                required={{ value: true, message: 'Please enter width' }}
+                error={errors}
+                maxLength={10}
+                keyboardType="numeric"
+                inputStyle={styles.dimensionInputStyle}
+              />
+              <Text style={styles.xLabel}>X</Text>
+              <Input
+                control={control}
+                name="package_dimension_height"
+                label={''}
+                containerStyle={styles.dimensionInputContainer}
+                inputProps={{
+                  placeholder: 'Height',
+                }}
+                required={{ value: true, message: 'Please enter height' }}
+                error={errors}
+                maxLength={10}
+                keyboardType="numeric"
+                inputStyle={styles.dimensionInputStyle}
+              />
+            </View>
+          </View>
           <Input
             control={control}
             name="weight"
-            label={'Weight *'}
+            label={'Weight In Pounds*'}
             containerStyle={styles.emailContainer}
             inputProps={{
               placeholder: 'Enter Weight'
@@ -691,7 +926,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             title="Upload Product Media"
             subtitle={`1 video + at least 1 image (${uploadedImages.length} selected)`}
             uploadTitle={uploadedImages.length > 0 ? "Add More Images/Video" : "Upload Your Product Photos/Video"}
-            uploadSubtitle={uploadedImages.length > 0 ? "Add additional images or video to your product" : "Upload a 360° view video and at least 1 product image. Minimum 720p quality."}
+            // uploadSubtitle={uploadedImages.length > 0 ? "Add additional images or video to your product" : "Upload a 360° view video and at least 1 product image. Minimum 720p quality."}
           />
           {imageError ? (
             <Text style={styles.imageErrorText}>{imageError}</Text>
@@ -1378,6 +1613,36 @@ const styles = StyleSheet.create({
   },
   formFieldsContainer: {
     marginTop: 24,
+  },
+  dimensionContainer: {
+    marginTop: 24,
+  },
+  dimensionLabel: {
+    fontSize: fontSizes.medium,
+    color: colors.primaryBlack,
+    fontFamily: fonts.medium,
+    marginBottom: 12,
+  },
+  dimensionInputsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  dimensionInputContainer: {
+    flex: 1,
+    marginRight: 8,
+  },
+  dimensionInputStyle: {
+    width: '100%',
+    textAlign: 'center',
+  },
+  xLabel: {
+    fontSize: fontSizes.medium,
+    color: colors.primaryBlack,
+    fontFamily: fonts.bold,
+    marginHorizontal: 8,
+    marginTop: 10,
+    alignSelf: 'center',
   },
   imageActionsContainer: {
     flexDirection: 'row',
