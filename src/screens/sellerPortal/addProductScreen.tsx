@@ -109,6 +109,8 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     queryFn: () => getScanProductDetail(scannedBarcode as string),
     enabled: !!scannedBarcode,
   });
+  console.log("scanProductData", JSON.stringify(scanProductData));
+  
   const discountPercentage = ProductPriceData?.data?.product_price?.price
   const transformCategoryData = (apiData: any): DropDownType[] => {
     if (apiData?.status === 'success' && apiData?.data?.category) {
@@ -375,7 +377,8 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
         setUploadedImages([]);
         setValue('productImages', []);
   
-        const firstImageUrl = productData.images[0];
+        const firstImageUrl = productData.images[0] ? productData.images[0] : productData.images;
+  console.log("firstImageUrl--", productData.images);
   
         const handleRemoteImage = async (url: string) => {
           try {
@@ -394,6 +397,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
               name: 'scanned_product_image.jpg',
               type: 'image/jpeg',
             };
+  // console.log("scannedImage", scannedImage);
   
             setUploadedImages([scannedImage]);
             setValue('productImages', [scannedImage]);
