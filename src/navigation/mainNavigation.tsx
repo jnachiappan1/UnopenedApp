@@ -63,14 +63,15 @@ const MainNavigation: React.FC = () => {
   //     planOwnerData || memberData || providerData
   //       ? SCREENS.BottomTab
   //       : SCREENS.SelectUserType;
-  const checkToken = async () => {
-    const fcmToken = await getFCMToken();
-    dispatch(saveFcmToken(fcmToken));
-  };
+  
   React.useEffect(() => {
     checkToken();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  const checkToken = async () => {
+    const fcmToken = await getFCMToken();
+    dispatch(saveFcmToken(fcmToken));
+  };
   return (
     // <View style={container}>
     <Stack.Navigator

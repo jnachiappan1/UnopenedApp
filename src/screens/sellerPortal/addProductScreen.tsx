@@ -85,7 +85,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [imageError, setImageError] = useState<string>('');
   const [dropdownData, setDropdownData] = useState<DropDownType[]>([]);
-  
   const { data: categoryData, refetch: refetchcategoryDetail } = useQuery({
     queryKey: ['getCategoryDetail'],
     queryFn: () => getCategoryDetail(),
@@ -195,7 +194,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     if (scanProductData?.data?.product) {
       const productData = scanProductData.data.product;
       const scannedCategoryName = productData.category || '';
-      
       // Extract the first part before ">" for better category matching
       const primaryCategory = scannedCategoryName.split('>')[0]?.trim() || scannedCategoryName;
       const matchedCategory = dropdownData.find((cat) => {
@@ -243,20 +241,15 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
 
       // Handle dimensions - split dimension string into length, width, height
       if (productData.dimension) {
-        console.log("Original dimension:", productData.dimension);
-        
         // Split by both uppercase and lowercase X, and remove "inches" text
         const cleanDimension = productData.dimension.replace(/\s*inches?/i, '').trim();
-        console.log("Cleaned dimension:", cleanDimension);
         
         const dimensionParts = cleanDimension.split(/[xX]/).map((part: string) => part.trim());
-        console.log("Dimension parts:", dimensionParts);
         
         if (dimensionParts.length >= 3) {
           setValue('package_dimension_length', dimensionParts[0] || '');
           setValue('package_dimension_width', dimensionParts[1] || '');
           setValue('package_dimension_height', dimensionParts[2] || '');
-          console.log("Set dimensions - Length:", dimensionParts[0], "Width:", dimensionParts[1], "Height:", dimensionParts[2]);
         } else if (dimensionParts.length === 1) {
           // If only one part, put it in length field
           setValue('package_dimension_length', dimensionParts[0] || '');
@@ -278,12 +271,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
         
         // Log the final form values to verify they were set correctly
         setTimeout(() => {
-          console.log("Form values after setting:", {
-            length: getValues('package_dimension_length'),
-            width: getValues('package_dimension_width'),
-            height: getValues('package_dimension_height'),
-            weight: getValues('weight')
-          });
+          
         }, 100);
         
         // Handle images from scanned product - only set the first image, user can add more
@@ -298,6 +286,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
           name: 'scanned_product_image.jpg',
           type: 'image/jpeg'
         };
+        
         // Set only the scanned image, user can add more through camera
         setUploadedImages([scannedImage]);
         setValue('productImages', [scannedImage]);
@@ -430,111 +419,82 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     setIsNavigatingToPreview(false);
   };
 
-  // const prepareFormDataForAPI = (data: FormData) => {
+  const prepareFormDataForAPI = (data: FormData) => {
     
-  //   const formData = new FormData()
-  //   formData.append('brand', data.brandName);
-  //   formData.append('name', data.productName);
-  //   formData.append('barcode', data.barcode);
-  //   const categoryId = typeof data.category === 'object' && data.category !== null
-  //     ? data.category.id
-  //     : '';
-  //   formData.append('category_id', categoryId);
-  //   formData.append('msrp', data.msrp);
-  //   data?.package_dimension_length && formData.append('length', data.package_dimension_length);
-  //   data?.package_dimension_width && formData.append('width', data.package_dimension_width);
-  //   data?.package_dimension_height && formData.append('height', data.package_dimension_height);
-  //   data?.weight && formData.append('weight', data.weight);
-  //   formData.append('price', data.price);
-  //   formData.append('platform_fee', data.platform_fee);
-  //   formData.append('seller_final_price', data.seller_final_price);
-  //   formData.append('description', data.description);
-  //   images: data?.images || []
-  //   // formData.append('images[0]',{
-  //   //       uri: uploadedImages[0].uri,
-  //   //       name: uploadedImages[0].name || `image_${0}.jpg`,
-  //   //       type: uploadedImages[0].type || 'image/jpeg',
-  //   //     } );
+    const formData = new FormData()
+    formData.append('brand', data.brandName);
+    formData.append('name', data.productName);
+    formData.append('barcode', data.barcode);
+    const categoryId = typeof data.category === 'object' && data.category !== null
+      ? data.category.id
+      : '';
+    formData.append('category_id', categoryId);
+    formData.append('msrp', data.msrp);
+    data?.package_dimension_length && formData.append('length', data.package_dimension_length);
+    data?.package_dimension_width && formData.append('width', data.package_dimension_width);
+    data?.package_dimension_height && formData.append('height', data.package_dimension_height);
+    data?.weight && formData.append('weight', data.weight);
+    formData.append('price', data.price);
+    formData.append('platform_fee', data.platform_fee);
+    formData.append('seller_final_price', data.seller_final_price);
+    formData.append('description', data.description);
     
-  //   // uploadedImages.forEach((media, index) => {
-  //   //   formData.append(`images[${index}]`, {
-  //   //     uri: media.uri,
-  //   //     name: media.name || `image_${index}.jpg`,
-  //   //     type: media.type || 'image/jpeg',
-  //   //   });
-  //   // });
-    
-  //   // const imageArray = uploadedImages.map(media => ({
-  //   //   uri: media.uri,
-  //   //   name: media.name,
-  //   //   type: media.type,
-  //   // }));
-  
-  //   // // Append as stringified array
-  //   // formData.append('images', JSON.stringify(imageArray));
-  //   // uploadedImages.forEach((media, index) => {
-  //   //   formData.append('images', {
-  //   //     uri: media.uri,
-  //   //     name: media.name || `image_${index}.jpg`,
-  //   //     type: media.type || 'image/jpeg',
-  //   //   });
-  //   // });
-  //   // uploadedImages.forEach((media, index) => {
-  //   //   formData.append('images', {
-  //   //     uri: media.uri,
-  //   //     name: media.name || `image_${index}.jpg`,
-  //   //     type: media.type || 'image/jpeg',
-  //   //   });
-  //   // });
-  //   return formData;
-  // };
-  const prepareFormDataForAPI = (data: any) => {
-    const formData = new FormData();
-  
-    // Build payload first
-    const payload: Record<string, any> = {
-      brand: data.brandName,
-      name: data.productName,
-      barcode: data.barcode,
-      category_id:
-        typeof data.category === 'object' && data.category !== null
-          ? data.category.id
-          : '',
-      msrp: data.msrp,
-      length: data?.package_dimension_length,
-      width: data?.package_dimension_width,
-      height: data?.package_dimension_height,
-      weight: data?.weight,
-      price: data.price,
-      platform_fee: data.platform_fee,
-      seller_final_price: data.seller_final_price,
-      description: data.description,
-      images: data?.images || [], // images array
-    };
-  
-    Object.keys(payload).forEach((key) => {
-      if (key === 'images' && Array.isArray(payload.images)) {
-        payload.images.forEach((img, index) => {
-          // Append only local images (file:// or content:// for Android)
-          if (img?.uri?.startsWith('file://') || img?.uri?.startsWith('content://')) {
-            formData.append(`images[${index}]`, {
-              uri: img.uri,
-              name: img.name || `image_${index}.jpg`,
-              type: img.type || 'image/jpeg',
-            } as any);
-          }
-        });
-      } else if (
-        payload[key] !== undefined &&
-        payload[key] !== null &&
-        payload[key] !== ''
-      ) {
-        formData.append(key, payload[key]);
-      }
+    uploadedImages.forEach((media, index) => {
+      formData.append('images', {
+        uri: media.uri,
+        name: media.name || `image_${index}.jpg`,
+        type: media.type || 'image/jpeg',
+      });
     });
-  
     return formData;
   };
+  // const prepareFormDataForAPI = (data: any) => {
+  //   const formData = new FormData();
+  
+  //   // Build payload first
+  //   const payload: Record<string, any> = {
+  //     brand: data.brandName,
+  //     name: data.productName,
+  //     barcode: data.barcode,
+  //     category_id:
+  //       typeof data.category === 'object' && data.category !== null
+  //         ? data.category.id
+  //         : '',
+  //     msrp: data.msrp,
+  //     length: data?.package_dimension_length,
+  //     width: data?.package_dimension_width,
+  //     height: data?.package_dimension_height,
+  //     weight: data?.weight,
+  //     price: data.price,
+  //     platform_fee: data.platform_fee,
+  //     seller_final_price: data.seller_final_price,
+  //     description: data.description,
+  //     images: data?.images || [], // images array
+  //   };
+  
+  //   Object.keys(payload).forEach((key) => {
+  //     if (key === 'images' && Array.isArray(payload.images)) {
+  //       payload.images.forEach((img, index) => {
+  //         // Append only local images (file:// or content:// for Android)
+  //         if (img?.uri?.startsWith('file://') || img?.uri?.startsWith('content://')) {
+  //           formData.append(`images[${index}]`, {
+  //             uri: img.uri,
+  //             name: img.name || `image_${index}.jpg`,
+  //             type: img.type || 'image/jpeg',
+  //           } as any);
+  //         }
+  //       });
+  //     } else if (
+  //       payload[key] !== undefined &&
+  //       payload[key] !== null &&
+  //       payload[key] !== ''
+  //     ) {
+  //       formData.append(key, payload[key]);
+  //     }
+  //   });
+  
+  //   return formData;
+  // };
   const { mutate } = useMutation({
     mutationFn: (data: globalThis.FormData) => addProduct(data),
     onSuccess: data => {
@@ -559,87 +519,18 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
 
   const Submit = async (data: FormData) => {
     const isValid = await validateAllFields();
-    // if (!isValid) {
-    //   Alert.alert(
-    //     'Validation Error',
-    //     'Please fill all required fields and upload a 360° view video plus at least 1 product image.'
-    //   );
-    //   return;
-    // }
+    if (!isValid) {
+      Alert.alert(
+        'Validation Error',
+        'Please fill all required fields and upload a 360° view video plus at least 1 product image.'
+      );
+      return;
+    }
     const apiFormData = prepareFormDataForAPI(data);
-    console.log(JSON.stringify(apiFormData),"apiFormData---------");
     showLoader(true);
      mutate(apiFormData)
   };
-  // const Submit = async (data: FormData) => {
-  //   const isValid = await validateAllFields();
-  //   if (!isValid) {
-  //     Alert.alert(
-  //       'Validation Error',
-  //       'Please fill all required fields and upload a 360° view video plus at least 1 product image.'
-  //     );
-  //     return;
-  //   }
-    
-  //   const apiFormData = prepareFormDataForAPI(data);
-  //   console.log(JSON.stringify(apiFormData), "apiFormData---------");
-  //   showLoader(true);
-    
-  //   try {
-  //     // Get the auth token from your storage/context
-  //     const token = userData?.token || ''; // Adjust based on your token storage
-      
-  //     const response = await fetch(`${API.seller.add_Product}`, {
-  //       method: 'POST',
-  //       headers: {
-  //         'Authorization': `Bearer ${token}`,
-  //         'Content-Type': 'multipart/form-data',
-  //         'Accept': 'application/json',
-  //       },
-  //       body: apiFormData,
-  //     });
-      
-  //     const responseData = await response.json();
-      
-  //     if (response.ok) {
-  //       showLoader(false);
-  //       showAlert({
-  //         isVisible: true,
-  //         type: 'success',
-  //         title: 'Product',
-  //         description: 'Product added successfully',
-  //         doneText: 'Okay',
-  //         onDonePress: () => {
-  //           reset();
-  //           setUploadedImages([]);
-  //           setImageError('');
-  //           navigation.navigate(SCREENS.BottomTab);
-  //         },
-  //       });
-  //     } else {
-  //       showLoader(false);
-  //       showAlert({
-  //         isVisible: true,
-  //         type: 'error',
-  //         title: 'Error',
-  //         description: responseData.message || 'Failed to add product',
-  //         doneText: 'Okay',
-  //         onDonePress: () => {},
-  //       });
-  //     }
-  //   } catch (error) {
-  //     showLoader(false);
-  //     console.error('Error adding product:', error);
-  //     showAlert({
-  //       isVisible: true,
-  //       type: 'error',
-  //       title: 'Error',
-  //       description: 'Network error occurred. Please try again.',
-  //       doneText: 'Okay',
-  //       onDonePress: () => {},
-  //     });
-  //   }
-  // };
+  
 
   const handleUploadPress = () => {
     setIsModalVisible(true);
@@ -662,29 +553,28 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             const updatedImages = uploadedImages.filter((_, i) => i !== index);
             setUploadedImages(updatedImages);
             setValue('productImages', updatedImages);
-            // Check if there's at least one video
             const hasVideo = updatedImages.some(media => isVideo(media));
             
             if (hasVideo && updatedImages.length >= 2) {
               clearErrors('productImages');
               setImageError('');
             } 
-            // else if (!hasVideo) {
-            //   const errorMessage = 'Please upload a 360° view video of your product';
-            //   setImageError(errorMessage);
-            //   setError('productImages', {
-            //     type: 'manual',
-            //     message: errorMessage
-            //   });
-            // } 
-            // else {
-            //   const errorMessage = `Minimum 2 media files required (1 video + at least 1 image). Currently selected: ${updatedImages.length}`;
-            //   setImageError(errorMessage);
-            //   setError('productImages', {
-            //     type: 'manual',
-            //     message: errorMessage
-            //   });
-            // }
+            else if (!hasVideo) {
+              const errorMessage = 'Please upload a 360° view video of your product';
+              setImageError(errorMessage);
+              setError('productImages', {
+                type: 'manual',
+                message: errorMessage
+              });
+            } 
+            else {
+              const errorMessage = `Minimum 2 media files required (1 video + at least 1 image). Currently selected: ${updatedImages.length}`;
+              setImageError(errorMessage);
+              setError('productImages', {
+                type: 'manual',
+                message: errorMessage
+              });
+            }
           }
         }
       ]
@@ -703,11 +593,11 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
           onPress: () => {
             setUploadedImages([]);
             setValue('productImages', []);
-            // setImageError('Please upload a 360° view video and at least 1 image');
-            // setError('productImages', {
-            //   type: 'manual',
-            //   message: 'Please upload a 360° view video and at least 1 image'
-            // });
+            setImageError('Please upload a 360° view video and at least 1 image');
+            setError('productImages', {
+              type: 'manual',
+              message: 'Please upload a 360° view video and at least 1 image'
+            });
           }
         }
       ]

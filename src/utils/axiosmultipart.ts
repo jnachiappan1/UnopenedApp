@@ -40,8 +40,6 @@ instance.interceptors.response.use(
   },
 
   function (error) {
-    console.log(error,"error.response------");
-
     if (error?.response) {
       
       if (error.response?.data) {

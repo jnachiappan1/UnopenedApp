@@ -36,6 +36,8 @@ type VerifyOTPProps = NativeStackScreenProps<
 const VerifyOTP: React.FC<VerifyOTPProps> = ({route, navigation}) => {
    let userType = useSelector((type: any) => type.user.userType);
    const fcmToken = useSelector((user: IRootState) => user.user.fcmToken);
+   console.log("fcmToken--->>::::::::::>>>>>>>", fcmToken);
+   
   const {otp, email, type} = route.params;
   const [resendOtp, setResendOtp] = useState('');
   const dispatch = useDispatch();
@@ -145,6 +147,8 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({route, navigation}) => {
         ? { fcmToken: fcmToken }
         : {}),
     };
+    console.log("fcmToken---", fcmToken);
+    
     showLoader(true);
     mutate({ type, payload });
   };

@@ -9,27 +9,30 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from 'react-native';
-import React, { useState, useRef } from 'react';
-import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import React, {useState, useRef} from 'react';
+import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
 import colors from '../../utils/colors';
-import { fontSizes } from '../../utils/utils';
+import {fontSizes} from '../../utils/utils';
 import fonts from '../../assets/fonts/fonts';
 import IconsSvg from '../../assets/svg/iconsSvg';
 import Button from '../../components/button/buttons';
-import { getProductDetailByID, getProductPriceDetail } from '../../utils/apiAction';
-import { useQuery } from '@tanstack/react-query';
-import { productData } from '../../utils/static';
-import { ProductData } from '../../utils/types';
-import { image_url } from '../../utils/api';
+import {
+  getProductDetailByID,
+  getProductPriceDetail,
+} from '../../utils/apiAction';
+import {useQuery} from '@tanstack/react-query';
+import {productData} from '../../utils/static';
+import {ProductData} from '../../utils/types';
+import {image_url} from '../../utils/api';
 import InfoRow from '../../components/card/infoRow';
-import { useSelector } from 'react-redux';
-import { IRootState } from '../../redux/store';
-import { showLoader } from '../../components/loader/loader';
+import {useSelector} from 'react-redux';
+import {IRootState} from '../../redux/store';
+import {showLoader} from '../../components/loader/loader';
 import StatusBadge from '../../components/card/statusBadge';
 
-const { width } = Dimensions.get('window');
+const {width} = Dimensions.get('window');
 
 type LoginProps = NativeStackScreenProps<
   RootStackParamList,
@@ -43,18 +46,26 @@ interface ProductImage {
   updatedAt: string;
 }
 
-const BProductDetailScreen: React.FC<LoginProps> = ({ route, navigation }) => {
-  const { productId } = route?.params;
+const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
+  const {productId} = route?.params;
   const product: ProductData = productData[0];
   const userData = useSelector((user: IRootState) => user.user.userData);
   const isLogged = userData ? true : false;
 
-  const { data: allProductList, refetch: refetchAllProduct, isLoading } = useQuery({
+  const {
+    data: allProductList,
+    refetch: refetchAllProduct,
+    isLoading,
+  } = useQuery({
     queryKey: ['getProductDetailByID', productId],
     queryFn: () => getProductDetailByID(productId),
   });
 
-  const { data: ProductPriceData, refetch: refetchProductPriceData, isLoading: isLoadingProductPriceData } = useQuery({
+  const {
+    data: ProductPriceData,
+    refetch: refetchProductPriceData,
+    isLoading: isLoadingProductPriceData,
+  } = useQuery({
     queryKey: ['getProductPriceDetail'],
     queryFn: () => getProductPriceDetail(),
     enabled: isLogged,
@@ -63,7 +74,9 @@ const BProductDetailScreen: React.FC<LoginProps> = ({ route, navigation }) => {
   const flatListRef = useRef<FlatList<ProductImage>>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  const handleImageScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+  const handleImageScroll = (
+    event: NativeSyntheticEvent<NativeScrollEvent>,
+  ) => {
     const slideSize = event.nativeEvent.layoutMeasurement.width;
     const index = Math.round(event.nativeEvent.contentOffset.x / slideSize);
     setCurrentImageIndex(index);
@@ -106,14 +119,14 @@ const BProductDetailScreen: React.FC<LoginProps> = ({ route, navigation }) => {
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
-            keyExtractor={(item) => item.id.toString()}
+            keyExtractor={item => item.id.toString()}
             onMomentumScrollEnd={handleImageScroll}
             snapToAlignment="center"
             decelerationRate="fast"
-            renderItem={({ item }) => (
+            renderItem={({item}) => (
               <View style={styles.imageSlide}>
                 <Image
-                  source={{ uri: image_url + item.image }}
+                  source={{uri: image_url + item.image}}
                   style={styles.productImage}
                   resizeMode="contain"
                 />
@@ -130,12 +143,14 @@ const BProductDetailScreen: React.FC<LoginProps> = ({ route, navigation }) => {
                     currentImageIndex === index && styles.activeDot,
                   ]}
                 />
-              )
+              ),
             )}
           </View>
           <View style={styles.productInfoInside}>
             <Text style={styles.productName}>{currentProduct?.name}</Text>
-            <Text style={styles.productDescription}>{currentProduct?.description}</Text>
+            <Text style={styles.productDescription}>
+              {currentProduct?.description}
+            </Text>
             <View style={styles.priceContainer}>
               <Text style={styles.price}>${currentProduct?.price}</Text>
               {currentProduct?.msrp && (
@@ -182,9 +197,13 @@ const BProductDetailScreen: React.FC<LoginProps> = ({ route, navigation }) => {
           {/* <View style={styles.stockBadge}>
             <Text style={styles.stockText}>In Stock</Text>
           </View> */}
-          <StatusBadge status={ currentProduct?.product_status === 'active'
-    ? 'In_Stock'
-    : currentProduct?.product_status} />
+          <StatusBadge
+            status={
+              currentProduct?.product_status === 'active'
+                ? 'In_Stock'
+                : currentProduct?.product_status
+            }
+          />
           <View style={styles.deliveryInfo}>
             <View style={styles.deliveryRow}>
               <View style={styles.deliveryIcon}>
@@ -232,7 +251,7 @@ const BProductDetailScreen: React.FC<LoginProps> = ({ route, navigation }) => {
             onPress={() => {
               if (isLogged) {
                 navigation.navigate(SCREENS.ConfirmYourOrderScreen, {
-                  productId: currentProduct?.id
+                  productId: currentProduct?.id,
                 });
               } else {
                 navigation.navigate(SCREENS.LoginScreen);
@@ -270,7 +289,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     alignItems: 'center',
   },
-  subtitleStyle: { textTransform: 'capitalize' },
+  subtitleStyle: {textTransform: 'capitalize'},
   mainContainerStyle: {
     paddingHorizontal: 0,
     flexDirection: 'row',
@@ -421,6 +440,6 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignSelf: 'flex-start',
     height: 26,
-    justifyContent: 'center'
-  }
+    justifyContent: 'center',
+  },
 });
