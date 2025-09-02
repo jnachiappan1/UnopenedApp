@@ -12,8 +12,8 @@ import {
 import colors from '../../utils/colors';
 import fonts from '../../assets/fonts/fonts';
 import IMAGE from '../../assets/images';
-import { image_url } from '../../utils/api';
-import { ProductData } from '../../utils/types';
+import {image_url} from '../../utils/api';
+import {ProductData} from '../../utils/types';
 import StatusBadge from './statusBadge';
 
 interface Props {
@@ -53,8 +53,9 @@ const ProductSection: React.FC<Props> = ({
         contentContainerStyle={styles.listContent}
         renderItem={(item, isHorizontal = false) => {
           const imageUri = item.item?.product_image?.[0]?.image
-            ? image_url + item.item?.product_image?.[0]?.image
+            ? image_url + item.item?.product_image?.[1]?.image
             : 'https://via.placeholder.com/150';
+
           return (
             <View style={styles.productWrapper}>
               <TouchableOpacity
@@ -62,40 +63,39 @@ const ProductSection: React.FC<Props> = ({
                   styles.productCard,
                   isHorizontal && styles.horizontalCard,
                 ]}
-                onPress={() => handlePress(item.item)}
-              >
+                onPress={() => handlePress(item.item)}>
                 <Image
-                  source={{ uri: imageUri }}
+                  source={{uri: imageUri}}
                   style={[
                     styles.productImage,
                     isHorizontal && styles.horizontalImage,
                   ]}
+                  
                 />
                 <View style={styles.productInfo}>
-                  <Text style={styles.productName} numberOfLines={1}>{item.item?.name}</Text>
+                  <Text style={styles.productName} numberOfLines={1}>
+                    {item.item?.name}
+                  </Text>
                   <Text style={styles.productDescription} numberOfLines={1}>
                     {item.item?.description}
                   </Text>
-                  {
-                    item?.item?.product_status ==="sold" ?
+                  {item?.item?.product_status === 'sold' ? (
                     <StatusBadge status={item.item?.product_status} />
-                    :
+                  ) : (
                     <View style={styles.priceContainer}>
-                    <Text style={styles.price}>${item.item?.price}</Text>
-                    {item.item?.msrp && (
-                      <Text style={styles.originalPrice}>
-                        ${item.item?.msrp}
-                      </Text>
-                    )}
-                  </View>
-                  }
-                 
+                      <Text style={styles.price}>${item.item?.price}</Text>
+                      {item.item?.msrp && (
+                        <Text style={styles.originalPrice}>
+                          ${item.item?.msrp}
+                        </Text>
+                      )}
+                    </View>
+                  )}
                 </View>
               </TouchableOpacity>
             </View>
-          )
-        }
-        }
+          );
+        }}
       />
     </View>
   );

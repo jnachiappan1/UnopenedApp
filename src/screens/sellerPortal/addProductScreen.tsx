@@ -190,36 +190,142 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     return () => subscription.unsubscribe();
   }, [watch, ProductPriceChargeData, setValue]);
       
+  // useEffect(() => {
+  //   if (scanProductData?.data?.product) {
+  //     const productData = scanProductData.data.product;
+  //     const scannedCategoryName = productData.category || '';
+  //     // Extract the first part before ">" for better category matching
+  //     const primaryCategory = scannedCategoryName.split('>')[0]?.trim() || scannedCategoryName;
+  //     const matchedCategory = dropdownData.find((cat) => {
+  //       // Check if the category name is contained in the scanned category
+  //       const isContained = primaryCategory.toLowerCase().includes(cat.name.toLowerCase()) ||
+  //                          cat.name.toLowerCase().includes(primaryCategory.toLowerCase());
+  //       const isExactMatch = cat.name.toLowerCase() === primaryCategory.toLowerCase();
+  //       return isContained || isExactMatch;
+  //     });
+      
+  //     if (matchedCategory) {
+  //       setValue('category', matchedCategory);
+  //     } else {
+  //       // No category match found
+  //     }
+      
+  //     setValue('brandName', productData.brand || '');
+  //     setValue('productName', productData.title || '');
+  //     setValue('barcode', productData.ean || productData.upc || scannedBarcode || '');
+      
+ 
+  //     // Set MSRP
+  //     const msrpValue = productData.highest_recorded_price || '';
+  //     setValue('msrp', msrpValue.toString());
+      
+  //     // Calculate and set price based on MSRP and discount
+  //     if (msrpValue && discountPercentage) {
+  //       const { amountToPay } = calculateDiscount(parseFloat(msrpValue), discountPercentage);
+  //       setValue('price', amountToPay.toFixed(2));
+  //       if (ProductPriceChargeData?.data?.product_price?.price_charge) {
+  //         const platformFeePercentage = ProductPriceChargeData.data.product_price.price_charge;
+  //         const priceAmount = parseFloat(amountToPay.toFixed(2));
+  //         const platformFee = (priceAmount * platformFeePercentage) / 100;
+  //         setValue('platform_fee', platformFee.toFixed(2));
+  //         const sellerFinalPrice = priceAmount - platformFee;
+  //         setValue('seller_final_price', sellerFinalPrice.toFixed(2));
+  //       }
+  //     } else {
+  //       setValue('price', '');
+  //       setValue('platform_fee', '');
+  //       setValue('seller_final_price', '');
+  //     }
+      
+  //     setValue('description', productData.description || '');
+
+  //     // Handle dimensions - split dimension string into length, width, height
+  //     if (productData.dimension) {
+  //       // Split by both uppercase and lowercase X, and remove "inches" text
+  //       const cleanDimension = productData.dimension.replace(/\s*inches?/i, '').trim();
+        
+  //       const dimensionParts = cleanDimension.split(/[xX]/).map((part: string) => part.trim());
+        
+  //       if (dimensionParts.length >= 3) {
+  //         setValue('package_dimension_length', dimensionParts[0] || '');
+  //         setValue('package_dimension_width', dimensionParts[1] || '');
+  //         setValue('package_dimension_height', dimensionParts[2] || '');
+  //       } else if (dimensionParts.length === 1) {
+  //         // If only one part, put it in length field
+  //         setValue('package_dimension_length', dimensionParts[0] || '');
+  //         setValue('package_dimension_width', '');
+  //         setValue('package_dimension_height', '');
+  //         console.log("Single dimension set to length:", dimensionParts[0]);
+  //       } else {
+  //         setValue('package_dimension_length', '');
+  //         setValue('package_dimension_width', '');
+  //         setValue('package_dimension_height', '');
+  //       }
+  //     } else {
+  //       setValue('package_dimension_length', '');
+  //       setValue('package_dimension_width', '');
+  //       setValue('package_dimension_height', '');
+  //     }
+      
+  //             setValue('weight', productData.weight ? productData.weight.toString() : '');
+        
+  //       // Log the final form values to verify they were set correctly
+  //       setTimeout(() => {
+          
+  //       }, 100);
+        
+  //       // Handle images from scanned product - only set the first image, user can add more
+  //     if (productData.images && productData.images.length > 0) {
+  //       // Clear any existing images first to ensure clean state
+  //       setUploadedImages([]);
+  //       setValue('productImages', []);
+  //       console.log("::::::::::", productData.images);
+        
+  //       // Only take the first image from scanned product, not all images
+  //       const scannedImage: MediaObject = {
+  //         uri: productData.images[0], // Only first image
+  //         name: 'scanned_product_image.jpg',
+  //         type: 'image/jpeg'
+  //       };
+        
+  //       // Set only the scanned image, user can add more through camera
+  //       setUploadedImages([scannedImage]);
+  //       setValue('productImages', [scannedImage]);
+    
+  //       if (scannedImage) {
+  //         clearErrors('productImages');
+  //         setImageError('');
+  //       }
+  //     }
+  //     clearErrors();
+  //   }
+  // }, [scanProductData, dropdownData, setValue, clearErrors, scannedBarcode, discountPercentage]);
+
   useEffect(() => {
     if (scanProductData?.data?.product) {
       const productData = scanProductData.data.product;
       const scannedCategoryName = productData.category || '';
-      // Extract the first part before ">" for better category matching
       const primaryCategory = scannedCategoryName.split('>')[0]?.trim() || scannedCategoryName;
+  
       const matchedCategory = dropdownData.find((cat) => {
-        // Check if the category name is contained in the scanned category
-        const isContained = primaryCategory.toLowerCase().includes(cat.name.toLowerCase()) ||
-                           cat.name.toLowerCase().includes(primaryCategory.toLowerCase());
+        const isContained =
+          primaryCategory.toLowerCase().includes(cat.name.toLowerCase()) ||
+          cat.name.toLowerCase().includes(primaryCategory.toLowerCase());
         const isExactMatch = cat.name.toLowerCase() === primaryCategory.toLowerCase();
         return isContained || isExactMatch;
       });
-      
+  
       if (matchedCategory) {
         setValue('category', matchedCategory);
-      } else {
-        // No category match found
       }
-      
+  
       setValue('brandName', productData.brand || '');
       setValue('productName', productData.title || '');
       setValue('barcode', productData.ean || productData.upc || scannedBarcode || '');
-      
- 
-      // Set MSRP
+  
       const msrpValue = productData.highest_recorded_price || '';
       setValue('msrp', msrpValue.toString());
-      
-      // Calculate and set price based on MSRP and discount
+  
       if (msrpValue && discountPercentage) {
         const { amountToPay } = calculateDiscount(parseFloat(msrpValue), discountPercentage);
         setValue('price', amountToPay.toFixed(2));
@@ -236,26 +342,21 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
         setValue('platform_fee', '');
         setValue('seller_final_price', '');
       }
-      
+  
       setValue('description', productData.description || '');
-
-      // Handle dimensions - split dimension string into length, width, height
+  
       if (productData.dimension) {
-        // Split by both uppercase and lowercase X, and remove "inches" text
         const cleanDimension = productData.dimension.replace(/\s*inches?/i, '').trim();
-        
         const dimensionParts = cleanDimension.split(/[xX]/).map((part: string) => part.trim());
-        
+  
         if (dimensionParts.length >= 3) {
           setValue('package_dimension_length', dimensionParts[0] || '');
           setValue('package_dimension_width', dimensionParts[1] || '');
           setValue('package_dimension_height', dimensionParts[2] || '');
         } else if (dimensionParts.length === 1) {
-          // If only one part, put it in length field
           setValue('package_dimension_length', dimensionParts[0] || '');
           setValue('package_dimension_width', '');
           setValue('package_dimension_height', '');
-          console.log("Single dimension set to length:", dimensionParts[0]);
         } else {
           setValue('package_dimension_length', '');
           setValue('package_dimension_width', '');
@@ -266,40 +367,71 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
         setValue('package_dimension_width', '');
         setValue('package_dimension_height', '');
       }
-      
-              setValue('weight', productData.weight ? productData.weight.toString() : '');
-        
-        // Log the final form values to verify they were set correctly
-        setTimeout(() => {
-          
-        }, 100);
-        
-        // Handle images from scanned product - only set the first image, user can add more
+  
+      setValue('weight', productData.weight ? productData.weight.toString() : '');
+  
+      // ✅ Handle images (local file:// or remote http://)
       if (productData.images && productData.images.length > 0) {
-        // Clear any existing images first to ensure clean state
         setUploadedImages([]);
         setValue('productImages', []);
-        
-        // Only take the first image from scanned product, not all images
-        const scannedImage: MediaObject = {
-          uri: productData.images[0], // Only first image
-          name: 'scanned_product_image.jpg',
-          type: 'image/jpeg'
+  
+        const firstImageUrl = productData.images[0];
+  
+        const handleRemoteImage = async (url: string) => {
+          try {
+            const response = await fetch(url);
+            const blob = await response.blob();
+  
+            const base64Data = await new Promise<string>((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onloadend = () => resolve(reader.result as string);
+              reader.onerror = reject;
+              reader.readAsDataURL(blob); // -> data:image/jpeg;base64,...
+            });
+  
+            const scannedImage: MediaObject = {
+              uri: base64Data,
+              name: 'scanned_product_image.jpg',
+              type: 'image/jpeg',
+            };
+  
+            setUploadedImages([scannedImage]);
+            setValue('productImages', [scannedImage]);
+            clearErrors('productImages');
+            setImageError('');
+          } catch (error) {
+            console.error('Failed to fetch remote image:', error);
+          }
         };
-        
-        // Set only the scanned image, user can add more through camera
-        setUploadedImages([scannedImage]);
-        setValue('productImages', [scannedImage]);
-    
-        if (scannedImage) {
+  
+        if (firstImageUrl.startsWith('http')) {
+          handleRemoteImage(firstImageUrl); // convert remote → base64
+        } else {
+          // local file:// already fine
+          const scannedImage: MediaObject = {
+            uri: firstImageUrl,
+            name: 'scanned_product_image.jpg',
+            type: 'image/jpeg',
+          };
+          setUploadedImages([scannedImage]);
+          setValue('productImages', [scannedImage]);
           clearErrors('productImages');
           setImageError('');
         }
       }
+  
       clearErrors();
     }
-  }, [scanProductData, dropdownData, setValue, clearErrors, scannedBarcode, discountPercentage]);
-
+  }, [
+    scanProductData,
+    dropdownData,
+    setValue,
+    clearErrors,
+    scannedBarcode,
+    discountPercentage,
+    ProductPriceChargeData,
+  ]);
+  
   const handleImageUpload = (selectedImages: MediaObject[]) => {
     let finalImages;
     
@@ -325,22 +457,22 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       clearErrors('productImages');
       setImageError('');
     } 
-    // else if (!hasVideo) {
-    //   const errorMessage = 'Please upload a 360° view video of your product';
-    //   setImageError(errorMessage);
-    //   setError('productImages', {
-    //     type: 'manual',
-    //     message: errorMessage
-    //   });
-    // } 
-    // else {
-    //   const errorMessage = `Minimum 2 media files required (1 video + at least 1 image). Currently selected: ${finalImages.length}`;
-    //   setImageError(errorMessage);
-    //   setError('productImages', {
-    //     type: 'manual',
-    //     message: errorMessage
-    //   });
-    // }
+    else if (!hasVideo) {
+      const errorMessage = 'Please upload a 360° view video of your product';
+      setImageError(errorMessage);
+      setError('productImages', {
+        type: 'manual',
+        message: errorMessage
+      });
+    } 
+    else {
+      const errorMessage = `Minimum 2 media files required (1 video + at least 1 image). Currently selected: ${finalImages.length}`;
+      setImageError(errorMessage);
+      setError('productImages', {
+        type: 'manual',
+        message: errorMessage
+      });
+    }
     setIsModalVisible(false);
   };
 
@@ -348,26 +480,26 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     // Check if there's at least one video
     const hasVideo = uploadedImages.some(media => isVideo(media));
     
-    // if (!hasVideo) {
-    //   const errorMessage = 'Please upload a 360° view video of your product';
-    //   setImageError(errorMessage);
-    //   setError('productImages', {
-    //     type: 'manual',
-    //     message: errorMessage
-    //   });
-    //   return false;
-    // }
+    if (!hasVideo) {
+      const errorMessage = 'Please upload a 360° view video of your product';
+      setImageError(errorMessage);
+      setError('productImages', {
+        type: 'manual',
+        message: errorMessage
+      });
+      return false;
+    }
     
     // Check if there are at least 2 total media files (1 video + at least 1 image)
-    // if (uploadedImages.length < 2) {
-    //   const errorMessage = `Minimum 2 media files required (1 video + at least 1 image). Currently selected: ${uploadedImages.length}`;
-    //   setImageError(errorMessage);
-    //   setError('productImages', {
-    //     type: 'manual',
-    //     message: errorMessage
-    //   });
-    //   return false;
-    // }
+    if (uploadedImages.length < 2) {
+      const errorMessage = `Minimum 2 media files required (1 video + at least 1 image). Currently selected: ${uploadedImages.length}`;
+      setImageError(errorMessage);
+      setError('productImages', {
+        type: 'manual',
+        message: errorMessage
+      });
+      return false;
+    }
     
     clearErrors('productImages');
     setImageError('');
@@ -527,6 +659,8 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       return;
     }
     const apiFormData = prepareFormDataForAPI(data);
+    console.log(">>>>>>>>>>>>>", apiFormData);
+    
     showLoader(true);
      mutate(apiFormData)
   };

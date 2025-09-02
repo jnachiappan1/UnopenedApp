@@ -175,7 +175,7 @@ const AddFundScreen: React.FC<AddFundScreenProps> = ({ navigation }) => {
 
   // Add Stripe to payment options with proper typing
   const enhancedPaymentOptions = [
-    ...paymentOptions.map(option => ({ ...option, id: option.title.toLowerCase().replace(/\s+/g, '_') })),
+    // ...paymentOptions.map(option => ({ ...option, id: option.title.toLowerCase().replace(/\s+/g, '_') })),
     {
       title: 'Stripe',
       icon: 'securePayment' as const,

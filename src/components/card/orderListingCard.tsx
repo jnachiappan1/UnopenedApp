@@ -24,7 +24,7 @@ const OrderListingCard: React.FC<OrderListingCardProps> = ({ item, cardStyle, on
     <View style={[styles.cardContainer, cardStyle]}>
       <View style={styles.productDetailView}>
         <Image
-          source={{ uri: image_url + item?.product_image?.[0]?.image }}
+          source={{ uri: image_url + item?.product_image?.[1]?.image }}
           style={styles.cardImage}
         />
         <View>

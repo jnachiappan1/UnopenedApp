@@ -70,7 +70,7 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ navigation, r
     });
 
   };
-  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+  const handleMomentumEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const index = Math.round(event.nativeEvent.contentOffset.x / (width - 32));
     setCurrentIndex(index);
   };
@@ -101,17 +101,28 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ navigation, r
       [{ text: 'OK' }]
     );
   };
+  const mediaList = React.useMemo(() => {
+    const list = productDetail?.data?.product[0]?.product_image || [];
+    const sorted = [...list].sort((a, b) => (isVideo(a) ? 1 : 0) - (isVideo(b) ? 1 : 0));
+    return sorted.reverse();
+  }, [productDetail]);
+  
   return (
     <TitleBackHeaderContainer isBack title='Product Details' >
       <View style={styles.imageDetailContainer}>
         <FlatList<ProductImage>
           ref={flatListRef}
-          data={productDetail?.data?.product[0]?.product_image}
+          data={mediaList}
           horizontal
           pagingEnabled
+          decelerationRate="fast"
+          snapToInterval={width - 32}
+          snapToAlignment="start"
+          disableIntervalMomentum
           showsHorizontalScrollIndicator={false}
           keyExtractor={(item) => item.id.toString()}
-          onScroll={handleScroll}
+          onMomentumScrollEnd={handleMomentumEnd}
+          getItemLayout={(_, index) => ({ length: width - 32, offset: (width - 32) * index, index })}
           renderItem={({ item }) => (
             <View style={styles.mediaContainer}>
               {isVideo(item) ? (
@@ -135,20 +146,21 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ navigation, r
                 // Image display
                 <Image
                   source={{ uri: image_url+item.image }}
-                  style={styles.productImage}
-                  resizeMode="cover"
+                  style={[styles.productImage, ]}
+                  resizeMode="contain"
                 />
               )}
             </View>
+            
           )}
         />
 
         {/* Media Type Indicator */}
-        {productDetail?.data?.product[0]?.product_image && productDetail.data.product[0].product_image.length > 0 && (
+        {mediaList && mediaList.length > 0 && (
           <View style={styles.mediaIndicator}>
             <Text style={styles.mediaIndicatorText}>
-              {currentIndex + 1} of {productDetail.data.product[0].product_image.length}
-              {isVideo(productDetail.data.product[0].product_image[currentIndex]) && (
+              {currentIndex + 1} of {mediaList.length}
+              {isVideo(mediaList[currentIndex]) && (
                 <Text style={styles.videoIndicator}> • Video</Text>
               )}
             </Text>

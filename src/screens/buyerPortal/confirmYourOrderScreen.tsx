@@ -89,9 +89,10 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
       setShippingApiCalled(true);
       setIsShippingRatesLoading(false); // No need for loading state since we're using direct response
       // Use shipping rates directly from the shipping response (no need for separate API call)
-      if (response?.success && response?.shipment?.rates) {
-        setShippingID(response.shipment.id);
-        const shippingRates = response.shipment.rates;
+      const resData = (response as any)?.data ?? response;
+      if (resData?.success && resData?.shipment?.rates) {
+        setShippingID(resData.shipment.id);
+        const shippingRates = resData.shipment.rates;
         
         if (Array.isArray(shippingRates) && shippingRates.length > 0) {
           
@@ -732,6 +733,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
           callShippingAPI(address.id);
         }
       },
+      selectedAddressId: getCurrentAddressId() ?? null,
     });
   };
 

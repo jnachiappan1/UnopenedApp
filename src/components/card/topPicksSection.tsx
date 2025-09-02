@@ -59,7 +59,7 @@ const TopPicksSection: React.FC<Props> = ({
         renderItem={({ item }) => {
           return (
             <TouchableOpacity style={styles.topPickCard} onPress={() => onSelect?.(item)}>
-              <Image source={{ uri: image_url + item?.product_image[0]?.image }} style={styles.topPickImage} />
+              <Image source={{ uri: image_url + item?.product_image[1]?.image }} style={styles.topPickImage} />
               <Text style={styles.topPickName} numberOfLines={2}>{item.name}</Text>
               <StatusBadge status={item.product_status} />
             </TouchableOpacity>

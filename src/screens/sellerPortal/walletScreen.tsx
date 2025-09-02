@@ -275,9 +275,9 @@ const WalletScreen: React.FC<WalletScreenProps> = ({ navigation }) => {
         </View>
         <Text style={styles.pendingText}>Pending Transfers</Text>
         <View style={styles.pendingList}>
-          {pendingTranferData.map((item) => (
+          {/* {pendingTranferData.map((item) => (
             <PendingCard key={item.id} item={item} />
-          ))}
+          ))} */}
         </View>
         <View style={{ height: 110 }} />
       </ScrollView>

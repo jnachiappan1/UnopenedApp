@@ -108,6 +108,9 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
   }
 
   const currentProduct = allProductList?.data?.product[0];
+  const productImages: ProductImage[] = (
+    currentProduct?.product_image ?? []
+  ).slice().reverse();
 
   return (
     <TitleBackHeaderContainer title="Product Details" isBack>
@@ -115,7 +118,7 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
         <View style={styles.imageCarouselContainer}>
           <FlatList
             ref={flatListRef}
-            data={currentProduct?.product_image || []}
+            data={productImages}
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
@@ -134,7 +137,7 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
             )}
           />
           <View style={styles.dotsContainer}>
-            {(currentProduct?.product_image || []).map(
+            {productImages.map(
               (_: ProductImage, index: number) => (
                 <View
                   key={index}

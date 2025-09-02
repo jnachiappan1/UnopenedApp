@@ -237,6 +237,7 @@ export type RootStackParamList = {
   [SCREENS.AddAddressScreen]: undefined;
   [SCREENS.AddressSelectionScreen]: {
     onAddressSelect: (address: any) => void;
+    selectedAddressId?: number | null;
   };
   [SCREENS.BarcodeScanner]: undefined;
   [SCREENS.AddBankDetailsScreen]: undefined;

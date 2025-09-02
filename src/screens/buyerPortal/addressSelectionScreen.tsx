@@ -32,7 +32,7 @@ const AddressSelectionScreen: React.FC<AddressSelectionScreenProps> = ({
   navigation, 
   route 
 }) => {
-  const { onAddressSelect } = route.params;
+  const { onAddressSelect, selectedAddressId } = route.params;
   const queryClient = useQueryClient();
   const userData = useSelector((user: IRootState) => user.user.userData);
 
@@ -64,15 +64,14 @@ const AddressSelectionScreen: React.FC<AddressSelectionScreenProps> = ({
   // Set first address as default if available
   const allAddresses = React.useMemo(() => {
     if (addresses && addresses.length > 0) {
-      // Mark the first address as default
-      const addressesWithDefault = addresses.map((address: AddressType, index: number) => ({
+      const addressesWithDefault = addresses.map((address: AddressType) => ({
         ...address,
-        isDefault: index === 0
+        isDefault: selectedAddressId ? address.id === selectedAddressId : false,
       }));
       return addressesWithDefault;
     }
     return [];
-  }, [addresses]);
+  }, [addresses, selectedAddressId]);
 
   const handleAddressSelect = (address: AddressType) => {
     onAddressSelect(address);
