@@ -31,6 +31,7 @@ import {useSelector} from 'react-redux';
 import {IRootState} from '../../redux/store';
 import {showLoader} from '../../components/loader/loader';
 import StatusBadge from '../../components/card/statusBadge';
+import VideoPlayer from '../../components/videoPlayer/videoPlayer';
 
 const {width} = Dimensions.get('window');
 
@@ -44,6 +45,7 @@ interface ProductImage {
   image: string;
   createdAt: string;
   updatedAt: string;
+  type?: string;
 }
 
 const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
@@ -88,6 +90,35 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
     showLoader(isLoading);
   }, [isLoading]);
 
+  const isVideo = (mediaItem: ProductImage) => {
+    if (mediaItem.type && mediaItem.type.includes('video')) {
+      return true;
+    }
+    if (mediaItem.image) {
+      const videoExtensions = [
+        '.mp4',
+        '.mov',
+        '.avi',
+        '.mkv',
+        '.wmv',
+        '.flv',
+        '.webm',
+      ];
+      return videoExtensions.some(ext =>
+        mediaItem.image.toLowerCase().endsWith(ext),
+      );
+    }
+    return false;
+  };
+
+  const mediaList = React.useMemo(() => {
+    const list = allProductList?.data?.product?.[0]?.product_image || [];
+    const sorted = [...list].sort(
+      (a, b) => (isVideo(a) ? 1 : 0) - (isVideo(b) ? 1 : 0),
+    );
+    return sorted;
+  }, [allProductList]);
+
   // Show error if no product data found
   if (!isLoading && !allProductList?.data?.product?.[0]) {
     return (
@@ -112,15 +143,13 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
   const productImages: ProductImage[] = (
     currentProduct?.product_image ?? []
   ).slice().reverse();
-console.log("currentProduct",currentProduct);
-
   return (
     <TitleBackHeaderContainer title="Product Details" isBack>
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.imageCarouselContainer}>
           <FlatList
             ref={flatListRef}
-            data={productImages}
+            data={mediaList}
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
@@ -130,11 +159,23 @@ console.log("currentProduct",currentProduct);
             decelerationRate="fast"
             renderItem={({item}) => (
               <View style={styles.imageSlide}>
-                <Image
+                {/* <Image
                   source={{uri: image_url + item.image}}
                   style={styles.productImage}
                   resizeMode="contain"
+                /> */}
+                {isVideo(item) ? (
+                <VideoPlayer
+                  source={item.image}
+                  style={styles.productImage}
                 />
+              ) : (
+                <Image
+                  source={{uri: image_url + item.image}}
+                  style={[styles.productImage]}
+                  resizeMode="contain"
+                />
+              )}
               </View>
             )}
           />
@@ -444,5 +485,9 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     height: 26,
     justifyContent: 'center',
+  },
+  videoPlayerContainer: {
+    width: '100%',
+    height: '100%',
   },
 });

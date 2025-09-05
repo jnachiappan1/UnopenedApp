@@ -231,6 +231,9 @@ const styles = StyleSheet.create({
   },
   video: {
     backgroundColor: '#000',
+    alignSelf: 'center',
+    justifyContent: 'center',
+    flex: 1,
   },
   controls: {
     position: 'absolute',
