@@ -2,7 +2,7 @@ import { API } from './api';
 import axios from './axios';
 import axiosmultipart from './axiosmultipart';
 import { ChangePasswordPayloadType, ResendInputPayloadType, SignUpPayloadType } from './payload';
-import { ContactSupportType, AddressPayloadType } from './types';
+import { ContactSupportType, AddressPayloadType, PaymentPayloadType } from './types';
 
 //Plan Owner Auth API Action
 
@@ -61,14 +61,16 @@ export const getBankAccount = async () => {
 };
 
 export const cashOut = async (data: { amount: string }) => {
-  console.log(data.amount,"amount---");
-  
   const response = await axios.post(API.buyer.cashOut, data);
   return response;
 };
 
 export const getCashOutHistory = async () => {
   const response = await axios.get(API.buyer.cashOutHistory);
+  return response;
+};
+export const getCashOutRequest = async () => {
+  const response = await axios.get(API.buyer.cashOut_request);
   return response;
 };
 export const getCategoryDetail = async () => {
@@ -104,6 +106,9 @@ export const updateProductStatus = async (
   productID: string | number | null | undefined,
   data: globalThis.FormData
 ) => {
+  console.log("data", JSON.stringify(data));
+  console.log("productID", productID);
+  
   const response = await axiosmultipart.patch(API.seller.add_Product + "/" + productID, data);
   return response;
 };
@@ -317,5 +322,14 @@ export const getShippingRates = async (shippingRecordId: number) => {
 
 export const trackShipment = async (shipmentId: string) => {
   const response = await axios.get(`${API.buyer.trackShipment}/${shipmentId}/track`);
+  return response;
+};
+export const getNotification = async () => {
+  const response = await axios.get(API.buyer.notification);
+  return response;
+};
+
+export const createCashOut = async (payload: PaymentPayloadType) => {
+  const response = await axios.post(API.buyer.cashOut_request, payload);
   return response;
 };

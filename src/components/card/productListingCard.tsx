@@ -35,11 +35,12 @@ const ProductListingCard: React.FC<ProductListingCardProps> = ({
   const handleCardPress = () => {
     onSelect?.(item);
   };
+
   return (
     <View style={[styles.cardContainer, cardStyle]}>
       <View style={styles.productDetailView}>
         <Image
-          source={{uri: image_url + item?.product_image?.[1]?.image}}
+          source={{uri: image_url + item?.product_image[1]?.image}}
           style={styles.cardImage}
         />
         <View>
@@ -85,6 +86,7 @@ const styles = StyleSheet.create({
     height: 86,
     borderRadius: 8,
     marginRight: 12,
+    borderWidth: 0.2,
   },
   cardDetails: {
     flex: 1,

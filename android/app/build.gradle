@@ -51,29 +51,29 @@ android {
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
-            // // Enable APK splitting for debug builds
-            // splits {
-            //     abi {
-            //         enable true
-            //         reset()
-            //         include "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
-            //         universalApk false
-            //     }
-            // }
+            // Enable APK splitting for debug builds
+            splits {
+                abi {
+                    enable true
+                    reset()
+                    include "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
+                    universalApk false
+                }
+            }
         }
         release {
             signingConfig signingConfigs.debug
             minifyEnabled false
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
-            // // Enable APK splitting for release builds
-            // splits {
-            //     abi {
-            //         enable true
-            //         reset()
-            //         include "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
-            //         universalApk false
-            //     }
-            // }
+            // Enable APK splitting for release builds
+            splits {
+                abi {
+                    enable true
+                    reset()
+                    include "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
+                    universalApk false
+                }
+            }
         }
     }
 

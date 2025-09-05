@@ -1,23 +1,44 @@
-import { Alert, FlatList, Image, NativeScrollEvent, NativeSyntheticEvent, StyleSheet, Text, TouchableOpacity, View, Dimensions } from 'react-native'
-import React, { useRef, useState } from 'react'
-import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer'
-import { fontSizes, width } from '../../utils/utils';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
+import {
+  Alert,
+  FlatList,
+  Image,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  Dimensions,
+} from 'react-native';
+import React, {useRef, useState} from 'react';
+import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
+import {fontSizes, width} from '../../utils/utils';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
 import colors from '../../utils/colors';
 import StatusBadge from '../../components/card/statusBadge';
 import fonts from '../../assets/fonts/fonts';
 import InfoRow from '../../components/card/infoRow';
 import Button from '../../components/button/buttons';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { addProduct, getSellerProductByID, updateProductStatus } from '../../utils/apiAction';
+import {useMutation, useQuery} from '@tanstack/react-query';
+import {
+  addProduct,
+  getSellerProductByID,
+  updateProductStatus,
+} from '../../utils/apiAction';
 import moment from 'moment';
-import { handleError, handleSettled } from '../../utils/method';
-import { showAlert } from '../../components/cAlert';
-import { image_url } from '../../utils/api';
-import { showLoader } from '../../components/loader/loader';
+import {handleError, handleSettled} from '../../utils/method';
+import {showAlert} from '../../components/cAlert';
+import {image_url, base_url} from '../../utils/api';
+import {showLoader} from '../../components/loader/loader';
+import Video from 'react-native-video';
+import IconsSvg from '../../assets/svg/iconsSvg';
+import VideoPlayer from '../../components/videoPlayer/videoPlayer';
 
-type ProductDetailScreenProps = NativeStackScreenProps<RootStackParamList, SCREENS.ProductDetailScreen>;
+type ProductDetailScreenProps = NativeStackScreenProps<
+  RootStackParamList,
+  SCREENS.ProductDetailScreen
+>;
 interface ProductImage {
   id: number;
   product_id: number;
@@ -26,16 +47,29 @@ interface ProductImage {
   createdAt: string;
   updatedAt: string;
 }
-const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ navigation, route }) => {
-  const { productId } = route.params;
+const buildMediaUrl = (path: string): string => {
+  if (!path) return '';
+  if (/^https?:\/\//i.test(path)) return path;
+  if (path.startsWith('/')) {
+    return `${base_url}${path}`;
+  }
+  return `${image_url}${path}`;
+};
+const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
+  navigation,
+  route,
+}) => {
+  const {productId} = route.params;
   const flatListRef = useRef<FlatList<ProductImage>>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const { data: productDetail, refetch: refetchProductDetail } = useQuery({
+
+  const {data: productDetail, refetch: refetchProductDetail} = useQuery({
     queryKey: ['getSellerProductByID'],
     queryFn: () => getSellerProductByID(productId),
   });
-  const { mutate } = useMutation({
-    mutationFn: (data: globalThis.FormData) => updateProductStatus(productId, data),
+  const {mutate} = useMutation({
+    mutationFn: (data: globalThis.FormData) =>
+      updateProductStatus(productId, data),
     onSuccess: data => {
       showLoader(false);
       showAlert({
@@ -57,20 +91,21 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ navigation, r
       title: 'Product',
       description: 'Are you sure you want to withdraw this product',
       doneText: 'Okay',
-      deleteText: "cancel",
+      deleteText: 'cancel',
       onDonePress: () => {
-        const formData = new FormData()
-        formData.append('product_status', "withdrawn");
+        const formData = new FormData();
+        formData.append('product_status', 'withdrawn');
+        console.log('formData', formData);
+
         showLoader(true);
         mutate(formData);
       },
-      onDeletePress: () => {
-
-      },
+      onDeletePress: () => {},
     });
-
   };
-  const handleMomentumEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+  const handleMomentumEnd = (
+    event: NativeSyntheticEvent<NativeScrollEvent>,
+  ) => {
     const index = Math.round(event.nativeEvent.contentOffset.x / (width - 32));
     setCurrentIndex(index);
   };
@@ -83,32 +118,32 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ navigation, r
     }
     // Fallback: check file extension for common video formats
     if (mediaItem.image) {
-      const videoExtensions = ['.mp4', '.mov', '.avi', '.mkv', '.wmv', '.flv', '.webm'];
-      return videoExtensions.some(ext => 
-        mediaItem.image.toLowerCase().endsWith(ext)
+      const videoExtensions = [
+        '.mp4',
+        '.mov',
+        '.avi',
+        '.mkv',
+        '.wmv',
+        '.flv',
+        '.webm',
+      ];
+      return videoExtensions.some(ext =>
+        mediaItem.image.toLowerCase().endsWith(ext),
       );
     }
     return false;
   };
 
-  // Handle video play
-  const handleVideoPlay = (videoUrl: string) => {
-    // TODO: Implement video player
-    // For now, show an alert with video info
-    Alert.alert(
-      'Video Player',
-      'Video player functionality will be implemented here.\nVideo URL: ' + videoUrl,
-      [{ text: 'OK' }]
-    );
-  };
   const mediaList = React.useMemo(() => {
     const list = productDetail?.data?.product[0]?.product_image || [];
-    const sorted = [...list].sort((a, b) => (isVideo(a) ? 1 : 0) - (isVideo(b) ? 1 : 0));
-    return sorted.reverse();
+    const sorted = [...list].sort(
+      (a, b) => (isVideo(a) ? 1 : 0) - (isVideo(b) ? 1 : 0),
+    );
+    return sorted;
   }, [productDetail]);
-  
+
   return (
-    <TitleBackHeaderContainer isBack title='Product Details' >
+    <TitleBackHeaderContainer isBack title="Product Details">
       <View style={styles.imageDetailContainer}>
         <FlatList<ProductImage>
           ref={flatListRef}
@@ -120,38 +155,28 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ navigation, r
           snapToAlignment="start"
           disableIntervalMomentum
           showsHorizontalScrollIndicator={false}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={item => item.id.toString()}
           onMomentumScrollEnd={handleMomentumEnd}
-          getItemLayout={(_, index) => ({ length: width - 32, offset: (width - 32) * index, index })}
-          renderItem={({ item }) => (
+          getItemLayout={(_, index) => ({
+            length: width - 32,
+            offset: (width - 32) * index,
+            index,
+          })}
+          renderItem={({item}) => (
             <View style={styles.mediaContainer}>
               {isVideo(item) ? (
-                // Video display
-                <View style={styles.videoContainer}>
-                  <View style={styles.videoPlaceholder}>
-                    <Text style={styles.videoIcon}>🎥</Text>
-                    <Text style={styles.videoText}>Video</Text>
-                    <Text style={styles.videoFileName} numberOfLines={1}>
-                      {item.image.split('/').pop() || 'video.mp4'}
-                    </Text>
-                  </View>
-                  <TouchableOpacity 
-                    style={styles.playButton}
-                    onPress={() => handleVideoPlay(image_url + item.image)}
-                  >
-                    <Text style={styles.playIcon}>▶️</Text>
-                  </TouchableOpacity>
-                </View>
+                <VideoPlayer
+                  source={item.image}
+                  style={styles.videoPlayerContainer}
+                />
               ) : (
-                // Image display
                 <Image
-                  source={{ uri: image_url+item.image }}
-                  style={[styles.productImage, ]}
+                  source={{uri: image_url + item.image}}
+                  style={[styles.productImage]}
                   resizeMode="contain"
                 />
               )}
             </View>
-            
           )}
         />
 
@@ -171,31 +196,60 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ navigation, r
           source={{ uri: productDetail?.data?.product[0]?.product_image?.[0]?.image }}
           style={styles.productImage}
           resizeMode='stretch' /> */}
-        <StatusBadge status={productDetail?.data?.product[0]?.product_status} statusStyle={styles.statusStyle} />
-        <Text style={styles.titleStyle}>{productDetail?.data?.product[0]?.name}</Text>
-        <Text style={styles.descriptionStyle}>{productDetail?.data?.product[0]?.description}</Text>
-        <InfoRow title="Brand" subtitle={
-          productDetail?.data?.product[0]?.brand
-        }
-          subtitleStyle={styles.subtitleStyle} />
-        <InfoRow title="Category" subtitle={
-          productDetail?.data?.product[0]?.product_category?.name
-        }
-          subtitleStyle={styles.subtitleStyle} />
-        <InfoRow title="SKU / Barcode" subtitle={
-          productDetail?.data?.product[0]?.barcode
-        } subtitleStyle={styles.subtitleStyle} />
-        <InfoRow title="MRSP" subtitle={
-          productDetail?.data?.product[0]?.msrp
-        } subtitleStyle={styles.mrspStyle} />
-        <InfoRow title="Listing Price" subtitle={
-          productDetail?.data?.product[0]?.price
-        } subtitleStyle={styles.mrspStyle} />
+        <StatusBadge
+          status={productDetail?.data?.product[0]?.product_status}
+          statusStyle={styles.statusStyle}
+        />
+        <Text style={styles.titleStyle}>
+          {productDetail?.data?.product[0]?.name}
+        </Text>
+        <Text style={styles.descriptionStyle}>
+          {productDetail?.data?.product[0]?.description}
+        </Text>
+        <InfoRow
+          title="Brand"
+          subtitle={productDetail?.data?.product[0]?.brand}
+          subtitleStyle={styles.subtitleStyle}
+        />
+        <InfoRow
+          title="Category"
+          subtitle={productDetail?.data?.product[0]?.product_category?.name}
+          subtitleStyle={styles.subtitleStyle}
+        />
+        <InfoRow
+          title="SKU / Barcode"
+          subtitle={productDetail?.data?.product[0]?.barcode}
+          subtitleStyle={styles.subtitleStyle}
+        />
+        <InfoRow
+          title="MRSP"
+          subtitle={productDetail?.data?.product[0]?.msrp}
+          subtitleStyle={styles.mrspStyle}
+        />
+        <InfoRow
+          title="Listing Price"
+          subtitle={productDetail?.data?.product[0]?.price}
+          subtitleStyle={styles.mrspStyle}
+        />
       </View>
       <View style={styles.imageDetailContainer}>
         <Text style={styles.headingStyle}>Listing Details</Text>
-        <InfoRow title="Created On" style={styles.containerStyle} subtitle={moment(productDetail?.data?.product[0]?.createdAt).format('DD MMMM YYYY')} showColon />
-        <InfoRow title="Last Updated" style={styles.containerStyle} subtitle={moment(productDetail?.data?.product[0]?.updatedAt).format('DD MMMM YYYY')} showColon />
+        <InfoRow
+          title="Created On"
+          style={styles.containerStyle}
+          subtitle={moment(productDetail?.data?.product[0]?.createdAt).format(
+            'DD MMMM YYYY',
+          )}
+          showColon
+        />
+        <InfoRow
+          title="Last Updated"
+          style={styles.containerStyle}
+          subtitle={moment(productDetail?.data?.product[0]?.updatedAt).format(
+            'DD MMMM YYYY',
+          )}
+          showColon
+        />
         {/* <InfoRow title="Buyer Name" style={styles.containerStyle} subtitle="Jay" showColon />
         <View style={styles.row}>
           <Text style={styles.title}>{"Delivery Status"}</Text>
@@ -203,19 +257,20 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ navigation, r
           <StatusBadge status={"Delivered"} statusStyle={{}} />
         </View> */}
       </View>
-      {!['sold', 'withdrawn', 'rejected'].includes(productDetail?.data?.product?.[0]?.product_status) && (
-  <Button
-    title={'Withdraw'}
-    style={styles.withdrawButton}
-    onPress={Submit}
-  />
-)}
-
+      {!['sold', 'withdrawn', 'rejected'].includes(
+        productDetail?.data?.product?.[0]?.product_status,
+      ) && (
+        <Button
+          title={'Withdraw'}
+          style={styles.withdrawButton}
+          onPress={Submit}
+        />
+      )}
     </TitleBackHeaderContainer>
-  )
-}
+  );
+};
 
-export default ProductDetailScreen
+export default ProductDetailScreen;
 
 const styles = StyleSheet.create({
   imageDetailContainer: {
@@ -226,7 +281,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 10,
   },
-  containerStyle: { paddingHorizontal: 0, },
+  containerStyle: {paddingHorizontal: 0},
   productImage: {
     width: width - 32,
     height: 210,
@@ -235,22 +290,22 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   statusStyle: {
-    marginTop: 10
+    marginTop: 10,
   },
-  subtitleStyle: { textTransform: 'capitalize' },
+  subtitleStyle: {textTransform: 'capitalize'},
   titleStyle: {
     fontSize: fontSizes.large,
     fontFamily: fonts.bold,
     color: '#333333',
     marginVertical: 5,
-    textTransform: 'capitalize'
+    textTransform: 'capitalize',
   },
   descriptionStyle: {
     fontSize: fontSizes.regular,
     fontFamily: fonts.medium,
     color: '#666666',
     marginBottom: 10,
-    textTransform: 'capitalize'
+    textTransform: 'capitalize',
   },
   mrspStyle: {
     fontFamily: fonts.bold,
@@ -268,13 +323,13 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#F5F5F5',
     backgroundColor: colors.white,
-    alignItems: 'center'
+    alignItems: 'center',
   },
   title: {
     fontSize: fontSizes.small,
     fontFamily: fonts.medium,
     color: colors.label,
-    width: "30%"
+    width: '30%',
   },
   colon: {
     marginHorizontal: 4,
@@ -310,6 +365,8 @@ const styles = StyleSheet.create({
   videoPlaceholder: {
     alignItems: 'center',
     justifyContent: 'center',
+    width: '100%',
+    height: '100%',
   },
   videoIcon: {
     fontSize: 48,
@@ -331,8 +388,8 @@ const styles = StyleSheet.create({
   playButton: {
     position: 'absolute',
     top: '50%',
-    left: '50%',
-    transform: [{ translateX: -25 }, { translateY: -25 }],
+    // left: '50%',
+    transform: [{translateX: -25}, {translateY: -25}],
     width: 50,
     height: 50,
     borderRadius: 25,
@@ -358,4 +415,12 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontFamily: fonts.bold,
   },
-})
+  videoTouchArea: {
+    // flex: 1,
+    // position: 'relative',
+  },
+  videoPlayerContainer: {
+    width: '100%',
+    height: '100%',
+  },
+});

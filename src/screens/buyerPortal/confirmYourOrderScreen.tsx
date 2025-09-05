@@ -90,6 +90,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
       setIsShippingRatesLoading(false); // No need for loading state since we're using direct response
       // Use shipping rates directly from the shipping response (no need for separate API call)
       const resData = (response as any)?.data ?? response;
+      
       if (resData?.success && resData?.shipment?.rates) {
         setShippingID(resData.shipment.id);
         const shippingRates = resData.shipment.rates;
@@ -223,7 +224,6 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
         }
       }
     } catch (error: any) {
-      console.error('Coupon validation error:', error);
       showAlert({
         isVisible: true,
         type: 'error',
@@ -286,43 +286,12 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
 
   // Monitor priorityShippingRate changes
   useEffect(() => {
-    console.log('🔄 Priority shipping rate state changed:', {
-      priorityShippingRate: priorityShippingRate ? {
-        carrier: priorityShippingRate.carrier,
-        service: priorityShippingRate.service,
-        rate: priorityShippingRate.rate,
-        deliveryDays: priorityShippingRate.delivery_days
-      } : null,
-      selectedShippingRate: selectedShippingRate ? {
-        carrier: selectedShippingRate.carrier,
-        service: selectedShippingRate.service,
-        rate: selectedShippingRate.rate,
-        deliveryDays: selectedShippingRate.delivery_days
-      } : null,
-      shippingApiCalled,
-      isShippingRatesLoading
-    });
+   
   }, [priorityShippingRate, selectedShippingRate, shippingApiCalled, isShippingRatesLoading]);
 
   // Debug shipping display state
   useEffect(() => {
-    console.log('=== SHIPPING DISPLAY DEBUG ===', {
-      selectedShippingRate: selectedShippingRate ? {
-        id: selectedShippingRate.id,
-        carrier: selectedShippingRate.carrier,
-        service: selectedShippingRate.service,
-        rate: selectedShippingRate.rate,
-        delivery_days: selectedShippingRate.delivery_days
-      } : null,
-      isShippingRatesLoading,
-      shippingApiCalled,
-      priorityShippingRate: priorityShippingRate ? {
-        id: priorityShippingRate.id,
-        carrier: priorityShippingRate.carrier,
-        service: priorityShippingRate.service,
-        rate: priorityShippingRate.rate
-      } : null
-    });
+   
   }, [selectedShippingRate, isShippingRatesLoading, shippingApiCalled, priorityShippingRate]);
   const handleBuyNow = async () => {
     try {
@@ -526,7 +495,6 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
                   }
                 } else {
                   showLoader(false);
-                  console.error('Hybrid payment failed response:', hybridResponse);
                   showAlert({
                     isVisible: true,
                     type: 'error',
@@ -576,7 +544,6 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
         });
       }
     } catch (error) {
-      console.error('Error in handleBuyNow:', error);
       showLoader(false);
       showAlert({
         isVisible: true,
@@ -690,7 +657,6 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
         });
       }
     } catch (error: any) {
-      console.error('Stripe payment error:', error);
       showLoader(false);
       let errorDescription = 'Payment failed. Please try again.';
 
@@ -826,8 +792,6 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
           setAppliedDiscountCode('');
         }
       } catch (error) {
-        console.error('Failed to apply coupon after payment:', error);
-        // Don't show error to user as payment was successful
       }
     }
   };
@@ -860,6 +824,35 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
         message: `Hybrid payment: $${currentWalletBalance.toFixed(2)} from wallet + $${(finalAmount - currentWalletBalance).toFixed(2)} via Stripe`
       };
     }
+  };
+
+  // Build estimated delivery text using est_delivery_days (fallback to delivery_days or delivery_date)
+  const formatDate = (date: Date): string => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${date.getDate()} ${months[date.getMonth()]}, ${date.getFullYear()}`;
+  };
+
+  const getEstimatedDeliveryText = (): string => {
+    if (!selectedShippingRate) {
+      return 'Select a shipping option';
+    }
+    const daysValue = Number(selectedShippingRate?.est_delivery_days ?? selectedShippingRate?.delivery_days);
+    if (Number.isFinite(daysValue) && daysValue > 0) {
+      const estimatedDate = new Date();
+      estimatedDate.setDate(estimatedDate.getDate() + Math.floor(daysValue));
+      const formatted = formatDate(estimatedDate);
+      const daysLabel = Math.floor(daysValue) === 1 ? '1 day' : `${Math.floor(daysValue)} days`;
+      return `On or before ${formatted} (${daysLabel})`;
+    }
+    if (selectedShippingRate?.delivery_date) {
+      const dateFromCarrier = new Date(selectedShippingRate.delivery_date);
+      if (!isNaN(dateFromCarrier.getTime())) {
+        const formatted = formatDate(dateFromCarrier);
+        const prefix = selectedShippingRate?.delivery_date_guaranteed ? 'Guaranteed by' : 'Estimated by';
+        return `${prefix} ${formatted}`;
+      }
+    }
+    return 'Estimate unavailable';
   };
 
   return (
@@ -983,7 +976,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
           <View style={styles.summaryDivider} />
           <View style={styles.deliveryCard}>
             <Text style={styles.deliveryDate}>
-              On or before 30 Feb, 2025
+              {getEstimatedDeliveryText()}
             </Text>
           </View>
         </View>
@@ -1385,6 +1378,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
         onContinue={() => navigation.navigate(SCREENS.BottomTab)}
         title="Are You Sure?"
         description="Please confirm you want to Delete."
+        estimatedDeliveryText={getEstimatedDeliveryText()}
       />
 
       {/* Stripe Payment Modal */}

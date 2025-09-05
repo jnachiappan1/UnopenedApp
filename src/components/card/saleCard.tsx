@@ -18,7 +18,7 @@ const SaleCard: React.FC<Props> = ({ item ,onSelect}) => {
   };
   const formattedDate = moment(item.updatedAt).format('DD MMMM YYYY');
   const imageUrl = item.product_image?.[0]?.image
-    ? `${image_url}${item.product_image[0].image}`
+    ? `${image_url}${item.product_image[1].image}`
     : 'https://via.placeholder.com/100';
   return (
     <TouchableOpacity style={styles.card} activeOpacity={0.8} onPress={handleCardPress}>

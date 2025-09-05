@@ -194,6 +194,13 @@ export interface AddressPayloadType {
   country_code: string;
 }
 
+export interface PaymentPayloadType {
+  type: 'venmo' | 'cash_app';
+  venmo?: string;
+  cash_app?: string;
+  amount: number;
+}
+
 export interface AddressType {
   id: number;
   full_name: string;

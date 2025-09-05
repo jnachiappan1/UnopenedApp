@@ -7,25 +7,29 @@ import {
   ScrollView,
   Linking,
 } from 'react-native';
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
-import { fontSizes } from '../../utils/utils';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
+import {fontSizes} from '../../utils/utils';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
 import colors from '../../utils/colors';
 import StatusBadge from '../../components/card/statusBadge';
 import fonts from '../../assets/fonts/fonts';
 import IconsSvg from '../../assets/svg/iconsSvg';
-import { contactUs, getProductDetailByID, trackShipment } from '../../utils/apiAction';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { image_url } from '../../utils/api';
+import {
+  contactUs,
+  getProductDetailByID,
+  trackShipment,
+} from '../../utils/apiAction';
+import {useMutation, useQuery} from '@tanstack/react-query';
+import {image_url} from '../../utils/api';
 import ContactSupportModal from '../../components/model/contactSupportModal';
-import { useSelector } from 'react-redux';
-import { IRootState } from '../../redux/store';
-import { ContactSupportType } from '../../utils/types';
-import { showLoader } from '../../components/loader/loader';
-import { showAlert } from '../../components/cAlert';
-import { handleError, handleSettled } from '../../utils/method';
+import {useSelector} from 'react-redux';
+import {IRootState} from '../../redux/store';
+import {ContactSupportType} from '../../utils/types';
+import {showLoader} from '../../components/loader/loader';
+import {showAlert} from '../../components/cAlert';
+import {handleError, handleSettled} from '../../utils/method';
 
 // Add interface for tracking step data
 interface TrackingStep {
@@ -41,22 +45,28 @@ type OrderTrackScreenProps = NativeStackScreenProps<
   SCREENS.OrderTrackScreen
 >;
 
-const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({ navigation, route }) => {
+const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({
+  navigation,
+  route,
+}) => {
   const productId = route.params;
-  const [isContactSupportModalVisible, setIsContactSupportModalVisible] = useState(false);
+  const [isContactSupportModalVisible, setIsContactSupportModalVisible] =
+    useState(false);
   const [modalKey, setModalKey] = useState(0);
   const userData = useSelector((state: IRootState) => state.user.userData);
-  const { data: productDetail, refetch: refetchAllProduct } = useQuery({
+  const {data: productDetail, refetch: refetchAllProduct} = useQuery({
     queryKey: ['getProductDetailByID', productId?.productId],
     queryFn: () => getProductDetailByID(productId?.productId),
   });
 
-  const { data: shippingTrackingData, isLoading: isTrackingLoading } = useQuery({
+  const {data: shippingTrackingData, isLoading: isTrackingLoading} = useQuery({
     queryKey: ['trackShipment', productDetail?.data?.product[0]?.shipment_id],
     queryFn: () => trackShipment(productDetail?.data?.product[0]?.shipment_id),
     enabled: !!productDetail?.data?.product[0]?.shipment_id,
   });
-  const trackingUrl = shippingTrackingData?.tracking?.tracking_url ;
+
+  const trackingUrl = shippingTrackingData?.tracking?.tracking_url;
+
   const generateTrackingSteps = (status: string) => {
     // If we have shipping tracking data, use it
     if (shippingTrackingData?.tracking?.details) {
@@ -64,17 +74,27 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({ navigation, route }
       const overallStatus = shippingTrackingData.tracking.status;
 
       // Group by status and get latest from each category
-      const preTransitSteps = trackingDetails.filter((step: any) => step.status === 'pre_transit');
-      const inTransitSteps = trackingDetails.filter((step: any) => step.status === 'in_transit');
-      const outForDeliverySteps = trackingDetails.filter((step: any) => step.status === 'out_for_delivery');
-      const deliveredSteps = trackingDetails.filter((step: any) => step.status === 'delivered');
+      const preTransitSteps = trackingDetails.filter(
+        (step: any) => step.status === 'pre_transit',
+      );
+      const inTransitSteps = trackingDetails.filter(
+        (step: any) => step.status === 'in_transit',
+      );
+
+      const outForDeliverySteps = trackingDetails.filter(
+        (step: any) => step.status === 'out_for_delivery',
+      );
+      const deliveredSteps = trackingDetails.filter(
+        (step: any) => step.status === 'delivered',
+      );
 
       const steps: TrackingStep[] = [];
 
       // Helper function to get latest step from array
       const getLatestStep = (stepsArray: any[]) => {
-        return stepsArray.sort((a: any, b: any) =>
-          new Date(b.datetime).getTime() - new Date(a.datetime).getTime()
+        return stepsArray.sort(
+          (a: any, b: any) =>
+            new Date(b.datetime).getTime() - new Date(a.datetime).getTime(),
         )[0];
       };
 
@@ -87,13 +107,16 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({ navigation, route }
           subtitle: latestPreTransit.tracking_location?.city
             ? `${latestPreTransit.tracking_location.city}, ${latestPreTransit.tracking_location.state}`
             : latestPreTransit.message || 'Package information received',
-          date: new Date(latestPreTransit.datetime).toLocaleDateString('en-US', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-          }),
+          date: new Date(latestPreTransit.datetime).toLocaleDateString(
+            'en-US',
+            {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            },
+          ),
           isCompleted: true,
         });
       }
@@ -112,7 +135,7 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({ navigation, route }
             month: 'short',
             year: 'numeric',
             hour: '2-digit',
-            minute: '2-digit'
+            minute: '2-digit',
           }),
           isCompleted: true,
         });
@@ -145,13 +168,16 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({ navigation, route }
           subtitle: latestOutForDelivery.tracking_location?.city
             ? `${latestOutForDelivery.tracking_location.city}, ${latestOutForDelivery.tracking_location.state}`
             : latestOutForDelivery.message || 'Package out for delivery',
-          date: new Date(latestOutForDelivery.datetime).toLocaleDateString('en-US', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-          }),
+          date: new Date(latestOutForDelivery.datetime).toLocaleDateString(
+            'en-US',
+            {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            },
+          ),
           isCompleted: true,
         });
       } else if (deliveredSteps.length > 0) {
@@ -188,7 +214,7 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({ navigation, route }
             month: 'short',
             year: 'numeric',
             hour: '2-digit',
-            minute: '2-digit'
+            minute: '2-digit',
           }),
           isCompleted: true,
         });
@@ -198,11 +224,13 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({ navigation, route }
           id: 4,
           title: 'Delivered',
           subtitle: 'Package will be delivered',
-          date: shippingTrackingData?.tracking?.estimated_delivery 
-            ? new Date(shippingTrackingData.tracking.estimated_delivery).toLocaleDateString('en-US', {
+          date: shippingTrackingData?.tracking?.estimated_delivery
+            ? new Date(
+                shippingTrackingData.tracking.estimated_delivery,
+              ).toLocaleDateString('en-US', {
                 day: 'numeric',
                 month: 'short',
-                year: 'numeric'
+                year: 'numeric',
               })
             : 'Expected soon',
           isCompleted: false,
@@ -225,14 +253,25 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({ navigation, route }
         id: 2,
         title: 'Label Sent',
         subtitle: 'Shipping label generated, sent to seller',
-        date: status === 'in_transit' || status === 'out_for_delivery' || status === 'delivered' ? '16 June 2025' : 'Pending',
-        isCompleted: status === 'in_transit' || status === 'out_for_delivery' || status === 'delivered',
+        date:
+          status === 'in_transit' ||
+          status === 'out_for_delivery' ||
+          status === 'delivered'
+            ? '16 June 2025'
+            : 'Pending',
+        isCompleted:
+          status === 'in_transit' ||
+          status === 'out_for_delivery' ||
+          status === 'delivered',
       },
       {
         id: 3,
         title: 'In Transit',
         subtitle: 'Package picked up and in transit',
-        date: status === 'out_for_delivery' || status === 'delivered' ? '17 June 2025' : 'Pending',
+        date:
+          status === 'out_for_delivery' || status === 'delivered'
+            ? '17 June 2025'
+            : 'Pending',
         isCompleted: status === 'out_for_delivery' || status === 'delivered',
       },
       {
@@ -249,18 +288,20 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({ navigation, route }
 
   // Use shipping tracking status if available, otherwise use product status
   const trackingSteps = generateTrackingSteps(
-    shippingTrackingData?.tracking?.status || productDetail?.data?.product[0]?.status
+    shippingTrackingData?.tracking?.status ||
+      productDetail?.data?.product[0]?.status,
   );
 
-  const { mutate } = useMutation({
+  const {mutate} = useMutation({
     mutationFn: contactUs,
-    onSuccess: (data) => {
+    onSuccess: data => {
       showLoader(false);
       showAlert({
         isVisible: true,
         type: 'success',
         title: 'Support Request Sent',
-        description: 'Your message has been sent successfully. Our support team will contact you shortly.',
+        description:
+          'Your message has been sent successfully. Our support team will contact you shortly.',
         doneText: 'Okay',
         onDonePress: () => {
           navigation.goBack();
@@ -282,17 +323,18 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({ navigation, route }
       product_id: productDetail?.data?.product[0]?.id,
     };
     mutate(supportPayload);
-  }
+  };
 
   const renderTrackingStep = (item: any, index: number) => {
     return (
       <View key={item.id} style={styles.trackingStepContainer}>
         <View style={styles.trackingIconContainer}>
           {/* Render check mark for completed steps, gray circle for incomplete */}
-          <View style={[
-            styles.trackingIcon,
-            item.isCompleted && styles.completedIcon
-          ]}>
+          <View
+            style={[
+              styles.trackingIcon,
+              item.isCompleted && styles.completedIcon,
+            ]}>
             {item.isCompleted ? (
               <Text style={styles.checkMark}>✓</Text>
             ) : (
@@ -309,21 +351,21 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({ navigation, route }
           )}
         </View>
         <View style={styles.trackingContent}>
-          <Text style={[
-            styles.trackingTitle,
-            !item.isCompleted && styles.incompleteText
-          ]}>
+          <Text
+            style={[
+              styles.trackingTitle,
+              !item.isCompleted && styles.incompleteText,
+            ]}>
             {item.title}
           </Text>
-          
+
           {/* Always show subtitle if it exists */}
           {item.subtitle && (
             <Text
               style={[
                 styles.trackingSubtitle,
                 !item.isCompleted && styles.incompleteText,
-              ]}
-            >
+              ]}>
               {item.subtitle}
             </Text>
           )}
@@ -333,8 +375,7 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({ navigation, route }
             style={[
               styles.trackingDate,
               !item.isCompleted && styles.incompleteText,
-            ]}
-          >
+            ]}>
             {item.isCompleted ? `Date: ${item.date}` : `Status: ${item.date}`}
           </Text>
         </View>
@@ -364,39 +405,56 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({ navigation, route }
           <View style={styles.imageDetailContainer}>
             <View style={styles.productRow}>
               <Image
-                source={{ uri: image_url + productDetail?.data?.product[0]?.product_image[0]?.image }}
+                source={{
+                  uri:
+                    image_url +
+                    productDetail?.data?.product[0]?.product_image[1]?.image,
+                }}
                 style={styles.productImage}
               />
               <View style={styles.productDetails}>
-                <Text style={styles.titleStyle}>{productDetail?.data?.product[0]?.name}</Text>
+                <Text style={styles.titleStyle}>
+                  {productDetail?.data?.product[0]?.name}
+                </Text>
                 <Text style={styles.descriptionStyle}>
-                  Delivered On: {
-                    shippingTrackingData?.tracking?.actual_delivery
-                      ? new Date(shippingTrackingData.tracking.actual_delivery).toLocaleDateString('en-US', {
+                  Delivered On:{' '}
+                  {shippingTrackingData?.tracking?.actual_delivery
+                    ? new Date(
+                        shippingTrackingData.tracking.actual_delivery,
+                      ).toLocaleDateString('en-US', {
                         day: 'numeric',
                         month: 'short',
-                        year: 'numeric'
+                        year: 'numeric',
                       })
-                      : '15 Jun, 2025'
-                  }
+                    : '15 Jun, 2025'}
                 </Text>
-                <Text style={[styles.mrspStyle]}>${productDetail?.data?.product[0]?.price}</Text>
+                <Text style={[styles.mrspStyle]}>
+                  ${productDetail?.data?.product[0]?.price}
+                </Text>
               </View>
             </View>
           </View>
         </View>
 
         {isTrackingLoading ? (
-          <Text style={{ padding: 16 }}>Loading tracking info...</Text>
+          <Text style={{padding: 16}}>Loading tracking info...</Text>
         ) : trackingSteps && trackingSteps.length > 0 ? (
           <>
             <Text style={styles.headingStyle}>Track Your Order</Text>
             <View style={styles.container}>
-              <TouchableOpacity onPress={() => Linking.openURL(trackingUrl)}>
-                <Text style={styles.trackText}>Track your order</Text>
+              <TouchableOpacity
+                disabled={!trackingUrl}
+                onPress={() => {
+                  if (trackingUrl) {
+                    Linking.openURL(trackingUrl);
+                  }
+                }}>
+                <Text style={[styles.trackText]}>Track your order</Text>
               </TouchableOpacity>
               <View>
-                {trackingSteps.map((item, index) => renderTrackingStep(item, index))}
+                {trackingSteps.map((item, index) =>
+                  renderTrackingStep(item, index),
+                )}
               </View>
             </View>
           </>
@@ -410,8 +468,7 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({ navigation, route }
             onPress={() => {
               setModalKey(prev => prev + 1);
               setIsContactSupportModalVisible(true);
-            }}
-          >
+            }}>
             <View style={styles.helpIconContainer}>
               <IconsSvg name="helpSupportIcon" />
             </View>
@@ -618,10 +675,13 @@ const styles = StyleSheet.create({
     color: colors.primary,
     textDecorationLine: 'underline',
   },
-  trackText:{
-    textAlign:'right',
-    paddingHorizontal:10,
-    paddingTop:10,
-    color:colors.primary,fontSize:fontSizes.small,fontFamily:fonts.bold,marginBottom:10
-  }
+  trackText: {
+    textAlign: 'right',
+    paddingHorizontal: 10,
+    paddingTop: 10,
+    color: colors.primary,
+    fontSize: fontSizes.small,
+    fontFamily: fonts.bold,
+    marginBottom: 10,
+  },
 });

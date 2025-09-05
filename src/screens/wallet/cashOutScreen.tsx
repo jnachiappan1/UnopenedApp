@@ -1,44 +1,67 @@
-import { FlatList, StyleSheet, Text, View } from 'react-native';
-import React, { useState, useEffect } from 'react';
+import {FlatList, StyleSheet, Text, View} from 'react-native';
+import React, {useState, useEffect} from 'react';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
-import { fontSizes } from '../../utils/utils';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
+import {fontSizes} from '../../utils/utils';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
 import colors from '../../utils/colors';
 import fonts from '../../assets/fonts/fonts';
 import Button from '../../components/button/buttons';
 import Input from '../../components/input/input';
-import { useForm } from 'react-hook-form';
-import { FlashList } from '@shopify/flash-list';
+import {useForm} from 'react-hook-form';
+import {FlashList} from '@shopify/flash-list';
 import PaymentMethodCard from '../../components/card/paymentMethodCard';
-import { paymentMethods } from '../../utils/static';
+import {paymentMethods} from '../../utils/static';
 import PayoutCard from '../../components/card/payoutCard';
 import BankDetailsCard from '../../components/card/bankDetailsCard';
-import { getBankAccount, cashOut, getCashOutHistory } from '../../utils/apiAction';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { showLoader } from '../../components/loader/loader';
-import { showAlert } from '../../components/cAlert';
-import { handleError, handleSettled } from '../../utils/method';
+import {
+  getBankAccount,
+  getCashOutHistory,
+  getCashOutRequest,
+  createCashOut,
+} from '../../utils/apiAction';
+import {useQuery, useMutation} from '@tanstack/react-query';
+import {showLoader} from '../../components/loader/loader';
+import {showAlert} from '../../components/cAlert';
+import {handleError, handleSettled} from '../../utils/method';
 
-type CashOutScreenProps = NativeStackScreenProps<RootStackParamList, SCREENS.CashOutScreen>;
+type CashOutScreenProps = NativeStackScreenProps<
+  RootStackParamList,
+  SCREENS.CashOutScreen
+>;
 
-const CashOutScreen: React.FC<CashOutScreenProps> = ({ navigation }) => {
+const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [paymentError, setPaymentError] = useState(false);
 
   // Fetch bank account details
-  const { data: bankAccountData, isLoading: isLoadingBankDetails, refetch: refetchBankDetails } = useQuery({
+  const {
+    data: bankAccountData,
+    isLoading: isLoadingBankDetails,
+    refetch: refetchBankDetails,
+  } = useQuery({
     queryKey: ['bankAccount'],
     queryFn: getBankAccount,
   });
 
   // Fetch cash out history
-  const { data: cashOutHistoryData, isLoading: isLoadingHistory, refetch: refetchHistory } = useQuery({
+  const {
+    data: cashOutHistoryData,
+    isLoading: isLoadingHistory,
+    refetch: refetchHistory,
+  } = useQuery({
     queryKey: ['cashOutHistory'],
     queryFn: getCashOutHistory,
   });
-console.log(cashOutHistoryData,"cashOutHistoryData---------");
-
+  const {
+    data: cashOutRequestData,
+    isLoading: isLoadingRequest,
+    refetch: refetchRequest,
+  } = useQuery({
+    queryKey: ['cashOutRequest'],
+    queryFn: getCashOutRequest,
+  });
+  console.log(cashOutRequestData, 'cashOutRequestData---------');
   // Show loader while fetching bank details
   useEffect(() => {
     if (isLoadingBankDetails) {
@@ -50,16 +73,16 @@ console.log(cashOutHistoryData,"cashOutHistoryData---------");
 
   const {
     control,
-    formState: { errors },
+    formState: {errors},
     handleSubmit,
     setValue,
     getValues,
   } = useForm<any>();
 
   // Cash out mutation
-  const { mutate: cashOutMutation, isPending: isCashOutPending } = useMutation({
-    mutationFn: cashOut,
-    onSuccess: (data) => {
+  const {mutate: cashOutMutation, isPending: isCashOutPending} = useMutation({
+    mutationFn: createCashOut,
+    onSuccess: data => {
       showLoader(false);
       showAlert({
         isVisible: true,
@@ -71,6 +94,7 @@ console.log(cashOutHistoryData,"cashOutHistoryData---------");
           // Refresh bank details and payout history
           refetchBankDetails();
           refetchHistory();
+          refetchRequest();
         },
       });
     },
@@ -101,13 +125,36 @@ console.log(cashOutHistoryData,"cashOutHistoryData---------");
       return;
     }
 
-    setPaymentError(false);
-    showLoader(true);
+    if (selectedId === null) {
+      setPaymentError(true);
+      return;
+    }
 
-    // Call cash out API
-    cashOutMutation({
-      amount: data.amount
-    });
+    setPaymentError(false);
+    // showLoader(true);
+
+    // Build payload based on selected payment method and call createCashOut API
+    const selectedMethod = paymentMethods.find(m => m.id === selectedId);
+    const amountValue = parseFloat(data.amount);
+    const isVenmo =
+      selectedMethod?.icon === 'venmo' ||
+      selectedMethod?.title?.toLowerCase() === 'venmo';
+
+    const payload :any= isVenmo
+      ? {
+          type: 'venmo',
+          venmo: 'venmo.com',
+          cash_app: 'cash_app.com',
+          amount: amountValue,
+        }
+      : {
+          type: 'cash_app' ,
+          venmo: 'venmo.com',
+          cash_app: 'cash_app.com',
+          amount: amountValue,
+        };
+
+    cashOutMutation(payload);
   };
 
   return (
@@ -115,9 +162,7 @@ console.log(cashOutHistoryData,"cashOutHistoryData---------");
       <View style={styles.container}>
         {/* Show existing bank details if available, otherwise show Add Bank Details button */}
         {bankAccountData?.data?.bankDetails ? (
-          <BankDetailsCard
-            bankDetails={bankAccountData.data.bankDetails}
-          />
+          <BankDetailsCard bankDetails={bankAccountData.data.bankDetails} />
         ) : (
           <Button
             title="Add Bank details"
@@ -137,26 +182,48 @@ console.log(cashOutHistoryData,"cashOutHistoryData---------");
             placeholder: 'Enter Amount',
             keyboardType: 'numeric',
           }}
-          required={{ value: true, message: 'Please enter amount' }}
+          required={{value: true, message: 'Please enter amount'}}
           error={errors}
           maxLength={40}
           inputStyle={styles.inputStyle}
+        />
+        <Text style={styles.titleStyle}>Choose Payment Method</Text>
+        <FlatList
+          data={paymentMethods}
+          scrollEnabled={false}
+          keyExtractor={item => item.id.toString()}
+          renderItem={({item}) => (
+            <PaymentMethodCard
+              item={item}
+              selected={selectedId === item.id}
+              onPress={selectedItem => {
+                setSelectedId(selectedItem.id);
+                setPaymentError(false); // reset error
+              }}
+            />
+          )}
         />
         {paymentError && (
           <Text style={styles.errorText}>Please select a payment method</Text>
         )}
 
         <Button
-          title={isCashOutPending ? "Processing..." : "Cash Out"}
+          title={isCashOutPending ? 'Processing...' : 'Cash Out'}
           style={[
             styles.cashOutButton,
-            (!bankAccountData?.data?.bankDetails || isCashOutPending) && styles.disabledButton
+            (!bankAccountData?.data?.bankDetails || isCashOutPending) &&
+              styles.disabledButton,
           ]}
           textStyle={[
             styles.cashOutButtonText,
-            (!bankAccountData?.data?.bankDetails || isCashOutPending) && styles.disabledButtonText
+            (!bankAccountData?.data?.bankDetails || isCashOutPending) &&
+              styles.disabledButtonText,
           ]}
-          onPress={bankAccountData?.data?.bankDetails && !isCashOutPending ? handleSubmit(onSubmit) : undefined}
+          onPress={
+            bankAccountData?.data?.bankDetails && !isCashOutPending
+              ? handleSubmit(onSubmit)
+              : undefined
+          }
           disabled={!bankAccountData?.data?.bankDetails || isCashOutPending}
         />
 
@@ -178,12 +245,15 @@ console.log(cashOutHistoryData,"cashOutHistoryData---------");
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>Loading payout history...</Text>
         </View>
-      ) : (cashOutHistoryData?.data?.transactions && cashOutHistoryData.data.transactions.length > 0) ? (
+      ) : cashOutHistoryData?.data?.transactions &&
+        cashOutHistoryData.data.transactions.length > 0 ? (
         <FlashList
           data={cashOutHistoryData.data?.transactions}
-          renderItem={({ item }) => <PayoutCard item={item} />}
+          renderItem={({item}) => <PayoutCard item={item} />}
           estimatedItemSize={100}
-          keyExtractor={(item: any) => item.id?.toString() || Math.random().toString()}
+          keyExtractor={(item: any) =>
+            item.id?.toString() || Math.random().toString()
+          }
         />
       ) : (
         <View style={styles.emptyContainer}>
@@ -299,5 +369,4 @@ const styles = StyleSheet.create({
     marginTop: -6,
     marginBottom: 10,
   },
-
 });

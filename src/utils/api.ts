@@ -1,7 +1,8 @@
 export const base_url = 'http://45.248.33.161:5019';
 // export const base_url = 'http://192.168.29.37:3030';
 
-export const image_url = 'http://45.248.33.161:5019/uploads/';
+export const image_url = 'http://45.248.33.161:9000/unoppened';
+
 
 export const API = {
   buyer: {
@@ -30,6 +31,8 @@ export const API = {
     addBankAccount: `${base_url}/api/v1/bank-account`,
     cashOut: `${base_url}/api/v1/cashout`,
     cashOutHistory: `${base_url}/api/v1/cashout/history`,
+    cashOut_request: `${base_url}/api/v1/cashout/cashout-request`,
+    notification: `${base_url}/api/v1/notification`,
   },
   seller: {
     sign_up: `${base_url}/api/v1/users/auth/create`,

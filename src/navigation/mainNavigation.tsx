@@ -43,6 +43,8 @@ import SHomeScreen from '../screens/sellerPortal/sHomeScreen';
 import { getFCMToken } from '../utils/notificationHelper';
 import { saveFcmToken } from '../redux/reducers/user/UserReducer';
 import AddBankDetailsScreen from '../screens/wallet/addBankDetailsScreen';
+import NotificationScreen from '../screens/notification/notificationScreen';
+import FullScreen from '../screens/sellerPortal/FullScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -143,6 +145,8 @@ const MainNavigation: React.FC = () => {
       />
  <Stack.Screen name={SCREENS.BHomeScreen} component={BHomeScreen} />
  <Stack.Screen name={SCREENS.SHomeScreen} component={SHomeScreen} />
+ <Stack.Screen name={SCREENS.NotificationScreen} component={NotificationScreen} />
+ <Stack.Screen name={SCREENS.FullScreen} component={FullScreen} />
     </Stack.Navigator>
     // </View>
   );
@@ -182,7 +186,9 @@ export enum SCREENS {
   AddAddressScreen = 'AddAddressScreen',
   AddressSelectionScreen = 'AddressSelectionScreen',
   BarcodeScanner = 'BarcodeScanner',
-  AddBankDetailsScreen = 'AddBankDetailsScreen'
+  AddBankDetailsScreen = 'AddBankDetailsScreen',
+  NotificationScreen = 'NotificationScreen',
+  FullScreen = 'FullScreen'
 }
 
 export type RootStackParamList = {
@@ -241,4 +247,6 @@ export type RootStackParamList = {
   };
   [SCREENS.BarcodeScanner]: undefined;
   [SCREENS.AddBankDetailsScreen]: undefined;
+  [SCREENS.NotificationScreen]: undefined;
+  [SCREENS.FullScreen]: { url: any; time: any };
 };

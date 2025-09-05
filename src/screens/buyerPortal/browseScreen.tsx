@@ -334,6 +334,8 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({ navigation }) => {
             onViewAll={() => { }}
             showViewAll={false}
             onPress={(item) => {
+              console.log("item------>>>>",item);
+              
               navigation.navigate(SCREENS.BProductDetailScreen, { productId: item?.id });
             }}
           />

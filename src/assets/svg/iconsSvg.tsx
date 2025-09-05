@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import { ColorValue, StyleProp, ViewStyle } from 'react-native';
+import {ColorValue, StyleProp, ViewStyle} from 'react-native';
 import React from 'react';
 import Svg, {
   Circle,
@@ -16,6 +16,13 @@ import colors from '../../utils/colors';
 
 export type IconName =
   | 'box'
+  | 'pauseIcon'
+  | 'skipIcon'
+  | 'fullScreenToggleIcon'
+  | 'audioIcon'
+  | 'muteAudio'
+  | 'pauseIconSmall'
+  | 'play'
   | 'percentIcon'
   | 'securePayment'
   | 'deliverBox'
@@ -81,13 +88,12 @@ export type IconName =
   | 'back'
   | 'close'
   | 'filter'
-  |'dropDown'
-  |'iconArrowDown'
-  |'iconArrowLeft'
-  |'iconArrowRight'
-  |'iconArrowUp'
-|'calender'
-  ;
+  | 'dropDown'
+  | 'iconArrowDown'
+  | 'iconArrowLeft'
+  | 'iconArrowRight'
+  | 'iconArrowUp'
+  | 'calender';
 
 export interface IconsSvgProps {
   name: IconName;
@@ -99,7 +105,7 @@ export interface IconsSvgProps {
 }
 
 const IconsSvg = (props: IconsSvgProps) => {
-  const { name, color, height, width, onPress } = props;
+  const {name, color, height, width, onPress} = props;
   switch (name) {
     case 'box':
       return (
@@ -112,24 +118,113 @@ const IconsSvg = (props: IconsSvgProps) => {
           />
         </Svg>
       );
-
-    case 'percentIcon':
+    case 'pauseIcon':
+      return (
+        <Svg width={30} height={30} viewBox="0 0 478.125 478.125" {...props}>
+          <Path
+            fill="white"
+            d="M201.654 127.525h-31.9c-10.557 0-19.125 8.645-19.125 19.125v184.9c0 10.558 8.645 19.125 19.125 19.125h31.9c10.557 0 19.125-8.645 19.125-19.125v-184.9c0-10.556-8.568-19.125-19.125-19.125zM308.448 127.525h-31.9c-10.558 0-19.125 8.645-19.125 19.125v184.9c0 10.558 8.645 19.125 19.125 19.125h31.9c10.557 0 19.125-8.645 19.125-19.125v-184.9c0-10.556-8.644-19.125-19.125-19.125z"
+          />
+          <Path
+            fill="white"
+            d="M239.062 0C107.023 0 0 107.023 0 239.062s107.023 239.062 239.062 239.062 239.062-107.023 239.062-239.062S371.102 0 239.062 0zm.23 409.811c-94.171 0-170.519-76.424-170.519-170.519S145.197 68.773 239.292 68.773s170.519 76.424 170.519 170.519-76.271 170.519-170.519 170.519z"
+          />
+        </Svg>
+      );
+    case 'skipIcon':
+      return (
+        <Svg width={16} height={16} viewBox="0 0 16 16" fill="none" {...props}>
+          <Path
+            d="M.75 2.712v11.003a.995.995 0 001.575.816l7.824-5.501a.995.995 0 000-1.633L2.325 1.896c-.663-.462-1.574 0-1.574.816zM14.623.783h-.462c-.556 0-1.006.45-1.006 1.006v12.848c0 .556.45 1.006 1.006 1.006h.462c.555 0 1.006-.45 1.006-1.006V1.79c0-.555-.45-1.006-1.006-1.006z"
+            fill="#fff"
+          />
+        </Svg>
+      );
+    case 'fullScreenToggleIcon':
+      return (
+        <Svg width={16} height={16} viewBox="0 0 16 16" fill="none" {...props}>
+          <Path
+            d="M9.708 1.679h3.662c.67 0 1.217.546 1.217 1.216v3.66H16v-3.99A2.284 2.284 0 0013.71.277H9.72v1.412l-.01-.01zM2.097 6.555v-3.66c0-.67.547-1.216 1.217-1.216h3.662V.266H2.984a2.284 2.284 0 00-2.29 2.289v3.99h1.413l-.01.01zM14.577 9.287v3.66a1.22 1.22 0 01-1.217 1.217H9.698v1.412h3.992c1.269 0 2.29-1.02 2.29-2.289v-4h-1.413.01zM6.965 14.153H3.303c-.67 0-1.217-.546-1.217-1.216v-3.66H.673v4a2.284 2.284 0 002.29 2.289h3.991v-1.413h.01z"
+            fill="#fff"
+          />
+        </Svg>
+      );
+    case 'audioIcon':
+      return (
+        <Svg width={16} height={15} viewBox="0 0 16 15" fill="none" {...props}>
+          <Path
+            d="M.932 5.687v3.052c0 .556.45 1.006 1.006 1.006h1.693c.26 0 .52.106.71.296l2.439 2.437c.627.627 1.716.19 1.716-.71V2.67c0-.887-1.077-1.337-1.716-.71L4.34 4.397a.994.994 0 01-.71.296H1.938c-.556 0-1.006.45-1.006 1.006v-.012zM12.65 7.213a3.27 3.27 0 00-.78-2.13c-.593-.697-1.74-.236-1.74.675v2.899c0 .91 1.147 1.372 1.74.674a3.27 3.27 0 00.78-2.13v.012z"
+            fill="#fff"
+          />
+          <Path
+            d="M10.13 1.191c0 .403.236.781.603.923a5.447 5.447 0 013.574 5.111 5.447 5.447 0 01-3.574 5.11c-.379.143-.604.521-.604.924 0 .71.734 1.218 1.373.934C14.153 12.987 16 10.336 16 7.237c0-3.1-1.847-5.75-4.498-6.957-.65-.295-1.373.225-1.373.935V1.19z"
+            fill="#fff"
+          />
+        </Svg>
+      );
+    case 'muteAudio':
       return (
         <Svg
-          width={31}
-          height={30}
-          viewBox="0 0 31 30"
-          fill="none"
-          {...props}
-        >
+          fill="#FFF"
+          width={16}
+          height={16}
+          viewBox="0 -2.35 26.581 26.581"
+          data-name="06 - Mute"
+          {...props}>
+          <Path
+            data-name="Path 163"
+            d="M21.29 8.375a3 3 0 00-4.79-2.406L8.743 11.74H5.709a3 3 0 00-3 3v3.154a3 3 0 003 3h3.034l7.757 5.772a3 3 0 004.791-2.407V8.375zm-2 0v15.884a1 1 0 01-1.6.8l-8.022-5.97a1 1 0 00-.6-.2H5.709a1 1 0 01-1-1V14.74a1 1 0 011-1h3.365a1 1 0 00.6-.2l8.022-5.97a1 1 0 011.6.8z"
+            transform="translate(-2.709 -5.376)"
+            fillRule="evenodd"
+          />
+          <Path
+            data-name="Path 164"
+            d="M23.256 13.885l4.234 5.646a1 1 0 001.6-1.2l-4.234-5.646a1 1 0 00-1.6 1.2z"
+            transform="translate(-2.709 -5.376)"
+            fillRule="evenodd"
+          />
+          <Path
+            data-name="Path 165"
+            d="M27.49 12.685l-4.234 5.646a1 1 0 001.6 1.2l4.234-5.646a1 1 0 00-1.6-1.2z"
+            transform="translate(-2.709 -5.376)"
+            fillRule="evenodd"
+          />
+        </Svg>
+      );
+    case 'pauseIconSmall':
+      return (
+        <Svg width={20} height={20} viewBox="0 0 478.125 478.125" {...props}>
+          <Path
+            fill="white"
+            d="M201.654 127.525h-31.9c-10.557 0-19.125 8.645-19.125 19.125v184.9c0 10.558 8.645 19.125 19.125 19.125h31.9c10.557 0 19.125-8.645 19.125-19.125v-184.9c0-10.556-8.568-19.125-19.125-19.125zM308.448 127.525h-31.9c-10.558 0-19.125 8.645-19.125 19.125v184.9c0 10.558 8.645 19.125 19.125 19.125h31.9c10.557 0 19.125-8.645 19.125-19.125v-184.9c0-10.556-8.644-19.125-19.125-19.125z"
+          />
+          <Path
+            fill="white"
+            d="M239.062 0C107.023 0 0 107.023 0 239.062s107.023 239.062 239.062 239.062 239.062-107.023 239.062-239.062S371.102 0 239.062 0zm.23 409.811c-94.171 0-170.519-76.424-170.519-170.519S145.197 68.773 239.292 68.773s170.519 76.424 170.519 170.519-76.271 170.519-170.519 170.519z"
+          />
+        </Svg>
+      );
+    case 'play':
+      return (
+        <Svg width={30} height={30} viewBox="0 0 24 24" fill="#FFF">
+          <Path
+            d="M12 5c3.9 0 7 3.1 7 7s-3.1 7-7 7-7-3.1-7-7 3.1-7 7-7zm0-1c-4.4 0-8 3.6-8 8s3.6 8 8 8 8-3.6 8-8-3.6-8-8-8z"
+            fill="#FFF"
+            fillOpacity={0.6}
+          />
+          <Path d="M10 8v8l6-4-6-4z" fill="#FFF" fillOpacity={0.6} />
+        </Svg>
+      );
+    case 'percentIcon':
+      return (
+        <Svg width={31} height={30} viewBox="0 0 31 30" fill="none" {...props}>
           <Path d="M.25 30h30V0h-30v30z" fill="url(#pattern0_429_1124)" />
           <Defs>
             <Pattern
               id="pattern0_429_1124"
               patternContentUnits="objectBoundingBox"
               width={1}
-              height={1}
-            >
+              height={1}>
               <Use xlinkHref="#image0_429_1124" transform="scale(.00625)" />
             </Pattern>
             <Image
@@ -144,21 +239,14 @@ const IconsSvg = (props: IconsSvgProps) => {
       );
     case 'securePayment':
       return (
-        <Svg
-          width={25}
-          height={24}
-          viewBox="0 0 25 24"
-          fill="none"
-          {...props}
-        >
+        <Svg width={25} height={24} viewBox="0 0 25 24" fill="none" {...props}>
           <Path fill="url(#pattern0_294_891)" d="M0.75 0H24.75V24H0.75z" />
           <Defs>
             <Pattern
               id="pattern0_294_891"
               patternContentUnits="objectBoundingBox"
               width={1}
-              height={1}
-            >
+              height={1}>
               <Use xlinkHref="#image0_294_891" transform="scale(.00195)" />
             </Pattern>
             <Image
@@ -551,15 +639,15 @@ const IconsSvg = (props: IconsSvgProps) => {
     case 'arrowUp':
       return (
         <Svg width={48} height={48} viewBox="0 0 24 24" fill="none" {...props}>
-        <Path
-          d="M18 14l-4.528-4.593a1.365 1.365 0 00-1.944 0L7 14"
-          stroke={color ? color : '#262626'}
-          strokeWidth={2}  
-          strokeMiterlimit={10}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </Svg>
+          <Path
+            d="M18 14l-4.528-4.593a1.365 1.365 0 00-1.944 0L7 14"
+            stroke={color ? color : '#262626'}
+            strokeWidth={2}
+            strokeMiterlimit={10}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
       );
     case 'downArrow':
       return (
@@ -1036,26 +1124,23 @@ const IconsSvg = (props: IconsSvgProps) => {
       );
     case 'addCard':
       return (
-        <Svg
-          width={56}
-          height={56}
-          viewBox="0 0 56 56"
-          fill="none"
-          {...props}
-        >
+        <Svg width={56} height={56} viewBox="0 0 56 56" fill="none" {...props}>
           <Rect width={56} height={56} rx={12} fill="#F2F5ED" />
           <G
             clipPath="url(#clip0_1_7003)"
             stroke="#000"
             strokeWidth={1.125}
             strokeLinecap="round"
-            strokeLinejoin="round"
-          >
+            strokeLinejoin="round">
             <Path d="M37 21.25H19a.75.75 0 00-.75.75v12c0 .414.336.75.75.75h18a.75.75 0 00.75-.75V22a.75.75 0 00-.75-.75zM31.75 31.75h3M27.25 31.75h1.5M18.25 25h19.5" />
           </G>
           <Defs>
             <ClipPath id="clip0_1_7003">
-              <Path fill="#fff" transform="translate(16 16)" d="M0 0H24V24H0z" />
+              <Path
+                fill="#fff"
+                transform="translate(16 16)"
+                d="M0 0H24V24H0z"
+              />
             </ClipPath>
           </Defs>
         </Svg>
@@ -1112,14 +1197,12 @@ const IconsSvg = (props: IconsSvgProps) => {
       );
     case 'searchIcon':
       return (
-        <Svg
-          width={24}
-          height={24}
-          viewBox="0 0 24 24"
-          fill="none"
-          {...props}
-        >
-          <Path opacity={0.07} d="M19 11a8 8 0 10-16 0 8 8 0 0016 0z" fill={color || '#777'} />
+        <Svg width={24} height={24} viewBox="0 0 24 24" fill="none" {...props}>
+          <Path
+            opacity={0.07}
+            d="M19 11a8 8 0 10-16 0 8 8 0 0016 0z"
+            fill={color || '#777'}
+          />
           <Path
             d="M17 17l4 4m-2-10a8 8 0 10-16 0 8 8 0 0016 0z"
             stroke={color || '#777'}
@@ -1155,13 +1238,7 @@ const IconsSvg = (props: IconsSvgProps) => {
       );
     case 'edit':
       return (
-        <Svg
-          width={42}
-          height={42}
-          viewBox="0 0 42 42"
-          fill="none"
-          {...props}
-        >
+        <Svg width={42} height={42} viewBox="0 0 42 42" fill="none" {...props}>
           <Path
             d="M21 .525C32.308.525 41.475 9.692 41.475 21c0 11.308-9.167 20.475-20.475 20.475C9.692 41.475.525 32.308.525 21 .525 9.692 9.692.525 21 .525z"
             stroke="#E0E0E0"
@@ -1189,13 +1266,7 @@ const IconsSvg = (props: IconsSvgProps) => {
       );
     case 'changePassword':
       return (
-        <Svg
-          width={40}
-          height={40}
-          viewBox="0 0 40 40"
-          fill="none"
-          {...props}
-        >
+        <Svg width={40} height={40} viewBox="0 0 40 40" fill="none" {...props}>
           <Path
             opacity={0.16}
             d="M12.268 26.845c.225 1.67 1.608 2.98 3.292 3.056 1.416.065 2.855.1 4.44.1 1.585 0 3.024-.035 4.44-.1 1.684-.077 3.067-1.386 3.292-3.056.147-1.09.268-2.207.268-3.345 0-1.138-.121-2.255-.268-3.345-.225-1.67-1.608-2.979-3.292-3.056-1.479-.067-2.96-.1-4.44-.099-1.585 0-3.024.034-4.44.1-1.684.076-3.067 1.385-3.292 3.055C12.12 21.245 12 22.362 12 23.5c0 1.138.121 2.255.268 3.345z"
@@ -1224,13 +1295,7 @@ const IconsSvg = (props: IconsSvgProps) => {
       );
     case 'termsAndConditions':
       return (
-        <Svg
-          width={40}
-          height={40}
-          viewBox="0 0 40 40"
-          fill="none"
-          {...props}
-        >
+        <Svg width={40} height={40} viewBox="0 0 40 40" fill="none" {...props}>
           <Path
             opacity={0.12}
             d="M28.5 22v-4c0-3.771 0-5.657-1.172-6.828C26.156 10.001 24.271 10 20.5 10h-1c-3.771 0-5.657 0-6.828 1.172C11.501 12.344 11.5 14.229 11.5 18v4c0 3.771 0 5.657 1.172 6.828C13.844 29.999 15.729 30 19.5 30h1c3.771 0 5.657 0 6.828-1.172C28.499 27.656 28.5 25.771 28.5 22z"
@@ -1247,13 +1312,7 @@ const IconsSvg = (props: IconsSvgProps) => {
       );
     case 'privacyPolicy':
       return (
-        <Svg
-          width={40}
-          height={40}
-          viewBox="0 0 40 40"
-          fill="none"
-          {...props}
-        >
+        <Svg width={40} height={40} viewBox="0 0 40 40" fill="none" {...props}>
           <Path
             opacity={0.12}
             fillRule="evenodd"
@@ -1277,13 +1336,7 @@ const IconsSvg = (props: IconsSvgProps) => {
       );
     case 'helpAndSupport':
       return (
-        <Svg
-          width={40}
-          height={40}
-          viewBox="0 0 40 40"
-          fill="none"
-          {...props}
-        >
+        <Svg width={40} height={40} viewBox="0 0 40 40" fill="none" {...props}>
           <Path
             opacity={0.12}
             d="M20 30c5.523 0 10-4.477 10-10s-4.477-10-10-10-10 4.477-10 10 4.477 10 10 10z"
@@ -1314,13 +1367,7 @@ const IconsSvg = (props: IconsSvgProps) => {
       );
     case 'notification':
       return (
-        <Svg
-          width={40}
-          height={40}
-          viewBox="0 0 40 40"
-          fill="none"
-          {...props}
-        >
+        <Svg width={40} height={40} viewBox="0 0 40 40" fill="none" {...props}>
           <Path
             opacity={0.12}
             d="M27.231 26H12.77a1.768 1.768 0 01-1.25-3.02l.602-.603A3 3 0 0013 20.256V17.5a7 7 0 1114 0v2.756a3 3 0 00.879 2.121l.603.603A1.77 1.77 0 0127.231 26z"
@@ -1337,13 +1384,7 @@ const IconsSvg = (props: IconsSvgProps) => {
       );
     case 'logout':
       return (
-        <Svg
-          width={40}
-          height={40}
-          viewBox="0 0 40 40"
-          fill="none"
-          {...props}
-        >
+        <Svg width={40} height={40} viewBox="0 0 40 40" fill="none" {...props}>
           <Path
             opacity={0.1}
             d="M11 19.163v1.674c0 1.257 0 1.886.11 2.444.596 3.04 3.08 4.396 5.941 5.203 1.19.335 1.784.503 2.265.515 2.067.05 3.61-1.522 3.684-3.374v-11.25c-.074-1.852-1.617-3.424-3.684-3.374-.481.012-1.076.18-2.265.515-2.861.807-5.345 2.164-5.941 5.202-.11.56-.11 1.188-.11 2.445z"
@@ -1366,13 +1407,7 @@ const IconsSvg = (props: IconsSvgProps) => {
       );
     case 'deleteAccount':
       return (
-        <Svg
-          width={40}
-          height={40}
-          viewBox="0 0 40 40"
-          fill="none"
-          {...props}
-        >
+        <Svg width={40} height={40} viewBox="0 0 40 40" fill="none" {...props}>
           <Path
             opacity={0.12}
             d="M27.5 13.5l-.62 10.025c-.158 2.561-.237 3.842-.88 4.763a4 4 0 01-1.2 1.128c-.957.584-2.24.584-4.806.584-2.57 0-3.855 0-4.814-.585a4 4 0 01-1.2-1.13c-.642-.922-.72-2.205-.874-4.77L12.5 13.5h15z"
@@ -1394,13 +1429,7 @@ const IconsSvg = (props: IconsSvgProps) => {
       );
     case 'rupesIcon':
       return (
-        <Svg
-          width={16}
-          height={16}
-          viewBox="0 0 16 16"
-          fill="none"
-          {...props}
-        >
+        <Svg width={16} height={16} viewBox="0 0 16 16" fill="none" {...props}>
           <Path
             opacity={0.12}
             d="M9.333 1.333a4.667 4.667 0 100 9.333 4.667 4.667 0 000-9.333z"
@@ -1416,13 +1445,7 @@ const IconsSvg = (props: IconsSvgProps) => {
       );
     case 'rightArrow':
       return (
-        <Svg
-          width={24}
-          height={24}
-          viewBox="0 0 24 24"
-          fill="none"
-          {...props}
-        >
+        <Svg width={24} height={24} viewBox="0 0 24 24" fill="none" {...props}>
           <Path
             d="M8.776 21a.77.77 0 01-.55-.228.783.783 0 010-1.1l6.769-6.77a1.278 1.278 0 000-1.806l-6.77-6.77a.783.783 0 010-1.1.783.783 0 011.101 0l6.77 6.769c.529.53.83 1.246.83 2.004s-.29 1.474-.83 2.003l-6.77 6.77a.816.816 0 01-.55.228z"
             fill="#A4B1BC"
@@ -1431,13 +1454,7 @@ const IconsSvg = (props: IconsSvgProps) => {
       );
     case 'successCheckMark':
       return (
-        <Svg
-          width={63}
-          height={62}
-          viewBox="0 0 63 62"
-          fill="none"
-          {...props}
-        >
+        <Svg width={63} height={62} viewBox="0 0 63 62" fill="none" {...props}>
           <Path
             opacity={0.12}
             d="M25.657 9.3c-1.654 1.654-3.292 2.418-5.648 2.418-2.056 0-4.985-.398-6.592 1.222-1.597 1.61-1.199 4.526-1.199 6.57 0 2.356-.767 3.993-2.42 5.647C7.043 27.91 5.666 29.29 5.666 31s1.377 3.09 4.133 5.844c1.85 1.852 2.418 3.048 2.418 5.647 0 2.056-.398 4.986 1.222 6.593 1.61 1.594 4.526 1.198 6.57 1.198 2.508 0 3.72.491 5.51 2.281 1.524 1.525 3.567 4.27 5.98 4.27 2.413 0 4.456-2.745 5.98-4.27 1.793-1.79 3.002-2.28 5.51-2.28 2.044 0 4.96.397 6.57-1.2 1.62-1.606 1.222-4.536 1.222-6.592 0-2.601.568-3.797 2.42-5.647 2.755-2.754 4.131-4.133 4.131-5.844 0-1.71-1.377-3.09-4.133-5.843-1.85-1.852-2.418-3.049-2.418-5.647 0-2.057.398-4.986-1.222-6.593-1.61-1.597-4.526-1.199-6.57-1.199-2.355 0-3.993-.767-5.646-2.42C34.59 6.544 33.21 5.167 31.5 5.167S28.41 6.544 25.657 9.3z"
@@ -1459,14 +1476,15 @@ const IconsSvg = (props: IconsSvgProps) => {
       );
     case 'camera':
       return (
-        <Svg
-          width={33}
-          height={32}
-          viewBox="0 0 33 32"
-          fill="none"
-          {...props}
-        >
-          <Rect x={1.375} y={0.5} width={31} height={31} rx={15.5} fill="#E7F1EF" />
+        <Svg width={33} height={32} viewBox="0 0 33 32" fill="none" {...props}>
+          <Rect
+            x={1.375}
+            y={0.5}
+            width={31}
+            height={31}
+            rx={15.5}
+            fill="#E7F1EF"
+          />
           <Rect
             x={1.375}
             y={0.5}
@@ -1480,14 +1498,17 @@ const IconsSvg = (props: IconsSvgProps) => {
             stroke="#31AD52"
             strokeWidth={1.6}
             strokeLinecap="round"
-            strokeLinejoin="round"
-          >
+            strokeLinejoin="round">
             <Path d="M11.042 11.833h.833a1.667 1.667 0 001.667-1.667.834.834 0 01.833-.833h5a.833.833 0 01.833.833 1.667 1.667 0 001.667 1.667h.833a1.666 1.666 0 011.667 1.667V21a1.667 1.667 0 01-1.667 1.666H11.042A1.667 1.667 0 019.375 21v-7.5a1.666 1.666 0 011.667-1.667z" />
             <Path d="M14.375 16.833a2.5 2.5 0 105 0 2.5 2.5 0 00-5 0z" />
           </G>
           <Defs>
             <ClipPath id="clip0_232_1262">
-              <Path fill="#fff" transform="translate(6.875 6)" d="M0 0H20V20H0z" />
+              <Path
+                fill="#fff"
+                transform="translate(6.875 6)"
+                d="M0 0H20V20H0z"
+              />
             </ClipPath>
           </Defs>
         </Svg>
@@ -1532,13 +1553,7 @@ const IconsSvg = (props: IconsSvgProps) => {
       );
     case 'packageIcon':
       return (
-        <Svg
-          width={39}
-          height={40}
-          viewBox="0 0 39 40"
-          fill="none"
-          {...props}
-        >
+        <Svg width={39} height={40} viewBox="0 0 39 40" fill="none" {...props}>
           <Path
             fillRule="evenodd"
             clipRule="evenodd"
@@ -1549,20 +1564,13 @@ const IconsSvg = (props: IconsSvgProps) => {
       );
     case 'locationIcon':
       return (
-        <Svg
-          width={24}
-          height={24}
-          viewBox="0 0 24 24"
-          fill="none"
-          {...props}
-        >
+        <Svg width={24} height={24} viewBox="0 0 24 24" fill="none" {...props}>
           <G
             clipPath="url(#clip0_344_1856)"
             stroke="#3B8D5C"
             strokeWidth={1.5}
             strokeLinecap="round"
-            strokeLinejoin="round"
-          >
+            strokeLinejoin="round">
             <Path d="M9 11a3 3 0 106 0 3 3 0 00-6 0z" />
             <Path d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
           </G>
@@ -1575,137 +1583,138 @@ const IconsSvg = (props: IconsSvgProps) => {
       );
     case 'orderSuccessful':
       return (
-        <Svg
-          width={72}
-          height={72}
-          viewBox="0 0 72 72"
-          fill="none"
-          {...props}
-        >
-          <Rect x={0.5} y={0.5} width={71} height={71} rx={35.5} stroke="#BABDB7" />
+        <Svg width={72} height={72} viewBox="0 0 72 72" fill="none" {...props}>
+          <Rect
+            x={0.5}
+            y={0.5}
+            width={71}
+            height={71}
+            rx={35.5}
+            stroke="#BABDB7"
+          />
           <G
             clipPath="url(#clip0_348_2301)"
             stroke="#000"
             strokeWidth={2}
             strokeLinecap="round"
-            strokeLinejoin="round"
-          >
+            strokeLinejoin="round">
             <Path d="M24.51 47.49c-1.438-1.437-.485-4.457-1.216-6.226-.76-1.827-3.544-3.31-3.544-5.264 0-1.953 2.784-3.438 3.544-5.264.731-1.767-.222-4.79 1.215-6.227 1.438-1.437 4.46-.484 6.227-1.215 1.834-.76 3.31-3.544 5.264-3.544 1.953 0 3.438 2.784 5.264 3.544 1.769.731 4.79-.222 6.227 1.215 1.437 1.438.484 4.458 1.215 6.227.76 1.834 3.544 3.31 3.544 5.264 0 1.953-2.784 3.438-3.544 5.264-.731 1.769.222 4.79-1.215 6.227-1.438 1.437-4.458.484-6.227 1.215-1.827.76-3.31 3.544-5.264 3.544-1.953 0-3.438-2.784-5.264-3.544-1.767-.731-4.79.222-6.227-1.215z" />
             <Path d="M29.75 37.25L33.5 41l8.75-8.75" />
           </G>
           <Defs>
             <ClipPath id="clip0_348_2301">
-              <Path fill="#fff" transform="translate(16 16)" d="M0 0H40V40H0z" />
+              <Path
+                fill="#fff"
+                transform="translate(16 16)"
+                d="M0 0H40V40H0z"
+              />
             </ClipPath>
           </Defs>
         </Svg>
       );
-      case 'back':
-        return (
-          <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-            <Path
-              d="M15 19.92L8.48 13.4c-.77-.77-.77-2.03 0-2.8L15 4.08"
-              stroke="#101828"
-              strokeWidth={1.5}
-              strokeMiterlimit={10}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </Svg>
-        );
-   
-   
-  case 'close':
-        return (
-          <Svg width={14} height={14} viewBox="0 0 12 12" fill="none">
-            <Path
-              d="M11 1L1 11M1 1l10 10"
-              stroke={color ? color : '#667085'}
-              strokeWidth={1.66667}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </Svg>
-        );
-   
-   
-   
-     case 'filter':
-        return (
-          <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-            <Path
-              d="M9.11 5.08c.87-.26 1.83-.43 2.89-.43 4.79 0 8.67 3.88 8.67 8.67s-3.88 8.67-8.67 8.67-8.67-3.88-8.67-8.67c0-1.78.54-3.44 1.46-4.82M7.87 5.32L10.76 2M7.87 5.32l3.37 2.46"
-              stroke="#292D32"
-              strokeWidth={1.5}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <Path
-              d="M15 17l-3.04-1.447c-.529-.25-.96-.853-.96-1.346V11"
-              stroke="#292D32"
-              strokeWidth={1.5}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </Svg>
-        );
-        case 'dropDown':
-          return (
-            <Svg width={14} height={7} viewBox="0 0 14 7" fill="none" {...props}>
-              <Path
-                d="M12.28.967L7.933 5.313a1.324 1.324 0 01-1.866 0L1.72.967"
-                stroke={color ? color : '#81838C'}
-                strokeWidth={1.5}
-                strokeMiterlimit={10}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </Svg>
-          );
-          case 'iconArrowDown':
-            return (
-              <Svg
-                width={width ? width : 28}
-                height={height ? height : 15}
-                viewBox="0 0 25 12"
-                fill="none">
-                <Path
-                  d="M13.083 9.335c-.157 0-.303-.031-.438-.095a1.285 1.285 0 01-.387-.285L7.56 4.162a.968.968 0 01-.292-.71c0-.183.046-.352.14-.509.088-.156.209-.281.361-.374a.99.99 0 01.508-.133c.28 0 .529.107.749.323l4.062 4.183 4.056-4.183c.212-.216.46-.323.743-.323a.99.99 0 01.508.133c.152.093.273.218.362.374.093.157.14.326.14.508 0 .28-.096.516-.286.711l-4.697 4.793a1.126 1.126 0 01-.832.38z"
-                  fill={color ? color : colors.primary}
-                />
-              </Svg>
-            );
-          case 'iconArrowLeft':
-            return (
-              <Svg width={12} height={15} viewBox="0 0 8 11" fill="none">
-                <Path
-                  d="M7.138 9.533L3.064 5.5l4.074-4.034L5.884.227.547 5.5l5.337 5.273 1.254-1.24z"
-                  fill={colors.primary}
-                />
-              </Svg>
-            );
-          case 'iconArrowRight':
-            return (
-              <Svg width={12} height={15} viewBox="0 0 8 11" fill="none">
-                <Path
-                  d="M.862 9.533L4.936 5.5.862 1.466 2.116.227 7.453 5.5l-5.337 5.273-1.254-1.24z"
-                  fill={colors.primary}
-                />
-              </Svg>
-            );
-            case 'calender':
-              return (
-                <Svg width={18} height={18} viewBox="0 0 18 18" fill="none" {...props}>
-                  <Path
-                    d="M13.5 1.5V3m-9-1.5V3M8.997 9.75h.006m-.006 3h.006m2.99-3H12m-6 0h.007m-.007 3h.007M2.625 6h12.75M1.875 9.182c0-3.268 0-4.902.94-5.917.938-1.015 2.45-1.015 5.473-1.015h1.425c3.022 0 4.534 0 5.473 1.015.939 1.015.939 2.65.939 5.917v.386c0 3.268 0 4.902-.94 5.917-.938 1.015-2.45 1.015-5.473 1.015H8.287c-3.022 0-4.534 0-5.473-1.015-.939-1.015-.939-2.65-.939-5.917v-.386zM2.25 6h13.5"
-                    stroke={color ? color : colors.placeholder}
-                    strokeWidth={1.5}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </Svg>
-              );
-            
+    case 'back':
+      return (
+        <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+          <Path
+            d="M15 19.92L8.48 13.4c-.77-.77-.77-2.03 0-2.8L15 4.08"
+            stroke="#101828"
+            strokeWidth={1.5}
+            strokeMiterlimit={10}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'close':
+      return (
+        <Svg width={14} height={14} viewBox="0 0 12 12" fill="none">
+          <Path
+            d="M11 1L1 11M1 1l10 10"
+            stroke={color ? color : '#667085'}
+            strokeWidth={1.66667}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'filter':
+      return (
+        <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+          <Path
+            d="M9.11 5.08c.87-.26 1.83-.43 2.89-.43 4.79 0 8.67 3.88 8.67 8.67s-3.88 8.67-8.67 8.67-8.67-3.88-8.67-8.67c0-1.78.54-3.44 1.46-4.82M7.87 5.32L10.76 2M7.87 5.32l3.37 2.46"
+            stroke="#292D32"
+            strokeWidth={1.5}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M15 17l-3.04-1.447c-.529-.25-.96-.853-.96-1.346V11"
+            stroke="#292D32"
+            strokeWidth={1.5}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+    case 'dropDown':
+      return (
+        <Svg width={14} height={7} viewBox="0 0 14 7" fill="none" {...props}>
+          <Path
+            d="M12.28.967L7.933 5.313a1.324 1.324 0 01-1.866 0L1.72.967"
+            stroke={color ? color : '#81838C'}
+            strokeWidth={1.5}
+            strokeMiterlimit={10}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+    case 'iconArrowDown':
+      return (
+        <Svg
+          width={width ? width : 28}
+          height={height ? height : 15}
+          viewBox="0 0 25 12"
+          fill="none">
+          <Path
+            d="M13.083 9.335c-.157 0-.303-.031-.438-.095a1.285 1.285 0 01-.387-.285L7.56 4.162a.968.968 0 01-.292-.71c0-.183.046-.352.14-.509.088-.156.209-.281.361-.374a.99.99 0 01.508-.133c.28 0 .529.107.749.323l4.062 4.183 4.056-4.183c.212-.216.46-.323.743-.323a.99.99 0 01.508.133c.152.093.273.218.362.374.093.157.14.326.14.508 0 .28-.096.516-.286.711l-4.697 4.793a1.126 1.126 0 01-.832.38z"
+            fill={color ? color : colors.primary}
+          />
+        </Svg>
+      );
+    case 'iconArrowLeft':
+      return (
+        <Svg width={12} height={15} viewBox="0 0 8 11" fill="none">
+          <Path
+            d="M7.138 9.533L3.064 5.5l4.074-4.034L5.884.227.547 5.5l5.337 5.273 1.254-1.24z"
+            fill={colors.primary}
+          />
+        </Svg>
+      );
+    case 'iconArrowRight':
+      return (
+        <Svg width={12} height={15} viewBox="0 0 8 11" fill="none">
+          <Path
+            d="M.862 9.533L4.936 5.5.862 1.466 2.116.227 7.453 5.5l-5.337 5.273-1.254-1.24z"
+            fill={colors.primary}
+          />
+        </Svg>
+      );
+    case 'calender':
+      return (
+        <Svg width={18} height={18} viewBox="0 0 18 18" fill="none" {...props}>
+          <Path
+            d="M13.5 1.5V3m-9-1.5V3M8.997 9.75h.006m-.006 3h.006m2.99-3H12m-6 0h.007m-.007 3h.007M2.625 6h12.75M1.875 9.182c0-3.268 0-4.902.94-5.917.938-1.015 2.45-1.015 5.473-1.015h1.425c3.022 0 4.534 0 5.473 1.015.939 1.015.939 2.65.939 5.917v.386c0 3.268 0 4.902-.94 5.917-.938 1.015-2.45 1.015-5.473 1.015H8.287c-3.022 0-4.534 0-5.473-1.015-.939-1.015-.939-2.65-.939-5.917v-.386zM2.25 6h13.5"
+            stroke={color ? color : colors.placeholder}
+            strokeWidth={1.5}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
     default:
       return null;
   }

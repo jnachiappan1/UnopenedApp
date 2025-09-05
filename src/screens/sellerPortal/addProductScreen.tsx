@@ -80,6 +80,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
   const [uploadedImages, setUploadedImages] = useState<MediaObject[]>([]);
   const [isNavigatingToPreview, setIsNavigatingToPreview] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
+  const [isAgreed, setIsAgreed] = useState(false);
   const userData = useSelector((user: IRootState) => user.user.userData);
   const isLogged = userData ? true : false;
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -109,7 +110,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     queryFn: () => getScanProductDetail(scannedBarcode as string),
     enabled: !!scannedBarcode,
   });
-  console.log("scanProductData", JSON.stringify(scanProductData));
   
   const discountPercentage = ProductPriceData?.data?.product_price?.price
   const transformCategoryData = (apiData: any): DropDownType[] => {
@@ -372,13 +372,11 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
   
       setValue('weight', productData.weight ? productData.weight.toString() : '');
   
-      // ✅ Handle images (local file:// or remote http://)
       if (productData.images && productData.images.length > 0) {
         setUploadedImages([]);
         setValue('productImages', []);
   
         const firstImageUrl = productData.images[0] ? productData.images[0] : productData.images;
-  console.log("firstImageUrl--", productData.images);
   
         const handleRemoteImage = async (url: string) => {
           try {
@@ -397,7 +395,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
               name: 'scanned_product_image.jpg',
               type: 'image/jpeg',
             };
-  // console.log("scannedImage", scannedImage);
   
             setUploadedImages([scannedImage]);
             setValue('productImages', [scannedImage]);
@@ -865,7 +862,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             containerStyle={styles.categoryStyle}
           />
           <View style={styles.dimensionContainer}>
-            <Text style={styles.dimensionLabel}>Dimensions *</Text>
+            <Text style={styles.dimensionLabel}>Dimensions In Inches*</Text>
             <View style={styles.dimensionInputsRow}>
               <Input
                 control={control}
@@ -1131,6 +1128,47 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
           />
          
         </View>
+
+        {/* Confirmation Section */}
+        <View style={styles.confirmationContainer}>
+          <Text style={styles.confirmationTitle}>Before you publish, please confirm:</Text>
+          <View style={styles.confirmationList}>
+            <View style={styles.confirmationItemRow}>
+              <Text style={styles.bulletDot}>{'\u2022'}</Text>
+              <Text style={styles.confirmationText}>
+                I confirm that this item is factory sealed and accurately described. The media I uploaded is original and contemporaneous, depicting this specific item.
+              </Text>
+            </View>
+            <View style={styles.confirmationItemRow}>
+              <Text style={styles.bulletDot}>{'\u2022'}</Text>
+              <Text style={styles.confirmationText}>
+                I will ship within 49 hours using the provided USPS label.
+              </Text>
+            </View>
+            <View style={styles.confirmationItemRow}>
+              <Text style={styles.bulletDot}>{'\u2022'}</Text>
+              <Text style={styles.confirmationText}>
+                I understand my payout occurs 48 hours after delivery if no dispute is filed, and that misrepresentation or non-compliance may result in withheld or reversed payouts, listing removal, and account action.
+              </Text>
+            </View>
+          </View>
+
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.checkboxRow}
+            onPress={() => setIsAgreed(prev => !prev)}
+          >
+            <IconsSvg
+              name={isAgreed ? 'checkBoxSelected' : 'checkBox'}
+              width={24}
+              height={24}
+              style={styles.checkboxIcon}
+            />
+            <Text style={styles.checkboxLabel}>
+              I agree and confirm all statements above are true.
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
       <View style={styles.step2Buttons}>
         <WhiteButton
@@ -1148,6 +1186,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             title="Submit For Review"
             style={styles.submitReviewButton}
             onPress={handleSubmit(Submit)}
+            disabled={!isAgreed}
           />
         </View>
       </View>
@@ -1478,6 +1517,55 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     // elevation: 2,
+  },
+  confirmationContainer: {
+    marginTop: 24,
+    padding: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  confirmationTitle: {
+    fontSize: fontSizes.medium,
+    fontFamily: fonts.bold,
+    color: colors.primaryBlack,
+    marginBottom: 12,
+  },
+  confirmationList: {
+    marginTop: 4,
+  },
+  confirmationItemRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  bulletDot: {
+    marginTop: 2,
+    marginRight: 8,
+    fontSize: fontSizes.large,
+    color: colors.primaryBlack,
+  },
+  confirmationText: {
+    flex: 1,
+    fontSize: fontSizes.small,
+    color: colors.text,
+    fontFamily: fonts.regular,
+    lineHeight: 20,
+  },
+  checkboxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  checkboxIcon: {
+    marginRight: 10,
+  },
+  checkboxLabel: {
+    flex: 1,
+    fontSize: fontSizes.small,
+    color: colors.primaryBlack,
+    fontFamily: fonts.medium,
   },
   selectedImagesHeader: {
     marginBottom: 16,

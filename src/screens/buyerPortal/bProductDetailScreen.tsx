@@ -60,6 +60,7 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
     queryKey: ['getProductDetailByID', productId],
     queryFn: () => getProductDetailByID(productId),
   });
+// console.log("allProductList",allProductList);
 
   const {
     data: ProductPriceData,
@@ -111,6 +112,7 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
   const productImages: ProductImage[] = (
     currentProduct?.product_image ?? []
   ).slice().reverse();
+console.log("currentProduct",currentProduct);
 
   return (
     <TitleBackHeaderContainer title="Product Details" isBack>
@@ -196,10 +198,8 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
           />
         </View>
 
-        <View style={styles.productInfo}>
-          {/* <View style={styles.stockBadge}>
-            <Text style={styles.stockText}>In Stock</Text>
-          </View> */}
+        {/* <View style={styles.productInfo}>
+         
           <StatusBadge
             status={
               currentProduct?.product_status === 'active'
@@ -230,7 +230,7 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
               </View>
             </View>
           </View>
-        </View>
+        </View> */}
 
         <View style={styles.productInfo}>
           <View style={styles.trustContainer}>

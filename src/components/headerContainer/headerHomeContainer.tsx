@@ -113,7 +113,7 @@ const HeaderHomeContainer: React.FC<HeaderHomeContainerProps> = props => {
               {title}
             </Text>
           </View>
-          <IconsSvg name='notificationIcon' />
+          <IconsSvg name='notificationIcon' onPress={() => navigation.navigate(SCREENS.NotificationScreen)} />
           <TouchableOpacity style={styles.userContainer}
             onPress={() => {
               const newType = userType === 'buyer' ? 'seller' : 'buyer';
