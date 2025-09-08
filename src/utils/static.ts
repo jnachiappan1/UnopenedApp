@@ -286,7 +286,6 @@ export const paymentMethods: PaymentMethodType[] =  [
   {
     id: 2,
     title: 'Venmo',
-    subtitle: '@johndoe@22',
     icon: 'venmo',
   },
   {

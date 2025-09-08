@@ -1,5 +1,5 @@
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { useState, useCallback, useEffect } from 'react'
+import React, { useState, useCallback, useEffect, useRef } from 'react'
 import HeaderHomeContainer from '../../components/headerContainer/headerHomeContainer'
 import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation'
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -38,7 +38,7 @@ const defaultCounts = {
   wallet_balance: 0,
 };
 
-const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
+const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation, route }) => {
   const [selectedTab, setSelectedTab] = useState('All');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [termsModalVisible, setTermsModalVisible] = useState(false);
@@ -47,6 +47,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
   const [termsChecked, setTermsChecked] = useState(false);
   const [acceptLoading, setAcceptLoading] = useState(false);
   const [termsModalManuallyClosed, setTermsModalManuallyClosed] = useState(false);
+  const hasTermsModalOpened = useRef(false);
   const userData = useSelector((user: IRootState) => user.user.userData);
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
@@ -279,17 +280,24 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
     }
   }, []);
   useEffect(() => {
-    // Auto-show terms modal only if seller agreement not accepted
-    if (data?.data?.user && data?.data?.user?.is_seller_agreement === false && !termsModalVisible && !termsModalManuallyClosed) {
+    if (
+      route?.params?.openSellerAgreement &&
+      data?.data?.user &&
+      data?.data?.user?.is_seller_agreement === false &&
+      !termsModalVisible &&
+      !termsModalManuallyClosed &&
+      !hasTermsModalOpened.current
+    ) {
       openTermsModal();
     }
-  }, [data, termsModalVisible, termsModalManuallyClosed]);
+  }, [route?.params?.openSellerAgreement, data, termsModalVisible, termsModalManuallyClosed]);
   const openTermsModal = async () => {
+    hasTermsModalOpened.current = true;
     setTermsModalVisible(true);
     setTermsLoading(true);
     setTermsChecked(false);
     try {
-      const response = await getLegalcontent('terms_and_conditions');
+      const response = await getLegalcontent('seller_agreement');
       
       // Validate the response content before setting it
       if (response?.data?.legalContent?.content && 

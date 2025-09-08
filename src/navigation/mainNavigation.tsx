@@ -38,8 +38,7 @@ import { IRootState } from '../redux/store';
 import AddProductScreen from '../screens/sellerPortal/addProductScreen';
 import BarcodeScanner from '../screens/sellerPortal/barcodeScanner';
 import AddressSelectionScreen from '../screens/buyerPortal/addressSelectionScreen';
-import BHomeScreen from '../screens/buyerPortal/bHomeScreen';
-import SHomeScreen from '../screens/sellerPortal/sHomeScreen';
+// S/B Home screens are provided via BottomTab; do not register in Stack to avoid duplicate mounts
 import { getFCMToken } from '../utils/notificationHelper';
 import { saveFcmToken } from '../redux/reducers/user/UserReducer';
 import AddBankDetailsScreen from '../screens/wallet/addBankDetailsScreen';
@@ -143,10 +142,8 @@ const MainNavigation: React.FC = () => {
         name={SCREENS.AddBankDetailsScreen}
         component={AddBankDetailsScreen}
       />
- <Stack.Screen name={SCREENS.BHomeScreen} component={BHomeScreen} />
- <Stack.Screen name={SCREENS.SHomeScreen} component={SHomeScreen} />
- <Stack.Screen name={SCREENS.NotificationScreen} component={NotificationScreen} />
- <Stack.Screen name={SCREENS.FullScreen} component={FullScreen} />
+      <Stack.Screen name={SCREENS.NotificationScreen} component={NotificationScreen} />
+      <Stack.Screen name={SCREENS.FullScreen} component={FullScreen} />
     </Stack.Navigator>
     // </View>
   );
@@ -195,8 +192,8 @@ export type RootStackParamList = {
   [SCREENS.LoginScreen]: undefined;
   [SCREENS.VerifyOTP]: { otp: string, email?: string | null | undefined ,type?: string | null | undefined};
   [SCREENS.SignUpScreen]: undefined;
-  [SCREENS.BottomTab]: undefined;
-  [SCREENS.SHomeScreen]: undefined;
+  [SCREENS.BottomTab]: { screen?: SCREENS; params?: any } | undefined;
+  [SCREENS.SHomeScreen]: { openSellerAgreement?: boolean } | undefined;
   [SCREENS.BHomeScreen]: undefined;
   [SCREENS.AddProductScreen]:{ scannedBarcode?: string };
   [SCREENS.ProductListScreen]: undefined;

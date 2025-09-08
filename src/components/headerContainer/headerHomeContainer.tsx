@@ -24,6 +24,7 @@ import { saveUserType } from '../../redux/reducers/user/UserReducer';
 import { IRootState } from '../../redux/store';
 import { useContainer } from '../hooks/useContainer';
 import { image_url } from '../../utils/api';
+import { viewProfile } from '../../utils/apiAction';
 
 type HeaderHomeContainerProps = {
   children?: React.ReactNode | undefined;
@@ -115,9 +116,29 @@ const HeaderHomeContainer: React.FC<HeaderHomeContainerProps> = props => {
           </View>
           <IconsSvg name='notificationIcon' onPress={() => navigation.navigate(SCREENS.NotificationScreen)} />
           <TouchableOpacity style={styles.userContainer}
-            onPress={() => {
-              const newType = userType === 'buyer' ? 'seller' : 'buyer';
-              dispatch(saveUserType(newType));
+            onPress={async () => {
+              try {
+                const newType = userType === 'buyer' ? 'seller' : 'buyer';
+                if (newType === 'seller') {
+                  try {
+                    const response = await viewProfile();
+                    const isAccepted = response?.data?.user?.is_seller_agreement === true;
+                    dispatch(saveUserType('seller'));
+                    navigation.navigate(
+                      SCREENS.BottomTab,
+                      !isAccepted
+                        ? { screen: SCREENS.SHomeScreen, params: { openSellerAgreement: true } }
+                        : { screen: SCREENS.SHomeScreen }
+                    );
+                  } catch (error) {
+                    dispatch(saveUserType('seller'));
+                    navigation.navigate(SCREENS.BottomTab, { screen: SCREENS.SHomeScreen });
+                  }
+                } else {
+                  dispatch(saveUserType('buyer'));
+                  navigation.navigate(SCREENS.BottomTab, { screen: SCREENS.BHomeScreen });
+                }
+              } catch (e) {}
             }}
           >
             <IconsSvg name='addUser' />

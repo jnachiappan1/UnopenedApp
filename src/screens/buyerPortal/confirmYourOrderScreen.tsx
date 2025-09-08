@@ -862,7 +862,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
           <View style={styles.productContainer}>
             <View style={styles.imageContainer}>
               <Image
-                source={{ uri: image_url + allProductList?.data?.product[0]?.product_image[0]?.image }}
+                source={{ uri: image_url + allProductList?.data?.product[0]?.product_image[1]?.image }}
                 style={styles.productImage}
               />
             </View>

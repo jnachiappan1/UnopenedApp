@@ -1,4 +1,4 @@
-import {FlatList, StyleSheet, Text, View} from 'react-native';
+import {FlatList, StyleSheet, Text, View, TouchableOpacity} from 'react-native';
 import React, {useState, useEffect} from 'react';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
 import {fontSizes} from '../../utils/utils';
@@ -19,6 +19,7 @@ import {
   getCashOutHistory,
   getCashOutRequest,
   createCashOut,
+  cashOut,
 } from '../../utils/apiAction';
 import {useQuery, useMutation} from '@tanstack/react-query';
 import {showLoader} from '../../components/loader/loader';
@@ -33,6 +34,7 @@ type CashOutScreenProps = NativeStackScreenProps<
 const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [paymentError, setPaymentError] = useState(false);
+  const [useBankDetails, setUseBankDetails] = useState<boolean>(false);
 
   // Fetch bank account details
   const {
@@ -61,7 +63,6 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
     queryKey: ['cashOutRequest'],
     queryFn: getCashOutRequest,
   });
-  console.log(cashOutRequestData, 'cashOutRequestData---------');
   // Show loader while fetching bank details
   useEffect(() => {
     if (isLoadingBankDetails) {
@@ -70,6 +71,12 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
       showLoader(false);
     }
   }, [isLoadingBankDetails]);
+
+  useEffect(() => {
+    if (bankAccountData?.data?.bankDetails) {
+      setUseBankDetails(true);
+    }
+  }, [bankAccountData]);
 
   const {
     control,
@@ -95,6 +102,29 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
           refetchBankDetails();
           refetchHistory();
           refetchRequest();
+          navigation.goBack();
+        },
+      });
+    },
+    onError: handleError,
+    onSettled: handleSettled,
+  });
+
+  const {mutate: bankCashOutMutation, isPending: isBankCashOutPending} = useMutation({
+    mutationFn: cashOut,
+    onSuccess: data => {
+      showLoader(false);
+      showAlert({
+        isVisible: true,
+        type: 'success',
+        title: 'Success!',
+        description: 'Cash out request submitted successfully',
+        doneText: 'Okay',
+        onDonePress: () => {
+          refetchBankDetails();
+          refetchHistory();
+          refetchRequest();
+          navigation.goBack();
         },
       });
     },
@@ -103,16 +133,16 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
   });
 
   const onSubmit = (data: any) => {
-    if (!bankAccountData?.data?.bankDetails) {
-      showAlert({
-        isVisible: true,
-        type: 'error',
-        title: 'Error!',
-        description: 'Please add bank details before proceeding with cash out.',
-        doneText: 'Okay',
-      });
-      return;
-    }
+    // if (!bankAccountData?.data?.bankDetails) {
+    //   showAlert({
+    //     isVisible: true,
+    //     type: 'error',
+    //     title: 'Error!',
+    //     description: 'Please add bank details before proceeding with cash out.',
+    //     doneText: 'Okay',
+    //   });
+    //   return;
+    // }
 
     if (!data.amount || parseFloat(data.amount) <= 0) {
       showAlert({
@@ -122,6 +152,14 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
         description: 'Please enter a valid amount.',
         doneText: 'Okay',
       });
+      return;
+    }
+
+    const amountValue = parseFloat(data.amount);
+
+    // If using bank details, submit directly to bank cash out endpoint
+    if (useBankDetails && bankAccountData?.data?.bankDetails) {
+      bankCashOutMutation({amount: amountValue.toString()});
       return;
     }
 
@@ -135,7 +173,6 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
 
     // Build payload based on selected payment method and call createCashOut API
     const selectedMethod = paymentMethods.find(m => m.id === selectedId);
-    const amountValue = parseFloat(data.amount);
     const isVenmo =
       selectedMethod?.icon === 'venmo' ||
       selectedMethod?.title?.toLowerCase() === 'venmo';
@@ -179,9 +216,8 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
           cash_app: cashAppHandle,
           amount: amountValue,
         };
-    console.log('payload', payload);
-
-    // cashOutMutation(payload);
+        
+    cashOutMutation(payload); 
   };
 
   return (
@@ -201,12 +237,37 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
           error={errors}
           maxLength={40}
           inputStyle={styles.inputStyle}
+          keyboardType={'numeric'}
         />
         <Text style={styles.titleStyle}>
           For Instant CashOut Add Bank Details
         </Text>
         {bankAccountData?.data?.bankDetails ? (
-          <BankDetailsCard bankDetails={bankAccountData.data.bankDetails} />
+          <>
+            <BankDetailsCard bankDetails={bankAccountData.data.bankDetails} />
+            <TouchableOpacity
+              activeOpacity={0.7}
+              style={styles.checkboxRow}
+              onPress={() => {
+                const next = !useBankDetails;
+                setUseBankDetails(next);
+                if (next) {
+                  setSelectedId(null);
+                  setValue('venmo', '');
+                  setValue('cash_app', '');
+                }
+                setPaymentError(false);
+              }}>
+              <View
+                style={[
+                  styles.radio,
+                  useBankDetails && styles.radioSelected,
+                ]}>
+                {useBankDetails && <View style={styles.innerDot} />}
+              </View>
+              <Text style={styles.titleStyle}>Use Bank Account</Text>
+            </TouchableOpacity>
+          </>
         ) : (
           <Button
             title="Add Bank details"
@@ -215,65 +276,66 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
             onPress={() => navigation.navigate(SCREENS.AddBankDetailsScreen)}
           />
         )}
-        <FlatList
-          data={paymentMethods}
-          scrollEnabled={false}
-          keyExtractor={item => item.id.toString()}
-          renderItem={({item}) => {
-            const isSelected = selectedId === item.id;
-            const isVenmoItem =
-              item.icon === 'venmo' || item.title?.toLowerCase() === 'venmo';
-            const fieldName = isVenmoItem ? 'venmo' : 'cash_app';
-            const placeholder = isVenmoItem ? 'Venmo Id' : 'Cash App Id';
-            const requiredMessage = isVenmoItem
-              ? 'Please enter Venmo username'
-              : 'Please enter Cash App $Cashtag';
+        {!useBankDetails && (
+          <FlatList
+            data={paymentMethods}
+            scrollEnabled={false}
+            keyExtractor={item => item.id.toString()}
+            renderItem={({item}) => {
+              const isSelected = selectedId === item.id;
+              const isVenmoItem =
+                item.icon === 'venmo' || item.title?.toLowerCase() === 'venmo';
+              const fieldName = isVenmoItem ? 'venmo' : 'cash_app';
+              const placeholder = isVenmoItem ? 'Venmo Id' : 'Cash App Id';
+              const requiredMessage = isVenmoItem
+                ? 'Please enter Venmo Id'
+                : 'Please enter Cash App Id';
 
-            return (
-              <View>
-                <PaymentMethodCard
-                  item={item}
-                  selected={isSelected}
-                  onPress={selectedItem => {
-                    // Clear handle fields only when switching between methods
-                    if (selectedId !== selectedItem.id) {
-                      setValue('venmo', '');
-                      setValue('cash_app', '');
-                    }
-                    setSelectedId(selectedItem.id);
-                    setPaymentError(false);
-                  }}
-                />
-                {isSelected && (
-                  <View style={styles.methodInputContainer}>
-                    <Input
-                      control={control}
-                      name={fieldName}
-                      label={''}
-                      containerStyle={styles.amountContainer}
-                      inputProps={{
-                        placeholder,
-                      }}
-                      required={{value: true, message: requiredMessage}}
-                      error={errors}
-                      maxLength={40}
-                      inputStyle={styles.inputStyle}
-                    />
-                  </View>
-                )}
-              </View>
-            );
-          }}
-          style={{marginTop: 15}}
-        />
-        {paymentError && (
+              return (
+                <View>
+                  <PaymentMethodCard
+                    item={item}
+                    selected={isSelected}
+                    onPress={selectedItem => {
+                      if (selectedId !== selectedItem.id) {
+                        setValue('venmo', '');
+                        setValue('cash_app', '');
+                      }
+                      setSelectedId(selectedItem.id);
+                      setPaymentError(false);
+                    }}
+                  />
+                  {isSelected && (
+                    <View style={styles.methodInputContainer}>
+                      <Input
+                        control={control}
+                        name={fieldName}
+                        label={''}
+                        containerStyle={styles.amountContainer}
+                        inputProps={{
+                          placeholder,
+                        }}
+                        required={{value: true, message: requiredMessage}}
+                        error={errors}
+                        maxLength={40}
+                        inputStyle={styles.inputStyle}
+                      />
+                    </View>
+                  )}
+                </View>
+              );
+            }}
+            style={{marginTop: 15}}
+          />
+        )}
+        {!useBankDetails && paymentError && (
           <Text style={styles.errorText}>Please select a payment method</Text>
         )}
         <Text style={styles.titleStyle}>
           Note: Wallet CashOut May Take 1-3 Business Days
         </Text>
         <Button
-          title={isCashOutPending ? 'Processing...' : 'Cash Out'}
+          title={isCashOutPending || isBankCashOutPending ? 'Processing...' : 'Cash Out'}
           style={[
             styles.cashOutButton,
             // (!bankAccountData?.data?.bankDetails || isCashOutPending) &&
@@ -299,7 +361,7 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
           </Text>
         )} */}
 
-        {isCashOutPending && (
+        {(isCashOutPending || isBankCashOutPending) && (
           <Text style={styles.helpText}>
             Processing your cash out request...
           </Text>
@@ -450,5 +512,37 @@ const styles = StyleSheet.create({
     paddingStart: 16,
     marginTop: -6,
     marginBottom: 10,
+  },
+  checkboxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    marginTop: 8,
+  },
+  radio: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 2,
+    borderColor: colors.border,
+    backgroundColor: 'transparent',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  radioSelected: {
+    borderColor: colors.primary,
+    backgroundColor: colors.white,
+  },
+  innerDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: colors.primary,
+  },
+  checkboxLabel: {
+    fontSize: fontSizes.small,
+    color: '#333',
+    fontFamily: fonts.medium,
   },
 });

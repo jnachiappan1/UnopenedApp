@@ -183,7 +183,7 @@ const ProfileVerifyScreen: React.FC<ProfileVerifyScreenProps> = ({
         <StatusBar backgroundColor={colors.primary} barStyle="light-content" />
         <Text style={styles.subHeading}>{'Verify OTP'}</Text>
         <Text style={styles.codeSentText}>
-          {'Please enter 4 digit code we sent to you on'}
+          {'Please enter 6 digit code we sent to you on'}
         </Text>
         <Text style={styles.emailText}>{email}</Text>
         <Text style={styles.emailText}>
@@ -197,7 +197,7 @@ const ProfileVerifyScreen: React.FC<ProfileVerifyScreenProps> = ({
           required={{ value: true, message: 'Required OTP' }}
           pattern={{
             value: /^[0-9]{6}$/,
-            message: 'OTP must be a 4-digit number',
+            message: 'OTP must be a 6-digit number',
           }}
           error={errors}
         />

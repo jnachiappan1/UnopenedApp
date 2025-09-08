@@ -47,8 +47,23 @@ instance.interceptors.response.use(
   function (error) {
     if (error?.response) {
       if (error.response?.status === 401) {
+        const state = store.getState();
+        const token = state?.user?.token;
+        // If user is a guest (no token), do not show alert or redirect
+        if (!token) {
+          if (error.response?.data) {
+            return Promise.reject(error.response?.data);
+          }
+          return Promise.reject(error);
+        }
         setTimeout(() => {
-          showAlert(error?.response?.data?.message)
+          showAlert({
+            isVisible: true,
+            type: 'error',
+            title: 'Unauthorized',
+            description: error?.response?.data?.message || 'Your session has expired. Please log in again.',
+            doneText: 'OK',
+          })
           // errorMessage(error?.response?.data?.message);
         }, 750);
         store.dispatch(setAuthToken(null));

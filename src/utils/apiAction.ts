@@ -279,6 +279,10 @@ export const getAddresses = async () => {
   const response = await axios.get(API.buyer.getAddresses);
   return response;
 };
+export const getAddressesByID = async (addressID: number) => {
+  const response = await axios.get(API.buyer.getAddresses + "/" + addressID);
+  return response;
+};
 export const getPublishKeyAction = async () => {
   const response = await axios.get(API.buyer.getPublishKey);
   return response;

@@ -19,6 +19,7 @@ import fonts from '../../assets/fonts/fonts';
 import IconsSvg from '../../assets/svg/iconsSvg';
 import Button from '../../components/button/buttons';
 import {
+  getAddressesByID,
   getProductDetailByID,
   getProductPriceDetail,
 } from '../../utils/apiAction';
@@ -54,15 +55,25 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
   const userData = useSelector((user: IRootState) => user.user.userData);
   const isLogged = userData ? true : false;
 
-  const {
-    data: allProductList,
-    refetch: refetchAllProduct,
-    isLoading,
-  } = useQuery({
-    queryKey: ['getProductDetailByID', productId],
-    queryFn: () => getProductDetailByID(productId),
-  });
-// console.log("allProductList",allProductList);
+    const {
+      data: allProductList,
+      refetch: refetchAllProduct,
+      isLoading,
+    } = useQuery({
+      queryKey: ['getProductDetailByID', productId],
+      queryFn: () => getProductDetailByID(productId),
+    });
+    const addressId = allProductList?.data?.product[0]?.address_id;
+    const {
+      data: addressData,
+      refetch: refetchAddressData,
+      isLoading: isLoadingAddressData,
+    } = useQuery({
+      queryKey: ['getAddressesByID', addressId],
+      queryFn: () => getAddressesByID(addressId),
+      enabled: !!addressId,
+    });
+console.log("addressData",addressData?.data?.address);
 
   const {
     data: ProductPriceData,
@@ -119,6 +130,48 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
     return sorted;
   }, [allProductList]);
 
+  const deliveryTitleText = React.useMemo(() => {
+    const payload: any = addressData;
+    let root: any;
+
+    if (Array.isArray(payload)) {
+      root = payload[0];
+    } else if (payload?.data?.address) {
+      root = Array.isArray(payload.data.address)
+        ? payload.data.address[0]
+        : payload.data.address;
+    } else if (Array.isArray(payload?.data)) {
+      root = payload.data[0];
+    } else if (payload?.data) {
+      root = payload.data;
+    } else if (payload?.address) {
+      root = Array.isArray(payload.address) ? payload.address[0] : payload.address;
+    } else {
+      root = payload;
+    }
+
+    if (!root) return 'Ships from';
+
+    const country =
+      root?.country ||
+      root?.country_name ||
+      root?.countryName ||
+      root?.address_user?.country;
+    const state =
+      root?.state ||
+      root?.state_name ||
+      root?.stateName ||
+      root?.address_user?.state;
+    const city =
+      root?.city ||
+      root?.city_name ||
+      root?.cityName ||
+      root?.address_user?.city;
+
+    const parts = [country, state, city].filter(Boolean);
+    return parts.length ? `Ships from ${parts.join(', ')}` : 'Ships from';
+  }, [addressData]);
+
   // Show error if no product data found
   if (!isLoading && !allProductList?.data?.product?.[0]) {
     return (
@@ -140,6 +193,8 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
   }
 
   const currentProduct = allProductList?.data?.product[0];
+  console.log("currentProduct",currentProduct);
+  
   const productImages: ProductImage[] = (
     currentProduct?.product_image ?? []
   ).slice().reverse();
@@ -239,7 +294,7 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
           />
         </View>
 
-        {/* <View style={styles.productInfo}>
+        <View style={styles.productInfo}>
          
           <StatusBadge
             status={
@@ -249,7 +304,7 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
             }
           />
           <View style={styles.deliveryInfo}>
-            <View style={styles.deliveryRow}>
+            {/* <View style={styles.deliveryRow}>
               <View style={styles.deliveryIcon}>
                 <IconsSvg name="vehicle" />
               </View>
@@ -259,19 +314,17 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
                 </Text>
                 <Text style={styles.deliverySubtitle}>Standard delivery</Text>
               </View>
-            </View>
+            </View> */}
             <View style={styles.deliveryRow}>
               <View style={styles.deliveryIcon}>
                 <IconsSvg name="deliverBox" />
               </View>
               <View style={styles.deliveryDetails}>
-                <Text style={styles.deliveryTitle}>
-                  Ships from California, Sacramento
-                </Text>
+                <Text style={styles.deliveryTitle}>{deliveryTitleText}</Text>
               </View>
             </View>
           </View>
-        </View> */}
+        </View>
 
         <View style={styles.productInfo}>
           <View style={styles.trustContainer}>
