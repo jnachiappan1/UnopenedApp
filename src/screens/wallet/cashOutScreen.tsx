@@ -140,39 +140,54 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
       selectedMethod?.icon === 'venmo' ||
       selectedMethod?.title?.toLowerCase() === 'venmo';
 
-    const payload :any= isVenmo
+    // Validate handle based on selected method
+    const venmoHandle: string | undefined = getValues('venmo');
+    const cashAppHandle: string | undefined = getValues('cash_app');
+
+    if (isVenmo && !venmoHandle) {
+      showAlert({
+        isVisible: true,
+        type: 'error',
+        title: 'Error!',
+        description: 'Please enter your Venmo username.',
+        doneText: 'Okay',
+      });
+      return;
+    }
+
+    if (!isVenmo && !cashAppHandle) {
+      showAlert({
+        isVisible: true,
+        type: 'error',
+        title: 'Error!',
+        description: 'Please enter your Cash App $Cashtag.',
+        doneText: 'Okay',
+      });
+      return;
+    }
+
+    const payload: any = isVenmo
       ? {
           type: 'venmo',
-          venmo: 'venmo.com',
-          cash_app: 'cash_app.com',
+          venmo: venmoHandle,
+          cash_app: '',
           amount: amountValue,
         }
       : {
-          type: 'cash_app' ,
-          venmo: 'venmo.com',
-          cash_app: 'cash_app.com',
+          type: 'cash_app',
+          venmo: '',
+          cash_app: cashAppHandle,
           amount: amountValue,
         };
+    console.log('payload', payload);
 
-    cashOutMutation(payload);
+    // cashOutMutation(payload);
   };
 
   return (
     <TitleBackHeaderContainer isBack title="Cash Out">
       <View style={styles.container}>
-        {/* Show existing bank details if available, otherwise show Add Bank Details button */}
-        {bankAccountData?.data?.bankDetails ? (
-          <BankDetailsCard bankDetails={bankAccountData.data.bankDetails} />
-        ) : (
-          <Button
-            title="Add Bank details"
-            style={styles.addBankDetailsButton}
-            textStyle={styles.addBankDetailsText}
-            onPress={() => navigation.navigate(SCREENS.AddBankDetailsScreen)}
-          />
-        )}
-      </View>
-      <View style={styles.container}>
+        <Text style={styles.titleStyle}>Choose Payment Method</Text>
         <Input
           control={control}
           name="amount"
@@ -187,51 +202,102 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
           maxLength={40}
           inputStyle={styles.inputStyle}
         />
-        <Text style={styles.titleStyle}>Choose Payment Method</Text>
+        <Text style={styles.titleStyle}>
+          For Instant CashOut Add Bank Details
+        </Text>
+        {bankAccountData?.data?.bankDetails ? (
+          <BankDetailsCard bankDetails={bankAccountData.data.bankDetails} />
+        ) : (
+          <Button
+            title="Add Bank details"
+            style={styles.addBankDetailsButton}
+            textStyle={styles.addBankDetailsText}
+            onPress={() => navigation.navigate(SCREENS.AddBankDetailsScreen)}
+          />
+        )}
         <FlatList
           data={paymentMethods}
           scrollEnabled={false}
           keyExtractor={item => item.id.toString()}
-          renderItem={({item}) => (
-            <PaymentMethodCard
-              item={item}
-              selected={selectedId === item.id}
-              onPress={selectedItem => {
-                setSelectedId(selectedItem.id);
-                setPaymentError(false); // reset error
-              }}
-            />
-          )}
+          renderItem={({item}) => {
+            const isSelected = selectedId === item.id;
+            const isVenmoItem =
+              item.icon === 'venmo' || item.title?.toLowerCase() === 'venmo';
+            const fieldName = isVenmoItem ? 'venmo' : 'cash_app';
+            const placeholder = isVenmoItem ? 'Venmo Id' : 'Cash App Id';
+            const requiredMessage = isVenmoItem
+              ? 'Please enter Venmo username'
+              : 'Please enter Cash App $Cashtag';
+
+            return (
+              <View>
+                <PaymentMethodCard
+                  item={item}
+                  selected={isSelected}
+                  onPress={selectedItem => {
+                    // Clear handle fields only when switching between methods
+                    if (selectedId !== selectedItem.id) {
+                      setValue('venmo', '');
+                      setValue('cash_app', '');
+                    }
+                    setSelectedId(selectedItem.id);
+                    setPaymentError(false);
+                  }}
+                />
+                {isSelected && (
+                  <View style={styles.methodInputContainer}>
+                    <Input
+                      control={control}
+                      name={fieldName}
+                      label={''}
+                      containerStyle={styles.amountContainer}
+                      inputProps={{
+                        placeholder,
+                      }}
+                      required={{value: true, message: requiredMessage}}
+                      error={errors}
+                      maxLength={40}
+                      inputStyle={styles.inputStyle}
+                    />
+                  </View>
+                )}
+              </View>
+            );
+          }}
+          style={{marginTop: 15}}
         />
         {paymentError && (
           <Text style={styles.errorText}>Please select a payment method</Text>
         )}
-
+        <Text style={styles.titleStyle}>
+          Note: Wallet CashOut May Take 1-3 Business Days
+        </Text>
         <Button
           title={isCashOutPending ? 'Processing...' : 'Cash Out'}
           style={[
             styles.cashOutButton,
-            (!bankAccountData?.data?.bankDetails || isCashOutPending) &&
-              styles.disabledButton,
+            // (!bankAccountData?.data?.bankDetails || isCashOutPending) &&
+            //   styles.disabledButton,
           ]}
           textStyle={[
             styles.cashOutButtonText,
-            (!bankAccountData?.data?.bankDetails || isCashOutPending) &&
-              styles.disabledButtonText,
+            // (!bankAccountData?.data?.bankDetails || isCashOutPending) &&
+            //   styles.disabledButtonText,
           ]}
-          onPress={
-            bankAccountData?.data?.bankDetails && !isCashOutPending
-              ? handleSubmit(onSubmit)
-              : undefined
-          }
-          disabled={!bankAccountData?.data?.bankDetails || isCashOutPending}
+          // onPress={
+          //   bankAccountData?.data?.bankDetails && !isCashOutPending
+          //     ? handleSubmit(onSubmit)
+          //     : undefined
+          // }
+          onPress={handleSubmit(onSubmit)}
+          // disabled={!bankAccountData?.data?.bankDetails || isCashOutPending}
         />
 
-        {!bankAccountData?.data?.bankDetails && (
+        {/* {!bankAccountData?.data?.bankDetails && (
           <Text style={styles.helpText}>
             Please add bank details to enable cash out
           </Text>
-        )}
+        )} */}
 
         {isCashOutPending && (
           <Text style={styles.helpText}>
@@ -239,6 +305,18 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
           </Text>
         )}
       </View>
+      {/* <View style={styles.container}>
+        {bankAccountData?.data?.bankDetails ? (
+          <BankDetailsCard bankDetails={bankAccountData.data.bankDetails} />
+        ) : (
+          <Button
+            title="Add Bank details"
+            style={styles.addBankDetailsButton}
+            textStyle={styles.addBankDetailsText}
+            onPress={() => navigation.navigate(SCREENS.AddBankDetailsScreen)}
+          />
+        )}
+      </View> */}
 
       <Text style={styles.heading}>Payout History</Text>
       {isLoadingHistory ? (
@@ -273,6 +351,10 @@ const styles = StyleSheet.create({
     marginHorizontal: 15,
     marginTop: 10,
     paddingVertical: 10,
+  },
+  methodInputContainer: {
+    marginTop: -4,
+    marginBottom: 6,
   },
   amountContainer: {
     paddingStart: 10,

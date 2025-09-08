@@ -1181,6 +1181,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             title="Preview & Confirm"
             style={styles.submitButton}
             onPress={handleSubmit(handlePreviewAndConfirm)}
+            disabled={!isAgreed}
           />
           <Button
             title="Submit For Review"

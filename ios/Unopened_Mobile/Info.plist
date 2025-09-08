@@ -58,6 +58,10 @@
 	<string></string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Unopened needs access to your photo library to allow uploading product pictures </string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Unopened needs access to your microphone to record audio with videos</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Unopened needs permission to save captured media to your photo library</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
