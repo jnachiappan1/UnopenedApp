@@ -12,7 +12,7 @@ import fonts from '../../assets/fonts/fonts';
 import { IRootState } from '../../redux/store';
 import { useDispatch, useSelector } from 'react-redux';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { getLegalcontent, getSellerDashboardCount, getSellerOwnProductList, updateProfile } from '../../utils/apiAction';
+import { getLegalcontent, getSellerDashboardCount, getSellerOwnProductList, updateProfile, viewProfile } from '../../utils/apiAction';
 import { ProductData } from '../../utils/types';
 import { useFocusEffect } from '@react-navigation/native';
 import TermsModal from '../../components/model/termsModal';
@@ -50,6 +50,12 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
   const userData = useSelector((user: IRootState) => user.user.userData);
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
+  const {data, refetch} = useQuery({
+    queryKey: ['getProfile'],
+    queryFn: viewProfile,
+  });
+  console.log("data----", data?.data?.user?.is_seller_agreement);
+  
   useEffect(() => {
     if (!userData) {
       queryClient.removeQueries({ queryKey: ['getSellerDashboardCount'] });
@@ -273,12 +279,11 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
     }
   }, []);
   useEffect(() => {
-    // Auto-show terms modal if user hasn't accepted terms and conditions
-    // AND user hasn't manually closed it
-    if (userData && !userData.is_terms_and_conditions_accepted && !termsModalVisible && !termsModalManuallyClosed) {
+    // Auto-show terms modal only if seller agreement not accepted
+    if (data?.data?.user && data?.data?.user?.is_seller_agreement === false && !termsModalVisible && !termsModalManuallyClosed) {
       openTermsModal();
     }
-  }, [userData, termsModalVisible, termsModalManuallyClosed]);
+  }, [data, termsModalVisible, termsModalManuallyClosed]);
   const openTermsModal = async () => {
     setTermsModalVisible(true);
     setTermsLoading(true);
@@ -305,6 +310,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
     mutationFn: updateProfile,
     onSuccess: (data) => {
       dispatch(saveUserData(data.data.user));
+      queryClient.invalidateQueries({ queryKey: ['getProfile'] });
       showLoader(false);
       setAcceptLoading(false);
       setTermsModalVisible(false);
@@ -314,8 +320,8 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
       showAlert({
         isVisible: true,
         type: 'success',
-        title: 'Terms Accepted',
-        description: 'You have successfully accepted the Terms & Conditions.',
+        title: 'Seller Agreement Accepted',
+        description: 'You have successfully accepted the Seller Agreement.',
         doneText: 'Okay',
         onDonePress: () => {
 
@@ -335,8 +341,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
       setAcceptLoading(true);
 
       const formDataToSend = new FormData();
-      // Fix: Convert boolean to string for FormData
-      formDataToSend.append('is_terms_and_conditions_accepted', 'true');
+      formDataToSend.append('is_seller_agreement', 'true');
 
       showLoader(true);
       mutate(formDataToSend);
@@ -560,7 +565,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation }) => {
         checked={termsChecked}
         onCheck={setTermsChecked}
         onAccept={handleTermsAcceptance}
-        isMandatory={userData && !userData.is_terms_and_conditions_accepted}
+        isMandatory={data?.data?.user && data?.data?.user?.is_seller_agreement === false}
         acceptLoading={acceptLoading}
       />
     </HeaderHomeContainer>

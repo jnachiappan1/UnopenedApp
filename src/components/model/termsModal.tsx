@@ -156,12 +156,12 @@ const TermsModal: React.FC<TermsModalProps> = ({
             <Text style={styles.closeButtonText}>✕</Text>
           </TouchableOpacity>
           
-          <Text style={styles.title}>Terms & Conditions</Text>
+          <Text style={styles.title}>Seller Agreement</Text>
           
           {/* Add mandatory notice if applicable */}
           {isMandatory && (
             <Text style={styles.mandatoryNotice}>
-              You must accept the Terms & Conditions to continue using the app.
+              You must accept the Seller Agreement to continue using the app.
             </Text>
           )}
 
@@ -169,7 +169,7 @@ const TermsModal: React.FC<TermsModalProps> = ({
             {loading ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color={colors.primary} />
-                <Text style={styles.loadingText}>Loading Terms & Conditions...</Text>
+                <Text style={styles.loadingText}>Loading Seller Agreement...</Text>
               </View>
             ) : htmlRenderFailed || renderTimeout ? (
               // Fallback to plain text if HTML rendering fails or times out
@@ -191,7 +191,7 @@ const TermsModal: React.FC<TermsModalProps> = ({
               <View style={[styles.checkbox, checked && styles.checkboxChecked]}>
                 {checked && <Text style={styles.checkIcon}>✓</Text>}
               </View>
-              <Text style={styles.checkboxLabel}>I agree to the Terms & Conditions</Text>
+              <Text style={styles.checkboxLabel}>I agree to the Seller Agreement</Text>
             </TouchableOpacity>
 
             {/* Show Accept button if onAccept is provided */}

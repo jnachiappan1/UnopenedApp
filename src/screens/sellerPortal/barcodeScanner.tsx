@@ -24,6 +24,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ navigation }) => {
   const [isScanning, setIsScanning] = useState(false);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scannedCode, setScannedCode] = useState<string | null>(null);
+  const [scannedFormat, setScannedFormat] = useState<string | null>(null);
   const [lastScanTime, setLastScanTime] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [countdown, setCountdown] = useState(0);
@@ -68,8 +69,8 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ navigation }) => {
     }
   };
 
-  const handleBarcodeScan = async (event: { nativeEvent: { codeStringValue: string } }) => {
-    const code = event.nativeEvent.codeStringValue;
+  const handleBarcodeScan = async (event: { nativeEvent: { codeStringValue: string; codeFormat?: string } }) => {
+    const { codeStringValue: code, codeFormat } = event.nativeEvent;
     
     if (!code || !isScanning || isProcessing) return;
 
@@ -81,6 +82,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ navigation }) => {
     
     setLastScanTime(now);
     setScannedCode(code);
+    setScannedFormat(codeFormat ?? 'unknown');
     setIsScanning(false);
     setIsProcessing(true);
     setCountdown(10); // Start 10 second countdown for camera adjustment
@@ -88,13 +90,14 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ navigation }) => {
     // Show confirmation alert
     Alert.alert(
       'Barcode Scanned Successfully!',
-      `Code: ${code}\n\nTake your time to adjust the camera position for the next scan.`,
+      `Code: ${code}\nType: ${codeFormat ?? 'unknown'}\n\nTake your time to adjust the camera position for the next scan.`,
       [
         {
           text: 'Scan Again',
           style: 'cancel',
           onPress: () => {
             setScannedCode(null);
+            setScannedFormat(null);
             setIsProcessing(true);
             setCountdown(10); // Start 10 second countdown for camera adjustment
           }
@@ -121,6 +124,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ navigation }) => {
     setIsScanning(!isScanning);
     if (scannedCode) {
       setScannedCode(null);
+      setScannedFormat(null);
     }
   };
 
@@ -185,6 +189,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ navigation }) => {
               scanBarcode={true}
               onReadCode={handleBarcodeScan}
               showFrame={false}
+              scanThrottleDelay={1500}
               cameraType={CameraType.Back}  
             />
             
@@ -221,7 +226,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ navigation }) => {
         ) : (
           <View style={styles.pausedContainer}>
             <Text style={styles.pausedText}>
-              {scannedCode ? `Scanned: ${scannedCode}` : 'Scanning paused'}
+              {scannedCode ? `Scanned: ${scannedCode}\nType: ${scannedFormat ?? 'unknown'}` : 'Scanning paused'}
             </Text>
             {isProcessing && (
               <Text style={styles.processingText}>
