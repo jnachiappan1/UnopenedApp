@@ -44,6 +44,7 @@ import { saveFcmToken } from '../redux/reducers/user/UserReducer';
 import AddBankDetailsScreen from '../screens/wallet/addBankDetailsScreen';
 import NotificationScreen from '../screens/notification/notificationScreen';
 import FullScreen from '../screens/sellerPortal/FullScreen';
+import SellerAgreementScreen from '../screens/profile/sellerAgreementScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -144,6 +145,7 @@ const MainNavigation: React.FC = () => {
       />
       <Stack.Screen name={SCREENS.NotificationScreen} component={NotificationScreen} />
       <Stack.Screen name={SCREENS.FullScreen} component={FullScreen} />
+      <Stack.Screen name={SCREENS.SellerAgreementScreen} component={SellerAgreementScreen} />
     </Stack.Navigator>
     // </View>
   );
@@ -185,7 +187,8 @@ export enum SCREENS {
   BarcodeScanner = 'BarcodeScanner',
   AddBankDetailsScreen = 'AddBankDetailsScreen',
   NotificationScreen = 'NotificationScreen',
-  FullScreen = 'FullScreen'
+  FullScreen = 'FullScreen',
+  SellerAgreementScreen = 'SellerAgreementScreen'
 }
 
 export type RootStackParamList = {
@@ -246,4 +249,5 @@ export type RootStackParamList = {
   [SCREENS.AddBankDetailsScreen]: undefined;
   [SCREENS.NotificationScreen]: undefined;
   [SCREENS.FullScreen]: { url: any; time: any };
+  [SCREENS.SellerAgreementScreen]: { type?: string | null | undefined};
 };

@@ -72,11 +72,8 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
     }
   }, [isLoadingBankDetails]);
 
-  useEffect(() => {
-    if (bankAccountData?.data?.bankDetails) {
-      setUseBankDetails(true);
-    }
-  }, [bankAccountData]);
+  // Do not auto-select bank account usage by default even if details exist
+  // Users must explicitly opt in by toggling the option
 
   const {
     control,

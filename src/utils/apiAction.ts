@@ -325,6 +325,7 @@ export const getShippingRates = async (shippingRecordId: number) => {
 };
 
 export const trackShipment = async (shipmentId: string) => {
+  
   const response = await axios.get(`${API.buyer.trackShipment}/${shipmentId}/track`);
   return response;
 };

@@ -167,6 +167,14 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
           rightArrow
         />
         <IconTitleCard
+          title={"Seller Agreement"}
+          svgName={'termsAndConditions'}
+          onPress={() => navigation.navigate(SCREENS.SellerAgreementScreen,{
+            type:"seller_agreement"
+          })}
+          rightArrow
+        />
+        <IconTitleCard
           title={"Privacy Policy"}
           svgName={'privacyPolicy'}
           rightArrow
