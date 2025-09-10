@@ -21,6 +21,7 @@ import { ResendInputPayloadType } from '../../utils/payload';
 import { useDispatch, useSelector } from 'react-redux';
 import { saveUserData, saveUserType, setAuthToken } from '../../redux/reducers/user/UserReducer';
 import { IRootState } from '../../redux/store';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 type Inputs = {
   otp: string;
@@ -36,7 +37,6 @@ type VerifyOTPProps = NativeStackScreenProps<
 const VerifyOTP: React.FC<VerifyOTPProps> = ({route, navigation}) => {
    let userType = useSelector((type: any) => type.user.userType);
    const fcmToken = useSelector((user: IRootState) => user.user.fcmToken);
-   console.log("fcmToken--->>::::::::::>>>>>>>", fcmToken);
    
   const {otp, email, type} = route.params;
   const [resendOtp, setResendOtp] = useState('');
@@ -156,6 +156,9 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({route, navigation}) => {
   return (
     <ImageBackgroundHeader  title={''} containerStyle={styles.container}
     onBackPress={()=>navigation.goBack()}>
+      <KeyboardAwareScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContainer}>
       <Text style={styles.subHeading}>{'Verify OTP'}</Text>
       <Text style={styles.codeSentText}>
         {'Please enter 6 digit code we sent to you on'}
@@ -185,6 +188,7 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({route, navigation}) => {
         onPress={handleSubmit(submit)}
       />
       {showResendTxt}
+      </KeyboardAwareScrollView>
     </ImageBackgroundHeader>
   );
 };
@@ -235,5 +239,10 @@ const getStyles = (colors: IColors) =>
       backgroundColor: colors.primary,
       width: '100%',
       alignSelf: 'center',
+    },
+    scrollContainer: {
+      flexGrow: 0.5,
+      justifyContent: 'center',
+      // paddingHorizontal: 20,
     },
   });

@@ -21,7 +21,10 @@ import {useMutation} from '@tanstack/react-query';
 import {signInApi} from '../../utils/apiAction';
 import {errorMsg} from '../../utils/types';
 import {handleError, handleSettled} from '../../utils/method';
-import { saveUserData, setAuthToken } from '../../redux/reducers/user/UserReducer';
+import {
+  saveUserData,
+  setAuthToken,
+} from '../../redux/reducers/user/UserReducer';
 
 type LoginProps = NativeStackScreenProps<
   RootStackParamList,
@@ -45,21 +48,20 @@ const LoginScreen: React.FC<LoginProps> = ({route, navigation}) => {
     mutationFn: (data: Inputs) => signInApi('otp', data),
     onSuccess: async (data: any) => {
       showLoader(false);
-        showAlert({
-          isVisible: true,
-          type: 'success',
-          title: 'Sign In',
-          description: capitalizeFirstLetter(data?.message),
-          doneText: 'Okay',
-          onDonePress: () => {
-            navigation.navigate(SCREENS.VerifyOTP, {
-              otp: data?.data.otp,
-              email: data?.data?.user?.email,
-              type: data?.data?.user?.verify_account?'login':"register",
-            });
-          },
-        });
-      
+      showAlert({
+        isVisible: true,
+        type: 'success',
+        title: 'Sign In',
+        description: capitalizeFirstLetter(data?.message),
+        doneText: 'Okay',
+        onDonePress: () => {
+          navigation.navigate(SCREENS.VerifyOTP, {
+            otp: data?.data.otp,
+            email: data?.data?.user?.email,
+            type: data?.data?.user?.verify_account ? 'login' : 'register',
+          });
+        },
+      });
     },
     onError: handleError,
     onSettled: handleSettled,
@@ -73,7 +75,7 @@ const LoginScreen: React.FC<LoginProps> = ({route, navigation}) => {
     <ImageBackgroundHeader
       containerStyle={[container, styles.container]}
       hideBack={false}
-      onBackPress={()=>navigation.goBack()}>
+      onBackPress={() => navigation.goBack()}>
       <View style={styles.content}>
         <IconsSvg name="box" />
         <Text style={styles.title}>Get Started now</Text>

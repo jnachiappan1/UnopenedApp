@@ -221,30 +221,20 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
     <TitleBackHeaderContainer isBack title="Cash Out">
       <View style={styles.container}>
         <Text style={styles.titleStyle}>Choose Payment Method</Text>
-        <Input
-          control={control}
-          name="amount"
-          label="Amount"
-          containerStyle={styles.amountContainer}
-          inputProps={{
-            placeholder: 'Enter Amount',
-            keyboardType: 'numeric',
-          }}
-          required={{value: true, message: 'Please enter amount'}}
-          error={errors}
-          maxLength={40}
-          inputStyle={styles.inputStyle}
-          keyboardType={'numeric'}
-        />
+        
         <Text style={styles.titleStyle}>
           For Instant CashOut Add Bank Details
         </Text>
         {bankAccountData?.data?.bankDetails ? (
           <>
             <BankDetailsCard bankDetails={bankAccountData.data.bankDetails} />
-            <TouchableOpacity
-              activeOpacity={0.7}
-              style={styles.checkboxRow}
+            <PaymentMethodCard
+              item={{
+                id: -1, 
+                title: 'Use Bank Account',
+                icon: 'addCard',
+              }}
+              selected={useBankDetails}
               onPress={() => {
                 const next = !useBankDetails;
                 setUseBankDetails(next);
@@ -254,16 +244,8 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
                   setValue('cash_app', '');
                 }
                 setPaymentError(false);
-              }}>
-              <View
-                style={[
-                  styles.radio,
-                  useBankDetails && styles.radioSelected,
-                ]}>
-                {useBankDetails && <View style={styles.innerDot} />}
-              </View>
-              <Text style={styles.titleStyle}>Use Bank Account</Text>
-            </TouchableOpacity>
+              }}
+            />
           </>
         ) : (
           <Button
@@ -331,6 +313,21 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
         <Text style={styles.titleStyle}>
           Note: Wallet CashOut May Take 1-3 Business Days
         </Text>
+        <Input
+          control={control}
+          name="amount"
+          label="Amount"
+          containerStyle={styles.amountContainer}
+          inputProps={{
+            placeholder: 'Enter Amount',
+            keyboardType: 'numeric',
+          }}
+          required={{value: true, message: 'Please enter amount'}}
+          error={errors}
+          maxLength={40}
+          inputStyle={styles.inputStyle}
+          keyboardType={'numeric'}
+        />
         <Button
           title={isCashOutPending || isBankCashOutPending ? 'Processing...' : 'Cash Out'}
           style={[
@@ -509,37 +506,5 @@ const styles = StyleSheet.create({
     paddingStart: 16,
     marginTop: -6,
     marginBottom: 10,
-  },
-  checkboxRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    marginTop: 8,
-  },
-  radio: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    borderWidth: 2,
-    borderColor: colors.border,
-    backgroundColor: 'transparent',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 10,
-  },
-  radioSelected: {
-    borderColor: colors.primary,
-    backgroundColor: colors.white,
-  },
-  innerDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: colors.primary,
-  },
-  checkboxLabel: {
-    fontSize: fontSizes.small,
-    color: '#333',
-    fontFamily: fonts.medium,
   },
 });
