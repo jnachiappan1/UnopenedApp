@@ -93,36 +93,36 @@ const ChangeBankDetailsScreen: React.FC<ChangeBankDetailsProps> = ({ navigation 
   });
 
   // Populate form with existing bank details when data is loaded
-  useEffect(() => {
-    if (bankAccountData?.data?.bankDetails) {
-      const bankDetails = bankAccountData.data.bankDetails;
-      reset({
-        first_name: bankDetails.first_name?.replace(/"/g, '') || '',
-        last_name: bankDetails.last_name?.replace(/"/g, '') || '',
-        dob: {
-          day: bankDetails.dob?.day || '',
-          month: bankDetails.dob?.month || '',
-          year: bankDetails.dob?.year || '',
-        },
-        phone_number: bankDetails.phone_number || '',
-        address: bankDetails.address || '',
-        city: bankDetails.city || '',
-        state: bankDetails.state || '',
-        postal_code: bankDetails.postal_code || '',
-        ssn_last_4: bankDetails.ssn_last_4 || '',
-        holder_name: bankDetails.holder_name?.replace(/"/g, '') || '',
-        bank_name: bankDetails.bank_name?.replace(/"/g, '') || '',
-        routing_number: bankDetails.routing_number || '',
-        account_number: bankDetails.account_number || '',
-      });
+//   useEffect(() => {
+//     if (bankAccountData?.data?.bankDetails) {
+//       const bankDetails = bankAccountData.data.bankDetails;
+//       reset({
+//         first_name: bankDetails.first_name?.replace(/"/g, '') || '',
+//         last_name: bankDetails.last_name?.replace(/"/g, '') || '',
+//         dob: {
+//           day: bankDetails.dob?.day || '',
+//           month: bankDetails.dob?.month || '',
+//           year: bankDetails.dob?.year || '',
+//         },
+//         phone_number: bankDetails.phone_number || '',
+//         address: bankDetails.address || '',
+//         city: bankDetails.city || '',
+//         state: bankDetails.state || '',
+//         postal_code: bankDetails.postal_code || '',
+//         ssn_last_4: bankDetails.ssn_last_4 || '',
+//         holder_name: bankDetails.holder_name?.replace(/"/g, '') || '',
+//         bank_name: bankDetails.bank_name?.replace(/"/g, '') || '',
+//         routing_number: bankDetails.routing_number || '',
+//         account_number: bankDetails.account_number || '',
+//       });
 
-      // Set selected date for display
-      if (bankDetails.dob?.day && bankDetails.dob?.month && bankDetails.dob?.year) {
-        const dateString = `${bankDetails.dob.year}-${bankDetails.dob.month}-${bankDetails.dob.day}`;
-        setSelectedDate(dateString);
-      }
-    }
-  }, [bankAccountData, reset]);
+//       // Set selected date for display
+//       if (bankDetails.dob?.day && bankDetails.dob?.month && bankDetails.dob?.year) {
+//         const dateString = `${bankDetails.dob.year}-${bankDetails.dob.month}-${bankDetails.dob.day}`;
+//         setSelectedDate(dateString);
+//       }
+//     }
+//   }, [bankAccountData, reset]);
 
   // Show loader while fetching bank details
   useEffect(() => {
