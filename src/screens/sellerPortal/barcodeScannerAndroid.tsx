@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -11,123 +11,108 @@ import {
   Dimensions,
   Alert
 } from 'react-native';
-import { Camera, useCameraDevices, useCameraPermission, useCodeScanner } from 'react-native-vision-camera';
+import { Camera, CameraType } from 'react-native-camera-kit';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
 
-type BarcodeScannerProps = NativeStackScreenProps<RootStackParamList, SCREENS.BarcodeScanner>;
+type BarcodeScannerAndroidProps = NativeStackScreenProps<RootStackParamList, SCREENS.BarcodeScannerAndroid>;
 
 const { width, height } = Dimensions.get('window');
 const SCANNER_SIZE = width * 0.7;
 
-const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ navigation }) => {
-  const [isScanning, setIsScanning] = useState(false);
-  const [scannedCode, setScannedCode] = useState<string | null>(null);
-  const [scannedFormat, setScannedFormat] = useState<string | null>(null);
-  const [lastScanTime, setLastScanTime] = useState(0);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [countdown, setCountdown] = useState(0);
+  const BarcodeScannerAndroid: React.FC<BarcodeScannerAndroidProps> = ({ navigation }) => {
+    const [isScanning, setIsScanning] = useState(false);
+    const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+    const [scannedCode, setScannedCode] = useState<string | null>(null);
+    const [scannedFormat, setScannedFormat] = useState<string | null>(null);
+    const [lastScanTime, setLastScanTime] = useState(0);
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [countdown, setCountdown] = useState(0);
 
-  // Vision Camera hooks
-  const { hasPermission, requestPermission } = useCameraPermission();
-  const devices = useCameraDevices();
-  const device = devices.find(d => d.position === 'back');
-
-  useEffect(() => {
-    if (hasPermission) {
-      setIsScanning(true);
-    } else {
-      requestPermission();
-    }
-  }, [hasPermission, requestPermission]);
-
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (countdown > 0) {
-      timer = setTimeout(() => {
-        setCountdown(countdown - 1);
-      }, 1000);
-    } else if (countdown === 0 && isProcessing) {
-      setIsProcessing(false);
-      setIsScanning(true);
-    }
-    return () => {
-      if (timer) clearTimeout(timer);
-    };
-  }, [countdown, isProcessing]);
-
-  // Code scanner configuration with all supported formats
-  const codeScanner = useCodeScanner({
-    codeTypes: [
-      'upc-a', 'upc-e', 'ean-13', 'ean-8', 'code-128', 'code-39', 'code-93', 'codabar', 
-      'qr', 'pdf-417', 'aztec', 'data-matrix', 'itf-14',
-      'gs1-data-bar', 'gs1-data-bar-expanded', 'gs1-data-bar-limited'
-    ],
-    onCodeScanned: useCallback((codes) => {
-      console.log('Barcode scan detected:', codes);
-      
-      if (codes.length > 0 && isScanning && !isProcessing) {
-        const code = codes[0];
-        const codeValue = code.value;
-        const codeFormat = code.type || 'unknown';
-        
-        console.log('Detected barcode:', { value: codeValue, type: codeFormat });
-        
-        if (!codeValue) {
-          console.log('No barcode value found');
-          return;
-        }
-
-        // Prevent duplicate scans within 1 second (reduced for better responsiveness)
-        const now = Date.now();
-        if (now - lastScanTime < 1000) {
-          console.log('Duplicate scan prevented');
-          return;
-        }
-        
-        setLastScanTime(now);
-        setScannedCode(codeValue);
-        setScannedFormat(codeFormat);
-        setIsScanning(false);
-        setIsProcessing(true);
-        setCountdown(10); // Start 5 second countdown for camera adjustment
-
-        // Show confirmation alert
-        Alert.alert(
-          'Barcode Scanned Successfully!',
-          `Code: ${codeValue}\nType: ${codeFormat}\n\nTake your time to adjust the camera position for the next scan.`,
-          [
-            {
-              text: 'Scan Again',
-              style: 'cancel',
-              onPress: () => {
-                setScannedCode(null);
-                setScannedFormat(null);
-                setCountdown(0);
-                setIsProcessing(false);
-                setIsScanning(true); 
-              }
-            },
-            {
-              text: 'Use This Code',
-              onPress: () => {
-                setIsProcessing(false);
-                setCountdown(0);
-                navigation.replace(SCREENS.AddProductScreen, {
-                  scannedBarcode: codeValue,
-                });
-              }
-            }
-          ]
-        );
+    useEffect(() => {
+      requestPermissions();
+    }, []);
+    useEffect(() => {
+      let timer: NodeJS.Timeout;
+      if (countdown > 0) {
+        timer = setTimeout(() => {
+          setCountdown(countdown - 1);
+        }, 1000);
+      } else if (countdown === 0 && isProcessing) {
+        setIsProcessing(false);
+        setIsScanning(true);
       }
-    }, [isScanning, isProcessing, lastScanTime, navigation])
-  });
+      return () => {
+        if (timer) clearTimeout(timer);
+      };
+    }, [countdown, isProcessing]);
 
+   const requestPermissions = async () => {
+    if (Platform.OS === 'android') {
+      try {
+        const granted = await PermissionsAndroid.requestMultiple([
+          PermissionsAndroid.PERMISSIONS.CAMERA,
+        ]);
+        const hasPermission = granted['android.permission.CAMERA'] === PermissionsAndroid.RESULTS.GRANTED;
+        setHasPermission(hasPermission);
+        if (hasPermission) {
+          setIsScanning(true);
+        }
+      } catch (error) {
+        console.error('Permission request error:', error);
+        setHasPermission(false);
+      }
+    } else {
+      setHasPermission(true);
+      setIsScanning(true);
+    }
+  };
+
+  const handleBarcodeScan = async (event: { nativeEvent: { codeStringValue: string; codeFormat?: string } }) => {
+    const { codeStringValue: code, codeFormat } = event.nativeEvent;
+    
+    if (!code || !isScanning || isProcessing) return;
+    // Prevent duplicate scans within 2 seconds
+    const now = Date.now();
+    if (now - lastScanTime < 2000) {
+      return;
+    }
+    
+    setLastScanTime(now);
+    setScannedCode(code);
+    setScannedFormat(codeFormat ?? 'unknown');
+    setIsScanning(false);
+    setIsProcessing(true);
+    setCountdown(10); // Start 10 second countdown for camera adjustment
+    // Show confirmation alert
+    Alert.alert(
+      'Barcode Scanned Successfully!',
+      `Code: ${code}\nType: ${codeFormat ?? 'unknown'}\n\nTake your time to adjust the camera position for the next scan.`,
+      [
+        {
+          text: 'Scan Again',
+          style: 'cancel',
+          onPress: () => {
+            setScannedCode(null);
+            setScannedFormat(null);
+            setIsProcessing(true);
+            setCountdown(10); // Start 10 second countdown for camera adjustment
+          }
+        },
+        {
+          text: 'Use This Code',
+          onPress: () => {
+            navigation.replace(SCREENS.AddProductScreen, {
+              scannedBarcode: code,
+            });
+          }
+        }
+      ]
+    );
+  };
   const goBack = () => {
     navigation.goBack();
   };
-
   const toggleScanning = () => {
     if (isProcessing) return; // Prevent toggling while processing
     
@@ -137,8 +122,24 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ navigation }) => {
       setScannedFormat(null);
     }
   };
-
-  if (!hasPermission) {
+  if (hasPermission === null) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="light-content" backgroundColor="#000" />
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={goBack}>
+            <Text style={styles.backButtonText}>←</Text>
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Barcode Scanner</Text>
+          <View style={styles.headerSpacer} />
+        </View>
+        <View style={styles.messageContainer}>
+          <Text style={styles.message}>Requesting camera permissions...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+  if (hasPermission === false) {
     return (
       <SafeAreaView style={styles.container}>
         <StatusBar barStyle="light-content" backgroundColor="#000" />
@@ -151,27 +152,9 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ navigation }) => {
         </View>
         <View style={styles.messageContainer}>
           <Text style={styles.message}>Camera permission is required to scan barcodes</Text>
-          <TouchableOpacity style={styles.button} onPress={requestPermission}>
+          <TouchableOpacity style={styles.button} onPress={requestPermissions}>
             <Text style={styles.buttonText}>Grant Permission</Text>
           </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (!device) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor="#000" />
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={goBack}>
-            <Text style={styles.backButtonText}>←</Text>
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Barcode Scanner</Text>
-          <View style={styles.headerSpacer} />
-        </View>
-        <View style={styles.messageContainer}>
-          <Text style={styles.message}>No camera device found</Text>
         </View>
       </SafeAreaView>
     );
@@ -189,28 +172,24 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ navigation }) => {
         <Text style={styles.headerTitle}>Scan Barcode</Text>
         <View style={styles.headerSpacer} />
       </View>
-
       {/* Camera View */}
       <View style={styles.cameraContainer}>
         {isScanning ? (
           <>
             <Camera
               style={styles.camera}
-              device={device}
-              isActive={isScanning}
-              codeScanner={codeScanner}
-              focusable={true}
-              enableZoomGesture={false}
+              scanBarcode={true}
+              onReadCode={handleBarcodeScan}
+              showFrame={false}
+              scanThrottleDelay={1500}
+              cameraType={CameraType.Back}  
             />
             
             {/* Scanner Overlay */}
             <View style={styles.overlay}>
               <View style={styles.overlayTop}>
                 <Text style={styles.instructionText}>
-                  Position the UPC-A barcode within the green frame
-                </Text>
-                <Text style={styles.instructionSubtext}>
-                  Keep steady, ensure good lighting, and hold horizontally
+                  Hold steady and position the barcode within the green frame
                 </Text>
               </View>
               
@@ -225,18 +204,13 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ navigation }) => {
                   
                   {/* Scanning line animation */}
                   <View style={styles.scanLine} />
-                  
-                  {/* Active scanning indicator */}
-                  <View style={styles.scanningIndicator}>
-                    <Text style={styles.scanningText}>SCANNING...</Text>
-                  </View>
                 </View>
                 <View style={styles.overlaySide} />
               </View>
               
               <View style={styles.overlayBottom}>
                 <Text style={styles.hintText}>
-                  For UPC-A barcodes: Center the barcode in the frame\nKeep 6-12 inches away with good lighting
+                  Ensure good lighting and keep the barcode clearly visible\nAvoid shadows and reflections for best results
                 </Text>
               </View>
             </View>
@@ -279,7 +253,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ navigation }) => {
         )}
       </View>
 
-      {/* Bottom Controls */}
+     {/* Bottom Controls */}
       <View style={styles.bottomControls}>
         <TouchableOpacity 
           style={[styles.controlButton, !isScanning && styles.controlButtonActive, isProcessing && styles.controlButtonDisabled]} 
@@ -299,7 +273,9 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ navigation }) => {
   );
 };
 
-export default BarcodeScanner;
+
+
+export default BarcodeScannerAndroid;
 
 const styles = StyleSheet.create({
   container: {
@@ -422,36 +398,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#00FF00',
     opacity: 0.8,
   },
-  scanningIndicator: {
-    position: 'absolute',
-    bottom: 20,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-  },
-  scanningText: {
-    color: '#00FF00',
-    fontSize: 12,
-    fontWeight: 'bold',
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
   instructionText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '500',
     textAlign: 'center',
     paddingHorizontal: 20,
-  },
-  instructionSubtext: {
-    color: 'rgba(255,255,255,0.8)',
-    fontSize: 14,
-    fontWeight: '400',
-    textAlign: 'center',
-    paddingHorizontal: 20,
-    marginTop: 8,
   },
   hintText: {
     color: 'rgba(255,255,255,0.8)',

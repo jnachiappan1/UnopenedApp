@@ -2347,6 +2347,12 @@ PODS:
   - StripeUICore (24.19.0):
     - StripeCore (= 24.19.0)
   - TOCropViewController (2.7.4)
+  - VisionCamera (4.7.2):
+    - VisionCamera/Core (= 4.7.2)
+    - VisionCamera/React (= 4.7.2)
+  - VisionCamera/Core (4.7.2)
+  - VisionCamera/React (4.7.2):
+    - React-Core
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -2446,6 +2452,7 @@ DEPENDENCIES:
   - Stripe (= 24.19.0)
   - "stripe-react-native (from `../node_modules/@stripe/stripe-react-native`)"
   - StripeCore (= 24.19.0)
+  - VisionCamera (from `../node_modules/react-native-vision-camera`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -2655,6 +2662,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-worklets"
   stripe-react-native:
     :path: "../node_modules/@stripe/stripe-react-native"
+  VisionCamera:
+    :path: "../node_modules/react-native-vision-camera"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -2773,8 +2782,9 @@ SPEC CHECKSUMS:
   StripePaymentsUI: 05d4be35b34f821d5ddc8617dee04219f3646253
   StripeUICore: d07bd63a4b53dee8cab4d6f81ce5a7ab3e28511e
   TOCropViewController: 80b8985ad794298fb69d3341de183f33d1853654
+  VisionCamera: 30b358b807324c692064f78385e9a732ce1bebfe
   Yoga: be02ca501b03c79d7027a6bbbd0a8db985034f11
 
-PODFILE CHECKSUM: 8f0a94d6ae340c7371647d6d1c0cdaaec7b18340
+PODFILE CHECKSUM: e1196043fab601d6e31bf07d0573808927ff7be7
 
 COCOAPODS: 1.16.2

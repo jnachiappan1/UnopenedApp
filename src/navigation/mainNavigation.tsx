@@ -45,6 +45,7 @@ import AddBankDetailsScreen from '../screens/wallet/addBankDetailsScreen';
 import NotificationScreen from '../screens/notification/notificationScreen';
 import FullScreen from '../screens/sellerPortal/FullScreen';
 import SellerAgreementScreen from '../screens/profile/sellerAgreementScreen';
+import BarcodeScannerAndroid from '../screens/sellerPortal/barcodeScannerAndroid';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -146,6 +147,7 @@ const MainNavigation: React.FC = () => {
       <Stack.Screen name={SCREENS.NotificationScreen} component={NotificationScreen} />
       <Stack.Screen name={SCREENS.FullScreen} component={FullScreen} />
       <Stack.Screen name={SCREENS.SellerAgreementScreen} component={SellerAgreementScreen} />
+      <Stack.Screen name={SCREENS.BarcodeScannerAndroid} component={BarcodeScannerAndroid} />
     </Stack.Navigator>
     // </View>
   );
@@ -188,7 +190,8 @@ export enum SCREENS {
   AddBankDetailsScreen = 'AddBankDetailsScreen',
   NotificationScreen = 'NotificationScreen',
   FullScreen = 'FullScreen',
-  SellerAgreementScreen = 'SellerAgreementScreen'
+  SellerAgreementScreen = 'SellerAgreementScreen',
+  BarcodeScannerAndroid = 'BarcodeScannerAndroid'
 }
 
 export type RootStackParamList = {
@@ -250,4 +253,5 @@ export type RootStackParamList = {
   [SCREENS.NotificationScreen]: undefined;
   [SCREENS.FullScreen]: { url: any; time: any };
   [SCREENS.SellerAgreementScreen]: { type?: string | null | undefined};
+  [SCREENS.BarcodeScannerAndroid]: undefined;
 };
