@@ -54,6 +54,10 @@ export const addBankAccount = async (data: any) => {
   const response = await axios.post(API.buyer.addBankAccount, data);
   return response;
 };
+export const changeBankAccount = async (data: any) => {
+  const response = await axios.patch(API.buyer.changeBankAccount, data);
+  return response;
+};
 
 export const getBankAccount = async () => {
   const response = await axios.get(API.buyer.addBankAccount);

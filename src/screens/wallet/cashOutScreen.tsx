@@ -227,7 +227,7 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
         </Text>
         {bankAccountData?.data?.bankDetails ? (
           <>
-            <BankDetailsCard bankDetails={bankAccountData.data.bankDetails} />
+            <View style={{marginTop: 15}}>
             <PaymentMethodCard
               item={{
                 id: -1, 
@@ -245,7 +245,9 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
                 }
                 setPaymentError(false);
               }}
+             
             />
+            </View>
           </>
         ) : (
           <Button
@@ -328,6 +330,26 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
           inputStyle={styles.inputStyle}
           keyboardType={'numeric'}
         />
+         {bankAccountData?.data?.bankDetails ? (
+          <>
+            <BankDetailsCard bankDetails={bankAccountData.data.bankDetails} />
+            <View style={{marginTop: 15}}>
+              <Button
+                title="Change Bank Account"
+                style={styles.changeBankDetailsButton}
+                textStyle={styles.changeBankDetailsText}
+                onPress={() => navigation.navigate(SCREENS.ChangeBankDetailsScreen)}
+              />
+            </View>
+          </>
+        ) : (
+          <Button
+            title="Add Bank details"
+            style={styles.addBankDetailsButton}
+            textStyle={styles.addBankDetailsText}
+            onPress={() => navigation.navigate(SCREENS.AddBankDetailsScreen)}
+          />
+        )}
         <Button
           title={isCashOutPending || isBankCashOutPending ? 'Processing...' : 'Cash Out'}
           style={[
@@ -487,6 +509,21 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   addBankDetailsText: {
+    color: colors.primary,
+    fontSize: fontSizes.regular,
+    fontFamily: fonts.bold,
+  },
+  changeBankDetailsButton: {
+    backgroundColor: colors.white,
+    borderColor: colors.primary,
+    borderWidth: 1,
+    width: '90%',
+    marginVertical: 10,
+    marginHorizontal: 0,
+    paddingHorizontal: 0,
+    alignSelf: 'center',
+  },
+  changeBankDetailsText: {
     color: colors.primary,
     fontSize: fontSizes.regular,
     fontFamily: fonts.bold,

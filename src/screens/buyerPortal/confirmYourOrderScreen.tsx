@@ -1005,6 +1005,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
               styles.shippingOptionCard,
               selectedShippingRate.carrier === 'USPS' && selectedShippingRate.service === 'Priority' && styles.uspsPriorityCard
             ]}>
+              
               <View style={styles.shippingOptionHeader}>
                 <View style={styles.shippingOptionInfo}>
                   <View style={styles.shippingOptionTitleRow}>
@@ -1040,9 +1041,13 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
                   </Text>
                 )}
               </View>
+             
             </View>
+            
           ) : null}
-
+ <Text style={styles.shippingText}>
+              The shipping is 100% insured by unopened 
+                  </Text>
           {/* Show no rates message when no shipping options available */}
           {!selectedShippingRate && !isShippingRatesLoading && shippingApiCalled ? (
             <View style={styles.noRatesContainer}>
@@ -2169,6 +2174,13 @@ const styles = StyleSheet.create({
     fontFamily: fonts.medium,
     color: '#2e7d32',
     textAlign: 'center',
+    marginTop: 8,
+    fontStyle: 'italic',
+  },
+  shippingText: {
+    fontSize: fontSizes.regular,
+    fontFamily: fonts.medium,
+    color: '#2e7d32',
     marginTop: 8,
     fontStyle: 'italic',
   },

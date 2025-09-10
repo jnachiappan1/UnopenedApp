@@ -29,6 +29,7 @@ export const API = {
     getShippingRates: `${base_url}/api/v1/shipping`,
     trackShipment: `${base_url}/api/v1/shipping`,
     addBankAccount: `${base_url}/api/v1/bank-account`,
+    changeBankAccount: `${base_url}/api/v1/bank-account/change`,
     cashOut: `${base_url}/api/v1/cashout`,
     cashOutHistory: `${base_url}/api/v1/cashout/history`,
     cashOut_request: `${base_url}/api/v1/cashout/cashout-request`,
