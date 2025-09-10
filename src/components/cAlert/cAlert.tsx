@@ -4,7 +4,7 @@ import AlertManager from './alertManager';
 import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import colors from '../../utils/colors';
 import fonts from '../../assets/fonts/fonts';
-import IconsSvg from '../../assets/svg/iconsSvg';
+import IconsSvg, {IconName} from '../../assets/svg/iconsSvg';
 
 type IState = {
   isVisible: Boolean;
@@ -15,6 +15,13 @@ type IState = {
   onDonePress?: () => void;
   doneText?: string;
   deleteText?: string;
+};
+
+const alertTypeToIcon: Record<IState['type'], IconName> = {
+  success: 'success',
+  error: 'close',
+  info: 'notification',
+  delete: 'deleteAccount',
 };
 
 //this function is used to show toast message using instance of ToastMessage component
@@ -63,16 +70,15 @@ export default class CAlert extends React.Component<any, IState> {
         isVisible={show}
         backdropOpacity={0}
         style={{margin: 0}}
-        coverScreen={false}
+        coverScreen={true}
+        avoidKeyboard={true}
         animationIn={'slideInUp'}
         animationOut={'slideOutDown'}>
         <View style={styles.container}>
           <View style={styles.dialogContainer}>
             <View style={styles.animatedView}>
               <View style={styles.icon}>
-                <IconsSvg
-                  name={this.state.type ? this.state.type : 'success'}
-                />
+                <IconsSvg name={alertTypeToIcon[this.state.type]} />
               </View>
             </View>
             {this.state.title && (
