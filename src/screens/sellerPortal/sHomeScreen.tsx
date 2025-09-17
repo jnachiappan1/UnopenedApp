@@ -401,7 +401,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation, route }) => {
       return (
         <ProductListingCard
           item={item}
-          nameStyle={{width:260}}
+          nameStyle={{width:240}}
           onSelect={(selectedItem) => {
             try {
               navigation.navigate(SCREENS.ProductDetailScreen, { productId: selectedItem.id });

@@ -19,6 +19,7 @@ import fonts from '../../assets/fonts/fonts';
 import IconsSvg from '../../assets/svg/iconsSvg';
 import Button from '../../components/button/buttons';
 import {
+  getAddresses,
   getAddressesByID,
   getProductDetailByID,
   getProductPriceDetail,
@@ -63,7 +64,11 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
       queryKey: ['getProductDetailByID', productId],
       queryFn: () => getProductDetailByID(productId),
     });
-    const addressId = allProductList?.data?.product[0]?.address_id;
+    const { data: addressesData } = useQuery({
+      queryKey: ['getAddresses'],
+      queryFn: getAddresses,
+    });
+    const addressId = addressesData?.data?.address[0]?.id;
     const {
       data: addressData,
       refetch: refetchAddressData,
@@ -73,7 +78,7 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
       queryFn: () => getAddressesByID(addressId),
       enabled: !!addressId,
     });
-console.log("addressData",addressData?.data?.address);
+
 
   const {
     data: ProductPriceData,
@@ -193,7 +198,6 @@ console.log("addressData",addressData?.data?.address);
   }
 
   const currentProduct = allProductList?.data?.product[0];
-  console.log("currentProduct",currentProduct);
   
   const productImages: ProductImage[] = (
     currentProduct?.product_image ?? []

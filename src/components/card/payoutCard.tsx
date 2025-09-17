@@ -61,6 +61,7 @@ const PayoutCard: React.FC<Props> = ({ item }) => {
     }
   };
 
+
   // Get display values from API data or fallback to static data
   const displayAmount = item.amount || item.amount_requested;
   const displayDate = formatDate(item.createdAt || item.created_at);

@@ -14,6 +14,7 @@ import {
 import { Camera, useCameraDevices, useCameraPermission, useCodeScanner } from 'react-native-vision-camera';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
+import { showAlert } from '../../components/cAlert/cAlert';
 
 type BarcodeScannerProps = NativeStackScreenProps<RootStackParamList, SCREENS.BarcodeScanner>;
 
@@ -78,7 +79,6 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ navigation }) => {
           return;
         }
 
-        // Prevent duplicate scans within 1 second (reduced for better responsiveness)
         const now = Date.now();
         if (now - lastScanTime < 1000) {
           console.log('Duplicate scan prevented');
@@ -87,39 +87,32 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ navigation }) => {
         
         setLastScanTime(now);
         setScannedCode(codeValue);
-        setScannedFormat(codeFormat);
+        setScannedFormat(codeFormat ?? 'unknown');
         setIsScanning(false);
-        setIsProcessing(true);
-        setCountdown(10); // Start 5 second countdown for camera adjustment
-
-        // Show confirmation alert
-        Alert.alert(
-          'Barcode Scanned Successfully!',
-          `Code: ${codeValue}\nType: ${codeFormat}\n\nTake your time to adjust the camera position for the next scan.`,
-          [
-            {
-              text: 'Scan Again',
-              style: 'cancel',
-              onPress: () => {
-                setScannedCode(null);
-                setScannedFormat(null);
-                setCountdown(0);
-                setIsProcessing(false);
-                setIsScanning(true); 
-              }
-            },
-            {
-              text: 'Use This Code',
-              onPress: () => {
-                setIsProcessing(false);
-                setCountdown(0);
-                navigation.replace(SCREENS.AddProductScreen, {
-                  scannedBarcode: codeValue,
-                });
-              }
-            }
-          ]
-        );
+        setIsProcessing(false);
+        setCountdown(10);
+        showAlert({
+          isVisible: true,
+          type: 'success',
+          title: 'Barcode Scanned Successfully! ',
+          description: `Code: ${codeValue}\nType: ${codeFormat}\n\nTake your time to adjust the camera position for the next scan.`,
+          deleteText: 'Scan Again',
+          doneText: 'Use This Code',
+          onDeletePress: () => {
+            setScannedCode(null);
+            setScannedFormat(null);
+            setIsProcessing(false);
+            setCountdown(10);
+            setIsScanning(true);
+          },
+          onDonePress: () => {
+            setIsProcessing(false);
+            setCountdown(0);
+            navigation.replace(SCREENS.AddProductScreen, {
+              scannedBarcode: codeValue,
+            });
+          },
+        });
       }
     }, [isScanning, isProcessing, lastScanTime, navigation])
   });

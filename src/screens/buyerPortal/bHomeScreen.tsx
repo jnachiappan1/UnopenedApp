@@ -392,7 +392,6 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
               navigation.navigate(SCREENS.BrowseScreen);
             }}
             onPress={(item) => {
-              console.log("ite0-----",item);
               
               navigation.navigate(SCREENS.BProductDetailScreen, { productId: item?.id });
             }}

@@ -1,4 +1,4 @@
-import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
+import {View, Text, TouchableOpacity, StyleSheet, Keyboard} from 'react-native';
 import React, {useState} from 'react';
 import fonts from '../../assets/fonts/fonts';
 import Input from '../../components/input/input';
@@ -25,6 +25,7 @@ import {
   saveUserData,
   setAuthToken,
 } from '../../redux/reducers/user/UserReducer';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 
 type LoginProps = NativeStackScreenProps<
   RootStackParamList,
@@ -68,6 +69,7 @@ const LoginScreen: React.FC<LoginProps> = ({route, navigation}) => {
   });
 
   const submit = (userData: Inputs) => {
+    Keyboard.dismiss();
     showLoader(true);
     mutate(userData);
   };
@@ -76,7 +78,13 @@ const LoginScreen: React.FC<LoginProps> = ({route, navigation}) => {
       containerStyle={[container, styles.container]}
       hideBack={false}
       onBackPress={() => navigation.goBack()}>
-      <View style={styles.content}>
+      <KeyboardAwareScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.content}
+        enableOnAndroid={true}
+        extraScrollHeight={20}
+        keyboardShouldPersistTaps="handled"
+      >
         <IconsSvg name="box" />
         <Text style={styles.title}>Get Started now</Text>
         <Text style={styles.subtitle}>
@@ -121,7 +129,7 @@ const LoginScreen: React.FC<LoginProps> = ({route, navigation}) => {
             <Text style={styles.registerLink}>Register Now</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </KeyboardAwareScrollView>
     </ImageBackgroundHeader>
   );
 };

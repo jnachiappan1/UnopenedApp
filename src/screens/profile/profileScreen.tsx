@@ -48,13 +48,13 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
           setTimeout(() => {
             dispatch(removeToken());
             dispatch(removeUserData());
-          }, 500);
-          navigation.dispatch(
-            CommonActions.reset({
-              index: 0,
-              routes: [{ name: SCREENS.LoginScreen }],
-            }),
-          );
+            navigation.dispatch(
+              CommonActions.reset({
+                index: 0,
+                routes: [{ name: SCREENS.LoginScreen }],
+              }),
+            );
+          }, 300);
         },
       });
     },
@@ -83,13 +83,13 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
             dispatch(saveUserType('buyer'));
             dispatch(removeToken());
             dispatch(removeUserData());
-          }, 500);
-          navigation.dispatch(
-            CommonActions.reset({
-              index: 0,
-              routes: [{ name: SCREENS.LoginScreen }],
-            }),
-          );
+            navigation.dispatch(
+              CommonActions.reset({
+                index: 0,
+                routes: [{ name: SCREENS.LoginScreen }],
+              }),
+            );
+          }, 300);
         },
       });
     },

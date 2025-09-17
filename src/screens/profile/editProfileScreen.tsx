@@ -1,30 +1,30 @@
-import { Image, ScrollView, StyleSheet, View } from 'react-native';
-import React, { useCallback, useEffect, useState } from 'react';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
+import {Image, ScrollView, StyleSheet, View} from 'react-native';
+import React, {useCallback, useEffect, useState} from 'react';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
 import IconsSvg from '../../assets/svg/iconsSvg';
 import IMAGE from '../../assets/images';
 import Input from '../../components/input/input';
-import { useForm } from 'react-hook-form';
+import {useForm} from 'react-hook-form';
 import fonts from '../../assets/fonts/fonts';
 import colors from '../../utils/colors';
-import { emailPattern, fontSizes, width } from '../../utils/utils'; // Add image_url import
+import {emailPattern, fontSizes, width} from '../../utils/utils'; // Add image_url import
 import ProfileImageUpload from '../../components/model/profileImageUpload';
-import { useFocusEffect } from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
 import Button from '../../components/button/buttons';
 import InputCountry from '../../components/input/inputCountry';
 import InputState from '../../components/input/inputState';
 import InputCity from '../../components/input/inputCity';
 import GenderDropdown from '../../components/input/genderDropdown';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { signUp, updateProfile, viewProfile } from '../../utils/apiAction';
-import { showLoader } from '../../components/loader/loader';
-import { showAlert } from '../../components/cAlert';
-import { handleError, handleSettled } from '../../utils/method';
-import { saveUserData } from '../../redux/reducers/user/UserReducer';
-import { useDispatch } from 'react-redux';
-import { image_url } from '../../utils/api';
+import {useMutation, useQuery} from '@tanstack/react-query';
+import {signUp, updateProfile, viewProfile} from '../../utils/apiAction';
+import {showLoader} from '../../components/loader/loader';
+import {showAlert} from '../../components/cAlert';
+import {handleError, handleSettled} from '../../utils/method';
+import {saveUserData} from '../../redux/reducers/user/UserReducer';
+import {useDispatch} from 'react-redux';
+import {image_url} from '../../utils/api';
 
 type EditProfileScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -37,14 +37,14 @@ type Inputs = {
   email?: string;
   address?: string;
   phone_number?: string;
-  profileImage?: string | { uri: string; name: string; type: string };
+  profileImage?: string | {uri: string; name: string; type: string};
   country?: string;
   city?: string;
   state?: string;
   gender?: string;
 };
 
-const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation }) => {
+const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
   const dispatch = useDispatch();
 
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -61,8 +61,8 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation }) => 
     watch,
     reset,
     getValues,
-    formState: { errors, isDirty },
-  } = useForm<Inputs>({ 
+    formState: {errors, isDirty},
+  } = useForm<Inputs>({
     defaultValues: {
       full_name: '',
       email: '',
@@ -79,15 +79,15 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation }) => 
 
   // Watch the profileImage field for changes
   const watchedProfileImage = watch('profileImage');
-  
+
   // Add debug logging for watchedProfileImage
   useEffect(() => {
     console.log('Watched profile image changed:', watchedProfileImage);
   }, [watchedProfileImage]);
 
-  const { mutate } = useMutation({
+  const {mutate} = useMutation({
     mutationFn: updateProfile,
-    onSuccess: (data) => {
+    onSuccess: data => {
       dispatch(saveUserData(data.data.user));
       showLoader(false);
       showAlert({
@@ -116,7 +116,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation }) => 
     formDataToSend.append('city', formData.city);
     formDataToSend.append('pincode', formData.pincode);
     formDataToSend.append('gender', formData.gender);
-  
+
     if (formData.profileImage && typeof formData.profileImage === 'object') {
       formDataToSend.append('profile_picture', {
         uri: formData.profileImage.uri,
@@ -125,6 +125,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation }) => 
       });
     }
     showLoader(true);
+
     mutate(formDataToSend);
   };
 
@@ -141,32 +142,43 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation }) => 
         city: user.city || '',
         pincode: user.pincode || '',
         gender: user.gender || '',
-        profileImage: user.profile_picture || '', 
+        profileImage: user.profile_picture || '',
       };
-      reset(fields); 
+      reset(fields);
     }
   }, [data, reset]);
   const getImageSource = () => {
-    if (watchedProfileImage && typeof watchedProfileImage === 'object' && watchedProfileImage.uri) {
-      return { uri: watchedProfileImage.uri };
+    if (
+      watchedProfileImage &&
+      typeof watchedProfileImage === 'object' &&
+      watchedProfileImage.uri
+    ) {
+      return {uri: watchedProfileImage.uri};
     }
-    if (watchedProfileImage && typeof watchedProfileImage === 'string' && watchedProfileImage.trim().length > 0) {
-      const imageUrl = watchedProfileImage.startsWith('http') 
-        ? watchedProfileImage 
+    if (
+      watchedProfileImage &&
+      typeof watchedProfileImage === 'string' &&
+      watchedProfileImage.trim().length > 0
+    ) {
+      const imageUrl = watchedProfileImage.startsWith('http')
+        ? watchedProfileImage
         : `${image_url}${watchedProfileImage}`;
-      return { uri: imageUrl };
+      return {uri: imageUrl};
     }
-    if (data?.data?.user?.profile_picture && data.data.user.profile_picture.trim().length > 0) {
-      const imageUrl = data.data.user.profile_picture.startsWith('http') 
-        ? data.data.user.profile_picture 
+    if (
+      data?.data?.user?.profile_picture &&
+      data.data.user.profile_picture.trim().length > 0
+    ) {
+      const imageUrl = data.data.user.profile_picture.startsWith('http')
+        ? data.data.user.profile_picture
         : `${image_url}${data.data.user.profile_picture}`;
-      return { uri: imageUrl };
+      return {uri: imageUrl};
     }
     return IMAGE.profileImage;
   };
 
   return (
-    <TitleBackHeaderContainer title={"My Profile"} isBack>
+    <TitleBackHeaderContainer title={'My Profile'} isBack>
       <View style={styles.profileContainer}>
         <Image
           source={getImageSource()}
@@ -189,12 +201,12 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation }) => 
           inputProps={{
             placeholder: 'Enter Name',
           }}
-          required={{ value: true, message: 'Please enter your name' }}
+          required={{value: true, message: 'Please enter your name'}}
           error={errors}
           maxLength={40}
           inputStyle={styles.inputStyle}
         />
-         <Input
+        <Input
           control={control}
           name="phone_number"
           label={'Phone Number'}
@@ -220,7 +232,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation }) => 
           inputProps={{
             placeholder: 'Enter Email Address Here',
           }}
-          required={{ value: true, message: 'Email address required' }}
+          required={{value: true, message: 'Email address required'}}
           pattern={{
             value: emailPattern,
             message: 'Invalid email format',
@@ -239,7 +251,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation }) => 
           inputProps={{
             placeholder: 'Enter Address',
           }}
-          required={{ value: true, message: 'Please enter your address' }}
+          required={{value: true, message: 'Please enter your address'}}
           error={errors}
           maxLength={40}
           inputStyle={styles.inputStyle}
@@ -252,7 +264,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation }) => 
             label={'Country'}
             placeholder={'Country'}
             error={errors}
-            required={{ value: true, message: 'Country is required' }}
+            required={{value: true, message: 'Country is required'}}
           />
           <InputState
             control={control}
@@ -261,7 +273,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation }) => 
             country={watch('country') ? getValues('country') : undefined}
             placeholder={'State'}
             error={errors}
-            required={{ value: true, message: 'State is required' }}
+            required={{value: true, message: 'State is required'}}
           />
 
           <InputCity
@@ -272,7 +284,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation }) => 
             state={watch('state') ? getValues('state') : undefined}
             placeholder={'City'}
             error={errors}
-            required={{ value: true, message: 'City is required' }}
+            required={{value: true, message: 'City is required'}}
           />
           <Input
             control={control}
@@ -282,7 +294,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation }) => 
             inputProps={{
               placeholder: 'Enter Pincode',
             }}
-            required={{ value: true, message: 'Please enter your pincode' }}
+            required={{value: true, message: 'Please enter your pincode'}}
             error={errors}
             maxLength={40}
             inputStyle={styles.inputStyle}
@@ -326,7 +338,7 @@ const styles = StyleSheet.create({
   editIconStyle: {
     position: 'absolute',
     bottom: -10,
-    right: 160
+    right: 160,
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -336,7 +348,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.secondary,
   },
   btnContainer: {
-    width: "90%",
+    width: '90%',
     backgroundColor: colors.primary,
     marginVertical: 30,
   },
@@ -353,9 +365,9 @@ const styles = StyleSheet.create({
   },
   locationContainer: {
     marginTop: 20,
-    width: '100%'
+    width: '100%',
   },
   emailContainer: {
-    marginTop: 20
+    marginTop: 20,
   },
 });

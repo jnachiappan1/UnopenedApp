@@ -90,6 +90,9 @@ const HeaderHomeContainer: React.FC<HeaderHomeContainerProps> = props => {
       enabled={!!onRefresh} // Only enable pull-to-refresh when onRefresh is provided
     />
   );
+console.log("profileImage",profileImage);
+console.log("image_url", image_url);
+console.log("Full image URL:", profileImage ? `${image_url}${profileImage}` : 'No profileImage');
 
   return (
     <View style={[container, commonStyles.container]}>
@@ -104,6 +107,7 @@ const HeaderHomeContainer: React.FC<HeaderHomeContainerProps> = props => {
             }
             style={styles.icon}
           />
+         
         </TouchableOpacity>
         <View style={styles.itemContainer}>
           <View style={{ width: '48%', paddingStart: 5 }}>

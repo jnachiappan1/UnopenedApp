@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bold,
     color: '#1F1F1F',
     paddingVertical: 2,
-    width: 280
+    width: 250
   },
   cardPrice: {
     fontSize: fontSizes.medium,

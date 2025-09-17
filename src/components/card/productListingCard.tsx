@@ -100,6 +100,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bold,
     color: '#1F1F1F',
     paddingVertical: 2,
+   
   },
   cardPrice: {
     fontSize: fontSizes.medium,

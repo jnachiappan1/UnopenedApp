@@ -238,6 +238,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
     queryKey: ['getProductDetailByID', productId],
     queryFn: () => getProductDetailByID(productId),
   });
+console.log("allProductList", allProductList);
 
   const { data: walletData, refetch: refetchWalletDetail, isLoading: isWalletLoading } = useQuery({
     queryKey: ['getWalletDetail'],
@@ -590,6 +591,8 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
 
       if (isSuccess) {
         const { clientSecret, ephemeralKey, customer, paymentIntentId } = paymentResponse.data;
+        console.log("-=-=--=-", clientSecret, ephemeralKey, customer, paymentIntentId);
+        
         const missingCredentials = [];
         if (!clientSecret) missingCredentials.push('Client Secret');
         if (!ephemeralKey) missingCredentials.push('Ephemeral Key');

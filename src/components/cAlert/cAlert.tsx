@@ -64,14 +64,13 @@ export default class CAlert extends React.Component<any, IState> {
   render() {
     const show = this.state.isVisible as boolean;
     const hasDeleteButton = this.state.onDeletePress;
-    
+
     return (
       <Modal
         isVisible={show}
         backdropOpacity={0}
         style={{margin: 0}}
-        coverScreen={true}
-        avoidKeyboard={true}
+        coverScreen={false}
         animationIn={'slideInUp'}
         animationOut={'slideOutDown'}>
         <View style={styles.container}>
@@ -89,11 +88,18 @@ export default class CAlert extends React.Component<any, IState> {
             )}
 
             {/* Button Container for better layout management */}
-            <View style={hasDeleteButton ? styles.twoButtonContainer : styles.singleButtonContainer}>
+            <View
+              style={
+                hasDeleteButton
+                  ? styles.twoButtonContainer
+                  : styles.singleButtonContainer
+              }>
               <TouchableOpacity
                 style={[
                   styles.btn,
-                  hasDeleteButton ? styles.btnTwoButton : styles.btnSingleButton
+                  hasDeleteButton
+                    ? styles.btnTwoButton
+                    : styles.btnSingleButton,
                 ]}
                 onPress={() => {
                   if (this.state.type === 'error') {
@@ -107,7 +113,7 @@ export default class CAlert extends React.Component<any, IState> {
                   <Text style={styles.btnTxt}>{this.state.doneText}</Text>
                 )}
               </TouchableOpacity>
-              
+
               {hasDeleteButton && (
                 <TouchableOpacity
                   style={[styles.deleteBtn, styles.btnTwoButton]}
@@ -180,7 +186,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     alignSelf: 'center',
   },
-  
+
   // Button container styles
   singleButtonContainer: {
     alignItems: 'center',
@@ -196,7 +202,7 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     gap: 10, // Space between buttons
   },
-  
+
   // Base button style
   btn: {
     height: 44,
@@ -205,17 +211,17 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     backgroundColor: colors.primary,
   },
-  
+
   // Single button takes full width
   btnSingleButton: {
     width: 256,
   },
-  
+
   // Two buttons share the width
   btnTwoButton: {
     flex: 1,
   },
-  
+
   deleteBtn: {
     height: 44,
     alignItems: 'center',
@@ -225,7 +231,7 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
     backgroundColor: 'transparent',
   },
-  
+
   btnDeleteTxt: {
     color: colors.primary,
     fontSize: 16,

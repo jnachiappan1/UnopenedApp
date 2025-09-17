@@ -1,5 +1,5 @@
-// export const base_url = 'http://45.248.33.161:5019';
-export const base_url = 'http://192.168.29.37:5019';
+export const base_url = 'http://45.248.33.161:5019';
+// export const base_url = 'http://192.168.29.37:5019';
 
 export const image_url = 'http://45.248.33.161:9000/unoppened';
 
