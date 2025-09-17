@@ -20,6 +20,7 @@ import {
   contactUs,
   getProductDetailByID,
   trackShipment,
+  createShipping,
 } from '../../utils/apiAction';
 import {useMutation, useQuery} from '@tanstack/react-query';
 import {image_url} from '../../utils/api';
@@ -53,25 +54,47 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({
   const [isContactSupportModalVisible, setIsContactSupportModalVisible] =
     useState(false);
   const [modalKey, setModalKey] = useState(0);
+  const [shipmentId, setShipmentId] = useState<string | null>(null);
   const userData = useSelector((state: IRootState) => state.user.userData);
+
   const {data: productDetail, refetch: refetchAllProduct} = useQuery({
     queryKey: ['getProductDetailByID', productId?.productId],
     queryFn: () => getProductDetailByID(productId?.productId),
   });
 
-  const {data: shippingTrackingData, isLoading: isTrackingLoading} = useQuery({
-    queryKey: ['trackShipment', productDetail?.data?.product[0]?.shipment_id],
-    queryFn: () => trackShipment(productDetail?.data?.product[0]?.shipment_id),
-    enabled: !!productDetail?.data?.product[0]?.shipment_id,
+  const addressId = productDetail?.data?.product[0]?.address_id;
+
+  // Create shipping when both productId and addressId are available
+  const {data: createShippingData, isLoading: isCreatingShipping} = useQuery({
+    queryKey: ['createShipping', productId?.productId, addressId],
+    queryFn: () =>
+      createShipping({
+        product_id: productId?.productId?.toString() || '',
+        address_id: addressId || 0,
+      }),
+    enabled: !!(productId?.productId && addressId),
   });
 
-  const trackingUrl = shippingTrackingData?.tracking?.tracking_url;
+  // Extract shipment_id when createShippingData is available
+  React.useEffect(() => {
+    if (createShippingData?.shipment?.id) {
+      setShipmentId(createShippingData.shipment.id);
+    }
+  }, [createShippingData]);
+
+  const {data: shippingTrackingData, isLoading: isTrackingLoading} = useQuery({
+    queryKey: ['trackShipment', shipmentId],
+    queryFn: () => trackShipment(shipmentId),
+    enabled: !!shipmentId,
+  });
+
+  const trackingUrl = shippingTrackingData?.data?.tracking?.tracking_url;
 
   const generateTrackingSteps = (status: string) => {
     // If we have shipping tracking data, use it
-    if (shippingTrackingData?.tracking?.details) {
-      const trackingDetails = shippingTrackingData.tracking.details;
-      const overallStatus = shippingTrackingData.tracking.status;
+    if (shippingTrackingData?.data?.tracking?.details) {
+      const trackingDetails = shippingTrackingData.data.tracking.details;
+      const overallStatus = shippingTrackingData.data.tracking.status;
 
       // Group by status and get latest from each category
       const preTransitSteps = trackingDetails.filter(
@@ -224,9 +247,9 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({
           id: 4,
           title: 'Delivered',
           subtitle: 'Package will be delivered',
-          date: shippingTrackingData?.tracking?.estimated_delivery
+          date: shippingTrackingData?.data?.tracking?.estimated_delivery
             ? new Date(
-                shippingTrackingData.tracking.estimated_delivery,
+                shippingTrackingData.data.tracking.estimated_delivery,
               ).toLocaleDateString('en-US', {
                 day: 'numeric',
                 month: 'short',
@@ -246,7 +269,7 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({
         id: 1,
         title: 'Pre Transit',
         subtitle: 'Package information received',
-        date: '7 May 2023 | 23:11',
+        date: 'Pending',
         isCompleted: true,
       },
       {
@@ -257,7 +280,7 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({
           status === 'in_transit' ||
           status === 'out_for_delivery' ||
           status === 'delivered'
-            ? '16 June 2025'
+            ? 'Pending'
             : 'Pending',
         isCompleted:
           status === 'in_transit' ||
@@ -270,7 +293,7 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({
         subtitle: 'Package picked up and in transit',
         date:
           status === 'out_for_delivery' || status === 'delivered'
-            ? '17 June 2025'
+            ? 'Pending'
             : 'Pending',
         isCompleted: status === 'out_for_delivery' || status === 'delivered',
       },
@@ -278,7 +301,7 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({
         id: 4,
         title: 'Delivered',
         subtitle: 'Order delivered to your address',
-        date: status === 'delivered' ? '20 June 2025' : 'Expected soon',
+        date: status === 'delivered' ? 'Pending' : 'Expected soon',
         isCompleted: status === 'delivered',
       },
     ];
@@ -288,9 +311,10 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({
 
   // Use shipping tracking status if available, otherwise use product status
   const trackingSteps = generateTrackingSteps(
-    shippingTrackingData?.tracking?.status ||
+    shippingTrackingData?.data?.tracking?.status ||
       productDetail?.data?.product[0]?.status,
   );
+  console.log('trackingSteps', trackingSteps);
 
   const {mutate} = useMutation({
     mutationFn: contactUs,
@@ -418,9 +442,9 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({
                 </Text>
                 <Text style={styles.descriptionStyle}>
                   Delivered On:{' '}
-                  {shippingTrackingData?.tracking?.actual_delivery
+                  {shippingTrackingData?.data?.tracking?.actual_delivery
                     ? new Date(
-                        shippingTrackingData.tracking.actual_delivery,
+                        shippingTrackingData.data.tracking.actual_delivery,
                       ).toLocaleDateString('en-US', {
                         day: 'numeric',
                         month: 'short',
@@ -436,21 +460,28 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({
           </View>
         </View>
 
-        {isTrackingLoading ? (
-          <Text style={{padding: 16}}>Loading tracking info...</Text>
+        {isCreatingShipping || isTrackingLoading ? (
+          <Text style={{padding: 16}}>
+            {isCreatingShipping
+              ? 'Creating shipment...'
+              : 'Loading tracking info...'}
+          </Text>
         ) : trackingSteps && trackingSteps.length > 0 ? (
           <>
             <Text style={styles.headingStyle}>Track Your Order</Text>
             <View style={styles.container}>
-              <TouchableOpacity
-                disabled={!trackingUrl}
-                onPress={() => {
-                  if (trackingUrl) {
-                    Linking.openURL(trackingUrl);
-                  }
-                }}>
-                <Text style={[styles.trackText]}>Track your order</Text>
-              </TouchableOpacity>
+              {trackingUrl && (
+                <TouchableOpacity
+                  onPress={() => {
+                    if (trackingUrl) {
+                      Linking.openURL(trackingUrl);
+                    }
+                  }}
+                  style={styles.trackButton}>
+                  <Text style={[styles.trackText]}>Track your order</Text>
+                </TouchableOpacity>
+              )}
+
               <View>
                 {trackingSteps.map((item, index) =>
                   renderTrackingStep(item, index),
@@ -676,12 +707,21 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
   },
   trackText: {
-    textAlign: 'right',
-    paddingHorizontal: 10,
+    textAlign: 'center',
     paddingTop: 10,
     color: colors.primary,
     fontSize: fontSizes.small,
     fontFamily: fonts.bold,
     marginBottom: 10,
+  },
+  trackButton: {
+    width: '40%',
+    alignSelf: 'flex-end',
+    padding: 5,
+    borderRadius: 10,
+    backgroundColor: '#F5F7F2',
+    marginBottom: 10,
+    borderWidth: 1,
+    borderBlockColor: colors.primary,
   },
 });

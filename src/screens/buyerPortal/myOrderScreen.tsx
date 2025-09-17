@@ -97,16 +97,20 @@ const MyOrderScreen: React.FC<MyOrderScreenProps> = ({navigation}) => {
   );
 
   const filteredData = filterData();
+console.log("filteredData--", filteredData);
 
   return (
     <TitleBackHeaderContainer title="My Orders">
       <FlashList
         data={filteredData}
         renderItem={({item}) => (
+          console.log("item--", item),
+          
           <View style={{paddingHorizontal: 10}}>
               <OrderListingCard 
           item={item} 
           onSelect={(selectedItem) => {
+            
             try {
                navigation.navigate(SCREENS.OrderTrackScreen, {productId: item?.id});
             } catch (navError) {
