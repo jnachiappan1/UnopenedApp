@@ -11,8 +11,8 @@ import fonts from '../../assets/fonts/fonts';
 import IconsSvg, {IconName} from '../../assets/svg/iconsSvg';
 import {fontSizes} from '../../utils/utils';
 import colors from '../../utils/colors';
-import { useSelector } from 'react-redux';
-import { IRootState } from '../../redux/store';
+import {useSelector} from 'react-redux';
+import {IRootState} from '../../redux/store';
 
 type ICDrawer = {
   svgName?: IconName;
@@ -38,13 +38,12 @@ const IconTitleCard = (props: ICDrawer) => {
   } = props;
   const [isToggled, setIsToggled] = useState(false);
   if (!svgName) {
-    return null; // or return a default icon, or handle the case in any way you prefer
+    return null;
   }
   const language = useSelector(
     (user: IRootState) => user.user.selectedLanguage,
   );
-  
-  
+
   const handleToggle = () => {
     setIsToggled(!isToggled);
   };
@@ -70,7 +69,9 @@ const IconTitleCard = (props: ICDrawer) => {
       </View>
       {isLanguage && (
         <View style={styles.languageContainer}>
-          <Text style={styles.txtBtn}>{language === 'en' ? "English": "عربي"}</Text>
+          <Text style={styles.txtBtn}>
+            {language === 'en' ? 'English' : 'عربي'}
+          </Text>
           <IconsSvg name="rightArrow" style={styles.rightArrow} />
         </View>
       )}
@@ -87,7 +88,6 @@ const IconTitleCard = (props: ICDrawer) => {
             ]}
           />
         </TouchableOpacity>
-        
       )}
     </TouchableOpacity>
   );
@@ -102,9 +102,9 @@ const styles = StyleSheet.create({
     borderBottomColor: '#E6E6E6',
     borderBottomWidth: 1,
     paddingVertical: 6,
-    alignItems:'center',
+    alignItems: 'center',
     alignContent: 'center',
-    paddingHorizontal:10,
+    paddingHorizontal: 10,
   },
   titleStyle: {
     fontFamily: fonts.bold,
@@ -163,5 +163,4 @@ const styles = StyleSheet.create({
   rightArrow: {
     alignSelf: 'flex-end',
   },
-  
 });

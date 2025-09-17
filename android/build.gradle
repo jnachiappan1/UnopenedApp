@@ -10,21 +10,8 @@ buildscript {
         kotlinVersion = "2.0.21"
     }
     repositories {
-        google {
-            content {
-                includeGroupByRegex "com\\.android.*"
-                includeGroupByRegex "com\\.google.*"
-                includeGroupByRegex "androidx.*"
-            }
-        }
-        mavenCentral {
-            content {
-                includeGroupByRegex "org\\.jetbrains.*"
-                includeGroupByRegex "com\\.facebook.*"
-            }
-        }
-        gradlePluginPortal()
-        maven { url "https://www.jitpack.io" }
+        google()
+        mavenCentral()
     }
     dependencies {
         classpath("com.android.tools.build:gradle:8.6.1")
@@ -35,25 +22,17 @@ buildscript {
     }
 }
 
+apply plugin: "com.facebook.react.rootproject"
+
 allprojects {
     repositories {
-        google {
-            content {
-                includeGroupByRegex "com\\.android.*"
-                includeGroupByRegex "com\\.google.*"
-                includeGroupByRegex "androidx.*"
-            }
-        }
-        mavenCentral {
-            content {
-                includeGroupByRegex "org\\.jetbrains.*"
-                includeGroupByRegex "com\\.facebook.*"
-            }
-        }
-        gradlePluginPortal()
+        google()
+        mavenCentral()
         maven { url "https://www.jitpack.io" }
         maven { url "https://maven.google.com" }
+        // Notifee local maven (bundled artifacts)
+        maven { url uri(new File(rootDir, "../node_modules/@notifee/react-native/android/libs")) }
+        // Optional remote fallback
+        maven { url "https://notifee-maven.s3.amazonaws.com/releases" }
     }
 }
-
-apply plugin: "com.facebook.react.rootproject"
