@@ -1,39 +1,61 @@
-import { StyleSheet, Text, TouchableOpacity, View, ScrollView } from 'react-native'
-import React, { useEffect, useState, useCallback } from 'react'
-import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer'
-import colors from '../../utils/colors'
-import { fontSizes } from '../../utils/utils'
-import fonts from '../../assets/fonts/fonts'
-import IconsSvg from '../../assets/svg/iconsSvg'
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ScrollView,
+} from 'react-native';
+import React, {useEffect, useState, useCallback} from 'react';
+import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
+import colors from '../../utils/colors';
+import {fontSizes} from '../../utils/utils';
+import fonts from '../../assets/fonts/fonts';
+import IconsSvg from '../../assets/svg/iconsSvg';
 
-import { pendingTranferData, transactions } from '../../utils/static'
-import TransactionCard, { TransactionType } from '../../components/card/transactionCard'
-import PendingCard from '../../components/card/pendingCard'
-import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation'
-import { NativeStackScreenProps } from '@react-navigation/native-stack'
-import { useQuery } from '@tanstack/react-query'
-import { getTransactionList, getWalletDetail } from '../../utils/apiAction'
-import { useSelector } from 'react-redux'
-import { IRootState } from '../../redux/store'
-import { useFocusEffect } from '@react-navigation/native'
-type WalletScreenProps = NativeStackScreenProps<RootStackParamList, SCREENS.WalletScreen>;
+import {pendingTranferData, transactions} from '../../utils/static';
+import TransactionCard, {
+  TransactionType,
+} from '../../components/card/transactionCard';
+import PendingCard from '../../components/card/pendingCard';
+import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {useQuery} from '@tanstack/react-query';
+import {
+  getSalesProductList,
+  getTransactionList,
+  getWalletDetail,
+} from '../../utils/apiAction';
+import {useSelector} from 'react-redux';
+import {IRootState} from '../../redux/store';
+import {useFocusEffect} from '@react-navigation/native';
+import {FlashList} from '@shopify/flash-list';
+import {ProductData} from '../../utils/types';
+type WalletScreenProps = NativeStackScreenProps<
+  RootStackParamList,
+  SCREENS.WalletScreen
+>;
 
-const WalletScreen: React.FC<WalletScreenProps> = ({ navigation }) => {
+const WalletScreen: React.FC<WalletScreenProps> = ({navigation}) => {
   const userData = useSelector((user: IRootState) => user.user.userData);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedTab, setSelectedTab] = useState<'all' | 'wallet'>('all');
-  
-  const { data: walletData, refetch: refetchWalletDetail, isFetching: isWalletFetching, error: walletError } = useQuery({
+
+  const {
+    data: walletData,
+    refetch: refetchWalletDetail,
+    isFetching: isWalletFetching,
+    error: walletError,
+  } = useQuery({
     queryKey: ['getWalletDetail', userData?.id],
     queryFn: () => getWalletDetail(),
-    enabled: !!userData, 
+    enabled: !!userData,
     staleTime: 0, // Always consider data stale
     refetchOnMount: true,
     refetchOnWindowFocus: true,
     retry: 3,
     retryDelay: 1000,
   });
-  
+
   const {
     isLoading: isTransactionLoading,
     data: transactionData,
@@ -52,10 +74,16 @@ const WalletScreen: React.FC<WalletScreenProps> = ({ navigation }) => {
   });
 
   // Check if any API is currently fetching (following SHomeScreen pattern)
-  const isAnyApiFetching = userData ? (isWalletFetching || isTransactionFetching) : false;
-  
+  const isAnyApiFetching = userData
+    ? isWalletFetching || isTransactionFetching
+    : false;
+  const {data: sellerOwnProductList, refetch: refetchSalesProductList} =
+    useQuery({
+      queryKey: ['getSalesProductList'],
+      queryFn: () => getSalesProductList(),
+      enabled: !!userData,
+    });
 
-  
   // Auto-focus API calls when screen loads
   useEffect(() => {
     if (userData) {
@@ -75,7 +103,7 @@ const WalletScreen: React.FC<WalletScreenProps> = ({ navigation }) => {
           try {
             const refreshPromises = [
               refetchWalletDetail(),
-              refetchTransactionData()
+              refetchTransactionData(),
             ];
             await Promise.allSettled(refreshPromises);
           } catch (error) {
@@ -85,7 +113,7 @@ const WalletScreen: React.FC<WalletScreenProps> = ({ navigation }) => {
 
         focusRefresh();
       }
-    }, [userData, refetchWalletDetail, refetchTransactionData])
+    }, [userData, refetchWalletDetail, refetchTransactionData]),
   );
 
   // Pull to refresh handler following SHomeScreen pattern
@@ -94,15 +122,12 @@ const WalletScreen: React.FC<WalletScreenProps> = ({ navigation }) => {
       setIsRefreshing(false);
       return;
     }
-    
+
     setIsRefreshing(true);
-    
+
     try {
-      const refreshPromises = [
-        refetchWalletDetail(),
-        refetchTransactionData()
-      ];
-      
+      const refreshPromises = [refetchWalletDetail(), refetchTransactionData()];
+
       await Promise.allSettled(refreshPromises);
     } catch (error) {
       console.error('Error during refresh:', error);
@@ -115,12 +140,9 @@ const WalletScreen: React.FC<WalletScreenProps> = ({ navigation }) => {
   const forceRefresh = useCallback(async () => {
     try {
       setIsRefreshing(true);
-      await Promise.all([
-        getWalletDetail(),
-        getTransactionList()
-      ]);
+      await Promise.all([getWalletDetail(), getTransactionList()]);
     } catch (error) {
-      console.error("Force refresh fallback failed:", error);
+      console.error('Force refresh fallback failed:', error);
     } finally {
       setIsRefreshing(false);
     }
@@ -129,49 +151,55 @@ const WalletScreen: React.FC<WalletScreenProps> = ({ navigation }) => {
   // Calculate transaction summaries
   const getTransactionSummary = () => {
     if (!transactionData?.data?.transaction) return null;
-    
+
     const transactions = transactionData.data.transaction;
-    
-    const summary = transactions.reduce((acc: {
-      walletFunds: number;
-      addFunds: number;
-      buyProduct: number;
-      buyProductWallet: number;
-      other: number;
-    }, transaction: any) => {
-      const { payment_transaction_type, amount, wallet_amount } = transaction;
-      const numAmount = Number(amount) || 0;
-      const numWalletAmount = Number(wallet_amount) || 0;
-      
-      switch (payment_transaction_type) {
-        case 'wallet_funds':
-          acc.walletFunds += numWalletAmount;
-          break;
-        case 'add_funds':
-          acc.addFunds += numWalletAmount;
-          break;
-        case 'buy_product':
-          acc.buyProduct += numAmount;
-          acc.buyProductWallet += numWalletAmount;
-          break;
-        case 'wallet_buy_product_funds':
-          // For hybrid payments, add the total amount (Stripe + wallet)
-          acc.buyProduct += (numAmount + numWalletAmount);
-          acc.buyProductWallet += numWalletAmount;
-          break;
-        default:
-          acc.other += numAmount;
-      }
-      
-      return acc;
-    }, {
-      walletFunds: 0,
-      addFunds: 0,
-      buyProduct: 0,
-      buyProductWallet: 0,
-      other: 0
-    });
-    
+
+    const summary = transactions.reduce(
+      (
+        acc: {
+          walletFunds: number;
+          addFunds: number;
+          buyProduct: number;
+          buyProductWallet: number;
+          other: number;
+        },
+        transaction: any,
+      ) => {
+        const {payment_transaction_type, amount, wallet_amount} = transaction;
+        const numAmount = Number(amount) || 0;
+        const numWalletAmount = Number(wallet_amount) || 0;
+
+        switch (payment_transaction_type) {
+          case 'wallet_funds':
+            acc.walletFunds += numWalletAmount;
+            break;
+          case 'add_funds':
+            acc.addFunds += numWalletAmount;
+            break;
+          case 'buy_product':
+            acc.buyProduct += numAmount;
+            acc.buyProductWallet += numWalletAmount;
+            break;
+          case 'wallet_buy_product_funds':
+            // For hybrid payments, add the total amount (Stripe + wallet)
+            acc.buyProduct += numAmount + numWalletAmount;
+            acc.buyProductWallet += numWalletAmount;
+            break;
+          default:
+            acc.other += numAmount;
+        }
+
+        return acc;
+      },
+      {
+        walletFunds: 0,
+        addFunds: 0,
+        buyProduct: 0,
+        buyProductWallet: 0,
+        other: 0,
+      },
+    );
+
     return summary;
   };
 
@@ -180,7 +208,7 @@ const WalletScreen: React.FC<WalletScreenProps> = ({ navigation }) => {
   // Filter transactions based on selected tab
   const getFilteredTransactions = () => {
     if (!transactionData?.data?.transaction) return [];
-    
+
     const transactions = transactionData.data.transaction;
     let filtered = transactions;
 
@@ -188,8 +216,12 @@ const WalletScreen: React.FC<WalletScreenProps> = ({ navigation }) => {
       filtered = filtered.filter((t: any) => {
         const total = Number(t?.amount) || 0;
         const walletAmt = Number(t?.wallet_amount) || 0;
-        const hasWalletByType = ['wallet_funds', 'add_funds'].includes(t?.payment_transaction_type);
-        return hasWalletByType || walletAmt > 0 || (total > 0 && walletAmt === total);
+        const hasWalletByType = ['wallet_funds', 'add_funds'].includes(
+          t?.payment_transaction_type,
+        );
+        return (
+          hasWalletByType || walletAmt > 0 || (total > 0 && walletAmt === total)
+        );
       });
     }
 
@@ -199,9 +231,13 @@ const WalletScreen: React.FC<WalletScreenProps> = ({ navigation }) => {
   const filteredTransactions = getFilteredTransactions();
 
   // Show loading state when initially loading and no data exists
-  if ((isTransactionLoading || isWalletFetching) && !transactionData && !walletData) {
+  if (
+    (isTransactionLoading || isWalletFetching) &&
+    !transactionData &&
+    !walletData
+  ) {
     return (
-      <TitleBackHeaderContainer title='Wallet'>
+      <TitleBackHeaderContainer title="Wallet">
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>Loading wallet information...</Text>
         </View>
@@ -210,32 +246,30 @@ const WalletScreen: React.FC<WalletScreenProps> = ({ navigation }) => {
   }
 
   return (
-    <TitleBackHeaderContainer 
-      title='Wallet' 
+    <TitleBackHeaderContainer
+      title="Wallet"
       refreshing={isRefreshing}
-      onRefresh={handleRefresh}
-    >
+      onRefresh={handleRefresh}>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.transactionsContainer}>
           <View style={styles.innerBalanceContainer}>
             <Text style={styles.availableText}>Available Balance</Text>
             <Text style={styles.amountText}>
-              {"$" + (walletData?.data?.wallet?.amount || "0.00")}
+              {'$' + (walletData?.data?.wallet?.amount || '0.00')}
             </Text>
           </View>
           <View style={styles.balanceContainer}>
-            <TouchableOpacity style={styles.userContainer}
-            onPress={()=>navigation.navigate(SCREENS.AddFundScreen)}>
-              <IconsSvg name='funds' />
-              <Text style={styles.addFunds}>
-                Add Funds
-              </Text>
+            <TouchableOpacity
+              style={styles.userContainer}
+              onPress={() => navigation.navigate(SCREENS.AddFundScreen)}>
+              <IconsSvg name="funds" />
+              <Text style={styles.addFunds}>Add Funds</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.userContainer} onPress={()=>navigation.navigate(SCREENS.CashOutScreen)}>
-              <IconsSvg name='cashOut' />
-              <Text style={styles.addFunds}>
-                Cash Out
-              </Text>
+            <TouchableOpacity
+              style={styles.userContainer}
+              onPress={() => navigation.navigate(SCREENS.CashOutScreen)}>
+              <IconsSvg name="cashOut" />
+              <Text style={styles.addFunds}>Cash Out</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -246,12 +280,23 @@ const WalletScreen: React.FC<WalletScreenProps> = ({ navigation }) => {
 
         {/* Tabs */}
         <View style={styles.tabsContainer}>
-          {(['all','wallet'] as const).map(tab => (
-            <TouchableOpacity key={tab} style={styles.tabItem} onPress={() => setSelectedTab(tab)}>
-              <Text style={[styles.tabText, selectedTab === tab && styles.tabTextActive]}>
+          {(['all', 'wallet'] as const).map(tab => (
+            <TouchableOpacity
+              key={tab}
+              style={styles.tabItem}
+              onPress={() => setSelectedTab(tab)}>
+              <Text
+                style={[
+                  styles.tabText,
+                  selectedTab === tab && styles.tabTextActive,
+                ]}>
                 {tab === 'all' ? 'All' : 'Wallet'}
               </Text>
-              {selectedTab === tab ? <View style={styles.tabIndicator} /> : <View style={styles.tabIndicatorHidden} />}
+              {selectedTab === tab ? (
+                <View style={styles.tabIndicator} />
+              ) : (
+                <View style={styles.tabIndicatorHidden} />
+              )}
             </TouchableOpacity>
           ))}
         </View>
@@ -259,7 +304,9 @@ const WalletScreen: React.FC<WalletScreenProps> = ({ navigation }) => {
         <View style={styles.transactionsList}>
           {isTransactionLoading ? (
             <View style={styles.loadingState}>
-              <Text style={styles.loadingStateText}>Loading transactions...</Text>
+              <Text style={styles.loadingStateText}>
+                Loading transactions...
+              </Text>
             </View>
           ) : filteredTransactions && filteredTransactions.length > 0 ? (
             filteredTransactions.map((item: TransactionType) => (
@@ -268,40 +315,66 @@ const WalletScreen: React.FC<WalletScreenProps> = ({ navigation }) => {
           ) : (
             <View style={styles.emptyState}>
               <Text style={styles.emptyStateText}>
-                {selectedTab === 'all' ? 'No transactions found' : 'No wallet transactions found'}
+                {selectedTab === 'all'
+                  ? 'No transactions found'
+                  : 'No wallet transactions found'}
               </Text>
             </View>
           )}
         </View>
         <Text style={styles.pendingText}>Pending Transfers</Text>
         <View style={styles.pendingList}>
-          {/* {pendingTranferData.map((item) => (
-            <PendingCard key={item.id} item={item} />
-          ))} */}
+          {(() => {
+            const filteredProducts =
+              sellerOwnProductList?.data?.product?.filter(
+                (item: ProductData) =>
+                  item.product_activity_status !== 'delivered',
+              ) || [];
+
+            if (filteredProducts.length === 0) {
+              return (
+                <View style={styles.emptyState}>
+                  <Text style={styles.emptyStateText}>
+                    No pending transfers found
+                  </Text>
+                </View>
+              );
+            }
+
+            return (
+              <FlashList
+                data={filteredProducts as ProductData[]}
+                renderItem={({item}) => <PendingCard item={item} />}
+                estimatedItemSize={150}
+                contentContainerStyle={{padding: 16}}
+                keyExtractor={item => item.id.toString()}
+              />
+            );
+          })()}
         </View>
-        <View style={{ height: 110 }} />
+        <View style={{height: 110}} />
       </ScrollView>
     </TitleBackHeaderContainer>
-  )
-}
+  );
+};
 
-export default WalletScreen
+export default WalletScreen;
 
 const styles = StyleSheet.create({
   availableText: {
     fontSize: fontSizes.regular,
     fontFamily: fonts.bold,
     color: colors.white,
-    textAlign: 'center'
+    textAlign: 'center',
   },
   amountText: {
     fontSize: fontSizes.sGigantic,
     fontFamily: fonts.bold,
     color: colors.white,
-    textAlign: 'center'
+    textAlign: 'center',
   },
   userContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
     paddingHorizontal: 15,
     paddingVertical: 10,
     marginStart: 10,
@@ -310,22 +383,22 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     borderWidth: 1,
     height: 54,
-    width: "45%",
-    alignItems: "center",
-    justifyContent: "center"
+    width: '45%',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   addFunds: {
     fontSize: fontSizes.medium,
     fontFamily: fonts.bold,
     color: colors.label,
-    paddingHorizontal: 5
+    paddingHorizontal: 5,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginHorizontal: 15,
-    paddingVertical: 10
+    paddingVertical: 10,
   },
   title: {
     fontSize: fontSizes.large,
@@ -334,19 +407,29 @@ const styles = StyleSheet.create({
   pendingText: {
     fontSize: fontSizes.large,
     fontFamily: fonts.bold,
-    paddingStart:20,
-    paddingBottom:10
+    paddingStart: 20,
+    paddingBottom: 10,
   },
   viewAllText: {
     color: colors.primary,
     fontSize: fontSizes.regular,
   },
-  transactionsContainer: { backgroundColor: colors.white, marginHorizontal: 10, borderRadius: 32 },
-  balanceContainer: { flexDirection: 'row', alignSelf: 'center', paddingVertical: 15 },
-  innerBalanceContainer: {     backgroundColor: colors.primary,
+  transactionsContainer: {
+    backgroundColor: colors.white,
+    marginHorizontal: 10,
+    borderRadius: 32,
+  },
+  balanceContainer: {
+    flexDirection: 'row',
+    alignSelf: 'center',
+    paddingVertical: 15,
+  },
+  innerBalanceContainer: {
+    backgroundColor: colors.primary,
     borderRadius: 20,
     height: 87,
-    justifyContent: 'center', },
+    justifyContent: 'center',
+  },
   emptyState: {
     paddingVertical: 40,
     alignItems: 'center',
@@ -462,4 +545,4 @@ const styles = StyleSheet.create({
     width: 24,
     backgroundColor: 'transparent',
   },
-})
+});

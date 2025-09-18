@@ -5,7 +5,7 @@ require Pod::Executable.execute_command('node', ['-p',
     {paths: [process.argv[1]]},
   )', __dir__]).strip
 
-platform :ios, '15.1'
+platform :ios, '16.0'
 prepare_react_native_project!
 
 linkage = ENV['USE_FRAMEWORKS']
@@ -27,8 +27,8 @@ target 'Unopened_Mobile' do
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
-pod 'Stripe', '24.19.0'
-pod 'StripeCore', '24.19.0'
+pod 'Stripe', '~> 24.2.0'
+pod 'StripeCore', '~> 24.2.0'
   post_install do |installer|
     # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
     react_native_post_install(
@@ -38,10 +38,10 @@ pod 'StripeCore', '24.19.0'
       # :ccache_enabled => true
     )
     
-    # Ensure all pods use iOS 15.1 as minimum deployment target
+    # Ensure all pods use iOS 16.0 as minimum deployment target
     installer.pods_project.targets.each do |target|
       target.build_configurations.each do |config|
-        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.1'
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '16.0'
       end
     end
   end

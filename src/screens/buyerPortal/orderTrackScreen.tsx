@@ -62,39 +62,45 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({
     queryFn: () => getProductDetailByID(productId?.productId),
   });
 
-  const addressId = productDetail?.data?.product[0]?.address_id;
+  // const addressId = productDetail?.data?.product[0]?.address_id;
 
-  // Create shipping when both productId and addressId are available
-  const {data: createShippingData, isLoading: isCreatingShipping} = useQuery({
-    queryKey: ['createShipping', productId?.productId, addressId],
-    queryFn: () =>
-      createShipping({
-        product_id: productId?.productId?.toString() || '',
-        address_id: addressId || 0,
-      }),
-    enabled: !!(productId?.productId && addressId),
-  });
+  // // Create shipping when both productId and addressId are available
+  // const {data: createShippingData, isLoading: isCreatingShipping} = useQuery({
+  //   queryKey: ['createShipping', productId?.productId, addressId],
+  //   queryFn: () =>
+  //     createShipping({
+  //       product_id: productId?.productId?.toString() || '',
+  //       address_id: addressId || 0,
+  //     }),
+  //   enabled: !!(productId?.productId && addressId),
+  // });
 
-  // Extract shipment_id when createShippingData is available
-  React.useEffect(() => {
-    if (createShippingData?.shipment?.id) {
-      setShipmentId(createShippingData.shipment.id);
-    }
-  }, [createShippingData]);
+  // // Extract shipment_id when createShippingData is available
+  // React.useEffect(() => {
+  //   if (createShippingData?.shipment?.id) {
+  //     setShipmentId(createShippingData.shipment.id);
+  //   }
+  // }, [createShippingData]);
 
+  // const {data: shippingTrackingData, isLoading: isTrackingLoading} = useQuery({
+  //   queryKey: ['trackShipment', shipmentId],
+  //   queryFn: () => trackShipment(shipmentId),
+  //   enabled: !!shipmentId,
+  // });
+
+  // const trackingUrl = shippingTrackingData?.data?.tracking?.tracking_url;
   const {data: shippingTrackingData, isLoading: isTrackingLoading} = useQuery({
-    queryKey: ['trackShipment', shipmentId],
-    queryFn: () => trackShipment(shipmentId),
-    enabled: !!shipmentId,
+    queryKey: ['trackShipment', productDetail?.data?.product[0]?.shipment_id],
+    queryFn: () => trackShipment(productDetail?.data?.product[0]?.shipment_id),
+    enabled: !!productDetail?.data?.product[0]?.shipment_id,
   });
-
-  const trackingUrl = shippingTrackingData?.data?.tracking?.tracking_url;
+  const trackingUrl = shippingTrackingData?.tracking?.tracking_url;
 
   const generateTrackingSteps = (status: string) => {
     // If we have shipping tracking data, use it
-    if (shippingTrackingData?.data?.tracking?.details) {
-      const trackingDetails = shippingTrackingData.data.tracking.details;
-      const overallStatus = shippingTrackingData.data.tracking.status;
+    if (shippingTrackingData?.tracking?.details) {
+      const trackingDetails = shippingTrackingData.tracking.details;
+      const overallStatus = shippingTrackingData.tracking.status;
 
       // Group by status and get latest from each category
       const preTransitSteps = trackingDetails.filter(
@@ -247,9 +253,9 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({
           id: 4,
           title: 'Delivered',
           subtitle: 'Package will be delivered',
-          date: shippingTrackingData?.data?.tracking?.estimated_delivery
+          date: shippingTrackingData?.tracking?.estimated_delivery
             ? new Date(
-                shippingTrackingData.data.tracking.estimated_delivery,
+                shippingTrackingData.tracking.estimated_delivery,
               ).toLocaleDateString('en-US', {
                 day: 'numeric',
                 month: 'short',
@@ -305,13 +311,12 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({
         isCompleted: status === 'delivered',
       },
     ];
-
     return baseSteps;
   };
 
   // Use shipping tracking status if available, otherwise use product status
   const trackingSteps = generateTrackingSteps(
-    shippingTrackingData?.data?.tracking?.status ||
+    shippingTrackingData?.tracking?.status ||
       productDetail?.data?.product[0]?.status,
   );
   console.log('trackingSteps', trackingSteps);
@@ -460,7 +465,7 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({
           </View>
         </View>
 
-        {isCreatingShipping || isTrackingLoading ? (
+        {/* { isTrackingLoading ? (
           <Text style={{padding: 16}}>
             {isCreatingShipping
               ? 'Creating shipment...'
@@ -489,7 +494,53 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({
               </View>
             </View>
           </>
-        ) : null}
+        ) : null} */}
+        {/* {isTrackingLoading ? (
+          <Text style={{padding: 16}}>Loading tracking info...</Text>
+        ) : trackingSteps && trackingSteps.length > 0 ? (
+          <>
+            <Text style={styles.headingStyle}>Track Your Order</Text>
+            <View style={styles.container}>
+              <TouchableOpacity
+                disabled={!trackingUrl}
+                onPress={() => {
+                  if (trackingUrl) {
+                    Linking.openURL(trackingUrl);
+                  }
+                }}>
+                <Text style={[styles.trackText]}>Track your order</Text>
+              </TouchableOpacity>
+              <View>
+                {trackingSteps.map((item, index) =>
+                  renderTrackingStep(item, index),
+                )}
+              </View>
+            </View>
+          </>
+        ) : null} */}
+        {trackingSteps && trackingSteps.length > 0 && (
+          <>
+            <Text style={styles.headingStyle}>Track Your Order</Text>
+            <View style={styles.container}>
+              <TouchableOpacity
+                disabled={!trackingUrl}
+                style={styles.trackButton}
+                onPress={() => {
+                  if (trackingUrl) {
+                    Linking.openURL(trackingUrl);
+                  }
+                }}>
+                <Text style={[styles.trackText]}>Track your order</Text>
+              </TouchableOpacity>
+              <View>
+                {trackingSteps.map((item, index) =>
+                  renderTrackingStep(item, index),
+                )}
+              </View>
+            </View>
+          </>
+        )}
+
 
         <View style={styles.helpSection}>
           <Text style={styles.headingText}>Need help with your order?</Text>

@@ -64,7 +64,7 @@ const SalesScreen: React.FC<SalesScreenProps> = ({ navigation }) => {
           />
         )}
         estimatedItemSize={150}
-        contentContainerStyle={{ padding: 16 }}
+        contentContainerStyle={{ padding: 16, }}
         keyExtractor={(item) => item.id.toString()}
       />
     </TitleBackHeaderContainer>

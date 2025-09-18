@@ -15,11 +15,25 @@ type TransactionType = {
   isExpected?: boolean;
 };
 
+type ProductType = {
+  id: number;
+  brand: string;
+  name: string;
+  price: number;
+  product_activity_status: string;
+  updatedAt: string;
+  createdAt: string;
+  product_status: string;
+  [key: string]: any; // Allow other properties
+};
+
 type Props = {
-  item: TransactionType;
+  item: TransactionType | ProductType;
 };
 
 const PendingCard: React.FC<Props> = ({ item }) => {
+  console.log("-----", item);
+  
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -32,22 +46,32 @@ const PendingCard: React.FC<Props> = ({ item }) => {
     return `${day}/${month}/${year}`;
   };
 
+  // Check if item is a ProductType (has brand property) or TransactionType
+  const isProductType = 'brand' in item;
+  
+  // Extract data based on type
+  const title = isProductType ? `${item.brand} ${item.name}` : item.title;
+  const status = isProductType ? item.product_activity_status : item.status;
+  const price = item.price;
+  const date = isProductType ? item.updatedAt : item.date;
+  const isExpected = isProductType ? item.product_activity_status !== 'delivered' : item.isExpected;
+
   return (
     <View style={styles.card}>
     <View style={styles.badge}>
-      <Text style={styles.badgeText}>{item.status}</Text>
+      <Text style={styles.badgeText}>{status}</Text>
     </View>
 
     <View style={styles.rowBetween}>
-      <Text style={styles.title}>{item.title}</Text>
-      <Text style={styles.price}>${item.price}</Text>
+      <Text style={styles.title} numberOfLines={2}>{title}</Text>
+      <Text style={styles.price}>${price}</Text>
     </View>
 
     <View style={styles.dateRow}>
     <IconsSvg name={'celender'} width={20} height={20} />
       <Text style={styles.dateText}>
-        {item.isExpected ? 'Expected: ' : 'Delivered on: '}
-        <Text style={styles.date}>{formatDate(item.date)}</Text>
+        {isExpected ? 'Expected: ' : 'Delivered on: '}
+        <Text style={styles.date}>{formatDate(date)}</Text>
       </Text>
     </View>
   </View>
@@ -81,6 +105,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    width: '80%',
   },
   title: {
     fontSize: fontSizes.medium,

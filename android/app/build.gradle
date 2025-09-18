@@ -67,8 +67,9 @@ android {
 
 dependencies {
     implementation("com.facebook.react:react-android")
-implementation 'com.google.firebase:firebase-analytics:17.3.0'
-  implementation project(':react-native-push-notification')
+    implementation 'com.google.firebase:firebase-analytics:17.3.0'
+    implementation project(':react-native-push-notification')
+    implementation 'com.stripe:stripe-android:20.18.0'
     if (project.ext.react.enableHermes.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
     } else {

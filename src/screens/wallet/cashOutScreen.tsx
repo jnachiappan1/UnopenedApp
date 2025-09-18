@@ -107,27 +107,28 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
     onSettled: handleSettled,
   });
 
-  const {mutate: bankCashOutMutation, isPending: isBankCashOutPending} = useMutation({
-    mutationFn: cashOut,
-    onSuccess: data => {
-      showLoader(false);
-      showAlert({
-        isVisible: true,
-        type: 'success',
-        title: 'Success!',
-        description: 'Cash out request submitted successfully',
-        doneText: 'Okay',
-        onDonePress: () => {
-          refetchBankDetails();
-          refetchHistory();
-          refetchRequest();
-          navigation.goBack();
-        },
-      });
-    },
-    onError: handleError,
-    onSettled: handleSettled,
-  });
+  const {mutate: bankCashOutMutation, isPending: isBankCashOutPending} =
+    useMutation({
+      mutationFn: cashOut,
+      onSuccess: data => {
+        showLoader(false);
+        showAlert({
+          isVisible: true,
+          type: 'success',
+          title: 'Success!',
+          description: 'Cash out request submitted successfully',
+          doneText: 'Okay',
+          onDonePress: () => {
+            refetchBankDetails();
+            refetchHistory();
+            refetchRequest();
+            navigation.goBack();
+          },
+        });
+      },
+      onError: handleError,
+      onSettled: handleSettled,
+    });
 
   const onSubmit = (data: any) => {
     // if (!bankAccountData?.data?.bankDetails) {
@@ -213,40 +214,56 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
           cash_app: cashAppHandle,
           amount: amountValue,
         };
-        
-    cashOutMutation(payload); 
+
+    cashOutMutation(payload);
   };
 
   return (
     <TitleBackHeaderContainer isBack title="Cash Out">
       <View style={styles.container}>
         <Text style={styles.titleStyle}>Choose Payment Method</Text>
-        
+
         <Text style={styles.titleStyle}>
           For Instant CashOut Add Bank Details
         </Text>
         {bankAccountData?.data?.bankDetails ? (
           <>
             <View style={{marginTop: 15}}>
-            <PaymentMethodCard
-              item={{
-                id: -1, 
-                title: 'Use Bank Account',
-                icon: 'addCard',
-              }}
-              selected={useBankDetails}
-              onPress={() => {
-                const next = !useBankDetails;
-                setUseBankDetails(next);
-                if (next) {
-                  setSelectedId(null);
-                  setValue('venmo', '');
-                  setValue('cash_app', '');
-                }
-                setPaymentError(false);
-              }}
-             
-            />
+              <PaymentMethodCard
+                item={{
+                  id: -1,
+                  title: 'Use Bank Account',
+                  icon: 'addCard',
+                }}
+                selected={useBankDetails}
+                onPress={() => {
+                  const next = !useBankDetails;
+                  setUseBankDetails(next);
+                  if (next) {
+                    setSelectedId(null);
+                    setValue('venmo', '');
+                    setValue('cash_app', '');
+                  }
+                  setPaymentError(false);
+                }}
+              />
+              {useBankDetails && bankAccountData?.data?.bankDetails && (
+                <>
+                  <BankDetailsCard
+                    bankDetails={bankAccountData.data.bankDetails}
+                  />
+                  <View style={{marginTop: 15}}>
+                    <Button
+                      title="Change Bank Account"
+                      style={styles.changeBankDetailsButton}
+                      textStyle={styles.changeBankDetailsText}
+                      onPress={() =>
+                        navigation.navigate(SCREENS.ChangeBankDetailsScreen)
+                      }
+                    />
+                  </View>
+                </>
+              )}
             </View>
           </>
         ) : (
@@ -330,28 +347,13 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
           inputStyle={styles.inputStyle}
           keyboardType={'numeric'}
         />
-         {bankAccountData?.data?.bankDetails ? (
-          <>
-            <BankDetailsCard bankDetails={bankAccountData.data.bankDetails} />
-            <View style={{marginTop: 15}}>
-              <Button
-                title="Change Bank Account"
-                style={styles.changeBankDetailsButton}
-                textStyle={styles.changeBankDetailsText}
-                onPress={() => navigation.navigate(SCREENS.ChangeBankDetailsScreen)}
-              />
-            </View>
-          </>
-        ) : (
-          <Button
-            title="Add Bank details"
-            style={styles.addBankDetailsButton}
-            textStyle={styles.addBankDetailsText}
-            onPress={() => navigation.navigate(SCREENS.AddBankDetailsScreen)}
-          />
-        )}
+
         <Button
-          title={isCashOutPending || isBankCashOutPending ? 'Processing...' : 'Cash Out'}
+          title={
+            isCashOutPending || isBankCashOutPending
+              ? 'Processing...'
+              : 'Cash Out'
+          }
           style={[
             styles.cashOutButton,
             // (!bankAccountData?.data?.bankDetails || isCashOutPending) &&
@@ -376,7 +378,9 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
             Please add bank details to enable cash out
           </Text>
         )} */}
-
+        <Text style={styles.deductionText}>
+          {'2.9 % Of amount will be deducted while cash out '}
+        </Text>
         {(isCashOutPending || isBankCashOutPending) && (
           <Text style={styles.helpText}>
             Processing your cash out request...
@@ -475,6 +479,14 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: fontSizes.small,
     fontFamily: fonts.regular,
+    textAlign: 'center',
+    marginTop: 8,
+    fontStyle: 'italic',
+  },
+  deductionText: {
+    color: colors.primary,
+    fontSize: fontSizes.regular,
+    fontFamily: fonts.medium,
     textAlign: 'center',
     marginTop: 8,
     fontStyle: 'italic',
