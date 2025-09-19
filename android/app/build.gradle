@@ -3,9 +3,9 @@ apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 apply plugin: 'com.google.gms.google-services'
 
-project.ext.react = [
-    enableHermes: true 
-]
+// project.ext.react = [
+//     enableHermes: true 
+// ]
 
 react {
     autolinkLibrariesWithApp()
@@ -39,14 +39,14 @@ android {
         }
     }
 
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
-    }
+    // compileOptions {
+    //     sourceCompatibility JavaVersion.VERSION_17
+    //     targetCompatibility JavaVersion.VERSION_17
+    // }
 
-    kotlinOptions {
-        jvmTarget = "17"
-    }
+    // kotlinOptions {
+    //     jvmTarget = "17"
+    // }
 
     buildTypes {
         debug {
@@ -54,26 +54,42 @@ android {
         }
         release {
             signingConfig signingConfigs.debug
-            minifyEnabled false
+            minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
     }
 
     // Enable resource shrinking
-    buildFeatures {
-        buildConfig true
+    // buildFeatures {
+    //     buildConfig true
+    // }
+}
+subprojects {
+    afterEvaluate {
+        if (project.hasProperty("android")) {
+            android {
+                lintOptions {
+                    abortOnError false
+                    checkReleaseBuilds false
+                }
+            }
+        }
     }
 }
-
 dependencies {
     implementation("com.facebook.react:react-android")
     implementation 'com.google.firebase:firebase-analytics:17.3.0'
     implementation project(':react-native-push-notification')
     implementation 'com.stripe:stripe-android:20.18.0'
-    if (project.ext.react.enableHermes.toBoolean()) {
+    // if (project.ext.react.enableHermes.toBoolean()) {
+    //     implementation("com.facebook.react:hermes-android")
+    // } else {
+    //     implementation jscFlavor
+    // }
+     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
     } else {
         implementation jscFlavor
     }
-    implementation 'com.google.android.material:material:1.12.0'
+    // implementation 'com.google.android.material:material:1.12.0'
 }

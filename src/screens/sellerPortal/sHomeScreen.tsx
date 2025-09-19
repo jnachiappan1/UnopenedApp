@@ -55,7 +55,6 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation, route }) => {
     queryKey: ['getProfile'],
     queryFn: viewProfile,
   });
-  console.log("data----", data?.data?.user?.is_seller_agreement);
   
   useEffect(() => {
     if (!userData) {

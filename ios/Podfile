@@ -27,8 +27,8 @@ target 'Unopened_Mobile' do
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
-pod 'Stripe', '~> 24.2.0'
-pod 'StripeCore', '~> 24.2.0'
+# pod 'Stripe', '~> 24.2.0'
+# pod 'StripeCore', '~> 24.2.0'
   post_install do |installer|
     # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
     react_native_post_install(

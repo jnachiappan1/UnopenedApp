@@ -8,3 +8,18 @@
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
 # Add any project specific keep options here:
+
+# Stripe rules
+-keep class com.stripe.** { *; }
+-keep class com.stripe.android.** { *; }
+-dontwarn com.stripe.**
+-dontwarn com.stripe.android.**
+
+# Keep all native methods
+-keepclasseswithmembernames class * {
+    native <methods>;
+}
+
+# Keep all classes that have @Keep annotation
+-keep @androidx.annotation.Keep class * { *; }
+
