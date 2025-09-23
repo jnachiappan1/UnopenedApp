@@ -63,12 +63,27 @@ const MyOrderScreen: React.FC<MyOrderScreenProps> = ({navigation}) => {
   const filterData = () => {
     // Fixed: Access the product array correctly
     const allProducts = sellerOwnProductList?.data?.product || [];
-  
-    if (selectedTab === 'All') return allProducts;
-  
-    return allProducts.filter(
-      (item: ProductData) => normalizeStatus(item.product_activity_status) === selectedTab
-    );
+
+    const filteredList =
+      selectedTab === 'All'
+        ? allProducts
+        : allProducts.filter(
+            (item: ProductData) =>
+              normalizeStatus(item.product_activity_status) === selectedTab,
+          );
+
+    const getTime = (item: ProductData) => {
+      const updated = item?.updatedAt ? new Date(item.updatedAt).getTime() : 0;
+      const created = item?.createdAt ? new Date(item.createdAt).getTime() : 0;
+      return Math.max(updated, created);
+    };
+
+    return [...filteredList].sort((a: ProductData, b: ProductData) => {
+      const bTime = getTime(b);
+      const aTime = getTime(a);
+      if (bTime !== aTime) return bTime - aTime;
+      return (b?.id ?? 0) - (a?.id ?? 0);
+    });
   };
 
   const renderTab = ({item}: {item: string}) => (
@@ -97,14 +112,12 @@ const MyOrderScreen: React.FC<MyOrderScreenProps> = ({navigation}) => {
   );
 
   const filteredData = filterData();
-console.log("filteredData--", filteredData);
 
   return (
     <TitleBackHeaderContainer title="My Orders">
       <FlashList
         data={filteredData}
         renderItem={({item}) => (
-          console.log("item--", item),
           
           <View style={{paddingHorizontal: 10}}>
               <OrderListingCard 

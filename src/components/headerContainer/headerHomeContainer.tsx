@@ -107,12 +107,12 @@ const HeaderHomeContainer: React.FC<HeaderHomeContainerProps> = props => {
          
         </TouchableOpacity>
         <View style={styles.itemContainer}>
-          <View style={{ width: '48%', paddingStart: 5 }}>
+          <View style={{ width: '40%', paddingStart: 5}}>
             {isHome && userName && (
-              <Text style={styles.user}>{userName}</Text>
+              <Text style={styles.user} numberOfLines={2}>{userName}</Text>
             )}
             <Text numberOfLines={1} style={styles.title}>
-              {title}
+              {title} 
             </Text>
           </View>
           <IconsSvg name='notificationIcon' onPress={() => navigation.navigate(SCREENS.NotificationScreen)} />

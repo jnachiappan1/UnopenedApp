@@ -16,12 +16,16 @@ import {useMutation} from '@tanstack/react-query';
 import {showAlert} from '../../components/cAlert';
 import {capitalizeFirstLetter} from '../../utils/utils';
 import {verifyOtpApi, resendOtpApi} from '../../utils/apiAction';
-import { handleError, handleSettled } from '../../utils/method';
-import { ResendInputPayloadType } from '../../utils/payload';
-import { useDispatch, useSelector } from 'react-redux';
-import { saveUserData, saveUserType, setAuthToken } from '../../redux/reducers/user/UserReducer';
-import { IRootState } from '../../redux/store';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import {handleError, handleSettled} from '../../utils/method';
+import {ResendInputPayloadType} from '../../utils/payload';
+import {useDispatch, useSelector} from 'react-redux';
+import {
+  saveUserData,
+  saveUserType,
+  setAuthToken,
+} from '../../redux/reducers/user/UserReducer';
+import {IRootState} from '../../redux/store';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 
 type Inputs = {
   otp: string;
@@ -35,9 +39,9 @@ type VerifyOTPProps = NativeStackScreenProps<
 >;
 
 const VerifyOTP: React.FC<VerifyOTPProps> = ({route, navigation}) => {
-   let userType = useSelector((type: any) => type.user.userType);
-   const fcmToken = useSelector((user: IRootState) => user.user.fcmToken);
-   
+  let userType = useSelector((type: any) => type.user.userType);
+  const fcmToken = useSelector((user: IRootState) => user.user.fcmToken);
+
   const {otp, email, type} = route.params;
   const [resendOtp, setResendOtp] = useState('');
   const dispatch = useDispatch();
@@ -60,7 +64,7 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({route, navigation}) => {
     }
   }, [seconds, pause]);
 
-  const { mutate: resendMutate } = useMutation({
+  const {mutate: resendMutate} = useMutation({
     mutationFn: (data: ResendInput) => resendOtpApi(type!, data),
     onSuccess: async (data: any) => {
       showLoader(false);
@@ -82,7 +86,7 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({route, navigation}) => {
   });
   const onResendOTP = () => {
     if (!email || !type) return;
-    const payload: ResendInput = { email };
+    const payload: ResendInput = {email};
     showLoader(true);
     resendMutate(payload);
   };
@@ -105,12 +109,17 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({route, navigation}) => {
   );
 
   const showResendTxt = seconds > 0 ? renderCounting : renderResendOTP;
-  const { mutate } = useMutation({
-    mutationFn: ({ type, payload }: { type: string; payload: ResendInputPayloadType }) =>
-      verifyOtpApi(type, payload),
+  const {mutate} = useMutation({
+    mutationFn: ({
+      type,
+      payload,
+    }: {
+      type: string;
+      payload: ResendInputPayloadType;
+    }) => verifyOtpApi(type, payload),
     onSuccess: async (data: any) => {
       showLoader(false);
-      const newType =userType ? userType : 'buyer';
+      const newType = userType ? userType : 'buyer';
       dispatch(saveUserType(newType));
       dispatch(setAuthToken(data.data.token));
       dispatch(saveUserData(data.data.user));
@@ -124,14 +133,14 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({route, navigation}) => {
           navigation.dispatch(
             CommonActions.reset({
               index: 0,
-              routes: [{ name: SCREENS.BottomTab }],
-            })
+              routes: [{name: SCREENS.BottomTab}],
+            }),
           );
         },
       });
     },
     onError: handleError,
-    onSettled: handleSettled
+    onSettled: handleSettled,
   });
 
   const submit = (data: Inputs) => {
@@ -143,22 +152,22 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({route, navigation}) => {
     const payload = {
       email,
       ...data,
-      ...(type === "login" || type === "register"
-        ? { fcmToken: fcmToken }
-        : {}),
+      ...(type === 'login' || type === 'register' ? {fcmToken: fcmToken} : {}),
     };
-    console.log("fcmToken---", fcmToken);
-    
+    console.log('fcmToken---', fcmToken);
+
     showLoader(true);
-    mutate({ type, payload });
+    mutate({type, payload});
   };
 
   return (
-    <ImageBackgroundHeader  title={''} containerStyle={styles.container}
-    onBackPress={()=>navigation.goBack()}>
-      <KeyboardAwareScrollView
+    <ImageBackgroundHeader
+      title={''}
+      containerStyle={styles.container}
+      onBackPress={() => navigation.goBack()}>
+      {/* <KeyboardAwareScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContainer}>
+        contentContainerStyle={styles.scrollContainer}> */}
       <Text style={styles.subHeading}>{'Verify OTP'}</Text>
       <Text style={styles.codeSentText}>
         {'Please enter 6 digit code we sent to you on'}
@@ -178,9 +187,8 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({route, navigation}) => {
           value: /^[0-9]{6}$/,
           message: 'OTP must be a 6-digit number',
         }}
-        containerStyle={{width: 350}}
+        containerStyle={{width: 310}}
         error={errors}
-        
       />
       <Button
         title={'Verify'}
@@ -188,7 +196,7 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({route, navigation}) => {
         onPress={handleSubmit(submit)}
       />
       {showResendTxt}
-      </KeyboardAwareScrollView>
+      {/* </KeyboardAwareScrollView> */}
     </ImageBackgroundHeader>
   );
 };

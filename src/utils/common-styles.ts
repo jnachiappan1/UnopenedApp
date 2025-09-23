@@ -174,9 +174,12 @@ const commonStyles = StyleSheet.create({
   headerRowContainer: {
     alignItems: 'center',
     flexDirection: 'row',
-    width: width,
-    marginStart: 4,
+    // width: width,
+    // marginStart: 4,
     paddingHorizontal: 10,
+    width:'100%',
+    // right: 10,
+    // left: 10,
   },
   reimbursementContainer: {
     backgroundColor: colors.white,
