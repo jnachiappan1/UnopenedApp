@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   View, 
   Text, 
@@ -9,45 +9,36 @@ import {
   StatusBar,
   SafeAreaView,
   Dimensions,
-  Alert
+  Alert,
+  AppState,
+  BackHandler
 } from 'react-native';
 import { Camera, CameraType } from 'react-native-camera-kit';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
+import { showAlert } from '../../components/cAlert/cAlert';
+import { fontSizes } from '../../utils/utils';
+import fonts from '../../assets/fonts/fonts';
 
-type BarcodeScannerAndroidProps = NativeStackScreenProps<RootStackParamList, SCREENS.BarcodeScannerAndroid>;
+type UnifiedBarcodeScannerProps = NativeStackScreenProps<RootStackParamList, SCREENS.BarcodeScanner>;
 
 const { width, height } = Dimensions.get('window');
 const SCANNER_SIZE = width * 0.7;
 
-  const BarcodeScannerAndroid: React.FC<BarcodeScannerAndroidProps> = ({ navigation }) => {
-    const [isScanning, setIsScanning] = useState(false);
-    const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-    const [scannedCode, setScannedCode] = useState<string | null>(null);
-    const [scannedFormat, setScannedFormat] = useState<string | null>(null);
-    const [lastScanTime, setLastScanTime] = useState(0);
-    const [isProcessing, setIsProcessing] = useState(false);
-    const [countdown, setCountdown] = useState(0);
+const UnifiedBarcodeScanner: React.FC<UnifiedBarcodeScannerProps> = ({ navigation }) => {
+  const [isScanning, setIsScanning] = useState(false);
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [scannedCode, setScannedCode] = useState<string | null>(null);
+  const [scannedFormat, setScannedFormat] = useState<string | null>(null);
+  const [lastScanTime, setLastScanTime] = useState(0);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+  const [isFocused, setIsFocused] = useState(true);
+  const [appState, setAppState] = useState(AppState.currentState);
+  const [isCleaningUp, setIsCleaningUp] = useState(false);
 
-    useEffect(() => {
-      requestPermissions();
-    }, []);
-    useEffect(() => {
-      let timer: NodeJS.Timeout;
-      if (countdown > 0) {
-        timer = setTimeout(() => {
-          setCountdown(countdown - 1);
-        }, 1000);
-      } else if (countdown === 0 && isProcessing) {
-        setIsProcessing(false);
-        setIsScanning(true);
-      }
-      return () => {
-        if (timer) clearTimeout(timer);
-      };
-    }, [countdown, isProcessing]);
-
-   const requestPermissions = async () => {
+  // Request camera permissions
+  const requestPermissions = useCallback(async () => {
     if (Platform.OS === 'android') {
       try {
         const granted = await PermissionsAndroid.requestMultiple([
@@ -63,15 +54,102 @@ const SCANNER_SIZE = width * 0.7;
         setHasPermission(false);
       }
     } else {
+      // iOS permissions are handled automatically by react-native-camera-kit
       setHasPermission(true);
       setIsScanning(true);
     }
-  };
+  }, []);
 
-  const handleBarcodeScan = async (event: { nativeEvent: { codeStringValue: string; codeFormat?: string } }) => {
+  // Initialize permissions
+  useEffect(() => {
+    requestPermissions();
+  }, [requestPermissions]);
+
+  // Handle app state changes and screen focus
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState: any) => {
+      if (appState.match(/inactive|background/) && nextAppState === 'active') {
+        setIsFocused(true);
+        if (hasPermission && !isCleaningUp) {
+          setIsScanning(true);
+        }
+      } else if (appState === 'active' && nextAppState.match(/inactive|background/)) {
+        setIsFocused(false);
+        setIsScanning(false);
+      }
+      setAppState(nextAppState);
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    return () => subscription?.remove();
+  }, [appState, hasPermission, isCleaningUp]);
+
+  // Handle screen focus/blur
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      setIsFocused(true);
+      if (hasPermission && !isCleaningUp) {
+        setIsScanning(true);
+      }
+    });
+
+    const unsubscribeBlur = navigation.addListener('blur', () => {
+      setIsFocused(false);
+      setIsScanning(false);
+    });
+
+    return () => {
+      unsubscribe();
+      unsubscribeBlur();
+    };
+  }, [navigation, hasPermission, isCleaningUp]);
+
+  // Update scanning state based on permissions and focus
+  useEffect(() => {
+    if (hasPermission && isFocused && !isCleaningUp) {
+      setIsScanning(true);
+    } else {
+      setIsScanning(false);
+    }
+  }, [hasPermission, isFocused, isCleaningUp]);
+
+  // Handle countdown timer
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (countdown > 0) {
+      timer = setTimeout(() => {
+        setCountdown(countdown - 1);
+      }, 1000);
+    } else if (countdown === 0 && isProcessing) {
+      setIsProcessing(false);
+      if (isFocused && !isCleaningUp) {
+        setIsScanning(true);
+      }
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [countdown, isProcessing, isFocused, isCleaningUp]);
+
+  // Handle Android back button
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (isCleaningUp) {
+        return true; // Prevent back press during cleanup
+      }
+      goBack();
+      return true;
+    });
+
+    return () => backHandler.remove();
+  }, [isCleaningUp]);
+
+  // Handle barcode scan
+  const handleBarcodeScan = useCallback(async (event: { nativeEvent: { codeStringValue: string; codeFormat?: string } }) => {
     const { codeStringValue: code, codeFormat } = event.nativeEvent;
     
-    if (!code || !isScanning || isProcessing) return;
+    if (!code || !isScanning || isProcessing || isCleaningUp) return;
+    
     // Prevent duplicate scans within 2 seconds
     const now = Date.now();
     if (now - lastScanTime < 2000) {
@@ -84,44 +162,72 @@ const SCANNER_SIZE = width * 0.7;
     setIsScanning(false);
     setIsProcessing(true);
     setCountdown(10); // Start 10 second countdown for camera adjustment
+    
     // Show confirmation alert
-    Alert.alert(
-      'Barcode Scanned Successfully!',
-      `Code: ${code}\nType: ${codeFormat ?? 'unknown'}\n\nTake your time to adjust the camera position for the next scan.`,
-      [
-        {
-          text: 'Scan Again',
-          style: 'cancel',
-          onPress: () => {
-            setScannedCode(null);
-            setScannedFormat(null);
-            setIsProcessing(true);
-            setCountdown(10); // Start 10 second countdown for camera adjustment
-          }
-        },
-        {
-          text: 'Use This Code',
-          onPress: () => {
-            navigation.replace(SCREENS.AddProductScreen, {
-              scannedBarcode: code,
-            });
-          }
-        }
-      ]
-    );
-  };
-  const goBack = () => {
-    navigation.goBack();
-  };
-  const toggleScanning = () => {
-    if (isProcessing) return; // Prevent toggling while processing
+    showAlert({
+      isVisible: true,
+      type: 'success',
+      title: 'Barcode Scanned Successfully!',
+      description: `Code: ${code}\nType: ${codeFormat ?? 'unknown'}\n\nTake your time to adjust the camera position for the next scan.`,
+      deleteText: 'Scan Again',
+      doneText: 'Use This Code',
+      onDeletePress: () => {
+        setScannedCode(null);
+        setScannedFormat(null);
+        setIsProcessing(true);
+        setCountdown(10);
+      },
+      onDonePress: () => {
+        setIsProcessing(false);
+        setCountdown(0);
+        // Clean up camera before navigation
+        setIsScanning(false);
+        setTimeout(() => {
+          navigation.replace(SCREENS.AddProductScreen, {
+            scannedBarcode: code,
+          });
+        }, 100);
+      },
+    });
+  }, [isScanning, isProcessing, isCleaningUp, lastScanTime, navigation]);
+
+  // Clean up camera and navigate back
+  const goBack = useCallback(() => {
+    if (isCleaningUp) return;
+    
+    try {
+      setIsCleaningUp(true);
+      setIsScanning(false);
+      
+      // Add a small delay for cleanup
+      setTimeout(() => {
+        navigation.goBack();
+      }, 100);
+    } catch (error) {
+      console.error('Error during goBack cleanup:', error);
+      navigation.goBack();
+    }
+  }, [isCleaningUp, navigation]);
+
+  // Toggle scanning state
+  const toggleScanning = useCallback(() => {
+    if (isProcessing || isCleaningUp) return;
     
     setIsScanning(!isScanning);
     if (scannedCode) {
       setScannedCode(null);
       setScannedFormat(null);
     }
-  };
+  }, [isProcessing, isCleaningUp, isScanning, scannedCode]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      setIsScanning(false);
+    };
+  }, []);
+
+  // Loading state
   if (hasPermission === null) {
     return (
       <SafeAreaView style={styles.container}>
@@ -139,6 +245,8 @@ const SCANNER_SIZE = width * 0.7;
       </SafeAreaView>
     );
   }
+
+  // Permission denied state
   if (hasPermission === false) {
     return (
       <SafeAreaView style={styles.container}>
@@ -172,6 +280,7 @@ const SCANNER_SIZE = width * 0.7;
         <Text style={styles.headerTitle}>Scan Barcode</Text>
         <View style={styles.headerSpacer} />
       </View>
+
       {/* Camera View */}
       <View style={styles.cameraContainer}>
         {isScanning ? (
@@ -182,14 +291,23 @@ const SCANNER_SIZE = width * 0.7;
               onReadCode={handleBarcodeScan}
               showFrame={false}
               scanThrottleDelay={1500}
-              cameraType={CameraType.Back}  
+              cameraType={CameraType.Back}
+              // Additional props for better performance
+              focusMode="on"
+              zoomMode="off"
+              torchMode="off"
+              ratioOverlay="1:1"
+              ratioOverlayColor="#00000077"
             />
             
             {/* Scanner Overlay */}
             <View style={styles.overlay}>
               <View style={styles.overlayTop}>
                 <Text style={styles.instructionText}>
-                  Hold steady and position the barcode within the green frame
+                  Position the barcode within the green frame
+                </Text>
+                <Text style={styles.instructionSubtext}>
+                  Keep steady, ensure good lighting, and hold horizontally
                 </Text>
               </View>
               
@@ -204,13 +322,18 @@ const SCANNER_SIZE = width * 0.7;
                   
                   {/* Scanning line animation */}
                   <View style={styles.scanLine} />
+                  
+                  {/* Active scanning indicator */}
+                  <View style={styles.scanningIndicator}>
+                    <Text style={styles.scanningText}>SCANNING...</Text>
+                  </View>
                 </View>
                 <View style={styles.overlaySide} />
               </View>
               
               <View style={styles.overlayBottom}>
                 <Text style={styles.hintText}>
-                  Ensure good lighting and keep the barcode clearly visible\nAvoid shadows and reflections for best results
+                  Supports: UPC-A, UPC-E, EAN-13, EAN-8, Code-128, Code-39, Code-93, Codabar, QR Code, Data Matrix, PDF-417, Aztec
                 </Text>
               </View>
             </View>
@@ -231,19 +354,22 @@ const SCANNER_SIZE = width * 0.7;
             <TouchableOpacity 
               style={[styles.button, isProcessing && styles.buttonDisabled]} 
               onPress={toggleScanning}
-              disabled={isProcessing}
+              disabled={isProcessing || isCleaningUp}
             >
               <Text style={styles.buttonText}>
-                {scannedCode ? 'Scan Again' : 'Resume Scanning'}
+                {isCleaningUp ? 'Cleaning up...' : scannedCode ? 'Scan Again' : 'Resume Scanning'}
               </Text>
             </TouchableOpacity>
-            {scannedCode && !isProcessing && (
+            {scannedCode && !isProcessing && !isCleaningUp && (
               <TouchableOpacity 
                 style={[styles.button, styles.useCodeButton]} 
                 onPress={() => {
-                  navigation.replace(SCREENS.AddProductScreen, {
-                    scannedBarcode: scannedCode,
-                  });
+                  setIsScanning(false);
+                  setTimeout(() => {
+                    navigation.replace(SCREENS.AddProductScreen, {
+                      scannedBarcode: scannedCode,
+                    });
+                  }, 100);
                 }}
               >
                 <Text style={styles.buttonText}>Use This Code</Text>
@@ -253,29 +379,33 @@ const SCANNER_SIZE = width * 0.7;
         )}
       </View>
 
-     {/* Bottom Controls */}
+      {/* Bottom Controls */}
       <View style={styles.bottomControls}>
         <TouchableOpacity 
-          style={[styles.controlButton, !isScanning && styles.controlButtonActive, isProcessing && styles.controlButtonDisabled]} 
+          style={[styles.controlButton, !isScanning && styles.controlButtonActive, (isProcessing || isCleaningUp) && styles.controlButtonDisabled]} 
           onPress={toggleScanning}
-          disabled={isProcessing}
+          disabled={isProcessing || isCleaningUp}
         >
           <Text style={styles.controlButtonText}>
-            {isScanning ? 'Pause' : 'Resume'}
+            {isCleaningUp ? 'Cleaning up...' : isScanning ? 'Pause' : 'Resume'}
           </Text>
         </TouchableOpacity>
         
-        <TouchableOpacity style={styles.controlButton} onPress={goBack}>
-          <Text style={styles.controlButtonText}>Cancel</Text>
+        <TouchableOpacity 
+          style={[styles.controlButton, isCleaningUp && styles.controlButtonDisabled]} 
+          onPress={goBack}
+          disabled={isCleaningUp}
+        >
+          <Text style={styles.controlButtonText}>
+            {isCleaningUp ? 'Please wait...' : 'Cancel'}
+          </Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 };
 
-
-
-export default BarcodeScannerAndroid;
+export default UnifiedBarcodeScanner;
 
 const styles = StyleSheet.create({
   container: {
@@ -356,7 +486,6 @@ const styles = StyleSheet.create({
     position: 'relative',
     justifyContent: 'center',
     alignItems: 'center',
-    // This makes the scanner frame transparent so camera shows through
     backgroundColor: 'transparent',
   },
   corner: {
@@ -398,6 +527,22 @@ const styles = StyleSheet.create({
     backgroundColor: '#00FF00',
     opacity: 0.8,
   },
+  scanningIndicator: {
+    position: 'absolute',
+    bottom: 20,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  scanningText: {
+    color: '#00FF00',
+    fontSize: 12,
+    fontWeight: 'bold',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
   instructionText: {
     color: '#fff',
     fontSize: 16,
@@ -405,12 +550,20 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingHorizontal: 20,
   },
-  hintText: {
+  instructionSubtext: {
     color: 'rgba(255,255,255,0.8)',
     fontSize: 14,
+    fontWeight: '400',
     textAlign: 'center',
-    paddingHorizontal: 40,
-    lineHeight: 20,
+    paddingHorizontal: 20,
+    marginTop: 8,
+  },
+  hintText: {
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: 12,
+    textAlign: 'center',
+    paddingHorizontal: 20,
+    lineHeight: 16,
   },
   messageContainer: {
     flex: 1,

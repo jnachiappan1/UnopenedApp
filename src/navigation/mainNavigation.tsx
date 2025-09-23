@@ -36,7 +36,7 @@ import AddAddressScreen from '../screens/buyerPortal/addAddressScreen';
 import { useDispatch, useSelector } from 'react-redux';
 import { IRootState } from '../redux/store';
 import AddProductScreen from '../screens/sellerPortal/addProductScreen';
-import BarcodeScanner from '../screens/sellerPortal/barcodeScanner';
+import UnifiedBarcodeScanner from '../screens/sellerPortal/unifiedBarcodeScanner';
 import AddressSelectionScreen from '../screens/buyerPortal/addressSelectionScreen';
 // S/B Home screens are provided via BottomTab; do not register in Stack to avoid duplicate mounts
 import { getFCMToken } from '../utils/notificationHelper';
@@ -46,7 +46,6 @@ import ChangeBankDetailsScreen from '../screens/wallet/changeBankDetailsScreen';
 import NotificationScreen from '../screens/notification/notificationScreen';
 import FullScreen from '../screens/sellerPortal/FullScreen';
 import SellerAgreementScreen from '../screens/profile/sellerAgreementScreen';
-import BarcodeScannerAndroid from '../screens/sellerPortal/barcodeScannerAndroid';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -139,7 +138,7 @@ const MainNavigation: React.FC = () => {
       />
       <Stack.Screen
         name={SCREENS.BarcodeScanner}
-        component={BarcodeScanner}
+        component={UnifiedBarcodeScanner}
       />
       <Stack.Screen
         name={SCREENS.AddBankDetailsScreen}
@@ -152,7 +151,6 @@ const MainNavigation: React.FC = () => {
       <Stack.Screen name={SCREENS.NotificationScreen} component={NotificationScreen} />
       <Stack.Screen name={SCREENS.FullScreen} component={FullScreen} />
       <Stack.Screen name={SCREENS.SellerAgreementScreen} component={SellerAgreementScreen} />
-      <Stack.Screen name={SCREENS.BarcodeScannerAndroid} component={BarcodeScannerAndroid} />
     </Stack.Navigator>
     // </View>
   );
@@ -196,8 +194,7 @@ export enum SCREENS {
   ChangeBankDetailsScreen = 'ChangeBankDetailsScreen',
   NotificationScreen = 'NotificationScreen',
   FullScreen = 'FullScreen',
-  SellerAgreementScreen = 'SellerAgreementScreen',
-  BarcodeScannerAndroid = 'BarcodeScannerAndroid'
+  SellerAgreementScreen = 'SellerAgreementScreen'
 }
 
 export type RootStackParamList = {
@@ -260,5 +257,4 @@ export type RootStackParamList = {
   [SCREENS.NotificationScreen]: undefined;
   [SCREENS.FullScreen]: { url: any; time: any };
   [SCREENS.SellerAgreementScreen]: { type?: string | null | undefined};
-  [SCREENS.BarcodeScannerAndroid]: undefined;
 };

@@ -1,5 +1,6 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
+apply plugin: "org.jetbrains.kotlin.plugin.compose"
 apply plugin: "com.facebook.react"
 apply plugin: 'com.google.gms.google-services'
 
@@ -60,9 +61,14 @@ android {
     }
 
     // Enable resource shrinking
-    // buildFeatures {
-    //     buildConfig true
-    // }
+    buildFeatures {
+        compose true
+        buildConfig true
+    }
+    
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.8"
+    }
 }
 subprojects {
     afterEvaluate {

@@ -822,14 +822,17 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
           style={[styles.scanButton, isScanFetching && {opacity: 0.6}]}
           title={getScanButtonText()}
           onPress={() => {
-            if (OS === 'android') {
-              if (!isScanFetching) {
-                navigation.replace(SCREENS.BarcodeScannerAndroid);
-              }
-            } else {
-              if (!isScanFetching) {
-                navigation.replace(SCREENS.BarcodeScanner);
-              }
+            // if (OS === 'android') {
+            //   if (!isScanFetching) {
+            //     navigation.replace(SCREENS.BarcodeScannerAndroid);
+            //   }
+            // } else {
+            //   if (!isScanFetching) {
+            //     navigation.replace(SCREENS.BarcodeScanner);
+            //   }
+            // }
+            if (!isScanFetching) {
+              navigation.replace(SCREENS.BarcodeScanner);
             }
           }}
         />

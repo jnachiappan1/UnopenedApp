@@ -8,6 +8,7 @@ import {
   Dimensions,
   FlatList,
   Animated,
+  Platform,
 } from 'react-native';
 import React, { useState, useRef, useEffect } from 'react';
 import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
@@ -401,7 +402,12 @@ console.log("allProductList", allProductList);
               walletPaymentResponse?.data?.success === true) {
               showLoader(false);
               // Apply coupon after successful wallet payment
-              await applyCouponAfterPayment();
+              try {
+                await applyCouponAfterPayment();
+              } catch (error) {
+                console.log('Error applying coupon after wallet payment:', error);
+                // Continue with payment success even if coupon application fails
+              }
               setModalVisible(true);
             } else {
               showLoader(false);
@@ -491,7 +497,12 @@ console.log("allProductList", allProductList);
                   } else {
                     showLoader(false);
                     // Apply coupon after successful hybrid payment
-                    await applyCouponAfterPayment();
+                    try {
+                      await applyCouponAfterPayment();
+                    } catch (error) {
+                      console.log('Error applying coupon after hybrid payment:', error);
+                      // Continue with payment success even if coupon application fails
+                    }
                     setModalVisible(true);
                   }
                 } else {
@@ -643,7 +654,12 @@ console.log("allProductList", allProductList);
         } else {
           showLoader(false);
           // Apply coupon after successful Stripe payment
-          await applyCouponAfterPayment();
+          try {
+            await applyCouponAfterPayment();
+          } catch (error) {
+            console.log('Error applying coupon after Stripe payment:', error);
+            // Continue with payment success even if coupon application fails
+          }
           setModalVisible(true);
         }
       } else {
@@ -680,11 +696,30 @@ console.log("allProductList", allProductList);
     }
   };
 
-  const modalSucesss = () => {
-    setModalVisible(false);
-    navigation.replace(SCREENS.OrderTrackScreen, {
-      productId: productId,
-    });
+  const modalSucesss = async () => {
+    try {
+      setModalVisible(false);
+      
+      // Navigate after payment success
+      if (navigation && navigation.replace) {
+        navigation.replace(SCREENS.OrderTrackScreen, {
+          productId: productId,
+        });
+      } else {
+        console.log('Navigation not available, falling back to navigate');
+        navigation.navigate(SCREENS.OrderTrackScreen, {
+          productId: productId,
+        });
+      }
+    } catch (error) {
+      console.log('Error in modal success navigation:', error);
+      // Fallback navigation
+      try {
+        navigation.navigate(SCREENS.BottomTab);
+      } catch (fallbackError) {
+        console.log('Fallback navigation also failed:', fallbackError);
+      }
+    }
   };
 
   const handleChangeAddress = () => {
@@ -790,11 +825,14 @@ console.log("allProductList", allProductList);
             purchase_amount: purchaseAmount
           };
           const response = await applyCoupon(couponPayload);
+          console.log('Coupon applied successfully:', response);
           // Clear the discount after successful application
           setDiscountAmount(0);
           setAppliedDiscountCode('');
         }
       } catch (error) {
+        console.log('Error applying coupon after payment:', error);
+        // Don't throw error to prevent payment flow interruption
       }
     }
   };

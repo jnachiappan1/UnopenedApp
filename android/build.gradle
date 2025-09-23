@@ -7,8 +7,8 @@ buildscript {
         ndkVersion = "26.1.10909125"
         // kotlinVersion = "1.8.22"
         // ndkVersion = "27.1.12297006"
-        // kotlinVersion = "2.0.21"
-        kotlinVersion = "1.8.22"
+        kotlinVersion = "2.0.21"
+        // kotlinVersion = "1.8.22"
     }
     repositories {
         google()
@@ -20,6 +20,7 @@ buildscript {
         classpath("com.facebook.react:react-native-gradle-plugin")
         // classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
+        classpath("org.jetbrains.kotlin:compose-compiler-gradle-plugin:$kotlinVersion")
         classpath 'com.google.gms:google-services:4.3.15'
         
     }
