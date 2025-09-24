@@ -78,6 +78,24 @@ const SignUpScreen: React.FC<LoginProps> = ({ route, navigation }) => {
     setValue,
     getValues,
   } = useForm<InputsRegistration>({ defaultValues });
+  // Track required visible fields to control button disabled state
+  const requiredFields: Array<keyof InputsRegistration> = [
+    'full_name',
+    'phone_number',
+    'email',
+    'address',
+    'country',
+    'state',
+    'city',
+    'pincode',
+    'gender',
+  ];
+  // Subscribe to changes for these fields so the component re-renders
+  const watchedRequiredFields = watch(requiredFields as any);
+  const areAllRequiredFieldsFilled = watchedRequiredFields.every((value: any) =>
+    typeof value === 'string' ? value.trim().length > 0 : !!value,
+  );
+  const isCreateAccountDisabled = !accepted || !areAllRequiredFieldsFilled;
   const { mutate } = useMutation({
     mutationFn: signUp,
     onSuccess: (data) => {
@@ -268,6 +286,7 @@ const SignUpScreen: React.FC<LoginProps> = ({ route, navigation }) => {
         <Button
           title={'Create Account'}
           style={styles.sendOtpButton}
+          disabled={isCreateAccountDisabled}
           onPress={handleSubmit((data) => {
             showLoader(true);
             mutate(data);

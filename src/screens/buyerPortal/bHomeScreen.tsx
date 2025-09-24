@@ -1,20 +1,25 @@
-import { StyleSheet, FlatList, View, Text, TouchableOpacity } from 'react-native';
-import React, { useEffect, useRef, useState } from 'react';
+import {StyleSheet, FlatList, View, Text, TouchableOpacity} from 'react-native';
+import React, {useEffect, useRef, useState} from 'react';
 import HeaderHomeContainer from '../../components/headerContainer/headerHomeContainer';
-import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { bannerData } from '../../utils/static';
+import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {bannerData} from '../../utils/static';
 import BannerItem from '../../components/card/bannerItem';
 import SearchBar from '../../components/card/searchBar';
 import CategoryList from '../../components/card/categoryList';
 import ProductSection from '../../components/card/productSection';
-import { ProductCategory, ProductData } from '../../utils/types';
-import { getAllProductList, getCategoryDetail, getMyOrderList, getProductList } from '../../utils/apiAction';
-import { IRootState } from '../../redux/store';
-import { useSelector } from 'react-redux';
-import { useQuery } from '@tanstack/react-query';
+import {ProductCategory, ProductData} from '../../utils/types';
+import {
+  getAllProductList,
+  getCategoryDetail,
+  getMyOrderList,
+  getProductList,
+} from '../../utils/apiAction';
+import {IRootState} from '../../redux/store';
+import {useSelector} from 'react-redux';
+import {useQuery} from '@tanstack/react-query';
 import TopPicksSection from '../../components/card/topPicksSection';
-import { FlashList } from '@shopify/flash-list';
+import {FlashList} from '@shopify/flash-list';
 import OrderListingCard from '../../components/card/orderListingCard';
 import fonts from '../../assets/fonts/fonts';
 import colors from '../../utils/colors';
@@ -32,17 +37,27 @@ interface Product {
   image: string;
 }
 
-const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
+const BHomeScreen: React.FC<LoginProps> = ({route, navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
   const userData = useSelector((user: IRootState) => user.user.userData);
   const isLogged = userData ? true : false;
   const [categories, setCategories] = useState<ProductCategory[]>([]);
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
+    null,
+  );
   const searchQueryRef = useRef(searchQuery);
-  const [selectedCategories, setSelectedCategories] = useState<ProductCategory[]>([]);
-  const [selectedSort, setSelectedSort] = useState<{ id: string; name: string } | null>(null);
-  const [selectedPriceRange, setSelectedPriceRange] = useState<{ min: number; max: number } | null>(null);
+  const [selectedCategories, setSelectedCategories] = useState<
+    ProductCategory[]
+  >([]);
+  const [selectedSort, setSelectedSort] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [selectedPriceRange, setSelectedPriceRange] = useState<{
+    min: number;
+    max: number;
+  } | null>(null);
   const [apiTrigger, setApiTrigger] = useState(0);
 
   const getApiParams = () => {
@@ -53,10 +68,10 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
       params.search = '';
     }
     if (selectedSort?.id) {
-      const sortMapping: { [key: string]: string } = {
-        'price_low_to_high': 'price_low_to_high',
-        'price_high_to_low': 'price_high_to_low',
-        'newest_first': 'newest_first',
+      const sortMapping: {[key: string]: string} = {
+        price_low_to_high: 'price_low_to_high',
+        price_high_to_low: 'price_high_to_low',
+        newest_first: 'newest_first',
       };
       params.sort_by = sortMapping[selectedSort.id] || selectedSort.id;
     } else {
@@ -85,53 +100,70 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
     return params;
   };
 
-  const { data: categoryData, refetch: refetchcategoryDetail } = useQuery({
+  const {data: categoryData, refetch: refetchcategoryDetail} = useQuery({
     queryKey: ['getCategoryDetail'],
     queryFn: () => getCategoryDetail(),
     enabled: isLogged,
   });
 
-  const { data: allProductList, refetch: refetchAllProduct } = useQuery({
+  const {data: allProductList, refetch: refetchAllProduct} = useQuery({
     queryKey: ['getAllProductList', userData?.id],
     queryFn: () => getAllProductList(userData?.id),
   });
 
   // SOLUTION 1: Reset data when user logs out and conditionally enable query
-  const { data: sellerOwnProductList, refetch: refetchsellerOwnProductList } = useQuery({
-    queryKey: ['getMyOrderList', userData?.id], // Add userData?.id to invalidate cache when user changes
-    queryFn: () => getMyOrderList(),
-    enabled: !!userData && !!userData.id, // Only enable when userData exists
-    // Reset data when query is disabled
-    placeholderData: undefined,
-    // Force refetch when user logs in
-    staleTime: 0,
-    refetchOnMount: true,
-  });
+  const {data: sellerOwnProductList, refetch: refetchsellerOwnProductList} =
+    useQuery({
+      queryKey: ['getMyOrderList', userData?.id], // Add userData?.id to invalidate cache when user changes
+      queryFn: () => getMyOrderList(),
+      enabled: !!userData && !!userData.id, // Only enable when userData exists
+      // Reset data when query is disabled
+      placeholderData: undefined,
+      // Force refetch when user logs in
+      staleTime: 0,
+      refetchOnMount: true,
+    });
   // SOLUTION 2: Only process data when user is logged in
-  const sellerOwnProductData = isLogged && 
+  const sellerOwnProductData =
+    isLogged &&
     Array.isArray(sellerOwnProductList?.data?.product) &&
-    sellerOwnProductList.data.product.every((item: any) => item && typeof item === 'object' && 'id' in item)
-    ? (sellerOwnProductList.data.product as ProductData[])
-    : [];
+    sellerOwnProductList.data.product.every(
+      (item: any) => item && typeof item === 'object' && 'id' in item,
+    )
+      ? (sellerOwnProductList.data.product as ProductData[])
+      : [];
 
-  const latestData = sellerOwnProductData.length > 0 ? sellerOwnProductData.sort(
-    (a, b) =>
-      new Date(b.updatedAt || b.createdAt).getTime() -
-      new Date(a.updatedAt || a.createdAt).getTime()
-  ) : [];
+  const latestData =
+    sellerOwnProductData.length > 0
+      ? sellerOwnProductData.sort(
+          (a, b) =>
+            new Date(b.updatedAt || b.createdAt).getTime() -
+            new Date(a.updatedAt || a.createdAt).getTime(),
+        )
+      : [];
 
   const oneLatestItem = latestData.slice(0, 1);
 
-  const { data: productList, refetch: refetchProductList, isLoading, isFetching } = useQuery({
+  const {
+    data: productList,
+    refetch: refetchProductList,
+    isLoading,
+    isFetching,
+  } = useQuery({
     queryKey: [
       'getProductList',
       searchQuery,
       selectedSort?.id,
-      selectedPriceRange ? `${selectedPriceRange.min}-${selectedPriceRange.max}` : null,
-      selectedCategories.map(c => c.id).sort().join(','),
+      selectedPriceRange
+        ? `${selectedPriceRange.min}-${selectedPriceRange.max}`
+        : null,
+      selectedCategories
+        .map(c => c.id)
+        .sort()
+        .join(','),
       selectedCategoryIds.sort().join(','),
       userData?.id ?? null,
-      apiTrigger
+      apiTrigger,
     ],
     queryFn: () => {
       return getProductList(getApiParams());
@@ -155,34 +187,43 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
   const getEmptyMessage = () => {
     if (searchQuery.trim() !== '') {
       return {
-        title: "No Search Results",
-        message: `No products found for "${searchQuery}". Try different keywords or check your spelling.`
+        title: 'No Search Results',
+        message: `No products found for "${searchQuery}". Try different keywords or check your spelling.`,
       };
-    } else if (selectedCategories.length > 0 || selectedCategoryIds.length > 0) {
+    } else if (
+      selectedCategories.length > 0 ||
+      selectedCategoryIds.length > 0
+    ) {
       return {
-        title: "No Products in Category",
-        message: "No products found in the selected category. Try selecting a different category."
+        title: 'No Products in Category',
+        message:
+          'No products found in the selected category. Try selecting a different category.',
       };
     } else if (selectedPriceRange !== null) {
       return {
-        title: "No Products in Price Range",
-        message: `No products found in the price range $${selectedPriceRange.min} - $${selectedPriceRange.max}. Try adjusting your price range.`
+        title: 'No Products in Price Range',
+        message: `No products found in the price range $${selectedPriceRange.min} - $${selectedPriceRange.max}. Try adjusting your price range.`,
       };
     } else if (selectedSort !== null) {
       return {
-        title: "No Products Found",
-        message: "No products match your current sorting criteria."
+        title: 'No Products Found',
+        message: 'No products match your current sorting criteria.',
       };
     } else {
       return {
-        title: "No Products Available",
-        message: "No products are currently available. Please check back later."
+        title: 'No Products Available',
+        message:
+          'No products are currently available. Please check back later.',
       };
     }
   };
 
   // Empty State Component
-  const EmptyStateMessage = ({ title, message, showClearButton = false }: {
+  const EmptyStateMessage = ({
+    title,
+    message,
+    showClearButton = false,
+  }: {
     title: string;
     message: string;
     showClearButton?: boolean;
@@ -193,8 +234,7 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
       {showClearButton && (
         <TouchableOpacity
           style={styles.clearFiltersButton}
-          onPress={clearAllFilters}
-        >
+          onPress={clearAllFilters}>
           <Text style={styles.clearFiltersButtonText}>Clear All Filters</Text>
         </TouchableOpacity>
       )}
@@ -211,16 +251,31 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
 
   useEffect(() => {
     triggerApiCall();
-  }, [searchQuery, selectedCategories, selectedSort, selectedPriceRange, selectedCategoryIds]);
+  }, [
+    searchQuery,
+    selectedCategories,
+    selectedSort,
+    selectedPriceRange,
+    selectedCategoryIds,
+  ]);
 
-  useEffect(() => {
-  }, [isLogged, userData, selectedCategoryIds, selectedCategories, selectedSort, selectedPriceRange, searchQuery, apiTrigger, productList]);
+  useEffect(() => {}, [
+    isLogged,
+    userData,
+    selectedCategoryIds,
+    selectedCategories,
+    selectedSort,
+    selectedPriceRange,
+    searchQuery,
+    apiTrigger,
+    productList,
+  ]);
 
   const handleFilterPress = () => {
     const onApplyFilters = (
       filterCategories: ProductCategory[],
-      filterSort: { id: string; name: string } | null,
-      filterPriceRange: { min: number; max: number } | null
+      filterSort: {id: string; name: string} | null,
+      filterPriceRange: {min: number; max: number} | null,
     ) => {
       setSelectedCategoryIds([]);
       setSelectedCategoryId(null);
@@ -245,13 +300,16 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
         .filter((category: any) => category.status === 'active')
         .map((category: any) => ({
           id: category.id,
-          name: category.name
+          name: category.name,
         }));
       setCategories(activeCategories);
     }
   }, [categoryData]);
 
-  const handleCategorySelect = (categoryId: number | null, categoryName: string | null) => {
+  const handleCategorySelect = (
+    categoryId: number | null,
+    categoryName: string | null,
+  ) => {
     if (categoryId !== null && selectedCategories.length > 0) {
       setSelectedCategories([]);
     }
@@ -299,37 +357,43 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
     setSearchQuery('');
   };
   const displayProducts = (productList?.data?.product || []).filter(
-    (item: ProductData) => item.product_status === 'active' || item.product_status === 'sold'
+    (item: ProductData) =>
+      item.product_status === 'active' || item.product_status === 'sold',
   );
   const allProducts = (allProductList?.data?.product || []).filter(
-    (item: ProductData) => item.product_status === 'active' || item.product_status === 'sold'
+    (item: ProductData) =>
+      item.product_status === 'active' || item.product_status === 'sold',
   );
   const soldProducts = (allProductList?.data?.product || []).filter(
-    (item: ProductData) => item.product_status === 'sold'
+    (item: ProductData) => item.product_status === 'sold',
   );
-  const showEmptyState = !isLoading && !isFetching && (!displayProducts || displayProducts.length === 0);
-  const showRecentlyListed = !hasActiveFilters() && allProducts && allProducts.length > 0;
-  
-  const shouldShowMyPurchase = isLogged && oneLatestItem && oneLatestItem.length > 0;
+  const showEmptyState =
+    !isLoading &&
+    !isFetching &&
+    (!displayProducts || displayProducts.length === 0);
+  const showRecentlyListed =
+    !hasActiveFilters() && allProducts && allProducts.length > 0;
+
+  const shouldShowMyPurchase =
+    isLogged && oneLatestItem && oneLatestItem.length > 0;
   return (
     <HeaderHomeContainer
       title={'Welcome,'}
       userName={`Hello ${userData?.full_name ?? 'Guest'}`}
       isHome
       profileImage={userData?.profile_picture}
-      onSearchPress={() => { }}>
-
+      onSearchPress={() => {}}>
       {/* Only show banner when no recent purchase or user not logged in */}
       {!shouldShowMyPurchase ? (
         <FlatList
           data={bannerData}
           keyExtractor={item => item.id}
-          renderItem={({ item }) => <BannerItem item={item} />}
+          renderItem={({item}) => <BannerItem item={item} />}
           horizontal
           showsHorizontalScrollIndicator={false}
         />
       ) : (
-        <View style={{ height: 10 }} />
+        <View style={{height: 10}} />
       )}
 
       <SearchBar
@@ -351,18 +415,19 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
         <>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>{'My Purchase'}</Text>
-            <TouchableOpacity onPress={() => navigation.navigate(SCREENS.MyOrderScreen)}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate(SCREENS.MyOrderScreen)}>
               <Text style={styles.viewAllText}>View All</Text>
             </TouchableOpacity>
           </View>
 
-          <FlashList
+          <FlatList
             data={oneLatestItem}
-            renderItem={({ item }) => (
-              <View style={{ paddingHorizontal: 10 }}>
+            renderItem={({item}) => (
+              <View style={{paddingHorizontal: 10}}>
                 <OrderListingCard
                   item={item}
-                  cardStyle={{ marginBottom: 0 }}
+                  cardStyle={{marginBottom: 0}}
                   onSelect={() =>
                     navigation.navigate(SCREENS.OrderTrackScreen, {
                       productId: item?.id,
@@ -391,9 +456,10 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
             onViewAll={() => {
               navigation.navigate(SCREENS.BrowseScreen);
             }}
-            onPress={(item) => {
-              
-              navigation.navigate(SCREENS.BProductDetailScreen, { productId: item?.id });
+            onPress={item => {
+              navigation.navigate(SCREENS.BProductDetailScreen, {
+                productId: item?.id,
+              });
             }}
           />
 
@@ -401,8 +467,10 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
             <ProductSection
               title="Recently Listed Items"
               products={allProducts?.slice(0, 4)}
-              onPress={(item) => {
-                navigation.navigate(SCREENS.BProductDetailScreen, { productId: item?.id });
+              onPress={item => {
+                navigation.navigate(SCREENS.BProductDetailScreen, {
+                  productId: item?.id,
+                });
               }}
             />
           )}
@@ -410,14 +478,18 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
             <TopPicksSection
               title="Sold Product"
               products={soldProducts}
-              onViewAll={() => { }}
-              onSelect={(item) => navigation.navigate(SCREENS.BProductDetailScreen, { productId: item?.id })}
+              onViewAll={() => {}}
+              onSelect={item =>
+                navigation.navigate(SCREENS.BProductDetailScreen, {
+                  productId: item?.id,
+                })
+              }
             />
           )}
         </>
       )}
 
-      <View style={{ height: 110 }} />
+      <View style={{height: 110}} />
     </HeaderHomeContainer>
   );
 };
@@ -425,8 +497,7 @@ const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
 export default BHomeScreen;
 
 const styles = StyleSheet.create({
-  container: {
-  },
+  container: {},
   emptyStateContainer: {
     flex: 1,
     justifyContent: 'center',

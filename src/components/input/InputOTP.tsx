@@ -6,7 +6,7 @@ import {
   ViewStyle,
   Keyboard,
 } from 'react-native';
-import React, { useRef } from 'react';
+import React, { useMemo, useRef } from 'react';
 import OTPTextInput from 'react-native-otp-textinput';
 import colors, { IColors } from '../../utils/colors';
 import {
@@ -18,6 +18,7 @@ import {
   ValidationRule,
 } from 'react-hook-form';
 import fonts from '../../assets/fonts/fonts';
+import { Platform, useWindowDimensions } from 'react-native';
 
 type InputProps = {
   control: Control<any>;
@@ -34,6 +35,7 @@ type InputProps = {
   style?: StyleProp<ViewStyle>;
   forwardedRef?: React.RefObject<OTPTextInput>;
   ref?: any;
+  horizontalPadding?: number; // total horizontal padding of the parent container
 };
 
 const InputOtp = (props: InputProps) => {
@@ -48,6 +50,7 @@ const InputOtp = (props: InputProps) => {
     validate,
     forwardedRef,
     ref,
+    horizontalPadding,
   } = props;
   const styles = getStyles(colors);
   const err =
@@ -59,6 +62,35 @@ const InputOtp = (props: InputProps) => {
       : '';
 
   let otpInputRef = useRef<OTPTextInput>(null);
+
+  const { width: windowWidth } = useWindowDimensions();
+  const inputCount = 6;
+  // Default assumes parent uses paddingHorizontal: 24 → total 48
+  const horizontalScreenPadding = typeof horizontalPadding === 'number' ? horizontalPadding : 48;
+  const spacingBetweenInputs = 10; // consistent spacing
+
+  const { otpItemWidth, otpItemHeight, otpItemMargin } = useMemo(() => {
+    const availableWidth = Math.max(
+      0,
+      windowWidth - horizontalScreenPadding - (inputCount - 1) * spacingBetweenInputs,
+    );
+    // Bound width between 40 and 56 for usability
+    const calculatedWidth = Math.min(56, Math.max(40, Math.floor(availableWidth / inputCount)));
+    // Slightly taller on Android for visual balance
+    const height = Platform.select({ ios: calculatedWidth, android: calculatedWidth + 4, default: calculatedWidth });
+    return {
+      otpItemWidth: calculatedWidth,
+      otpItemHeight: height as number,
+      otpItemMargin: spacingBetweenInputs / 2,
+    };
+  }, [windowWidth]);
+
+  const otpTextInputStyle = useMemo(() => {
+    return StyleSheet.flatten([
+      styles.otpInput,
+      { width: otpItemWidth, height: otpItemHeight, marginHorizontal: otpItemMargin },
+    ]) as any;
+  }, [otpItemWidth, otpItemHeight, otpItemMargin]);
 
   const clearText = () => {
     if (otpInputRef.current) {
@@ -85,16 +117,16 @@ const InputOtp = (props: InputProps) => {
           <View style={styles.otpContainer}>
             <OTPTextInput
               ref={otpInputRef}
-              inputCount={6}
+              inputCount={inputCount}
               tintColor={colors.primary || '#268740'}
               offTintColor={colors.border || '#E5E5E5'}
               handleTextChange={text => {
                 onChange(text);
-                if (text.length === 6) {
+                if (text.length === inputCount) {
                   Keyboard.dismiss();
                 }
               }}
-              textInputStyle={styles.otpInput}
+              textInputStyle={otpTextInputStyle}
               containerStyle={styles.otpTextContainer}
             />
           </View>

@@ -1,15 +1,28 @@
-import { ImageBackground, StatusBar, StyleSheet, Text, TouchableOpacity, View, } from 'react-native';
-import React, { useEffect, useState } from 'react';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
+import {
+  ImageBackground,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
 import fonts from '../../assets/fonts/fonts';
 import Input from '../../components/input/input';
-import { useForm } from 'react-hook-form';
-import { capitalizeFirstLetter, emailPattern, fontSizes, height, OS } from '../../utils/utils';
+import {useForm} from 'react-hook-form';
+import {
+  capitalizeFirstLetter,
+  emailPattern,
+  fontSizes,
+  height,
+  OS,
+} from '../../utils/utils';
 import colors from '../../utils/colors';
-import { errorMsg } from '../../utils/types';
-import { showAlert } from '../../components/cAlert';
-import { showLoader } from '../../components/loader/loader';
+import {errorMsg} from '../../utils/types';
+import {showAlert} from '../../components/cAlert';
+import {showLoader} from '../../components/loader/loader';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
 import Button from '../../components/button/buttons';
 import IconBackHeaderContainer from '../../components/headerContainer/iconBackHeaderContainer';
@@ -17,15 +30,18 @@ import IconsSvg from '../../assets/svg/iconsSvg';
 import WhiteButton from '../../components/button/whiteButton';
 import IMAGE from '../../assets/images';
 import InputOtp from '../../components/input/InputOTP';
-import { useTimer } from '../../components/hooks/useTimer';
-import { handleError, handleSettled } from '../../utils/method';
-import { useMutation } from '@tanstack/react-query';
-import { resendOtpApi, verifyOtpApi } from '../../utils/apiAction';
-import { ResendInputPayloadType } from '../../utils/payload';
-import { saveUserData, setAuthToken } from '../../redux/reducers/user/UserReducer';
-import { CommonActions } from '@react-navigation/native';
-import { useDispatch, useSelector } from 'react-redux';
-import { IRootState } from '../../redux/store';
+import {useTimer} from '../../components/hooks/useTimer';
+import {handleError, handleSettled} from '../../utils/method';
+import {useMutation} from '@tanstack/react-query';
+import {resendOtpApi, verifyOtpApi} from '../../utils/apiAction';
+import {ResendInputPayloadType} from '../../utils/payload';
+import {
+  saveUserData,
+  setAuthToken,
+} from '../../redux/reducers/user/UserReducer';
+import {CommonActions} from '@react-navigation/native';
+import {useDispatch, useSelector} from 'react-redux';
+import {IRootState} from '../../redux/store';
 
 type ProfileVerifyScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -40,26 +56,27 @@ type ResendInput = {
 };
 
 const ProfileVerifyScreen: React.FC<ProfileVerifyScreenProps> = ({
-  navigation,route
+  navigation,
+  route,
 }) => {
   const {otp, email, type} = route.params;
   const [resendOtp, setResendOtp] = useState('');
   const dispatch = useDispatch();
   const fcmToken = useSelector((user: IRootState) => user.user.fcmToken);
-  console.log(fcmToken,"fcmToken===");
+  console.log(fcmToken, 'fcmToken===');
 
   const defaultValues = {
-    otp: ''
+    otp: '',
   };
 
   const {
     control,
     handleSubmit,
     watch,
-    formState: { errors },
-  } = useForm<Inputs>({ defaultValues });
-  const { mutate } = useMutation({
-    mutationFn: ({ type, payload }: { type: string; payload: any }) =>
+    formState: {errors},
+  } = useForm<Inputs>({defaultValues});
+  const {mutate} = useMutation({
+    mutationFn: ({type, payload}: {type: string; payload: any}) =>
       verifyOtpApi(type, payload),
     onSuccess: async (data: any) => {
       showLoader(false);
@@ -75,14 +92,14 @@ const ProfileVerifyScreen: React.FC<ProfileVerifyScreenProps> = ({
           navigation.dispatch(
             CommonActions.reset({
               index: 0,
-              routes: [{ name: SCREENS.BottomTab }],
-            })
+              routes: [{name: SCREENS.BottomTab}],
+            }),
           );
         },
       });
     },
     onError: handleError,
-    onSettled: handleSettled
+    onSettled: handleSettled,
   });
   const submit = (data: Inputs) => {
     if (!type) return;
@@ -94,19 +111,16 @@ const ProfileVerifyScreen: React.FC<ProfileVerifyScreenProps> = ({
     const payload = {
       email,
       ...data,
-      ...(type === "login" || type === "register"
-        ? { fcmToken: fcmToken }
-        : {}),
+      ...(type === 'login' || type === 'register' ? {fcmToken: fcmToken} : {}),
     };
-    console.log(payload,"payload===");
-    console.log(type,"type===");
-    
+    console.log(payload, 'payload===');
+    console.log(type, 'type===');
+
     showLoader(true);
-    mutate({ type, payload });
+    mutate({type, payload});
   };
 
-
-  const { pause, reset, running, seconds, start, stop } = useTimer({
+  const {pause, reset, running, seconds, start, stop} = useTimer({
     initialSeconds: 30,
     initiallyRunning: false,
   });
@@ -127,7 +141,7 @@ const ProfileVerifyScreen: React.FC<ProfileVerifyScreenProps> = ({
     onSetCounting();
   }, [seconds]);
 
-  const { mutate: resendMutate } = useMutation({
+  const {mutate: resendMutate} = useMutation({
     mutationFn: (data: ResendInput) => resendOtpApi(type!, data),
     onSuccess: async (data: any) => {
       setResendOtp(data?.data?.otp);
@@ -144,11 +158,11 @@ const ProfileVerifyScreen: React.FC<ProfileVerifyScreenProps> = ({
       });
     },
     onError: handleError,
-    onSettled: handleSettled
+    onSettled: handleSettled,
   });
   const onResendOTP = () => {
     if (!email || !type) return;
-    const payload: ResendInput = { email };
+    const payload: ResendInput = {email};
     showLoader(true);
     resendMutate(payload);
   };
@@ -187,25 +201,26 @@ const ProfileVerifyScreen: React.FC<ProfileVerifyScreenProps> = ({
         </Text>
         <Text style={styles.emailText}>{email}</Text>
         <Text style={styles.emailText}>
-        {'Otp: '}
-        {resendOtp ? resendOtp : otp}
-      </Text>
+          {'Otp: '}
+          {resendOtp ? resendOtp : otp}
+        </Text>
         <InputOtp
           control={control}
           name="otp"
           label=""
-          required={{ value: true, message: 'Required OTP' }}
+          required={{value: true, message: 'Required OTP'}}
           pattern={{
             value: /^[0-9]{6}$/,
             message: 'OTP must be a 6-digit number',
           }}
+          horizontalPadding={40}
           error={errors}
         />
-           <Button
-        title={'Verify'}
-        style={styles.buttonStyle}
-        onPress={handleSubmit(submit)}
-      />
+        <Button
+          title={'Verify'}
+          style={styles.buttonStyle}
+          onPress={handleSubmit(submit)}
+        />
         {showResendTxt}
       </ImageBackground>
     </IconBackHeaderContainer>
@@ -232,14 +247,14 @@ const styles = StyleSheet.create({
     color: colors.primaryBlack,
     fontSize: 32,
     marginVertical: 20,
-    marginTop: 60
+    marginTop: 60,
   },
   codeSentText: {
     fontFamily: fonts.regular,
     color: colors.text,
     fontSize: 14,
   },
-  otpContainer: { marginTop: 20 },
+  otpContainer: {marginTop: 20},
   resendOTPTxt: {
     textAlign: 'center',
     fontSize: 14,
