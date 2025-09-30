@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
   clearButton: {
     alignSelf: 'center',
     marginTop: 'auto',
-    bottom: 150,
+    bottom: "22%",
     marginHorizontal: 10,
   },
   clearText: {
@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    bottom: 150,
+    bottom: "20%",
   },
   priceContainer: {
     paddingTop: 10,
