@@ -19,7 +19,7 @@ type IState = {
 
 const alertTypeToIcon: Record<IState['type'], IconName> = {
   success: 'success',
-  error: 'close',
+  error: 'error',
   info: 'notification',
   delete: 'deleteAccount',
 };

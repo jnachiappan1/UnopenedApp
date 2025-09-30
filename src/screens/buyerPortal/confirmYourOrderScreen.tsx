@@ -209,7 +209,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
           type: 'success',
           title: 'Coupon Applied Successfully!',
           description: `Coupon "${couponData.title}" applied! You get $${discountAmountValue} off on minimum purchase of $${minimumPurchase}`,
-          doneText: 'OK',
+          doneText: 'Okay',
           onDonePress: () => {
             // Do nothing - just close the modal
           },
@@ -223,7 +223,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
             title: 'Invalid Coupon',
             description:
               'Coupon code is wrong',
-            doneText: 'OK',
+            doneText: 'Okay',
           });
         } else if (responseData?.data?.is_available === false) {
           showAlert({
@@ -231,7 +231,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
             type: 'error',
             title: 'Coupon Not Available',
             description: 'No coupon found',
-            doneText: 'OK',
+            doneText: 'Okay',
           });
         } else {
           showAlert({
@@ -239,8 +239,8 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
             type: 'error',
             title: 'Coupon Validation Failed',
             description:
-              responseData?.data?.message,
-            doneText: 'OK',
+              "No coupon found",
+            doneText: 'Okay',
           });
         }
       }
@@ -251,7 +251,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
         title: 'Coupon Validation Error',
         description:
           error?.response?.data?.message ,
-        doneText: 'OK',
+        doneText: 'Okay',
       });
     }
   };
@@ -453,11 +453,6 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
               try {
                 await applyCouponAfterPayment();
               } catch (error) {
-                console.log(
-                  'Error applying coupon after wallet payment:',
-                  error,
-                );
-                // Continue with payment success even if coupon application fails
               }
               setModalVisible(true);
             } else {
@@ -484,7 +479,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
           }
         } else {
           const walletAmount = getSafeNumber(currentWalletBalance);
-          const remainingAmount = finalAmount - walletAmount; // Use discounted amount
+          const remainingAmount = finalAmount - walletAmount; 
           showAlert({
             isVisible: true,
             type: 'info',

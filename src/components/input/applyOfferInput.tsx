@@ -12,6 +12,7 @@ import Input from './input';
 import colors from '../../utils/colors';
 import fonts from '../../assets/fonts/fonts';
 import { fontSizes } from '../../utils/utils';
+import { useWatch } from 'react-hook-form';
 
 type InputProps = {
   control: any;
@@ -37,11 +38,13 @@ const ApplyOfferInput: React.FC<InputProps> = props => {
   } = props;
 
   const styles = getStyles();
+  const currentValue = useWatch({ control, name });
+  const isDisabled = !currentValue || String(currentValue).trim().length === 0;
 
   const handleApplyClick = () => {
-    const currentValue = control._formValues?.[name] || '';
+    const value = control._formValues?.[name] || '';
     if (onApply) {
-      onApply(currentValue);
+      onApply(value);
     }
   };
 
@@ -66,8 +69,12 @@ const ApplyOfferInput: React.FC<InputProps> = props => {
           />
         </View>
         <TouchableOpacity 
-          style={styles.applyButtonContainer}
+          style={[
+            styles.applyButtonContainer,
+            isDisabled && styles.applyButtonDisabled,
+          ]}
           onPress={handleApplyClick}
+          disabled={isDisabled}
         >
           <Text style={styles.applyText}>Apply</Text>
         </TouchableOpacity>
@@ -115,6 +122,10 @@ const getStyles = () =>
       minWidth: 60,
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    applyButtonDisabled: {
+      backgroundColor: '#C8E6C9',
+      opacity: 0.7,
     },
     applyText: {
       color: colors.white,
