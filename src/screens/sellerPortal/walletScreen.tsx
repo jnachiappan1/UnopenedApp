@@ -30,6 +30,7 @@ import {IRootState} from '../../redux/store';
 import {useFocusEffect} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import {ProductData} from '../../utils/types';
+import { showLoader } from '../../components/loader/loader';
 type WalletScreenProps = NativeStackScreenProps<
   RootStackParamList,
   SCREENS.WalletScreen
@@ -86,11 +87,13 @@ const WalletScreen: React.FC<WalletScreenProps> = ({navigation}) => {
 
   // Auto-focus API calls when screen loads
   useEffect(() => {
+    showLoader(false);
     if (userData) {
       // Use setTimeout to ensure the component is fully mounted
       setTimeout(() => {
         refetchWalletDetail();
         refetchTransactionData();
+        
       }, 100);
     }
   }, [userData, refetchWalletDetail, refetchTransactionData]);

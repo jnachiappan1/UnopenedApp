@@ -89,6 +89,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [imageError, setImageError] = useState<string>('');
   const [dropdownData, setDropdownData] = useState<DropDownType[]>([]);
+  const [scannedCategoryName, setScannedCategoryName] = useState<string>('');
   const {data: categoryData, refetch: refetchcategoryDetail} = useQuery({
     queryKey: ['getCategoryDetail'],
     queryFn: () => getCategoryDetail(),
@@ -311,22 +312,10 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
   useEffect(() => {
     if (scanProductData?.data?.product) {
       const productData = scanProductData.data.product;
-      const scannedCategoryName = productData.category || '';
-      const primaryCategory =
-        scannedCategoryName.split('>')[0]?.trim() || scannedCategoryName;
-
-      const matchedCategory = dropdownData.find(cat => {
-        const isContained =
-          primaryCategory.toLowerCase().includes(cat.name.toLowerCase()) ||
-          cat.name.toLowerCase().includes(primaryCategory.toLowerCase());
-        const isExactMatch =
-          cat.name.toLowerCase() === primaryCategory.toLowerCase();
-        return isContained || isExactMatch;
-      });
-
-      if (matchedCategory) {
-        setValue('category', matchedCategory);
-      }
+      const scannedCategory = productData.category;
+      
+      // Store the scanned category name for display purposes
+      setScannedCategoryName(scannedCategory || '');
 
       setValue('brandName', productData.brand || '');
       setValue('productName', productData.title || '');
@@ -681,6 +670,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
           reset();
           setUploadedImages([]);
           setImageError('');
+          setScannedCategoryName('');
           navigation.navigate(SCREENS.BottomTab);
         },
       });
@@ -902,7 +892,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             name="category"
             label="Select Category *"
             data={dropdownData}
-            placeholder="Choose a category..."
+            placeholder={scannedCategoryName ? `${scannedCategoryName}` : "Choose a category..."}
             isSearch={true}
             valueField="id"
             labelField="name"
@@ -910,6 +900,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             error={errors}
             onChangeValue={selectedItem => {
               // Category selected
+              console.log('Selected category:', selectedItem);
             }}
             containerStyle={styles.categoryStyle}
           />

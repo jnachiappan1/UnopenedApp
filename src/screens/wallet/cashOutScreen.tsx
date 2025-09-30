@@ -215,6 +215,7 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
           amount: amountValue,
         };
 
+
     cashOutMutation(payload);
   };
 

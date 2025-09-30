@@ -56,7 +56,7 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
   const userData = useSelector((user: IRootState) => user.user.userData);
   const isLogged = userData ? true : false;
   const userType = useSelector((state: IRootState) => state.user.userType);
-console.log("userType------------", userType);
+console.log("userType------------", userData);
 
 
     const {
@@ -300,38 +300,39 @@ console.log("userType------------", userType);
             subtitleStyle={styles.subtitleStyle}
           />
         </View>
-
-        <View style={styles.productInfo}>
+        {userData !== null &&<View style={styles.productInfo}>
          
-          <StatusBadge
-            status={
-              currentProduct?.product_status === 'active'
-                ? 'In_Stock'
-                : currentProduct?.product_status
-            }
-          />
-          <View style={styles.deliveryInfo}>
-            {/* <View style={styles.deliveryRow}>
-              <View style={styles.deliveryIcon}>
-                <IconsSvg name="vehicle" />
-              </View>
-              <View style={styles.deliveryDetails}>
-                <Text style={styles.deliveryTitle}>
-                  Estimated delivery by Friday, 11 July
-                </Text>
-                <Text style={styles.deliverySubtitle}>Standard delivery</Text>
-              </View>
-            </View> */}
-            <View style={styles.deliveryRow}>
-              <View style={styles.deliveryIcon}>
-                <IconsSvg name="deliverBox" />
-              </View>
-              <View style={styles.deliveryDetails}>
-                <Text style={styles.deliveryTitle}>{deliveryTitleText}</Text>
-              </View>
-            </View>
-          </View>
-        </View>
+         <StatusBadge
+           status={
+             currentProduct?.product_status === 'active'
+               ? 'In_Stock'
+               : currentProduct?.product_status
+           }
+         />
+      
+         <View style={styles.deliveryInfo}>
+           {/* <View style={styles.deliveryRow}>
+             <View style={styles.deliveryIcon}>
+               <IconsSvg name="vehicle" />
+             </View>
+             <View style={styles.deliveryDetails}>
+               <Text style={styles.deliveryTitle}>
+                 Estimated delivery by Friday, 11 July
+               </Text>
+               <Text style={styles.deliverySubtitle}>Standard delivery</Text>
+             </View>
+           </View> */}
+           <View style={styles.deliveryRow}>
+             <View style={styles.deliveryIcon}>
+               <IconsSvg name="deliverBox" />
+             </View>
+             <View style={styles.deliveryDetails}>
+               <Text style={styles.deliveryTitle}>{deliveryTitleText}</Text>
+             </View>
+           </View>
+         </View>
+       </View> }
+        
 
         <View style={styles.productInfo}>
           <View style={styles.trustContainer}>
