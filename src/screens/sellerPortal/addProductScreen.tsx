@@ -675,7 +675,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
         isVisible: true,
         type: 'success',
         title: 'Product',
-        description: 'Product added successfully',
+        description: 'Product added successfully and it\'s under review. You will be notified once approved.',
         doneText: 'Okay',
         onDonePress: () => {
           reset();

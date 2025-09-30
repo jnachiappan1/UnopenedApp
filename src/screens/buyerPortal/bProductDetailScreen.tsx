@@ -55,6 +55,9 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
   const product: ProductData = productData[0];
   const userData = useSelector((user: IRootState) => user.user.userData);
   const isLogged = userData ? true : false;
+  const userType = useSelector((state: IRootState) => state.user.userType);
+console.log("userType------------", userType);
+
 
     const {
       data: allProductList,

@@ -10,45 +10,61 @@ import {
   Animated,
   Platform,
 } from 'react-native';
-import React, { useState, useRef, useEffect } from 'react';
-import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import React, {useState, useRef, useEffect} from 'react';
+import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
 import colors from '../../utils/colors';
-import { fontSizes } from '../../utils/utils';
+import {fontSizes} from '../../utils/utils';
 import fonts from '../../assets/fonts/fonts';
 import IconsSvg from '../../assets/svg/iconsSvg';
 import Button from '../../components/button/buttons';
 import OrderSuccessfulModal from '../../components/model/orderSuccessfulModal';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { getProductDetailByID, getWalletDetail, getAddresses, makePayment, soldProduct, validateCoupon, applyCoupon, createShipping, getShippingRates } from '../../utils/apiAction';
-import { image_url } from '../../utils/api';
-import { useSelector } from 'react-redux';
-import { IRootState } from '../../redux/store';
-import { AddressType } from '../../utils/types';
-import { showLoader } from '../../components/loader/loader';
-import { showAlert } from '../../components/cAlert';
-import { useStripe } from '@stripe/stripe-react-native';
-import { useForm } from 'react-hook-form';
+import {useQuery, useMutation} from '@tanstack/react-query';
+import {
+  getProductDetailByID,
+  getWalletDetail,
+  getAddresses,
+  makePayment,
+  soldProduct,
+  validateCoupon,
+  applyCoupon,
+  createShipping,
+  getShippingRates,
+} from '../../utils/apiAction';
+import {image_url} from '../../utils/api';
+import {useSelector} from 'react-redux';
+import {IRootState} from '../../redux/store';
+import {AddressType} from '../../utils/types';
+import {showLoader} from '../../components/loader/loader';
+import {showAlert} from '../../components/cAlert';
+import {useStripe} from '@stripe/stripe-react-native';
+import {useForm} from 'react-hook-form';
 import ApplyOfferInput from '../../components/input/applyOfferInput';
 
-const { width } = Dimensions.get('window');
+const {width} = Dimensions.get('window');
 
 type LoginProps = NativeStackScreenProps<
   RootStackParamList,
   SCREENS.ConfirmYourOrderScreen
 >;
 
-const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => {
-  const { productId } = route?.params;
+const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
+  const {productId} = route?.params;
   const userData = useSelector((user: IRootState) => user.user.userData);
-  const { initPaymentSheet, presentPaymentSheet } = useStripe();
+  const {initPaymentSheet, presentPaymentSheet} = useStripe();
   const [quantity, setQuantity] = useState(4);
-  const [walletBalance, setWalletBalance] = useState(2430.00);
-  const [paymentMethod, setPaymentMethod] = useState<'wallet' | 'stripe'>('stripe');
-  const [selectedAddress, setSelectedAddress] = useState<AddressType | null>(null);
+  const [walletBalance, setWalletBalance] = useState(2430.0);
+  const [paymentMethod, setPaymentMethod] = useState<'wallet' | 'stripe'>(
+    'stripe',
+  );
+  const [selectedAddress, setSelectedAddress] = useState<AddressType | null>(
+    null,
+  );
   const [isAddressChanged, setIsAddressChanged] = useState(false);
-  const [defaultAddress, setDefaultAddress] = useState<AddressType | null>(null);
+  const [defaultAddress, setDefaultAddress] = useState<AddressType | null>(
+    null,
+  );
   const itemPrice = 350;
   const totalPrice = itemPrice * quantity;
   const [isModalVisible, setModalVisible] = useState(false);
@@ -58,18 +74,18 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
   // Form setup for discount code
   const {
     control,
-    formState: { errors },
+    formState: {errors},
     handleSubmit,
     watch,
   } = useForm({
     defaultValues: {
       discount_code: '',
-    }
+    },
   });
 
   // Watch the discount code value
   const discountCode = watch('discount_code');
-  
+
   // Store the applied discount code for payment success flow
   const [appliedDiscountCode, setAppliedDiscountCode] = useState<string>('');
 
@@ -81,56 +97,57 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
   const [shippingID, setShippingID] = useState<any>(null);
   const [lastAddressId, setLastAddressId] = useState<number | null>(null);
 
-
-
   // Shipping API mutation
-  const { mutate: createShippingMutation, isPending: isShippingPending } = useMutation({
-    mutationFn: createShipping,
-    onSuccess: async (response) => {
-      setShippingApiCalled(true);
-      setIsShippingRatesLoading(false); // No need for loading state since we're using direct response
-      // Use shipping rates directly from the shipping response (no need for separate API call)
-      const resData = (response as any)?.data ?? response;
-      
-      if (resData?.success && resData?.shipment?.rates) {
-        setShippingID(resData.shipment.id);
-        const shippingRates = resData.shipment.rates;
-        
-        if (Array.isArray(shippingRates) && shippingRates.length > 0) {
-          
-          // First, try to find USPS Priority service
-          const uspsPriorityRate = shippingRates.find(
-            (rate: any) =>
-              rate.carrier === "USPS" && rate.service?.trim().toLowerCase() === "priority"
-          );
-          
-          if (uspsPriorityRate) {
-            setPriorityShippingRate(uspsPriorityRate);
-            setSelectedShippingRate(uspsPriorityRate);
-          } else {
-            // Fallback: try to find any Priority service
-            const priorityRate = shippingRates.find((rate: any) => rate.service === 'Priority');
-            if (priorityRate) {
-              setPriorityShippingRate(priorityRate);
-              setSelectedShippingRate(priorityRate);
+  const {mutate: createShippingMutation, isPending: isShippingPending} =
+    useMutation({
+      mutationFn: createShipping,
+      onSuccess: async response => {
+        setShippingApiCalled(true);
+        setIsShippingRatesLoading(false); // No need for loading state since we're using direct response
+        // Use shipping rates directly from the shipping response (no need for separate API call)
+        const resData = (response as any)?.data ?? response;
+
+        if (resData?.success && resData?.shipment?.rates) {
+          setShippingID(resData.shipment.id);
+          const shippingRates = resData.shipment.rates;
+
+          if (Array.isArray(shippingRates) && shippingRates.length > 0) {
+            // First, try to find USPS Priority service
+            const uspsPriorityRate = shippingRates.find(
+              (rate: any) =>
+                rate.carrier === 'USPS' &&
+                rate.service?.trim().toLowerCase() === 'priority',
+            );
+
+            if (uspsPriorityRate) {
+              setPriorityShippingRate(uspsPriorityRate);
+              setSelectedShippingRate(uspsPriorityRate);
             } else {
-              const firstRate = shippingRates[0];
-              setSelectedShippingRate(firstRate);
-              setPriorityShippingRate(firstRate); 
+              // Fallback: try to find any Priority service
+              const priorityRate = shippingRates.find(
+                (rate: any) => rate.service === 'Priority',
+              );
+              if (priorityRate) {
+                setPriorityShippingRate(priorityRate);
+                setSelectedShippingRate(priorityRate);
+              } else {
+                const firstRate = shippingRates[0];
+                setSelectedShippingRate(firstRate);
+                setPriorityShippingRate(firstRate);
+              }
             }
           }
-        } 
-      } 
-    },
-    onError: (error: any) => {
-      setShippingApiCalled(false);
-    },
-  });
+        }
+      },
+      onError: (error: any) => {
+        setShippingApiCalled(false);
+      },
+    });
   const callShippingAPI = (addressId: number) => {
     if (!productId) {
       return;
     }
-    
+
     if (!addressId || addressId <= 0) {
       return;
     }
@@ -143,15 +160,15 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
     setLastAddressId(addressId);
     const shippingPayload = {
       product_id: productId.toString(),
-      address_id: addressId
+      address_id: addressId,
     };
-    setShippingApiCalled(false);    
+    setShippingApiCalled(false);
     createShippingMutation(shippingPayload);
   };
   const resetShippingStatus = () => {
     setShippingApiCalled(false);
     setLastAddressId(null);
-    setIsShippingRatesLoading(false); 
+    setIsShippingRatesLoading(false);
   };
   const handleDiscountCodeApply = async (code: string) => {
     try {
@@ -161,7 +178,8 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
           isVisible: true,
           type: 'error',
           title: 'Invalid Amount',
-          description: 'Please select a shipping option before applying discount code.',
+          description:
+            'Please select a shipping option before applying discount code.',
           doneText: 'OK',
         });
         return;
@@ -169,7 +187,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
 
       const couponPayload = {
         coupon_code: code,
-        purchase_amount: subtotal
+        purchase_amount: subtotal,
       };
       // Make API call to validate coupon
       const response = await validateCoupon(couponPayload);
@@ -180,12 +198,12 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
         const couponData = responseData.data.coupon;
         const discountAmountValue = parseFloat(couponData.discount_amount);
         const minimumPurchase = couponData.minimum_purchase_amount;
-        
+
         // Store the discount amount for payment calculations
         setDiscountAmount(discountAmountValue);
         // Store the applied discount code for payment success flow
         setAppliedDiscountCode(code);
-        
+
         showAlert({
           isVisible: true,
           type: 'success',
@@ -203,7 +221,8 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
             isVisible: true,
             type: 'error',
             title: 'Invalid Coupon',
-            description: 'This coupon code is not valid. Please check and try again.',
+            description:
+              'Coupon code is wrong',
             doneText: 'OK',
           });
         } else if (responseData?.data?.is_available === false) {
@@ -211,7 +230,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
             isVisible: true,
             type: 'error',
             title: 'Coupon Not Available',
-            description: 'This coupon is no longer available or has expired.',
+            description: 'No coupon found',
             doneText: 'OK',
           });
         } else {
@@ -219,7 +238,8 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
             isVisible: true,
             type: 'error',
             title: 'Coupon Validation Failed',
-            description: responseData?.data?.message || 'Failed to validate coupon. Please try again.',
+            description:
+              responseData?.data?.message,
             doneText: 'OK',
           });
         }
@@ -229,25 +249,29 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({ navigation, route }) => 
         isVisible: true,
         type: 'error',
         title: 'Coupon Validation Error',
-        description: error?.response?.data?.message || 'Failed to validate coupon. Please try again.',
+        description:
+          error?.response?.data?.message ,
         doneText: 'OK',
       });
     }
   };
 
-  const { data: allProductList, refetch: refetchAllProduct } = useQuery({
+  const {data: allProductList, refetch: refetchAllProduct} = useQuery({
     queryKey: ['getProductDetailByID', productId],
     queryFn: () => getProductDetailByID(productId),
   });
-console.log("allProductList", allProductList);
 
-  const { data: walletData, refetch: refetchWalletDetail, isLoading: isWalletLoading } = useQuery({
+  const {
+    data: walletData,
+    refetch: refetchWalletDetail,
+    isLoading: isWalletLoading,
+  } = useQuery({
     queryKey: ['getWalletDetail'],
     queryFn: () => getWalletDetail(),
     enabled: !!userData,
   });
 
-  const { data: addressesData, refetch: refetchAddresses } = useQuery({
+  const {data: addressesData, refetch: refetchAddresses} = useQuery({
     queryKey: ['getAddresses'],
     queryFn: getAddresses,
     enabled: !!userData,
@@ -257,7 +281,7 @@ console.log("allProductList", allProductList);
   const isWalletPaymentDisabled = () => {
     const walletBalance = getSafeNumber(walletData?.data?.wallet?.amount);
     const productPrice = getSafeNumber(allProductList?.data?.product[0]?.price);
-    
+
     // Disable if wallet balance is 0, negative, or product price is 0/negative
     return walletBalance <= 0 || productPrice <= 0 || isWalletLoading;
   };
@@ -281,20 +305,32 @@ console.log("allProductList", allProductList);
   }, [walletData, allProductList, isWalletLoading, paymentMethod]);
   useEffect(() => {
     const currentAddressId = getCurrentAddressId();
-    if (currentAddressId && productId && !shippingApiCalled && addressesData?.data?.address && defaultAddress) {
+    if (
+      currentAddressId &&
+      productId &&
+      !shippingApiCalled &&
+      addressesData?.data?.address &&
+      defaultAddress
+    ) {
       callShippingAPI(currentAddressId);
-    } 
-  }, [addressesData, defaultAddress]); 
+    }
+  }, [addressesData, defaultAddress]);
 
   // Monitor priorityShippingRate changes
-  useEffect(() => {
-   
-  }, [priorityShippingRate, selectedShippingRate, shippingApiCalled, isShippingRatesLoading]);
+  useEffect(() => {}, [
+    priorityShippingRate,
+    selectedShippingRate,
+    shippingApiCalled,
+    isShippingRatesLoading,
+  ]);
 
   // Debug shipping display state
-  useEffect(() => {
-   
-  }, [selectedShippingRate, isShippingRatesLoading, shippingApiCalled, priorityShippingRate]);
+  useEffect(() => {}, [
+    selectedShippingRate,
+    isShippingRatesLoading,
+    shippingApiCalled,
+    priorityShippingRate,
+  ]);
   const handleBuyNow = async () => {
     try {
       if (!productId) {
@@ -345,7 +381,8 @@ console.log("allProductList", allProductList);
           isVisible: true,
           type: 'error',
           title: 'Error',
-          description: 'Selected shipping option is missing required information. Please try selecting a different shipping option.',
+          description:
+            'Selected shipping option is missing required information. Please try selecting a different shipping option.',
         });
         return;
       }
@@ -367,45 +404,59 @@ console.log("allProductList", allProductList);
           isVisible: true,
           type: 'error',
           title: 'Wallet Payment Unavailable',
-          description: 'Wallet payment is not available. Please add funds to your wallet or use Stripe payment.',
+          description:
+            'Wallet payment is not available. Please add funds to your wallet or use Stripe payment.',
         });
         return;
       }
 
       const paymentPayload = {
         amount: productPrice.toString(),
-        address_id: addressId
+        address_id: addressId,
       };
       if (paymentMethod === 'wallet') {
-        const currentWalletBalance = getSafeNumber(walletData?.data?.wallet?.amount);
-        const finalAmount = getFinalAmount(); 
+        const currentWalletBalance = getSafeNumber(
+          walletData?.data?.wallet?.amount,
+        );
+        const finalAmount = getFinalAmount();
 
         if (currentWalletBalance >= finalAmount) {
           showLoader(true);
           const walletPaymentPayload = {
-            wallet_amount: finalAmount.toString(), 
-            address_id: addressId
+            wallet_amount: finalAmount.toString(),
+            address_id: addressId,
           };
 
           try {
             const walletPaymentPayload = {
               amount: finalAmount.toString(),
               wallet_amount: finalAmount.toString(),
-              rate_amount: selectedShippingRate ? selectedShippingRate.rate.toString() : '0',
+              rate_amount: selectedShippingRate
+                ? selectedShippingRate.rate.toString()
+                : '0',
               address_id: addressId,
               rate_id: selectedShippingRate ? selectedShippingRate.id : '',
-              shipmentId: shippingID
+              shipmentId: shippingID,
             };
-            const walletPaymentResponse = await makePayment('wallet_funds', walletPaymentPayload, productId);
+            const walletPaymentResponse = await makePayment(
+              'wallet_funds',
+              walletPaymentPayload,
+              productId,
+            );
 
-            if (walletPaymentResponse?.data?.status === 'success' ||
-              walletPaymentResponse?.data?.success === true) {
+            if (
+              walletPaymentResponse?.data?.status === 'success' ||
+              walletPaymentResponse?.data?.success === true
+            ) {
               showLoader(false);
               // Apply coupon after successful wallet payment
               try {
                 await applyCouponAfterPayment();
               } catch (error) {
-                console.log('Error applying coupon after wallet payment:', error);
+                console.log(
+                  'Error applying coupon after wallet payment:',
+                  error,
+                );
                 // Continue with payment success even if coupon application fails
               }
               setModalVisible(true);
@@ -415,7 +466,9 @@ console.log("allProductList", allProductList);
                 isVisible: true,
                 type: 'error',
                 title: 'Wallet Payment Failed',
-                description: walletPaymentResponse?.data?.message || 'Wallet payment failed. Please try again.',
+                description:
+                  walletPaymentResponse?.data?.message ||
+                  'Wallet payment failed. Please try again.',
               });
             }
           } catch (walletError: any) {
@@ -424,7 +477,9 @@ console.log("allProductList", allProductList);
               isVisible: true,
               type: 'error',
               title: 'Wallet Payment Error',
-              description: walletError?.response?.data?.message || 'Wallet payment failed. Please try again.',
+              description:
+                walletError?.response?.data?.message ||
+                'Wallet payment failed. Please try again.',
             });
           }
         } else {
@@ -434,35 +489,53 @@ console.log("allProductList", allProductList);
             isVisible: true,
             type: 'info',
             title: 'Hybrid Payment',
-            description: `Use $${Number(walletAmount).toFixed(2)} from wallet + $${Number(remainingAmount).toFixed(2)} via Stripe?`,
+            description: `Use $${Number(walletAmount).toFixed(
+              2,
+            )} from wallet + $${Number(remainingAmount).toFixed(
+              2,
+            )} via Stripe?`,
             doneText: 'Proceed',
             deleteText: 'Cancel',
             onDonePress: async () => {
               try {
                 showLoader(true);
                 const hybridPaymentPayload = {
-                  amount: remainingAmount.toString(),      // Stripe amount (discounted)
+                  amount: remainingAmount.toString(), // Stripe amount (discounted)
                   wallet_amount: walletAmount.toString(), // Wallet amount
-                  rate_amount: selectedShippingRate ? selectedShippingRate.rate.toString() : '0',
+                  rate_amount: selectedShippingRate
+                    ? selectedShippingRate.rate.toString()
+                    : '0',
                   address_id: addressId,
                   rate_id: selectedShippingRate ? selectedShippingRate.id : '',
-                  shipmentId: shippingID
+                  shipmentId: shippingID,
                 };
-                const hybridResponse = await makePayment('wallet_buy_product_funds', hybridPaymentPayload, productId);
-                if (hybridResponse?.data?.status === 'success' &&
-                  hybridResponse?.data?.clientSecret) {
-                  const { clientSecret, ephemeralKey, customer, paymentIntentId } = hybridResponse.data;
+                const hybridResponse = await makePayment(
+                  'wallet_buy_product_funds',
+                  hybridPaymentPayload,
+                  productId,
+                );
+                if (
+                  hybridResponse?.data?.status === 'success' &&
+                  hybridResponse?.data?.clientSecret
+                ) {
+                  const {
+                    clientSecret,
+                    ephemeralKey,
+                    customer,
+                    paymentIntentId,
+                  } = hybridResponse.data;
                   if (!clientSecret || !ephemeralKey || !customer) {
                     showLoader(false);
                     showAlert({
                       isVisible: true,
                       type: 'error',
                       title: 'Stripe Configuration Error',
-                      description: 'Missing payment credentials. Please contact support.',
+                      description:
+                        'Missing payment credentials. Please contact support.',
                     });
                     return;
                   }
-                  const { error: initError } = await initPaymentSheet({
+                  const {error: initError} = await initPaymentSheet({
                     merchantDisplayName: 'Unopened Mobile',
                     customerId: customer,
                     customerEphemeralKeySecret: ephemeralKey,
@@ -484,7 +557,7 @@ console.log("allProductList", allProductList);
                     });
                     return;
                   }
-                  const { error: presentError } = await presentPaymentSheet();
+                  const {error: presentError} = await presentPaymentSheet();
 
                   if (presentError) {
                     showLoader(false);
@@ -500,7 +573,10 @@ console.log("allProductList", allProductList);
                     try {
                       await applyCouponAfterPayment();
                     } catch (error) {
-                      console.log('Error applying coupon after hybrid payment:', error);
+                      console.log(
+                        'Error applying coupon after hybrid payment:',
+                        error,
+                      );
                       // Continue with payment success even if coupon application fails
                     }
                     setModalVisible(true);
@@ -511,7 +587,8 @@ console.log("allProductList", allProductList);
                     isVisible: true,
                     type: 'error',
                     title: 'Hybrid Payment Failed',
-                    description: hybridResponse?.data?.message ||
+                    description:
+                      hybridResponse?.data?.message ||
                       hybridResponse?.data?.error ||
                       'Hybrid payment failed. Please try again.',
                   });
@@ -523,7 +600,9 @@ console.log("allProductList", allProductList);
                   isVisible: true,
                   type: 'error',
                   title: 'Hybrid Payment Error',
-                  description: hybridError?.response?.data?.message || 'Hybrid payment failed. Please try again.',
+                  description:
+                    hybridError?.response?.data?.message ||
+                    'Hybrid payment failed. Please try again.',
                 });
               }
             },
@@ -532,20 +611,23 @@ console.log("allProductList", allProductList);
                 isVisible: true,
                 type: 'info',
                 title: 'Payment Cancelled',
-                description: 'You can choose a different payment method or add funds to your wallet.',
+                description:
+                  'You can choose a different payment method or add funds to your wallet.',
               });
-            }
+            },
           });
         }
       } else if (paymentMethod === 'stripe') {
         const finalAmount = getFinalAmount(); // Use discounted amount
-              const stripePaymentPayload = {
-        amount: finalAmount.toString(), // Use discounted amount
-        rate_amount: selectedShippingRate ? selectedShippingRate.rate.toString() : '0',
-        address_id: addressId,
-        rate_id: selectedShippingRate ? selectedShippingRate.id : '',
-        shipmentId: shippingID 
-      };
+        const stripePaymentPayload = {
+          amount: finalAmount.toString(), // Use discounted amount
+          rate_amount: selectedShippingRate
+            ? selectedShippingRate.rate.toString()
+            : '0',
+          address_id: addressId,
+          rate_id: selectedShippingRate ? selectedShippingRate.id : '',
+          shipmentId: shippingID,
+        };
         handleStripePayment(stripePaymentPayload);
       } else {
         showAlert({
@@ -566,10 +648,10 @@ console.log("allProductList", allProductList);
     }
   };
 
-  const handleStripePayment = async (paymentPayload: { 
-    amount: string; 
+  const handleStripePayment = async (paymentPayload: {
+    amount: string;
     rate_amount: string;
-    address_id: number; 
+    address_id: number;
     rate_id: string;
     shipmentId: string;
   }) => {
@@ -585,25 +667,38 @@ console.log("allProductList", allProductList);
         });
         return;
       }
-      const paymentResponse = await makePayment('buy_product', paymentPayload, productId);
+      const paymentResponse = await makePayment(
+        'buy_product',
+        paymentPayload,
+        productId,
+      );
       if (!paymentResponse || !paymentResponse.data) {
         showLoader(false);
         showAlert({
           isVisible: true,
           type: 'error',
           title: 'Payment Error',
-          description: 'No response received from payment server. Please try again.',
+          description:
+            'No response received from payment server. Please try again.',
         });
         return;
       }
-      const isSuccess = paymentResponse.data.status === 'success' ||
+      const isSuccess =
+        paymentResponse.data.status === 'success' ||
         paymentResponse.data.success === true ||
         paymentResponse.data.paymentIntentId;
 
       if (isSuccess) {
-        const { clientSecret, ephemeralKey, customer, paymentIntentId } = paymentResponse.data;
-        console.log("-=-=--=-", clientSecret, ephemeralKey, customer, paymentIntentId);
-        
+        const {clientSecret, ephemeralKey, customer, paymentIntentId} =
+          paymentResponse.data;
+        console.log(
+          '-=-=--=-',
+          clientSecret,
+          ephemeralKey,
+          customer,
+          paymentIntentId,
+        );
+
         const missingCredentials = [];
         if (!clientSecret) missingCredentials.push('Client Secret');
         if (!ephemeralKey) missingCredentials.push('Ephemeral Key');
@@ -614,11 +709,13 @@ console.log("allProductList", allProductList);
             isVisible: true,
             type: 'error',
             title: 'Payment Configuration Error',
-            description: `Missing payment credentials: ${missingCredentials.join(', ')}. Please contact support.`,
+            description: `Missing payment credentials: ${missingCredentials.join(
+              ', ',
+            )}. Please contact support.`,
           });
           return;
         }
-        const { error } = await initPaymentSheet({
+        const {error} = await initPaymentSheet({
           merchantDisplayName: 'Unopened Mobile',
           customerId: customer,
           customerEphemeralKeySecret: ephemeralKey,
@@ -641,7 +738,7 @@ console.log("allProductList", allProductList);
           return;
         }
 
-        const { error: presentError } = await presentPaymentSheet();
+        const {error: presentError} = await presentPaymentSheet();
 
         if (presentError) {
           showLoader(false);
@@ -663,7 +760,8 @@ console.log("allProductList", allProductList);
           setModalVisible(true);
         }
       } else {
-        const errorMessage = paymentResponse.data.message ||
+        const errorMessage =
+          paymentResponse.data.message ||
           paymentResponse.data.error ||
           'Unknown payment error';
 
@@ -699,7 +797,7 @@ console.log("allProductList", allProductList);
   const modalSucesss = async () => {
     try {
       setModalVisible(false);
-      
+
       // Navigate after payment success
       if (navigation && navigation.replace) {
         navigation.replace(SCREENS.OrderTrackScreen, {
@@ -731,7 +829,7 @@ console.log("allProductList", allProductList);
         setLastAddressId(null);
         setSelectedShippingRate(null);
         setPriorityShippingRate(null);
-        
+
         // Automatically fetch new shipping rates for the new address
         if (address?.id && productId) {
           callShippingAPI(address.id);
@@ -749,7 +847,7 @@ console.log("allProductList", allProductList);
       setLastAddressId(null);
       setSelectedShippingRate(null);
       setPriorityShippingRate(null);
-      
+
       // Automatically fetch new shipping rates for the default address
       if (defaultAddress?.id && productId) {
         callShippingAPI(defaultAddress.id);
@@ -785,7 +883,9 @@ console.log("allProductList", allProductList);
   // Calculate subtotal (product price + shipping)
   const getSubtotal = (): number => {
     const productPrice = getSafeNumber(allProductList?.data?.product[0]?.price);
-    const shippingCost = selectedShippingRate ? getSafeNumber(selectedShippingRate.rate) : 0;
+    const shippingCost = selectedShippingRate
+      ? getSafeNumber(selectedShippingRate.rate)
+      : 0;
     return productPrice + shippingCost;
   };
 
@@ -818,78 +918,103 @@ console.log("allProductList", allProductList);
   const applyCouponAfterPayment = async () => {
     if (appliedDiscountCode && discountAmount > 0) {
       try {
-        const purchaseAmount = getSafeNumber(allProductList?.data?.product[0]?.price);
+        const purchaseAmount = getSafeNumber(
+          allProductList?.data?.product[0]?.price,
+        );
         if (purchaseAmount > 0) {
           const couponPayload = {
             coupon_code: appliedDiscountCode,
-            purchase_amount: purchaseAmount
+            purchase_amount: purchaseAmount,
           };
           const response = await applyCoupon(couponPayload);
-          console.log('Coupon applied successfully:', response);
-          // Clear the discount after successful application
           setDiscountAmount(0);
           setAppliedDiscountCode('');
         }
-      } catch (error) {
-        console.log('Error applying coupon after payment:', error);
-        // Don't throw error to prevent payment flow interruption
-      }
+      } catch (error) {}
     }
   };
 
   const getPaymentBreakdown = () => {
-    if (isWalletLoading || !walletData?.data?.wallet?.amount || !allProductList?.data?.product[0]?.price) {
+    if (
+      isWalletLoading ||
+      !walletData?.data?.wallet?.amount ||
+      !allProductList?.data?.product[0]?.price
+    ) {
       return {
         walletAmount: 0,
         stripeAmount: 0,
         isHybrid: false,
-        message: 'Loading payment details...'
+        message: 'Loading payment details...',
       };
     }
 
     const currentWalletBalance = getSafeNumber(walletData.data.wallet.amount);
-    const finalAmount = getFinalAmount(); // Use discounted amount
+    const finalAmount = getFinalAmount();
 
     if (currentWalletBalance >= finalAmount) {
       return {
         walletAmount: finalAmount,
         stripeAmount: 0,
         isHybrid: false,
-        message: `Full payment from wallet: $${finalAmount.toFixed(2)}`
+        message: `Full payment from wallet: $${finalAmount.toFixed(2)}`,
       };
     } else {
       return {
         walletAmount: currentWalletBalance,
         stripeAmount: finalAmount - currentWalletBalance,
         isHybrid: true,
-        message: `Hybrid payment: $${currentWalletBalance.toFixed(2)} from wallet + $${(finalAmount - currentWalletBalance).toFixed(2)} via Stripe`
+        message: `Hybrid payment: $${currentWalletBalance.toFixed(
+          2,
+        )} from wallet + $${(finalAmount - currentWalletBalance).toFixed(
+          2,
+        )} via Stripe`,
       };
     }
   };
 
-  // Build estimated delivery text using est_delivery_days (fallback to delivery_days or delivery_date)
   const formatDate = (date: Date): string => {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return `${date.getDate()} ${months[date.getMonth()]}, ${date.getFullYear()}`;
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return `${date.getDate()} ${
+      months[date.getMonth()]
+    }, ${date.getFullYear()}`;
   };
 
   const getEstimatedDeliveryText = (): string => {
     if (!selectedShippingRate) {
       return 'Select a shipping option';
     }
-    const daysValue = Number(selectedShippingRate?.est_delivery_days ?? selectedShippingRate?.delivery_days);
+    const daysValue = Number(
+      selectedShippingRate?.est_delivery_days ??
+        selectedShippingRate?.delivery_days,
+    );
     if (Number.isFinite(daysValue) && daysValue > 0) {
       const estimatedDate = new Date();
       estimatedDate.setDate(estimatedDate.getDate() + Math.floor(daysValue));
       const formatted = formatDate(estimatedDate);
-      const daysLabel = Math.floor(daysValue) === 1 ? '1 day' : `${Math.floor(daysValue)} days`;
+      const daysLabel =
+        Math.floor(daysValue) === 1 ? '1 day' : `${Math.floor(daysValue)} days`;
       return `On or before ${formatted} (${daysLabel})`;
     }
     if (selectedShippingRate?.delivery_date) {
       const dateFromCarrier = new Date(selectedShippingRate.delivery_date);
       if (!isNaN(dateFromCarrier.getTime())) {
         const formatted = formatDate(dateFromCarrier);
-        const prefix = selectedShippingRate?.delivery_date_guaranteed ? 'Guaranteed by' : 'Estimated by';
+        const prefix = selectedShippingRate?.delivery_date_guaranteed
+          ? 'Guaranteed by'
+          : 'Estimated by';
         return `${prefix} ${formatted}`;
       }
     }
@@ -903,7 +1028,11 @@ console.log("allProductList", allProductList);
           <View style={styles.productContainer}>
             <View style={styles.imageContainer}>
               <Image
-                source={{ uri: image_url + allProductList?.data?.product[0]?.product_image[1]?.image }}
+                source={{
+                  uri:
+                    image_url +
+                    allProductList?.data?.product[0]?.product_image[1]?.image,
+                }}
                 style={styles.productImage}
               />
             </View>
@@ -921,15 +1050,17 @@ console.log("allProductList", allProductList);
                   </Text>
                 )}
               </View>
-              
+
               {/* Shipping Cost Display */}
               {selectedShippingRate && (
                 <View style={styles.shippingCostContainer}>
                   <Text style={styles.shippingCostLabel}>Shipping:</Text>
-                  <Text style={styles.shippingCostAmount}>${selectedShippingRate.rate}</Text>
+                  <Text style={styles.shippingCostAmount}>
+                    ${selectedShippingRate.rate}
+                  </Text>
                 </View>
               )}
-              
+
               {/* Subtotal and Final Price */}
               {selectedShippingRate && (
                 <View style={styles.totalContainer}>
@@ -958,59 +1089,67 @@ console.log("allProductList", allProductList);
           {isAddressChanged && selectedAddress ? (
             <View style={styles.addressCard}>
               <View style={styles.personInfo}>
-                <Text style={styles.personName}>{selectedAddress.full_name}</Text>
+                <Text style={styles.personName}>
+                  {selectedAddress.full_name}
+                </Text>
                 <Text style={styles.phoneNumber}>
                   {selectedAddress.country_code} {selectedAddress.phone_number}
                 </Text>
               </View>
               <View style={styles.summaryDivider} />
               <View style={styles.addressInfo}>
-                <IconsSvg name='locationIcon' />
+                <IconsSvg name="locationIcon" />
                 <Text style={styles.addressText}>
                   {selectedAddress.address}
                 </Text>
               </View>
               <View style={styles.summaryDivider} />
               <Text style={styles.addressLocation}>
-                {selectedAddress.city}, {selectedAddress.state}, {selectedAddress.country} - {selectedAddress.pincode}
+                {selectedAddress.city}, {selectedAddress.state},{' '}
+                {selectedAddress.country} - {selectedAddress.pincode}
               </Text>
             </View>
           ) : defaultAddress ? (
             <View style={styles.addressCard}>
               <View style={styles.personInfo}>
                 <View style={styles.nameContainer}>
-                  <Text style={styles.personName}>{defaultAddress.full_name || 'Person Name'}</Text>
+                  <Text style={styles.personName}>
+                    {defaultAddress.full_name || 'Person Name'}
+                  </Text>
                   <View style={styles.defaultBadge}>
                     <Text style={styles.defaultBadgeText}>Default</Text>
                   </View>
                 </View>
                 <Text style={styles.phoneNumber}>
-                  {defaultAddress.country_code || '+91'} {defaultAddress.phone_number || ''}
+                  {defaultAddress.country_code || '+91'}{' '}
+                  {defaultAddress.phone_number || ''}
                 </Text>
               </View>
               <View style={styles.summaryDivider} />
               <View style={styles.addressInfo}>
-                <IconsSvg name='locationIcon' />
+                <IconsSvg name="locationIcon" />
                 <Text style={styles.addressText}>
                   {defaultAddress.address || ''}
                 </Text>
               </View>
               <View style={styles.summaryDivider} />
               <Text style={styles.addressLocation}>
-                {defaultAddress.city || ''}, {defaultAddress.state || ''}, {defaultAddress.country || ''}{defaultAddress.pincode ? ` - ${defaultAddress.pincode}` : ''}
+                {defaultAddress.city || ''}, {defaultAddress.state || ''},{' '}
+                {defaultAddress.country || ''}
+                {defaultAddress.pincode ? ` - ${defaultAddress.pincode}` : ''}
               </Text>
             </View>
           ) : (
             <View style={styles.noAddressContainer}>
               <Text style={styles.noAddressText}>No address selected</Text>
-              <TouchableOpacity style={styles.addAddressButton} onPress={handleChangeAddress}>
+              <TouchableOpacity
+                style={styles.addAddressButton}
+                onPress={handleChangeAddress}>
                 <Text style={styles.addAddressButtonText}>Add Address</Text>
               </TouchableOpacity>
             </View>
           )}
         </View>
-
-
 
         <View style={styles.productSection}>
           <Text style={styles.sectionTitle}>Estimated Delivery</Text>
@@ -1021,79 +1160,95 @@ console.log("allProductList", allProductList);
             </Text>
           </View>
         </View>
-   {/* Shipping Rates Selection */}
-   <View style={styles.productSection}>
+        {/* Shipping Rates Selection */}
+        <View style={styles.productSection}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Shipping Option</Text>
             <Text style={styles.requiredText}>* Required</Text>
           </View>
 
           <View style={styles.summaryDivider} />
-          
+
           {/* Show loading state while fetching shipping rates */}
           {isShippingRatesLoading && (
             <View style={styles.loadingContainer}>
-              <Text style={styles.loadingText}>🔄 Loading shipping options...</Text>
-              <Text style={styles.loadingSubtext}>Please wait while we calculate shipping rates</Text>
+              <Text style={styles.loadingText}>
+                🔄 Loading shipping options...
+              </Text>
+              <Text style={styles.loadingSubtext}>
+                Please wait while we calculate shipping rates
+              </Text>
             </View>
           )}
 
-
-
           {/* Show shipping option when available */}
           {selectedShippingRate && !isShippingRatesLoading ? (
-            <View style={[
-              styles.shippingOptionCard,
-              selectedShippingRate.carrier === 'USPS' && selectedShippingRate.service === 'Priority' && styles.uspsPriorityCard
-            ]}>
-              
+            <View
+              style={[
+                styles.shippingOptionCard,
+                selectedShippingRate.carrier === 'USPS' &&
+                  selectedShippingRate.service === 'Priority' &&
+                  styles.uspsPriorityCard,
+              ]}>
               <View style={styles.shippingOptionHeader}>
                 <View style={styles.shippingOptionInfo}>
                   <View style={styles.shippingOptionTitleRow}>
                     <Text style={styles.shippingOptionTitle}>
-                      {selectedShippingRate.carrier} - {selectedShippingRate.service}
+                      {selectedShippingRate.carrier} -{' '}
+                      {selectedShippingRate.service}
                     </Text>
-                    {selectedShippingRate.carrier === 'USPS' && selectedShippingRate.service === 'Priority' && (
-                      <View style={styles.priorityBadge}>
-                        <Text style={styles.priorityBadgeText}>⭐ Priority</Text>
-                      </View>
-                    )}
+                    {selectedShippingRate.carrier === 'USPS' &&
+                      selectedShippingRate.service === 'Priority' && (
+                        <View style={styles.priorityBadge}>
+                          <Text style={styles.priorityBadgeText}>
+                            ⭐ Priority
+                          </Text>
+                        </View>
+                      )}
                   </View>
                   <Text style={styles.shippingOptionSubtitle}>
-                    {selectedShippingRate.delivery_days === 1 ? 'Next Day Delivery' : `${selectedShippingRate.delivery_days} Days Delivery`}
+                    {selectedShippingRate.delivery_days === 1
+                      ? 'Next Day Delivery'
+                      : `${selectedShippingRate.delivery_days} Days Delivery`}
                   </Text>
                 </View>
                 <View style={styles.shippingOptionPrice}>
                   <Text style={styles.shippingPriceAmount}>
                     ${selectedShippingRate.rate}
                   </Text>
-                  <Text style={styles.shippingPriceCurrency}>
-                    USD
-                  </Text>
+                  <Text style={styles.shippingPriceCurrency}>USD</Text>
                 </View>
               </View>
               <View style={styles.shippingOptionDetails}>
                 <Text style={styles.shippingOptionDetailsText}>
-                  Estimated delivery: {selectedShippingRate.delivery_days === 1 ? 'Next business day' : `Within ${selectedShippingRate.delivery_days} business days`}
+                  Estimated delivery:{' '}
+                  {selectedShippingRate.delivery_days === 1
+                    ? 'Next business day'
+                    : `Within ${selectedShippingRate.delivery_days} business days`}
                 </Text>
-                {selectedShippingRate.carrier === 'USPS' && selectedShippingRate.service === 'Priority' && (
-                  <Text style={styles.uspsPriorityInfo}>
-                    🚀 USPS Priority Mail - Fastest reliable shipping option
-                  </Text>
-                )}
+                {selectedShippingRate.carrier === 'USPS' &&
+                  selectedShippingRate.service === 'Priority' && (
+                    <Text style={styles.uspsPriorityInfo}>
+                      🚀 USPS Priority Mail - Fastest reliable shipping option
+                    </Text>
+                  )}
               </View>
-             
             </View>
-            
           ) : null}
- <Text style={styles.shippingText}>
-              The shipping is 100% insured by unopened 
-                  </Text>
+          <Text style={styles.shippingText}>
+            The shipping is 100% insured by unopened
+          </Text>
           {/* Show no rates message when no shipping options available */}
-          {!selectedShippingRate && !isShippingRatesLoading && shippingApiCalled ? (
+          {!selectedShippingRate &&
+          !isShippingRatesLoading &&
+          shippingApiCalled ? (
             <View style={styles.noRatesContainer}>
-              <Text style={styles.noRatesText}>⚠️ No shipping options available</Text>
-              <Text style={styles.noRatesSubtext}>Please try a different address or contact support</Text>
+              <Text style={styles.noRatesText}>
+                ⚠️ No shipping options available
+              </Text>
+              <Text style={styles.noRatesSubtext}>
+                Please try a different address or contact support
+              </Text>
             </View>
           ) : null}
         </View>
@@ -1106,21 +1261,26 @@ console.log("allProductList", allProductList);
             style={[
               styles.paymentCard,
               paymentMethod === 'wallet' && styles.selectedPaymentCard,
-              isWalletPaymentDisabled() && styles.disabledPaymentCard
+              isWalletPaymentDisabled() && styles.disabledPaymentCard,
             ]}
             onPress={() => {
               // Don't allow selection if wallet payment is disabled
               if (isWalletPaymentDisabled()) {
-                const walletBalance = getSafeNumber(walletData?.data?.wallet?.amount);
-                const productPrice = getSafeNumber(allProductList?.data?.product[0]?.price);
-                
+                const walletBalance = getSafeNumber(
+                  walletData?.data?.wallet?.amount,
+                );
+                const productPrice = getSafeNumber(
+                  allProductList?.data?.product[0]?.price,
+                );
+
                 let message = 'Wallet payment is not available.';
                 if (walletBalance <= 0) {
-                  message = 'Your wallet balance is insufficient. Please add funds to your wallet or use Stripe payment.';
+                  message =
+                    'Your wallet balance is insufficient. Please add funds to your wallet or use Stripe payment.';
                 } else if (productPrice <= 0) {
                   message = 'Invalid product price. Please try again.';
                 }
-                
+
                 showAlert({
                   isVisible: true,
                   type: 'error',
@@ -1136,8 +1296,12 @@ console.log("allProductList", allProductList);
                 return;
               }
 
-              const walletBalance = getSafeNumber(walletData?.data?.wallet?.amount);
-              const productPrice = getSafeNumber(allProductList?.data?.product[0]?.price);
+              const walletBalance = getSafeNumber(
+                walletData?.data?.wallet?.amount,
+              );
+              const productPrice = getSafeNumber(
+                allProductList?.data?.product[0]?.price,
+              );
 
               if (walletBalance < productPrice) {
                 // Hybrid payment logic
@@ -1145,7 +1309,11 @@ console.log("allProductList", allProductList);
                   isVisible: true,
                   type: 'info',
                   title: 'Hybrid Payment',
-                  description: `Use $${walletBalance.toFixed(2)} from wallet + $${(productPrice - walletBalance).toFixed(2)} via Stripe?`,
+                  description: `Use $${walletBalance.toFixed(
+                    2,
+                  )} from wallet + $${(productPrice - walletBalance).toFixed(
+                    2,
+                  )} via Stripe?`,
                   doneText: 'Yes',
                   deleteText: 'No',
                   onDonePress: () => {
@@ -1154,74 +1322,81 @@ console.log("allProductList", allProductList);
                       isVisible: true,
                       type: 'info',
                       title: 'Hybrid Payment Selected',
-                      description: 'Click "Pay with Wallet + Stripe" button to proceed with hybrid payment.',
+                      description:
+                        'Click "Pay with Wallet + Stripe" button to proceed with hybrid payment.',
                       doneText: 'OK',
                     });
                   },
                   onDeletePress: () => {
                     setPaymentMethod('stripe');
-                  }
+                  },
                 });
                 return;
               }
-              
+
               // Full wallet payment available
               setPaymentMethod('wallet');
             }}
-            disabled={isWalletPaymentDisabled()}
-          >
+            disabled={isWalletPaymentDisabled()}>
             <View style={styles.paymentOption}>
               <View
                 style={[
                   styles.radioOuter,
-                  { 
-                    borderColor: isWalletPaymentDisabled() 
-                      ? '#E0E0E0' 
-                      : paymentMethod === 'wallet' 
-                        ? '#31AD52' 
-                        : '#E0E0E0' 
-                  }
-                ]}
-              >
-                {paymentMethod === 'wallet' && !isWalletPaymentDisabled() && <View style={styles.radioInner} />}
+                  {
+                    borderColor: isWalletPaymentDisabled()
+                      ? '#E0E0E0'
+                      : paymentMethod === 'wallet'
+                      ? '#31AD52'
+                      : '#E0E0E0',
+                  },
+                ]}>
+                {paymentMethod === 'wallet' && !isWalletPaymentDisabled() && (
+                  <View style={styles.radioInner} />
+                )}
               </View>
               <View style={styles.paymentDetails}>
-                <Text style={[
-                  styles.paymentLabel,
-                  isWalletPaymentDisabled() && { color: '#999999' }
-                ]}>
+                <Text
+                  style={[
+                    styles.paymentLabel,
+                    isWalletPaymentDisabled() && {color: '#999999'},
+                  ]}>
                   Wallet Payment
                 </Text>
-                <Text style={[
-                  styles.paymentAmount,
-                  isWalletPaymentDisabled() && { color: '#999999' }
-                ]}>
+                <Text
+                  style={[
+                    styles.paymentAmount,
+                    isWalletPaymentDisabled() && {color: '#999999'},
+                  ]}>
                   ${getFinalAmount().toFixed(2)}
                 </Text>
-                <Text style={[
-                  styles.walletBalanceText,
-                  { 
-                    color: isWalletPaymentDisabled() 
-                      ? '#999999' 
-                      : getSafeNumber(walletData?.data?.wallet?.amount) < getSafeNumber(allProductList?.data?.product[0]?.price) 
-                        ? '#FF6B6B' 
-                        : colors.text3 
-                  }
-                ]}>
-                  {isWalletLoading 
-                    ? 'Loading...' 
+                <Text
+                  style={[
+                    styles.walletBalanceText,
+                    {
+                      color: isWalletPaymentDisabled()
+                        ? '#999999'
+                        : getSafeNumber(walletData?.data?.wallet?.amount) <
+                          getSafeNumber(allProductList?.data?.product[0]?.price)
+                        ? '#FF6B6B'
+                        : colors.text3,
+                    },
+                  ]}>
+                  {isWalletLoading
+                    ? 'Loading...'
                     : getSafeNumber(walletData?.data?.wallet?.amount) <= 0
-                      ? 'No funds available'
-                      : `$${getSafeNumber(walletData?.data?.wallet?.amount).toFixed(2)} available`
-                  }
+                    ? 'No funds available'
+                    : `$${getSafeNumber(
+                        walletData?.data?.wallet?.amount,
+                      ).toFixed(2)} available`}
                 </Text>
-                {!isWalletLoading && 
-                 !isWalletPaymentDisabled() && 
-                 getSafeNumber(walletData?.data?.wallet?.amount) < getSafeNumber(allProductList?.data?.product[0]?.price) && (
-                  <Text style={styles.hybridPaymentInfo}>
-                    💳 Hybrid payment available
-                  </Text>
-                )}
+                {!isWalletLoading &&
+                  !isWalletPaymentDisabled() &&
+                  getSafeNumber(walletData?.data?.wallet?.amount) <
+                    getSafeNumber(allProductList?.data?.product[0]?.price) && (
+                    <Text style={styles.hybridPaymentInfo}>
+                      💳 Hybrid payment available
+                    </Text>
+                  )}
                 {isWalletPaymentDisabled() && !isWalletLoading && (
                   <Text style={styles.disabledPaymentInfo}>
                     ❌ Wallet payment unavailable
@@ -1229,18 +1404,18 @@ console.log("allProductList", allProductList);
                 )}
               </View>
             </View>
-            <TouchableOpacity 
-              onPress={(e) => {
+            <TouchableOpacity
+              onPress={e => {
                 e.stopPropagation();
                 // Navigate to add fund screen or show add fund modal
                 navigation.navigate(SCREENS.AddFundScreen); // Adjust screen name as needed
               }}
-              disabled={isWalletLoading}
-            >
-              <Text style={[
-                styles.addFundButton,
-                isWalletLoading && { color: '#999999' }
-              ]}>
+              disabled={isWalletLoading}>
+              <Text
+                style={[
+                  styles.addFundButton,
+                  isWalletLoading && {color: '#999999'},
+                ]}>
                 Add Fund
               </Text>
             </TouchableOpacity>
@@ -1251,18 +1426,21 @@ console.log("allProductList", allProductList);
             style={[
               styles.paymentCard,
               paymentMethod === 'stripe' && styles.selectedPaymentCard,
-              styles.stripePaymentCard
+              styles.stripePaymentCard,
             ]}
-            onPress={() => setPaymentMethod('stripe')}
-          >
+            onPress={() => setPaymentMethod('stripe')}>
             <View style={styles.paymentOption}>
               <View
                 style={[
                   styles.radioOuter,
-                  { borderColor: paymentMethod === 'stripe' ? '#31AD52' : '#E0E0E0' }
-                ]}
-              >
-                {paymentMethod === 'stripe' && <View style={styles.radioInner} />}
+                  {
+                    borderColor:
+                      paymentMethod === 'stripe' ? '#31AD52' : '#E0E0E0',
+                  },
+                ]}>
+                {paymentMethod === 'stripe' && (
+                  <View style={styles.radioInner} />
+                )}
               </View>
               <View style={styles.paymentDetails}>
                 <Text style={styles.paymentLabel}>Stripe</Text>
@@ -1273,9 +1451,6 @@ console.log("allProductList", allProductList);
             </View>
           </TouchableOpacity>
         </View>
-
-     
-
 
         <ApplyOfferInput
           control={control}
@@ -1289,24 +1464,25 @@ console.log("allProductList", allProductList);
           error={errors}
           onApply={handleDiscountCodeApply}
         />
-          
+
         {/* Applied Coupon Display */}
         {discountAmount > 0 && appliedDiscountCode && (
-            <View style={styles.appliedCouponContainer}>
-              <View style={styles.appliedCouponBadge}>
-                <Text style={styles.appliedCouponText}>{appliedDiscountCode}</Text>
-              </View>
-              <Text style={styles.appliedCouponAmount}>
-                {getDiscountDisplay()}
+          <View style={styles.appliedCouponContainer}>
+            <View style={styles.appliedCouponBadge}>
+              <Text style={styles.appliedCouponText}>
+                {appliedDiscountCode}
               </Text>
-              <TouchableOpacity 
-                style={styles.removeCouponButton}
-                onPress={clearDiscount}
-              >
-                <Text style={styles.removeCouponButtonText}>Remove</Text>
-              </TouchableOpacity>
             </View>
-          )}
+            <Text style={styles.appliedCouponAmount}>
+              {getDiscountDisplay()}
+            </Text>
+            <TouchableOpacity
+              style={styles.removeCouponButton}
+              onPress={clearDiscount}>
+              <Text style={styles.removeCouponButtonText}>Remove</Text>
+            </TouchableOpacity>
+          </View>
+        )}
         {/* Payment Summary */}
         <View style={styles.productSection}>
           <Text style={styles.sectionTitle}>Payment Summary</Text>
@@ -1315,73 +1491,117 @@ console.log("allProductList", allProductList);
             {/* Product Price */}
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Product Price:</Text>
-              <Text style={styles.summaryAmount}>${getSafeNumber(allProductList?.data?.product[0]?.price).toFixed(2)}</Text>
+              <Text style={styles.summaryAmount}>
+                $
+                {getSafeNumber(allProductList?.data?.product[0]?.price).toFixed(
+                  2,
+                )}
+              </Text>
             </View>
-            
+
             {/* Shipping Cost */}
             {selectedShippingRate && (
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Shipping Cost:</Text>
-                <Text style={styles.summaryAmount}>${getSafeNumber(selectedShippingRate.rate).toFixed(2)}</Text>
+                <Text style={styles.summaryAmount}>
+                  ${getSafeNumber(selectedShippingRate.rate).toFixed(2)}
+                </Text>
               </View>
             )}
-            
+
             {/* Subtotal */}
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Subtotal:</Text>
-              <Text style={[styles.summaryAmount, { fontFamily: fonts.bold }]}>${getSubtotal().toFixed(2)}</Text>
+              <Text style={[styles.summaryAmount, {fontFamily: fonts.bold}]}>
+                ${getSubtotal().toFixed(2)}
+              </Text>
             </View>
-            
+
             {/* Discount */}
             {discountAmount > 0 && (
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Discount:</Text>
-                <Text style={[styles.summaryAmount, { color: '#FF6B6B' }]}>{getDiscountDisplay()}</Text>
+                <Text style={[styles.summaryAmount, {color: '#FF6B6B'}]}>
+                  {getDiscountDisplay()}
+                </Text>
               </View>
             )}
-            
+
             {/* Final Total */}
             <View style={styles.summaryDivider} />
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Total Amount:</Text>
-              <Text style={[styles.summaryAmount, { color: colors.primary, fontFamily: fonts.bold, fontSize: fontSizes.huge }]}>${getFinalAmount().toFixed(2)}</Text>
+              <Text
+                style={[
+                  styles.summaryAmount,
+                  {
+                    color: colors.primary,
+                    fontFamily: fonts.bold,
+                    fontSize: fontSizes.huge,
+                  },
+                ]}>
+                ${getFinalAmount().toFixed(2)}
+              </Text>
             </View>
-            
+
             {/* Payment Method Breakdown */}
             {paymentMethod === 'wallet' && !isWalletPaymentDisabled() && (
               <>
                 <View style={styles.summaryDivider} />
                 <View style={styles.summaryRow}>
                   <Text style={styles.summaryLabel}>Payment Method:</Text>
-                  <Text style={[styles.summaryAmount, { color: colors.primary }]}>Wallet Payment</Text>
+                  <Text style={[styles.summaryAmount, {color: colors.primary}]}>
+                    Wallet Payment
+                  </Text>
                 </View>
-                
-                {getSafeNumber(walletData?.data?.wallet?.amount) >= getFinalAmount() ? (
+
+                {getSafeNumber(walletData?.data?.wallet?.amount) >=
+                getFinalAmount() ? (
                   <View style={styles.summaryRow}>
                     <Text style={styles.summaryLabel}>Wallet Balance:</Text>
-                    <Text style={[styles.summaryAmount, { color: colors.primary }]}>${getSafeNumber(walletData?.data?.wallet?.amount).toFixed(2)}</Text>
+                    <Text
+                      style={[styles.summaryAmount, {color: colors.primary}]}>
+                      $
+                      {getSafeNumber(walletData?.data?.wallet?.amount).toFixed(
+                        2,
+                      )}
+                    </Text>
                   </View>
                 ) : (
                   <>
                     <View style={styles.summaryRow}>
                       <Text style={styles.summaryLabel}>From Wallet:</Text>
-                      <Text style={[styles.summaryAmount, { color: colors.primary }]}>${getSafeNumber(walletData?.data?.wallet?.amount).toFixed(2)}</Text>
+                      <Text
+                        style={[styles.summaryAmount, {color: colors.primary}]}>
+                        $
+                        {getSafeNumber(
+                          walletData?.data?.wallet?.amount,
+                        ).toFixed(2)}
+                      </Text>
                     </View>
                     <View style={styles.summaryRow}>
                       <Text style={styles.summaryLabel}>From Stripe:</Text>
-                      <Text style={styles.summaryAmount}>${(getFinalAmount() - getSafeNumber(walletData?.data?.wallet?.amount)).toFixed(2)}</Text>
+                      <Text style={styles.summaryAmount}>
+                        $
+                        {(
+                          getFinalAmount() -
+                          getSafeNumber(walletData?.data?.wallet?.amount)
+                        ).toFixed(2)}
+                      </Text>
                     </View>
                   </>
                 )}
               </>
             )}
-            
+
             {paymentMethod === 'stripe' && (
               <>
                 <View style={styles.summaryDivider} />
                 <View style={styles.summaryRow}>
                   <Text style={styles.summaryLabel}>Payment Method:</Text>
-                  <Text style={[styles.summaryAmount, { color: colors.primary }]}>Credit/Debit Card</Text>
+                  <Text style={[styles.summaryAmount, {color: colors.primary}]}>
+                    Credit/Debit Card
+                  </Text>
                 </View>
               </>
             )}
@@ -1392,26 +1612,44 @@ console.log("allProductList", allProductList);
       <View style={styles.buyContainer}>
         <Button
           title={
-            !isWalletLoading && paymentMethod === 'wallet' && !isWalletPaymentDisabled() && getSafeNumber(walletData?.data?.wallet?.amount) < getFinalAmount()
+            !isWalletLoading &&
+            paymentMethod === 'wallet' &&
+            !isWalletPaymentDisabled() &&
+            getSafeNumber(walletData?.data?.wallet?.amount) < getFinalAmount()
               ? `Pay $${getFinalAmount().toFixed(2)} (Wallet + Stripe)`
               : paymentMethod === 'stripe'
-                ? `Pay $${getFinalAmount().toFixed(2)} with Card`
-                : `Confirm Purchase - $${getFinalAmount().toFixed(2)}`
+              ? `Pay $${getFinalAmount().toFixed(2)} with Card`
+              : `Confirm Purchase - $${getFinalAmount().toFixed(2)}`
           }
           onPress={handleBuyNow}
-          disabled={!selectedAddress || !allProductList?.data?.product[0] || !selectedShippingRate} // Disable if no address, product, or shipping
+          disabled={
+            !selectedAddress ||
+            !allProductList?.data?.product[0] ||
+            !selectedShippingRate
+          } // Disable if no address, product, or shipping
           style={[
-            (!selectedAddress || !allProductList?.data?.product[0] || !selectedShippingRate) && styles.disabledButton
+            (!selectedAddress ||
+              !allProductList?.data?.product[0] ||
+              !selectedShippingRate) &&
+              styles.disabledButton,
           ]}
         />
-        
+
         {/* Show helpful message when button is disabled */}
-        {(!selectedAddress || !allProductList?.data?.product[0] || !selectedShippingRate) && (
+        {(!selectedAddress ||
+          !allProductList?.data?.product[0] ||
+          !selectedShippingRate) && (
           <View style={styles.disabledButtonMessage}>
             <Text style={styles.disabledButtonText}>
-              {!selectedAddress ? '📍 Please select a delivery address' :
-               !allProductList?.data?.product[0] ? '📦 Product information is loading...' :
-               !selectedShippingRate ? (isAddressChanged ? '🚚 Shipping rates not available for new address - click refresh button above' : '🚚 Please select a shipping option') : ''}
+              {!selectedAddress
+                ? '📍 Please select a delivery address'
+                : !allProductList?.data?.product[0]
+                ? '📦 Product information is loading...'
+                : !selectedShippingRate
+                ? isAddressChanged
+                  ? '🚚 Shipping rates not available for new address - click refresh button above'
+                  : '🚚 Please select a shipping option'
+                : ''}
             </Text>
           </View>
         )}
@@ -1428,7 +1666,11 @@ console.log("allProductList", allProductList);
       />
 
       {/* Stripe Payment Modal */}
-      <View style={[styles.modalOverlay, { display: isStripeModalVisible ? 'flex' : 'none' }]}>
+      <View
+        style={[
+          styles.modalOverlay,
+          {display: isStripeModalVisible ? 'flex' : 'none'},
+        ]}>
         <View style={styles.stripeModal}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Payment Details</Text>
@@ -1441,14 +1683,14 @@ console.log("allProductList", allProductList);
               Total Amount: ${totalPrice}
             </Text>
             <Text style={styles.modalDescription}>
-              You will be redirected to Stripe to complete your payment securely.
+              You will be redirected to Stripe to complete your payment
+              securely.
             </Text>
           </View>
           <View style={styles.modalActions}>
             <TouchableOpacity
               style={styles.cancelButton}
-              onPress={() => setStripeModalVisible(false)}
-            >
+              onPress={() => setStripeModalVisible(false)}>
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -1457,17 +1699,19 @@ console.log("allProductList", allProductList);
                 setStripeModalVisible(false);
                 // Get payment payload for Stripe payment
                 const addressId = getCurrentAddressId();
-                const productPrice = allProductList?.data?.product[0]?.price || '0';
+                const productPrice =
+                  allProductList?.data?.product[0]?.price || '0';
                 const paymentPayload = {
                   amount: productPrice.toString(),
-                  rate_amount: selectedShippingRate ? selectedShippingRate.rate.toString() : '0',
+                  rate_amount: selectedShippingRate
+                    ? selectedShippingRate.rate.toString()
+                    : '0',
                   address_id: addressId || 0,
                   rate_id: selectedShippingRate ? selectedShippingRate.id : '',
-                  shipmentId: shippingID
+                  shipmentId: shippingID,
                 };
                 handleStripePayment(paymentPayload);
-              }}
-            >
+              }}>
               <Text style={styles.proceedButtonText}>Proceed to Payment</Text>
             </TouchableOpacity>
           </View>
@@ -1491,7 +1735,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 20,
     justifyContent: 'center',
-    borderRadius: 12
+    borderRadius: 12,
   },
   productContainer: {
     flexDirection: 'row',
@@ -1520,7 +1764,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingHorizontal: 4,
     height: 32,
-    width: 77
+    width: 77,
   },
   quantityButton: {
     width: 24,
@@ -1616,7 +1860,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bold,
     fontSize: fontSizes.medium,
     borderBottomColor: '#239C43',
-    borderBottomWidth: 1
+    borderBottomWidth: 1,
   },
   addressCard: {
     backgroundColor: '#F5F7F2',
@@ -1653,7 +1897,7 @@ const styles = StyleSheet.create({
     color: colors.label,
     fontFamily: fonts.medium,
     lineHeight: 20,
-    paddingStart: 5
+    paddingStart: 5,
   },
   deliveryCard: {
     backgroundColor: '#F5F7F2',
@@ -2225,5 +2469,4 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontStyle: 'italic',
   },
-
 });
