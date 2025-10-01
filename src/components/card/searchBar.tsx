@@ -10,13 +10,15 @@ interface BannerItemCardProps {
   onFilterPress?: () => void;
   value?: string;
   onSubmit?: () => void;
+  hasActiveFilters?: boolean;
 }
 
 const SearchBar: React.FC<BannerItemCardProps> = ({ placeholder = 'Search unopened products...',
   onChangeText,
   onFilterPress,
   onSubmit,
-  value, }) => {
+  value,
+  hasActiveFilters = false, }) => {
   return (
     <View style={styles.searchContainer}>
       <TextInput
@@ -27,8 +29,9 @@ const SearchBar: React.FC<BannerItemCardProps> = ({ placeholder = 'Search unopen
         value={value}
         onSubmitEditing={onSubmit}
       />
-      <TouchableOpacity  onPress={onFilterPress}>
+      <TouchableOpacity style={styles.filterButton} onPress={onFilterPress}>
         <IconsSvg name ="filterIcon"/>
+        {hasActiveFilters && <View style={styles.redDot} />}
       </TouchableOpacity>
     </View>
   );
@@ -52,7 +55,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginRight: 8,
   },
-  
+  filterButton: {
+    position: 'relative',
+  },
+  redDot: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#FF0000',
+  },
   filterText: {
     fontSize: 16,
   },

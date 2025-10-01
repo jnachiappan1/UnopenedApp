@@ -41,7 +41,7 @@ export default class CAlert extends React.Component<any, IState> {
       title: '',
       description: '',
       doneText: 'Done',
-      deleteText: 'Cancel',
+      // deleteText: 'Cancel',
     };
   }
 

@@ -7,12 +7,12 @@ import {FlashList} from '@shopify/flash-list';
 import colors from '../../utils/colors';
 import {fontSizes} from '../../utils/utils';
 import OrderListingCard from '../../components/card/orderListingCard';
-import { ProductData} from '../../utils/types';
-import { getMyOrderList } from '../../utils/apiAction';
-import { useQuery } from '@tanstack/react-query';
-import { useSelector } from 'react-redux';
-import { IRootState } from '../../redux/store';
-import { useFocusEffect } from '@react-navigation/native';
+import {ProductData} from '../../utils/types';
+import {getMyOrderList} from '../../utils/apiAction';
+import {useQuery} from '@tanstack/react-query';
+import {useSelector} from 'react-redux';
+import {IRootState} from '../../redux/store';
+import {useFocusEffect} from '@react-navigation/native';
 
 type MyOrderScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -23,11 +23,12 @@ const ALLOWED_TABS = ['Pending', 'In Transit', 'Delivered', 'Cancelled'];
 const MyOrderScreen: React.FC<MyOrderScreenProps> = ({navigation}) => {
   const [selectedTab, setSelectedTab] = useState('All');
   const userData = useSelector((user: IRootState) => user.user.userData);
-  const { data: sellerOwnProductList, refetch: refetchsellerOwnProductList } = useQuery({
-    queryKey: ['getMyOrderList'],
-    queryFn: () => getMyOrderList(),
-    enabled: !!userData, 
-  });
+  const {data: sellerOwnProductList, refetch: refetchsellerOwnProductList} =
+    useQuery({
+      queryKey: ['getMyOrderList'],
+      queryFn: () => getMyOrderList(),
+      enabled: !!userData,
+    });
 
   // Use useFocusEffect to refetch data when screen comes into focus
   useFocusEffect(
@@ -35,7 +36,7 @@ const MyOrderScreen: React.FC<MyOrderScreenProps> = ({navigation}) => {
       if (userData) {
         refetchsellerOwnProductList();
       }
-    }, [userData, refetchsellerOwnProductList])
+    }, [userData, refetchsellerOwnProductList]),
   );
 
   const normalizeStatus = (status: string): string => {
@@ -54,12 +55,12 @@ const MyOrderScreen: React.FC<MyOrderScreenProps> = ({navigation}) => {
         return 'Unknown';
     }
   };
-  
+
   const generateTabs = (): string[] => {
     // Show all tabs regardless of data availability
     return ['All', ...ALLOWED_TABS];
   };
-  
+
   const filterData = () => {
     // Fixed: Access the product array correctly
     const allProducts = sellerOwnProductList?.data?.product || [];
@@ -101,7 +102,7 @@ const MyOrderScreen: React.FC<MyOrderScreenProps> = ({navigation}) => {
   const renderHeader = () => (
     <View style={styles.headerContainer}>
       <FlatList
-        data={generateTabs()} // Show all tabs
+        data={generateTabs()}
         horizontal
         showsHorizontalScrollIndicator={false}
         renderItem={renderTab}
@@ -118,19 +119,19 @@ const MyOrderScreen: React.FC<MyOrderScreenProps> = ({navigation}) => {
       <FlashList
         data={filteredData}
         renderItem={({item}) => (
-          
           <View style={{paddingHorizontal: 10}}>
-              <OrderListingCard 
-          item={item} 
-          onSelect={(selectedItem) => {
-            
-            try {
-               navigation.navigate(SCREENS.OrderTrackScreen, {productId: item?.id});
-            } catch (navError) {
-              console.error('Navigation error:', navError);
-            }
-          }} 
-        />
+            <OrderListingCard
+              item={item}
+              onSelect={selectedItem => {
+                try {
+                  navigation.navigate(SCREENS.OrderTrackScreen, {
+                    productId: item?.id,
+                  });
+                } catch (navError) {
+                  console.error('Navigation error:', navError);
+                }
+              }}
+            />
           </View>
         )}
         keyExtractor={(item: any) => item.id?.toString?.() ?? ''}
@@ -141,7 +142,9 @@ const MyOrderScreen: React.FC<MyOrderScreenProps> = ({navigation}) => {
         ListEmptyComponent={
           <View style={styles.centerContainer}>
             <Text style={styles.emptyText}>
-              {selectedTab === 'All' ? 'No orders found' : `No ${selectedTab.toLowerCase()} orders found`}
+              {selectedTab === 'All'
+                ? 'No orders found'
+                : `No ${selectedTab.toLowerCase()} orders found`}
             </Text>
           </View>
         }

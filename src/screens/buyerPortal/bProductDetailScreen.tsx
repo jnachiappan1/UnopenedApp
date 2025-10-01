@@ -56,32 +56,29 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
   const userData = useSelector((user: IRootState) => user.user.userData);
   const isLogged = userData ? true : false;
   const userType = useSelector((state: IRootState) => state.user.userType);
-console.log("userType------------", userData);
 
-
-    const {
-      data: allProductList,
-      refetch: refetchAllProduct,
-      isLoading,
-    } = useQuery({
-      queryKey: ['getProductDetailByID', productId],
-      queryFn: () => getProductDetailByID(productId),
-    });
-    const { data: addressesData } = useQuery({
-      queryKey: ['getAddresses'],
-      queryFn: getAddresses,
-    });
-    const addressId = addressesData?.data?.address[0]?.id;
-    const {
-      data: addressData,
-      refetch: refetchAddressData,
-      isLoading: isLoadingAddressData,
-    } = useQuery({
-      queryKey: ['getAddressesByID', addressId],
-      queryFn: () => getAddressesByID(addressId),
-      enabled: !!addressId,
-    });
-
+  const {
+    data: allProductList,
+    refetch: refetchAllProduct,
+    isLoading,
+  } = useQuery({
+    queryKey: ['getProductDetailByID', productId],
+    queryFn: () => getProductDetailByID(productId),
+  });
+  const {data: addressesData} = useQuery({
+    queryKey: ['getAddresses'],
+    queryFn: getAddresses,
+  });
+  const addressId = addressesData?.data?.address[0]?.id;
+  const {
+    data: addressData,
+    refetch: refetchAddressData,
+    isLoading: isLoadingAddressData,
+  } = useQuery({
+    queryKey: ['getAddressesByID', addressId],
+    queryFn: () => getAddressesByID(addressId),
+    enabled: !!addressId,
+  });
 
   const {
     data: ProductPriceData,
@@ -153,7 +150,9 @@ console.log("userType------------", userData);
     } else if (payload?.data) {
       root = payload.data;
     } else if (payload?.address) {
-      root = Array.isArray(payload.address) ? payload.address[0] : payload.address;
+      root = Array.isArray(payload.address)
+        ? payload.address[0]
+        : payload.address;
     } else {
       root = payload;
     }
@@ -201,10 +200,10 @@ console.log("userType------------", userData);
   }
 
   const currentProduct = allProductList?.data?.product[0];
-  
-  const productImages: ProductImage[] = (
-    currentProduct?.product_image ?? []
-  ).slice().reverse();
+
+  const productImages: ProductImage[] = (currentProduct?.product_image ?? [])
+    .slice()
+    .reverse();
   return (
     <TitleBackHeaderContainer title="Product Details" isBack>
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -227,32 +226,30 @@ console.log("userType------------", userData);
                   resizeMode="contain"
                 /> */}
                 {isVideo(item) ? (
-                <VideoPlayer
-                  source={item.image}
-                  style={styles.productImage}
-                />
-              ) : (
-                <Image
-                  source={{uri: image_url + item.image}}
-                  style={[styles.productImage]}
-                  resizeMode="contain"
-                />
-              )}
+                  <VideoPlayer
+                    source={item.image}
+                    style={styles.productImage}
+                  />
+                ) : (
+                  <Image
+                    source={{uri: image_url + item.image}}
+                    style={[styles.productImage]}
+                    resizeMode="contain"
+                  />
+                )}
               </View>
             )}
           />
           <View style={styles.dotsContainer}>
-            {productImages.map(
-              (_: ProductImage, index: number) => (
-                <View
-                  key={index}
-                  style={[
-                    styles.dot,
-                    currentImageIndex === index && styles.activeDot,
-                  ]}
-                />
-              ),
-            )}
+            {productImages.map((_: ProductImage, index: number) => (
+              <View
+                key={index}
+                style={[
+                  styles.dot,
+                  currentImageIndex === index && styles.activeDot,
+                ]}
+              />
+            ))}
           </View>
           <View style={styles.productInfoInside}>
             <Text style={styles.productName}>{currentProduct?.name}</Text>
@@ -300,18 +297,18 @@ console.log("userType------------", userData);
             subtitleStyle={styles.subtitleStyle}
           />
         </View>
-        {userData !== null &&<View style={styles.productInfo}>
-         
-         <StatusBadge
-           status={
-             currentProduct?.product_status === 'active'
-               ? 'In_Stock'
-               : currentProduct?.product_status
-           }
-         />
-      
-         <View style={styles.deliveryInfo}>
-           {/* <View style={styles.deliveryRow}>
+        {userData !== null && (
+          <View style={styles.productInfo}>
+            <StatusBadge
+              status={
+                currentProduct?.product_status === 'active'
+                  ? 'In_Stock'
+                  : currentProduct?.product_status
+              }
+            />
+
+            <View style={styles.deliveryInfo}>
+              {/* <View style={styles.deliveryRow}>
              <View style={styles.deliveryIcon}>
                <IconsSvg name="vehicle" />
              </View>
@@ -322,17 +319,17 @@ console.log("userType------------", userData);
                <Text style={styles.deliverySubtitle}>Standard delivery</Text>
              </View>
            </View> */}
-           <View style={styles.deliveryRow}>
-             <View style={styles.deliveryIcon}>
-               <IconsSvg name="deliverBox" />
-             </View>
-             <View style={styles.deliveryDetails}>
-               <Text style={styles.deliveryTitle}>{deliveryTitleText}</Text>
-             </View>
-           </View>
-         </View>
-       </View> }
-        
+              <View style={styles.deliveryRow}>
+                <View style={styles.deliveryIcon}>
+                  <IconsSvg name="deliverBox" />
+                </View>
+                <View style={styles.deliveryDetails}>
+                  <Text style={styles.deliveryTitle}>{deliveryTitleText}</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        )}
 
         <View style={styles.productInfo}>
           <View style={styles.trustContainer}>

@@ -221,8 +221,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
             isVisible: true,
             type: 'error',
             title: 'Invalid Coupon',
-            description:
-              'Coupon code is wrong',
+            description: 'Coupon code is wrong',
             doneText: 'Okay',
           });
         } else if (responseData?.data?.is_available === false) {
@@ -238,8 +237,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
             isVisible: true,
             type: 'error',
             title: 'Coupon Validation Failed',
-            description:
-              "No coupon found",
+            description: 'No coupon found',
             doneText: 'Okay',
           });
         }
@@ -249,8 +247,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
         isVisible: true,
         type: 'error',
         title: 'Coupon Validation Error',
-        description:
-          error?.response?.data?.message ,
+        description: error?.response?.data?.message,
         doneText: 'Okay',
       });
     }
@@ -452,8 +449,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
               // Apply coupon after successful wallet payment
               try {
                 await applyCouponAfterPayment();
-              } catch (error) {
-              }
+              } catch (error) {}
               setModalVisible(true);
             } else {
               showLoader(false);
@@ -479,7 +475,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
           }
         } else {
           const walletAmount = getSafeNumber(currentWalletBalance);
-          const remainingAmount = finalAmount - walletAmount; 
+          const remainingAmount = finalAmount - walletAmount;
           showAlert({
             isVisible: true,
             type: 'info',
@@ -1641,7 +1637,9 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
                 : !allProductList?.data?.product[0]
                 ? '📦 Product information is loading...'
                 : !selectedShippingRate
-                ? isAddressChanged
+                ? isShippingRatesLoading || !shippingApiCalled
+                  ? '⏳ Calculating shipping charges...'
+                  : isAddressChanged
                   ? '🚚 Shipping rates not available for new address - click refresh button above'
                   : '🚚 Please select a shipping option'
                 : ''}

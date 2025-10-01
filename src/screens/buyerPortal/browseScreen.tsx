@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   StyleSheet,
   Text,
@@ -10,22 +10,22 @@ import {
   RefreshControl,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
 import SearchBar from '../../components/card/searchBar';
 import TopPicksSection from '../../components/card/topPicksSection';
 import ProductSection from '../../components/card/productSection';
-import { products } from '../../utils/static';
+import {products} from '../../utils/static';
 import fonts from '../../assets/fonts/fonts';
 import colors from '../../utils/colors';
 import IconsSvg from '../../assets/svg/iconsSvg';
-import { ScrollView } from 'react-native';
-import { ProductCategory } from '../../utils/types';
-import { useQuery } from '@tanstack/react-query';
-import { getProductList } from '../../utils/apiAction';
-import { useSelector } from 'react-redux';
-import { IRootState } from '../../redux/store';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {ScrollView} from 'react-native';
+import {ProductCategory} from '../../utils/types';
+import {useQuery} from '@tanstack/react-query';
+import {getProductList} from '../../utils/apiAction';
+import {useSelector} from 'react-redux';
+import {IRootState} from '../../redux/store';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 type BrowseScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -35,12 +35,20 @@ type BrowseScreenProps = NativeStackScreenProps<
 const RECENT_SEARCHES_KEY = 'recent_searches';
 const MAX_RECENT_SEARCHES = 5;
 
-const BrowseScreen: React.FC<BrowseScreenProps> = ({ navigation }) => {
+const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
-  const [selectedCategories, setSelectedCategories] = useState<ProductCategory[]>([]);
-  const [selectedSort, setSelectedSort] = useState<{ id: string; name: string } | null>(null);
-  const [selectedPriceRange, setSelectedPriceRange] = useState<{ min: number; max: number } | null>(null);
+  const [selectedCategories, setSelectedCategories] = useState<
+    ProductCategory[]
+  >([]);
+  const [selectedSort, setSelectedSort] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [selectedPriceRange, setSelectedPriceRange] = useState<{
+    min: number;
+    max: number;
+  } | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const userData = useSelector((user: IRootState) => user.user.userData);
   const isLogged = userData ? true : false;
@@ -74,8 +82,10 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({ navigation }) => {
   const addToRecentSearches = async (query: string) => {
     const trimmedQuery = query.trim();
     if (trimmedQuery === '') return;
-    const updatedSearches = [trimmedQuery, ...recentSearches.filter(item => item !== trimmedQuery)]
-      .slice(0, MAX_RECENT_SEARCHES);
+    const updatedSearches = [
+      trimmedQuery,
+      ...recentSearches.filter(item => item !== trimmedQuery),
+    ].slice(0, MAX_RECENT_SEARCHES);
     setRecentSearches(updatedSearches);
     await saveRecentSearches(updatedSearches);
   };
@@ -86,10 +96,10 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({ navigation }) => {
       params.search = searchQuery.trim();
     }
     if (selectedSort?.id) {
-      const sortMapping: { [key: string]: string } = {
-        'price_low_to_high': 'price_low_to_high',
-        'price_high_to_low': 'price_high_to_low',
-        'newest_first': 'newest_first',
+      const sortMapping: {[key: string]: string} = {
+        price_low_to_high: 'price_low_to_high',
+        price_high_to_low: 'price_high_to_low',
+        newest_first: 'newest_first',
       };
       params.sort_by = sortMapping[selectedSort.id] || selectedSort.id;
     }
@@ -105,8 +115,18 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({ navigation }) => {
     return params;
   };
 
-  const { data: productListResponse, refetch: refetchProductList, isLoading } = useQuery({
-    queryKey: ['getProductList', searchQuery, selectedSort?.id, selectedPriceRange, selectedCategories],
+  const {
+    data: productListResponse,
+    refetch: refetchProductList,
+    isLoading,
+  } = useQuery({
+    queryKey: [
+      'getProductList',
+      searchQuery,
+      selectedSort?.id,
+      selectedPriceRange,
+      selectedCategories,
+    ],
     queryFn: () => getProductList(getApiParams()),
     staleTime: 5 * 60 * 1000,
   });
@@ -119,7 +139,14 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({ navigation }) => {
     if (isLogged) {
       refetchProductList();
     }
-  }, [searchQuery, selectedCategories, selectedSort, selectedPriceRange, refetchProductList, isLogged]);
+  }, [
+    searchQuery,
+    selectedCategories,
+    selectedSort,
+    selectedPriceRange,
+    refetchProductList,
+    isLogged,
+  ]);
 
   const handleSearch = async () => {
     const query = searchQueryRef.current.trim();
@@ -163,66 +190,112 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({ navigation }) => {
   };
 
   const getFilteredProducts = () => {
-    if (isLogged) {
-      return apiProducts;
-    }
+    let result = isLogged ? [...apiProducts] : [...products];
 
-    let result = [...products];
+    console.log('🔍 Before filtering - Total products:', result.length);
+    console.log('🔍 Selected sort:', selectedSort);
 
-    if (selectedCategories.length > 0) {
-      result = result.filter(product => {
-        const productCategory = (product as any).category;
-        if (productCategory) {
-          return selectedCategories.some(category =>
-            category.id === productCategory ||
-            category.name === productCategory ||
-            String(category.id) === String(productCategory)
+    // Filter out withdrawn products
+    result = result.filter(
+      product => (product as any).product_status !== 'withdrawn',
+    );
+
+    // For non-logged users, apply client-side filtering
+    // For logged users, API already handles search, categories, and price filtering
+    if (!isLogged) {
+      if (selectedCategories.length > 0) {
+        result = result.filter(product => {
+          const productCategory = (product as any).category;
+          if (productCategory) {
+            return selectedCategories.some(
+              category =>
+                category.id === productCategory ||
+                category.name === productCategory ||
+                String(category.id) === String(productCategory),
+            );
+          }
+          return false;
+        });
+      }
+
+      if (searchQuery.trim() !== '') {
+        result = result.filter(
+          product =>
+            product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            product.description
+              .toLowerCase()
+              .includes(searchQuery.toLowerCase()),
+        );
+      }
+
+      if (selectedPriceRange) {
+        result = result.filter(product => {
+          const productPrice =
+            typeof product.price === 'string'
+              ? parseFloat(product.price.replace(/[^0-9.-]+/g, ''))
+              : product.price;
+
+          if (isNaN(productPrice)) return false;
+
+          return (
+            productPrice >= selectedPriceRange.min &&
+            productPrice <= selectedPriceRange.max
           );
-        }
-        return false;
-      });
+        });
+      }
     }
 
-    if (searchQuery.trim() !== '') {
-      result = result.filter(product =>
-        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    if (selectedPriceRange) {
-      result = result.filter(product => {
-        const productPrice = typeof product.price === 'string'
-          ? parseFloat(product.price.replace(/[^0-9.-]+/g, ''))
-          : product.price;
-
-        if (isNaN(productPrice)) return false;
-
-        return productPrice >= selectedPriceRange.min && productPrice <= selectedPriceRange.max;
-      });
-    }
-
-    if (selectedSort?.id === 'Price: Low to High') {
+    // Apply sorting - for logged users, API handles base sort but we still need to move sold items to top
+    // For non-logged users, we do all sorting client-side
+    if (
+      selectedSort?.id === 'Price: Low to High' ||
+      selectedSort?.id === 'price_low_to_high'
+    ) {
       result = result.sort((a, b) => {
-        const priceA = typeof a.price === 'string'
-          ? parseFloat(a.price.replace(/[^0-9.-]+/g, ''))
-          : a.price;
-        const priceB = typeof b.price === 'string'
-          ? parseFloat(b.price.replace(/[^0-9.-]+/g, ''))
-          : b.price;
+        // Check if products are sold
+        const aIsSold = (a as any).product_status === 'sold';
+        const bIsSold = (b as any).product_status === 'sold';
+
+        // If one is sold and the other is not, sold goes to top
+        if (aIsSold && !bIsSold) return -1;
+        if (!aIsSold && bIsSold) return 1;
+
+        // Both have same sold status, sort by price
+        const priceA =
+          typeof a.price === 'string'
+            ? parseFloat(a.price.replace(/[^0-9.-]+/g, ''))
+            : a.price;
+        const priceB =
+          typeof b.price === 'string'
+            ? parseFloat(b.price.replace(/[^0-9.-]+/g, ''))
+            : b.price;
         if (isNaN(priceA) && isNaN(priceB)) return 0;
         if (isNaN(priceA)) return 1;
         if (isNaN(priceB)) return -1;
         return priceA - priceB;
       });
-    } else if (selectedSort?.id === 'Price: High to Low') {
+    } else if (
+      selectedSort?.id === 'Price: High to Low' ||
+      selectedSort?.id === 'price_high_to_low'
+    ) {
       result = result.sort((a, b) => {
-        const priceA = typeof a.price === 'string'
-          ? parseFloat(a.price.replace(/[^0-9.-]+/g, ''))
-          : a.price;
-        const priceB = typeof b.price === 'string'
-          ? parseFloat(b.price.replace(/[^0-9.-]+/g, ''))
-          : b.price;
+        // Check if products are sold
+        const aIsSold = (a as any).product_status === 'sold';
+        const bIsSold = (b as any).product_status === 'sold';
+
+        // If one is sold and the other is not, sold goes to top
+        if (aIsSold && !bIsSold) return -1;
+        if (!aIsSold && bIsSold) return 1;
+
+        // Both have same sold status, sort by price
+        const priceA =
+          typeof a.price === 'string'
+            ? parseFloat(a.price.replace(/[^0-9.-]+/g, ''))
+            : a.price;
+        const priceB =
+          typeof b.price === 'string'
+            ? parseFloat(b.price.replace(/[^0-9.-]+/g, ''))
+            : b.price;
 
         if (isNaN(priceA) && isNaN(priceB)) return 0;
         if (isNaN(priceA)) return 1;
@@ -230,20 +303,33 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({ navigation }) => {
 
         return priceB - priceA;
       });
-    } else if (selectedSort?.id === 'Newest First') {
+    } else if (!isLogged && selectedSort?.id === 'Newest First') {
       result = result.sort((a, b) => {
-        const dateA = (a as any).createdAt ? new Date((a as any).createdAt).getTime() : 0;
-        const dateB = (b as any).createdAt ? new Date((b as any).createdAt).getTime() : 0;
+        const dateA = (a as any).createdAt
+          ? new Date((a as any).createdAt).getTime()
+          : 0;
+        const dateB = (b as any).createdAt
+          ? new Date((b as any).createdAt).getTime()
+          : 0;
         if (dateA === 0 && dateB === 0) {
           return b.id - a.id;
         }
         return dateB - dateA;
       });
-    } else if (selectedSort?.id === 'Name: A to Z') {
+    } else if (!isLogged && selectedSort?.id === 'Name: A to Z') {
       result = result.sort((a, b) => a.name.localeCompare(b.name));
-    } else if (selectedSort?.id === 'Name: Z to A') {
+    } else if (!isLogged && selectedSort?.id === 'Name: Z to A') {
       result = result.sort((a, b) => b.name.localeCompare(a.name));
     }
+
+    console.log(
+      '🔍 After sorting - Products status:',
+      result.map(p => ({
+        name: (p as any).name,
+        status: (p as any).product_status,
+        price: p.price,
+      })),
+    );
 
     return result;
   };
@@ -251,8 +337,8 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({ navigation }) => {
   const handleFilterPress = () => {
     const onApplyFilters = (
       selectedCategories: ProductCategory[],
-      selectedSort: { id: string; name: string } | null,
-      selectedPriceRange: { min: number; max: number } | null
+      selectedSort: {id: string; name: string} | null,
+      selectedPriceRange: {min: number; max: number} | null,
     ) => {
       setSelectedCategories(selectedCategories);
       setSelectedSort(selectedSort);
@@ -267,21 +353,33 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({ navigation }) => {
     });
   };
 
+  // Check if any filters are active
+  const hasActiveFilters =
+    selectedCategories.length > 0 ||
+    selectedSort !== null ||
+    selectedPriceRange !== null;
+
   return (
     <>
-      <View style={{ height: insets.top, backgroundColor: colors.background }}>
+      <View
+        style={{
+          height: insets.top,
+          backgroundColor: colors.background,
+          marginTop: 25,
+        }}>
         <StatusBar
           backgroundColor={colors.background}
           barStyle="dark-content"
           translucent={false}
         />
       </View>
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeAreaView style={{flex: 1}}>
         <SearchBar
           value={searchQuery}
           onChangeText={setSearchQuery}
           onSubmit={handleSearch}
           onFilterPress={handleFilterPress}
+          hasActiveFilters={hasActiveFilters}
         />
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -289,28 +387,28 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({ navigation }) => {
             <RefreshControl
               refreshing={isRefreshing}
               onRefresh={onRefresh}
-              colors={[colors.primary]} // Android
-              tintColor={colors.primary} // iOS
+              colors={[colors.primary]} 
+              tintColor={colors.primary} 
             />
-          }
-        >
+          }>
           {recentSearches.length > 0 && (
             <View style={styles.recentSearchesContainer}>
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>Recent Searches</Text>
-                <TouchableOpacity onPress={handleClearAll} style={styles.clearAllButton}>
+                <TouchableOpacity
+                  onPress={handleClearAll}
+                  style={styles.clearAllButton}>
                   <Text style={styles.clearAllText}>Clear All</Text>
                 </TouchableOpacity>
               </View>
               <FlatList
                 data={recentSearches}
                 keyExtractor={(item, index) => `${item}-${index}`}
-                renderItem={({ item, index }) => (
+                renderItem={({item, index}) => (
                   <View style={styles.recentSearchItem}>
                     <TouchableOpacity
                       style={styles.recentSearchTextContainer}
-                      onPress={() => handleRecentSearchClick(item)}
-                    >
+                      onPress={() => handleRecentSearchClick(item)}>
                       <Text style={styles.recentSearchText}>{item}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => removeSearch(index)}>
@@ -330,20 +428,19 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({ navigation }) => {
         /> */}
           <ProductSection
             title="Popular Products"
-            products={productListResponse?.data?.product?.filter((product: any) => product.product_status !== 'withdrawn') || []}
-            onViewAll={() => { }}
+            products={getFilteredProducts()}
+            onViewAll={() => {}}
             showViewAll={false}
-            onPress={(item) => {
-              console.log("item------>>>>",item);
-              
-              navigation.navigate(SCREENS.BProductDetailScreen, { productId: item?.id });
+            onPress={item => {
+              navigation.navigate(SCREENS.BProductDetailScreen, {
+                productId: item?.id,
+              });
             }}
           />
-          <View style={{ height: 100 }} />
+          <View style={{height: 100}} />
         </ScrollView>
       </SafeAreaView>
     </>
-
   );
 };
 

@@ -23,6 +23,7 @@ const PaymentMethodCard: React.FC<PaymentMethodCardProps> = ({
   selected,
   onPress,
 }) => {
+console.log("item.icon", item.icon);
 
   return (
     <TouchableOpacity 
@@ -80,10 +81,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   iconContainer: {
-    width: 44,
-    height: 44,
+    width: 56,
+    height: 56,
     borderRadius: 12,
-    backgroundColor: '#fff',
+    backgroundColor: '#F2F5ED',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,

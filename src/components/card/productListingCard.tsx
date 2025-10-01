@@ -43,11 +43,11 @@ const ProductListingCard: React.FC<ProductListingCardProps> = ({
           source={{uri: image_url + item?.product_image[1]?.image}}
           style={styles.cardImage}
         />
-        <View>
+        <View style={{width: '70%'}}>
           <Text style={[styles.cardTitle, nameStyle]} numberOfLines={2}>
             {item?.name}
           </Text>
-          <Text style={styles.cardPosted}>
+          <Text style={styles.cardPosted} numberOfLines={2}>
             Posted {calculateDaysAgo(item?.createdAt)} Days Ago
           </Text>
           <Text style={styles.cardPrice}>${item?.price}</Text>
@@ -100,7 +100,6 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bold,
     color: '#1F1F1F',
     paddingVertical: 2,
-   
   },
   cardPrice: {
     fontSize: fontSizes.medium,

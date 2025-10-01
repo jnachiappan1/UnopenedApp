@@ -24,6 +24,7 @@ import ProductImageUpload from '../../components/model/productImageUpload';
 import {useMutation, useQuery} from '@tanstack/react-query';
 import {
   addProduct,
+  getAddresses,
   getCategoryDetail,
   getProductPriceChargeDetail,
   getProductPriceDetail,
@@ -63,6 +64,7 @@ type FormData = {
   weight: string;
   description: string;
   productImages: MediaObject[];
+  address_id: string;
 };
 
 export interface DropDownType {
@@ -106,6 +108,8 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       queryFn: () => getProductPriceChargeDetail(),
       enabled: isLogged,
     });
+
+    
   const {
     data: scanProductData,
     refetch: refetchScanProductData,
@@ -198,6 +202,52 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     });
     return () => subscription.unsubscribe();
   }, [watch, ProductPriceChargeData, setValue]);
+
+  // Watch all Step 1 fields to determine if Next Step button should be enabled
+  const watchedFields = watch([
+    'brandName',
+    'productName',
+    'barcode',
+    'category',
+    'package_dimension_length',
+    'package_dimension_width',
+    'package_dimension_height',
+    'weight',
+    'description',
+  ]);
+
+  // Check if all Step 1 fields are filled and valid
+  const isStep1Complete = () => {
+    const [
+      brandName,
+      productName,
+      barcode,
+      category,
+      length,
+      width,
+      height,
+      weight,
+      description,
+    ] = watchedFields;
+
+    // Check if all text fields are filled
+    const allFieldsFilled =
+      brandName?.trim() &&
+      productName?.trim() &&
+      barcode?.trim() &&
+      category &&
+      length?.trim() &&
+      width?.trim() &&
+      height?.trim() &&
+      weight?.trim() &&
+      description?.trim();
+
+    // Check if images are valid (at least 1 video + 1 image, minimum 2 total)
+    const hasVideo = uploadedImages.some(media => isVideo(media));
+    const hasValidImages = hasVideo && uploadedImages.length >= 2;
+
+    return allFieldsFilled && hasValidImages;
+  };
 
   // useEffect(() => {
   //   if (scanProductData?.data?.product) {
@@ -313,9 +363,35 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     if (scanProductData?.data?.product) {
       const productData = scanProductData.data.product;
       const scannedCategory = productData.category;
-      
+
       // Store the scanned category name for display purposes
       setScannedCategoryName(scannedCategory || '');
+// console.log("productData>>::::::", productData);
+
+      // Try to match the scanned category with dropdown options
+      if (scannedCategory && dropdownData.length > 0) {
+        // Extract the first part before ">" for better category matching
+        const primaryCategory =
+          scannedCategory.split('>')[0]?.trim() || scannedCategory;
+
+        // Try to find a matching category
+        const matchedCategory = dropdownData.find(cat => {
+          const catNameLower = cat.name.toLowerCase();
+          const primaryCategoryLower = primaryCategory.toLowerCase();
+
+          // Check for exact match or partial match
+          return (
+            catNameLower === primaryCategoryLower ||
+            catNameLower.includes(primaryCategoryLower) ||
+            primaryCategoryLower.includes(catNameLower)
+          );
+        });
+
+        if (matchedCategory) {
+          setValue('category', matchedCategory);
+          clearErrors('category');
+        }
+      }
 
       setValue('brandName', productData.brand || '');
       setValue('productName', productData.title || '');
@@ -599,7 +675,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     formData.append('platform_fee', data.platform_fee);
     formData.append('seller_final_price', data.seller_final_price);
     formData.append('description', data.description);
-
     uploadedImages.forEach((media, index) => {
       formData.append('images', {
         uri: media.uri,
@@ -607,6 +682,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
         type: media.type || 'image/jpeg',
       });
     });
+
     return formData;
   };
   // const prepareFormDataForAPI = (data: any) => {
@@ -664,7 +740,8 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
         isVisible: true,
         type: 'success',
         title: 'Product',
-        description: 'Product added successfully and it\'s under review. You will be notified once approved.',
+        description:
+          "Product added successfully and it's under review. You will be notified once approved.",
         doneText: 'Okay',
         onDonePress: () => {
           reset();
@@ -689,7 +766,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       return;
     }
     const apiFormData = prepareFormDataForAPI(data);
-    console.log('>>>>>>>>>>>>>', apiFormData);
 
     showLoader(true);
     mutate(apiFormData);
@@ -892,7 +968,11 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             name="category"
             label="Select Category *"
             data={dropdownData}
-            placeholder={scannedCategoryName ? `${scannedCategoryName}` : "Choose a category..."}
+            placeholder={
+              scannedCategoryName
+                ? `Scanned: ${scannedCategoryName} - Please select or confirm`
+                : 'Choose a category...'
+            }
             isSearch={true}
             valueField="id"
             labelField="name"
@@ -900,6 +980,8 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             error={errors}
             onChangeValue={selectedItem => {
               // Category selected
+              setValue('category', selectedItem);
+              clearErrors('category');
               console.log('Selected category:', selectedItem);
             }}
             containerStyle={styles.categoryStyle}
@@ -1069,7 +1151,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
           title="Next Step"
           style={styles.nextStepButton}
           onPress={goToNextStep}
-          disabled={false}
+          disabled={!isStep1Complete()}
         />
       </View>
     </ScrollView>

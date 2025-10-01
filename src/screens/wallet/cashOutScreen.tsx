@@ -64,13 +64,13 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
     queryFn: getCashOutRequest,
   });
   // Show loader while fetching bank details
-  useEffect(() => {
-    if (isLoadingBankDetails) {
-      showLoader(true);
-    } else {
-      showLoader(false);
-    }
-  }, [isLoadingBankDetails]);
+  // useEffect(() => {
+  //   if (isLoadingBankDetails) {
+  //     showLoader(true);
+  //   } else {
+  //     showLoader(false);
+  //   }
+  // }, [isLoadingBankDetails]);
 
   // Do not auto-select bank account usage by default even if details exist
   // Users must explicitly opt in by toggling the option
