@@ -114,7 +114,7 @@ export default class CAlert extends React.Component<any, IState> {
                 )}
               </TouchableOpacity>
 
-              {hasDeleteButton && (
+              {/* {hasDeleteButton && (
                 <TouchableOpacity
                   style={[styles.deleteBtn, styles.btnTwoButton]}
                   onPress={() => {
@@ -131,7 +131,7 @@ export default class CAlert extends React.Component<any, IState> {
                     </Text>
                   )}
                 </TouchableOpacity>
-              )}
+              )} */}
             </View>
           </View>
         </View>

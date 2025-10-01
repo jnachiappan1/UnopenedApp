@@ -109,7 +109,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       enabled: isLogged,
     });
 
-    
   const {
     data: scanProductData,
     refetch: refetchScanProductData,
@@ -121,94 +120,117 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
   });
 
   const discountPercentage = ProductPriceData?.data?.product_price?.price;
-  
+
   // Pricing tier hierarchy
-  const TIER_1_RETAILERS = ['walmart.com', 'target.com', 'bestbuy.com', 'costco.com', 'homedepot.com'];
-  const TIER_2_RETAILERS = ['macys.com', 'kohls.com', 'staples.com', 'dickssportinggoods.com', 'sephora.com', 'ulta.com'];
-  const APPROVED_MARKETPLACES = ['amazon.com']; // Only "sold & shipped by Amazon"
-  
+  const TIER_1_RETAILERS = [
+    'walmart.com',
+    'target.com',
+    'bestbuy.com',
+    'costco.com',
+    'homedepot.com',
+  ];
+  const TIER_2_RETAILERS = [
+    'macys.com',
+    'kohls.com',
+    'staples.com',
+    'dickssportinggoods.com',
+    'sephora.com',
+    'ulta.com',
+  ];
+  const APPROVED_MARKETPLACES = ['amazon.com'];
+
   const calculateMSRP = (productData: any): number => {
     // Check if offers array exists
     if (!productData.offers || productData.offers.length === 0) {
       return productData.highest_recorded_price || 0;
     }
-    
+
     const validOffers = productData.offers.filter((offer: any) => {
       const domain = offer.domain?.toLowerCase() || '';
       const merchant = offer.merchant?.toLowerCase() || '';
       if (merchant.includes('marketplace')) {
         return false;
       }
-      
+
       return true;
     });
-    
-    const tier1Offers = validOffers.filter((offer: any) => 
-      TIER_1_RETAILERS.some(retailer => offer.domain?.toLowerCase().includes(retailer))
+
+    const tier1Offers = validOffers.filter((offer: any) =>
+      TIER_1_RETAILERS.some(retailer =>
+        offer.domain?.toLowerCase().includes(retailer),
+      ),
     );
-    
+
     if (tier1Offers.length > 0) {
       const tier1Prices = tier1Offers
         .map((offer: any) => offer.list_price || offer.price)
         .filter((price: any) => price && price > 0);
-      
+
       if (tier1Prices.length > 0) {
-        const average = tier1Prices.reduce((sum: number, price: number) => sum + price, 0) / tier1Prices.length;
+        const average =
+          tier1Prices.reduce((sum: number, price: number) => sum + price, 0) /
+          tier1Prices.length;
         return Math.round(average * 100) / 100;
       }
     }
-    
-    const tier2Offers = validOffers.filter((offer: any) => 
-      TIER_2_RETAILERS.some(retailer => offer.domain?.toLowerCase().includes(retailer))
+
+    const tier2Offers = validOffers.filter((offer: any) =>
+      TIER_2_RETAILERS.some(retailer =>
+        offer.domain?.toLowerCase().includes(retailer),
+      ),
     );
-    
+
     if (tier2Offers.length > 0) {
       const tier2Prices = tier2Offers
         .map((offer: any) => offer.list_price || offer.price)
         .filter((price: any) => price && price > 0);
-      
+
       if (tier2Prices.length > 0) {
-        const average = tier2Prices.reduce((sum: number, price: number) => sum + price, 0) / tier2Prices.length;
+        const average =
+          tier2Prices.reduce((sum: number, price: number) => sum + price, 0) /
+          tier2Prices.length;
         return Math.round(average * 100) / 100;
       }
     }
-    
+
     const marketplaceOffers = validOffers.filter((offer: any) => {
       const domain = offer.domain?.toLowerCase() || '';
       const merchant = offer.merchant?.toLowerCase() || '';
-      
-      if (domain.includes('amazon.com') && 
-          merchant.includes('amazon') && 
-          !merchant.includes('marketplace')) {
+
+      if (
+        domain.includes('amazon.com') &&
+        merchant.includes('amazon') &&
+        !merchant.includes('marketplace')
+      ) {
         return true;
       }
-      
+
       return false;
     });
-    
+
     if (marketplaceOffers.length > 0) {
       const marketplacePrices = marketplaceOffers
         .map((offer: any) => offer.list_price || offer.price)
         .filter((price: any) => price && price > 0);
-      
+
       if (marketplacePrices.length > 0) {
         const maxPrice = Math.max(...marketplacePrices);
-        return maxPrice; 
+        return maxPrice;
       }
     }
-    
+
     const allListPrices = validOffers
       .map((offer: any) => offer.list_price)
       .filter((price: any) => price && price > 0);
-    
+
     if (allListPrices.length > 0) {
       const maxListPrice = Math.max(...allListPrices);
       return maxListPrice;
     }
-    
+
     return productData.highest_recorded_price || 0;
   };
-  
+
   const transformCategoryData = (apiData: any): DropDownType[] => {
     if (apiData?.status === 'success' && apiData?.data?.category) {
       const transformed = apiData.data.category
@@ -239,7 +261,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     trigger,
     watch,
   } = useForm<FormData>({
-    mode: 'onChange', 
+    mode: 'onChange',
     defaultValues: {
       brandName: '',
       productName: '',
@@ -443,6 +465,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     if (scanProductData?.data?.product) {
       const productData = scanProductData.data.product;
       const scannedCategory = productData.category;
+      console.log('[][[[][][[[[]', productData);
 
       setScannedCategoryName(scannedCategory || '');
 
@@ -478,10 +501,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       setValue('msrp', msrpValue > 0 ? msrpValue.toString() : '');
 
       if (msrpValue && discountPercentage) {
-        const {amountToPay} = calculateDiscount(
-          msrpValue,
-          discountPercentage,
-        );
+        const {amountToPay} = calculateDiscount(msrpValue, discountPercentage);
         setValue('price', amountToPay.toFixed(2));
         if (ProductPriceChargeData?.data?.product_price?.price_charge) {
           const platformFeePercentage =
@@ -549,7 +569,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
               const reader = new FileReader();
               reader.onloadend = () => resolve(reader.result as string);
               reader.onerror = reject;
-              reader.readAsDataURL(blob); 
+              reader.readAsDataURL(blob);
             });
 
             const scannedImage: MediaObject = {
@@ -562,12 +582,11 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             setValue('productImages', [scannedImage]);
             clearErrors('productImages');
             setImageError('');
-          } catch (error) {
-          }
+          } catch (error) {}
         };
 
         if (firstImageUrl.startsWith('http')) {
-          handleRemoteImage(firstImageUrl); 
+          handleRemoteImage(firstImageUrl);
         } else {
           const scannedImage: MediaObject = {
             uri: firstImageUrl,

@@ -282,7 +282,7 @@
 				CODE_SIGN_ENTITLEMENTS = Unopened_Mobile/Unopened_Mobile.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 16;
+				CURRENT_PROJECT_VERSION = 17;
 				DEVELOPMENT_TEAM = 848YS6ZHJH;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Unopened_Mobile/Info.plist;
@@ -318,7 +318,7 @@
 				CODE_SIGN_ENTITLEMENTS = Unopened_Mobile/Unopened_Mobile.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 16;
+				CURRENT_PROJECT_VERSION = 17;
 				DEVELOPMENT_TEAM = 848YS6ZHJH;
 				INFOPLIST_FILE = Unopened_Mobile/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
