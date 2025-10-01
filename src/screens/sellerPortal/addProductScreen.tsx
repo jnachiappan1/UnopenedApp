@@ -121,6 +121,94 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
   });
 
   const discountPercentage = ProductPriceData?.data?.product_price?.price;
+  
+  // Pricing tier hierarchy
+  const TIER_1_RETAILERS = ['walmart.com', 'target.com', 'bestbuy.com', 'costco.com', 'homedepot.com'];
+  const TIER_2_RETAILERS = ['macys.com', 'kohls.com', 'staples.com', 'dickssportinggoods.com', 'sephora.com', 'ulta.com'];
+  const APPROVED_MARKETPLACES = ['amazon.com']; // Only "sold & shipped by Amazon"
+  
+  const calculateMSRP = (productData: any): number => {
+    // Check if offers array exists
+    if (!productData.offers || productData.offers.length === 0) {
+      return productData.highest_recorded_price || 0;
+    }
+    
+    const validOffers = productData.offers.filter((offer: any) => {
+      const domain = offer.domain?.toLowerCase() || '';
+      const merchant = offer.merchant?.toLowerCase() || '';
+      if (merchant.includes('marketplace')) {
+        return false;
+      }
+      
+      return true;
+    });
+    
+    const tier1Offers = validOffers.filter((offer: any) => 
+      TIER_1_RETAILERS.some(retailer => offer.domain?.toLowerCase().includes(retailer))
+    );
+    
+    if (tier1Offers.length > 0) {
+      const tier1Prices = tier1Offers
+        .map((offer: any) => offer.list_price || offer.price)
+        .filter((price: any) => price && price > 0);
+      
+      if (tier1Prices.length > 0) {
+        const average = tier1Prices.reduce((sum: number, price: number) => sum + price, 0) / tier1Prices.length;
+        return Math.round(average * 100) / 100; 
+    }
+    
+    const tier2Offers = validOffers.filter((offer: any) => 
+      TIER_2_RETAILERS.some(retailer => offer.domain?.toLowerCase().includes(retailer))
+    );
+    
+    if (tier2Offers.length > 0) {
+      const tier2Prices = tier2Offers
+        .map((offer: any) => offer.list_price || offer.price)
+        .filter((price: any) => price && price > 0);
+      
+      if (tier2Prices.length > 0) {
+        const average = tier2Prices.reduce((sum: number, price: number) => sum + price, 0) / tier2Prices.length;
+        console.log('✅ Tier 2 Retailers found:', tier2Offers.map((o: any) => o.merchant));
+        console.log('   Prices:', tier2Prices, 'Average:', average);
+        return Math.round(average * 100) / 100;
+      }
+    }
+    
+    const marketplaceOffers = validOffers.filter((offer: any) => {
+      const domain = offer.domain?.toLowerCase() || '';
+      const merchant = offer.merchant?.toLowerCase() || '';
+      if (domain.includes('amazon.com') && 
+          merchant.includes('amazon') && 
+          !merchant.includes('marketplace')) {
+        return true;
+      }
+      
+      return false;
+    });
+    
+    if (marketplaceOffers.length > 0) {
+      const marketplacePrices = marketplaceOffers
+        .map((offer: any) => offer.list_price || offer.price)
+        .filter((price: any) => price && price > 0);
+      
+      if (marketplacePrices.length > 0) {
+        const maxPrice = Math.max(...marketplacePrices);
+        return maxPrice; 
+      }
+    }
+    
+    const allListPrices = validOffers
+      .map((offer: any) => offer.list_price)
+      .filter((price: any) => price && price > 0);
+    
+    if (allListPrices.length > 0) {
+      const maxListPrice = Math.max(...allListPrices);
+      return maxListPrice;
+    }
+    
+    return productData.highest_recorded_price || 0;
+  };
+  
   const transformCategoryData = (apiData: any): DropDownType[] => {
     if (apiData?.status === 'success' && apiData?.data?.category) {
       const transformed = apiData.data.category
@@ -151,7 +239,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     trigger,
     watch,
   } = useForm<FormData>({
-    mode: 'onChange', // Enable real-time validation
+    mode: 'onChange', 
     defaultValues: {
       brandName: '',
       productName: '',
@@ -170,7 +258,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     },
   });
 
-  // Monitor category value changes
   useEffect(() => {
     const subscription = watch((value, {name}) => {
       if (name === 'category') {
@@ -179,7 +266,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     return () => subscription.unsubscribe();
   }, [watch]);
 
-  // Monitor price changes to recalculate platform fee and seller final price
   useEffect(() => {
     const subscription = watch((value, {name}) => {
       if (
@@ -191,11 +277,8 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
         const platformFeePercentage =
           ProductPriceChargeData.data.product_price.price_charge;
 
-        // Calculate platform fee (17% of price)
         const platformFee = (priceAmount * platformFeePercentage) / 100;
         setValue('platform_fee', platformFee.toFixed(2));
-
-        // Calculate seller final price (price - platform fee)
         const sellerFinalPrice = priceAmount - platformFee;
         setValue('seller_final_price', sellerFinalPrice.toFixed(2));
       }
@@ -203,7 +286,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     return () => subscription.unsubscribe();
   }, [watch, ProductPriceChargeData, setValue]);
 
-  // Watch all Step 1 fields to determine if Next Step button should be enabled
   const watchedFields = watch([
     'brandName',
     'productName',
@@ -216,7 +298,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     'description',
   ]);
 
-  // Check if all Step 1 fields are filled and valid
   const isStep1Complete = () => {
     const [
       brandName,
@@ -230,7 +311,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       description,
     ] = watchedFields;
 
-    // Check if all text fields are filled
     const allFieldsFilled =
       brandName?.trim() &&
       productName?.trim() &&
@@ -242,7 +322,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       weight?.trim() &&
       description?.trim();
 
-    // Check if images are valid (at least 1 video + 1 image, minimum 2 total)
     const hasVideo = uploadedImages.some(media => isVideo(media));
     const hasValidImages = hasVideo && uploadedImages.length >= 2;
 
@@ -366,7 +445,8 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
 
       // Store the scanned category name for display purposes
       setScannedCategoryName(scannedCategory || '');
-// console.log("productData>>::::::", productData);
+      console.log("productData>>::::::", productData);
+      console.log("Product offers:", productData.offers);
 
       // Try to match the scanned category with dropdown options
       if (scannedCategory && dropdownData.length > 0) {
@@ -400,12 +480,14 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
         productData.ean || productData.upc || scannedBarcode || '',
       );
 
-      const msrpValue = productData.highest_recorded_price || '';
-      setValue('msrp', msrpValue.toString());
+      // Calculate MSRP using tiered pricing hierarchy
+      const msrpValue = calculateMSRP(productData);
+      console.log("Calculated MSRP:", msrpValue);
+      setValue('msrp', msrpValue > 0 ? msrpValue.toString() : '');
 
       if (msrpValue && discountPercentage) {
         const {amountToPay} = calculateDiscount(
-          parseFloat(msrpValue),
+          msrpValue,
           discountPercentage,
         );
         setValue('price', amountToPay.toFixed(2));
@@ -682,6 +764,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
         type: media.type || 'image/jpeg',
       });
     });
+console.log("formData------------", formData);
 
     return formData;
   };
