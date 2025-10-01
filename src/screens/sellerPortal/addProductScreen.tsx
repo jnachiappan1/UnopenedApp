@@ -154,7 +154,8 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       
       if (tier1Prices.length > 0) {
         const average = tier1Prices.reduce((sum: number, price: number) => sum + price, 0) / tier1Prices.length;
-        return Math.round(average * 100) / 100; 
+        return Math.round(average * 100) / 100;
+      }
     }
     
     const tier2Offers = validOffers.filter((offer: any) => 
@@ -168,8 +169,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       
       if (tier2Prices.length > 0) {
         const average = tier2Prices.reduce((sum: number, price: number) => sum + price, 0) / tier2Prices.length;
-        console.log('✅ Tier 2 Retailers found:', tier2Offers.map((o: any) => o.merchant));
-        console.log('   Prices:', tier2Prices, 'Average:', average);
         return Math.round(average * 100) / 100;
       }
     }
@@ -177,6 +176,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     const marketplaceOffers = validOffers.filter((offer: any) => {
       const domain = offer.domain?.toLowerCase() || '';
       const merchant = offer.merchant?.toLowerCase() || '';
+      
       if (domain.includes('amazon.com') && 
           merchant.includes('amazon') && 
           !merchant.includes('marketplace')) {
@@ -279,6 +279,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
 
         const platformFee = (priceAmount * platformFeePercentage) / 100;
         setValue('platform_fee', platformFee.toFixed(2));
+
         const sellerFinalPrice = priceAmount - platformFee;
         setValue('seller_final_price', sellerFinalPrice.toFixed(2));
       }
@@ -443,23 +444,16 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       const productData = scanProductData.data.product;
       const scannedCategory = productData.category;
 
-      // Store the scanned category name for display purposes
       setScannedCategoryName(scannedCategory || '');
-      console.log("productData>>::::::", productData);
-      console.log("Product offers:", productData.offers);
 
-      // Try to match the scanned category with dropdown options
       if (scannedCategory && dropdownData.length > 0) {
-        // Extract the first part before ">" for better category matching
         const primaryCategory =
           scannedCategory.split('>')[0]?.trim() || scannedCategory;
 
-        // Try to find a matching category
         const matchedCategory = dropdownData.find(cat => {
           const catNameLower = cat.name.toLowerCase();
           const primaryCategoryLower = primaryCategory.toLowerCase();
 
-          // Check for exact match or partial match
           return (
             catNameLower === primaryCategoryLower ||
             catNameLower.includes(primaryCategoryLower) ||
@@ -480,9 +474,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
         productData.ean || productData.upc || scannedBarcode || '',
       );
 
-      // Calculate MSRP using tiered pricing hierarchy
       const msrpValue = calculateMSRP(productData);
-      console.log("Calculated MSRP:", msrpValue);
       setValue('msrp', msrpValue > 0 ? msrpValue.toString() : '');
 
       if (msrpValue && discountPercentage) {
@@ -557,7 +549,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
               const reader = new FileReader();
               reader.onloadend = () => resolve(reader.result as string);
               reader.onerror = reject;
-              reader.readAsDataURL(blob); // -> data:image/jpeg;base64,...
+              reader.readAsDataURL(blob); 
             });
 
             const scannedImage: MediaObject = {
@@ -571,14 +563,12 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             clearErrors('productImages');
             setImageError('');
           } catch (error) {
-            console.error('Failed to fetch remote image:', error);
           }
         };
 
         if (firstImageUrl.startsWith('http')) {
-          handleRemoteImage(firstImageUrl); // convert remote → base64
+          handleRemoteImage(firstImageUrl); 
         } else {
-          // local file:// already fine
           const scannedImage: MediaObject = {
             uri: firstImageUrl,
             name: 'scanned_product_image.jpg',
@@ -632,7 +622,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     setUploadedImages(finalImages);
     setValue('productImages', finalImages);
 
-    // Check if there's at least one video
     const hasVideo = finalImages.some(media => isVideo(media));
 
     if (hasVideo && finalImages.length >= 2) {
@@ -657,7 +646,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
   };
 
   const validateImages = () => {
-    // Check if there's at least one video
     const hasVideo = uploadedImages.some(media => isVideo(media));
 
     if (!hasVideo) {
@@ -670,7 +658,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       return false;
     }
 
-    // Check if there are at least 2 total media files (1 video + at least 1 image)
     if (uploadedImages.length < 2) {
       const errorMessage = `Minimum 2 media files required (1 video + at least 1 image). Currently selected: ${uploadedImages.length}`;
       setImageError(errorMessage);
@@ -764,7 +751,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
         type: media.type || 'image/jpeg',
       });
     });
-console.log("formData------------", formData);
 
     return formData;
   };
@@ -947,7 +933,6 @@ console.log("formData------------", formData);
     setCurrentStep(0);
   };
 
-  // Render scan section with loading state
   const renderScanSection = () => {
     const getScanButtonText = () => {
       if (isScanFetching) {
