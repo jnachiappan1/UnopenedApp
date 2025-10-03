@@ -19,11 +19,12 @@ import {handleError, handleSettled} from '../../utils/method';
 import {
   removeToken,
   removeUserData,
+  saveUserData,
   saveUserType,
 } from '../../redux/reducers/user/UserReducer';
 import {showAlert} from '../../components/cAlert';
 import {useMutation} from '@tanstack/react-query';
-import {deleteAPI, logOutAPI} from '../../utils/apiAction';
+import {deleteAPI, logOutAPI, updateProfile} from '../../utils/apiAction';
 import {image_url} from '../../utils/api';
 
 type ProfileScreenProps = NativeStackScreenProps<
@@ -36,8 +37,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({navigation}) => {
   const userType = useSelector((user: IRootState) => user.user.userType);
   const [isDeleteModalVisible, setDeleteModalVisible] = useState(false);
   const [isLogoutModalVisible, setLogoutModalVisible] = useState(false);
-  const [isEnabled, setIsEnabled] = useState(true);
+  const [isEnabled, setIsEnabled] = useState<boolean>(
+    Boolean((useSelector((user: IRootState) => user.user.userData)?.is_notification))
+  );
   const userData = useSelector((user: IRootState) => user.user.userData);
+  console.log('isEnabled---', userData);
+  
   const {mutate: deleteMutation} = useMutation({
     mutationFn: deleteAPI,
     onSuccess: (data: any) => {
@@ -104,10 +109,24 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({navigation}) => {
     setLoader(true);
     logOutMutation();
   };
-  const handleToggle = () => {
-    setIsEnabled(!isEnabled);
+  const {mutate: updateNotificationMutation} = useMutation({
+    mutationFn: updateProfile,
+    onSuccess: (data: any) => {
+      setLoader(false);
+      dispatch(saveUserData(data.data.user));
+    },
+    onError: handleError,
+    onSettled: handleSettled,
+  });
+
+  const handleToggle = (nextValue: boolean) => {
+    
+    setIsEnabled(nextValue);
+    setLoader(true);
     const formData = new FormData();
-    formData.append('email', !isEnabled);
+    // backend expects a form field for notification preference
+    formData.append('is_notification', nextValue);
+    updateNotificationMutation(formData as any);
   };
   return (
     <TitleBackHeaderContainer isBack title={'My Profile'} containerStyle={{}}>
@@ -205,6 +224,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({navigation}) => {
             svgName={'notification'}
             isToggleButtonOnOff
             style={{paddingHorizontal: 15}}
+            toggled={isEnabled}
+            onToggle={handleToggle}
           />
         )}
         {userData && (

@@ -102,6 +102,8 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
     useMutation({
       mutationFn: createShipping,
       onSuccess: async response => {
+        console.log('response---', JSON.stringify(response));
+        
         setShippingApiCalled(true);
         setIsShippingRatesLoading(false); // No need for loading state since we're using direct response
         // Use shipping rates directly from the shipping response (no need for separate API call)
@@ -619,6 +621,8 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
           rate_id: selectedShippingRate ? selectedShippingRate.id : '',
           shipmentId: shippingID,
         };
+        console.log('stripePaymentPayload---', JSON.stringify(stripePaymentPayload));
+        
         handleStripePayment(stripePaymentPayload);
       } else {
         showAlert({
@@ -682,13 +686,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
       if (isSuccess) {
         const {clientSecret, ephemeralKey, customer, paymentIntentId} =
           paymentResponse.data;
-        console.log(
-          '-=-=--=-',
-          clientSecret,
-          ephemeralKey,
-          customer,
-          paymentIntentId,
-        );
+       
 
         const missingCredentials = [];
         if (!clientSecret) missingCredentials.push('Client Secret');
@@ -1703,6 +1701,8 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
                   rate_id: selectedShippingRate ? selectedShippingRate.id : '',
                   shipmentId: shippingID,
                 };
+                
+                
                 handleStripePayment(paymentPayload);
               }}>
               <Text style={styles.proceedButtonText}>Proceed to Payment</Text>

@@ -319,7 +319,6 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({
     shippingTrackingData?.tracking?.status ||
       productDetail?.data?.product[0]?.status,
   );
-  console.log('trackingSteps', trackingSteps);
 
   const {mutate} = useMutation({
     mutationFn: contactUs,

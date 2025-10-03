@@ -23,6 +23,9 @@ type ICDrawer = {
   rightArrow?: boolean;
   isLanguage?: boolean;
   isToggleButtonOnOff?: boolean;
+  // Controlled toggle props
+  toggled?: boolean;
+  onToggle?: (nextValue: boolean) => void;
 };
 
 const IconTitleCard = (props: ICDrawer) => {
@@ -35,8 +38,10 @@ const IconTitleCard = (props: ICDrawer) => {
     rightArrow = false,
     isLanguage = false,
     isToggleButtonOnOff = false,
+    toggled,
+    onToggle,
   } = props;
-  const [isToggled, setIsToggled] = useState(false);
+  const [internalToggled, setInternalToggled] = useState(false);
   if (!svgName) {
     return null;
   }
@@ -44,8 +49,15 @@ const IconTitleCard = (props: ICDrawer) => {
     (user: IRootState) => user.user.selectedLanguage,
   );
 
+  const isToggled = typeof toggled === 'boolean' ? toggled : internalToggled;
+
   const handleToggle = () => {
-    setIsToggled(!isToggled);
+    if (typeof toggled === 'boolean') {
+      onToggle && onToggle(!toggled);
+    } else {
+      setInternalToggled(!internalToggled);
+      onToggle && onToggle(!internalToggled);
+    }
   };
   return (
     <TouchableOpacity
