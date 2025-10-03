@@ -985,7 +985,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             //   }
             // }
             if (!isScanFetching) {
-              navigation.replace(SCREENS.BarcodeScanner);
+              navigation.navigate(SCREENS.BarcodeScanner);
             }
           }}
         />

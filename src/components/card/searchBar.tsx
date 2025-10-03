@@ -1,7 +1,14 @@
 // components/DashboardCard.tsx
 import React from 'react';
-import { View, Text, StyleSheet, Image, TextInput, TouchableOpacity } from 'react-native';
-import IconsSvg, { IconName } from '../../assets/svg/iconsSvg';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TextInput,
+  TouchableOpacity,
+} from 'react-native';
+import IconsSvg, {IconName} from '../../assets/svg/iconsSvg';
 import colors from '../../utils/colors';
 
 interface BannerItemCardProps {
@@ -13,12 +20,14 @@ interface BannerItemCardProps {
   hasActiveFilters?: boolean;
 }
 
-const SearchBar: React.FC<BannerItemCardProps> = ({ placeholder = 'Search unopened products...',
+const SearchBar: React.FC<BannerItemCardProps> = ({
+  placeholder = 'Search unopened products...',
   onChangeText,
   onFilterPress,
   onSubmit,
   value,
-  hasActiveFilters = false, }) => {
+  hasActiveFilters = false,
+}) => {
   return (
     <View style={styles.searchContainer}>
       <TextInput
@@ -30,7 +39,7 @@ const SearchBar: React.FC<BannerItemCardProps> = ({ placeholder = 'Search unopen
         onSubmitEditing={onSubmit}
       />
       <TouchableOpacity style={styles.filterButton} onPress={onFilterPress}>
-        <IconsSvg name ="filterIcon"/>
+        <IconsSvg name="filterIcon" />
         {hasActiveFilters && <View style={styles.redDot} />}
       </TouchableOpacity>
     </View>

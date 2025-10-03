@@ -183,7 +183,7 @@ const UnifiedBarcodeScanner: React.FC<UnifiedBarcodeScannerProps> = ({ navigatio
         // Clean up camera before navigation
         setIsScanning(false);
         setTimeout(() => {
-          navigation.replace(SCREENS.AddProductScreen, {
+          navigation.navigate(SCREENS.AddProductScreen, {
             scannedBarcode: code,
           });
         }, 100);
@@ -366,7 +366,7 @@ const UnifiedBarcodeScanner: React.FC<UnifiedBarcodeScannerProps> = ({ navigatio
                 onPress={() => {
                   setIsScanning(false);
                   setTimeout(() => {
-                    navigation.replace(SCREENS.AddProductScreen, {
+                    navigation.navigate(SCREENS.AddProductScreen, {
                       scannedBarcode: scannedCode,
                     });
                   }, 100);

@@ -26,7 +26,6 @@
       android:allowBackup="false"
       android:theme="@style/AppTheme"
       android:usesCleartextTraffic="true"
-      android:enableOnBackInvokedCallback="true"
       android:supportsRtl="true">
       <activity
         android:name=".MainActivity"

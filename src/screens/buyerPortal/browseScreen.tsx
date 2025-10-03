@@ -136,16 +136,13 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
   }, [searchQuery]);
 
   useEffect(() => {
-    if (isLogged) {
-      refetchProductList();
-    }
+    refetchProductList();
   }, [
     searchQuery,
     selectedCategories,
     selectedSort,
     selectedPriceRange,
     refetchProductList,
-    isLogged,
   ]);
 
   const handleSearch = async () => {
@@ -172,15 +169,10 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
     await addToRecentSearches(searchTerm);
   };
 
-  // Pull-to-refresh handler
   const onRefresh = async () => {
     setIsRefreshing(true);
     try {
-      if (isLogged) {
-        // Refetch product list for logged-in users
-        await refetchProductList();
-      }
-      // Reload recent searches
+      await refetchProductList();
       await loadRecentSearches();
     } catch (error) {
       console.error('Error refreshing data:', error);
@@ -190,77 +182,66 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
   };
 
   const getFilteredProducts = () => {
-    let result = isLogged ? [...apiProducts] : [...products];
+    let result = [...apiProducts];
 
-    console.log('🔍 Before filtering - Total products:', result.length);
-    console.log('🔍 Selected sort:', selectedSort);
-
-    // Filter out withdrawn products
     result = result.filter(
       product => (product as any).product_status !== 'withdrawn',
     );
 
-    // For non-logged users, apply client-side filtering
-    // For logged users, API already handles search, categories, and price filtering
-    if (!isLogged) {
-      if (selectedCategories.length > 0) {
-        result = result.filter(product => {
-          const productCategory = (product as any).category;
-          if (productCategory) {
-            return selectedCategories.some(
-              category =>
-                category.id === productCategory ||
-                category.name === productCategory ||
-                String(category.id) === String(productCategory),
-            );
-          }
-          return false;
-        });
-      }
-
-      if (searchQuery.trim() !== '') {
-        result = result.filter(
-          product =>
-            product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            product.description
-              .toLowerCase()
-              .includes(searchQuery.toLowerCase()),
-        );
-      }
-
-      if (selectedPriceRange) {
-        result = result.filter(product => {
-          const productPrice =
-            typeof product.price === 'string'
-              ? parseFloat(product.price.replace(/[^0-9.-]+/g, ''))
-              : product.price;
-
-          if (isNaN(productPrice)) return false;
-
-          return (
-            productPrice >= selectedPriceRange.min &&
-            productPrice <= selectedPriceRange.max
+    // Apply client-side filtering for search, categories, and price if not handled by API
+    // Note: API may already handle some filtering based on parameters sent
+    if (selectedCategories.length > 0) {
+      result = result.filter(product => {
+        const productCategory = (product as any).category || (product as any).category_id;
+        if (productCategory) {
+          return selectedCategories.some(
+            category =>
+              category.id === productCategory ||
+              category.name === productCategory ||
+              String(category.id) === String(productCategory),
           );
-        });
-      }
+        }
+        return false;
+      });
     }
 
-    // Apply sorting - for logged users, API handles base sort but we still need to move sold items to top
-    // For non-logged users, we do all sorting client-side
+    if (searchQuery.trim() !== '') {
+      result = result.filter(
+        product =>
+          product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          product.description
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()),
+      );
+    }
+
+    if (selectedPriceRange) {
+      result = result.filter(product => {
+        const productPrice =
+          typeof product.price === 'string'
+            ? parseFloat(product.price.replace(/[^0-9.-]+/g, ''))
+            : product.price;
+
+        if (isNaN(productPrice)) return false;
+
+        return (
+          productPrice >= selectedPriceRange.min &&
+          productPrice <= selectedPriceRange.max
+        );
+      });
+    }
+
     if (
       selectedSort?.id === 'Price: Low to High' ||
       selectedSort?.id === 'price_low_to_high'
     ) {
       result = result.sort((a, b) => {
-        // Check if products are sold
         const aIsSold = (a as any).product_status === 'sold';
         const bIsSold = (b as any).product_status === 'sold';
 
-        // If one is sold and the other is not, sold goes to top
-        if (aIsSold && !bIsSold) return -1;
-        if (!aIsSold && bIsSold) return 1;
+        if (aIsSold && !bIsSold) return 1;
+        if (!aIsSold && bIsSold) return -1;
 
-        // Both have same sold status, sort by price
         const priceA =
           typeof a.price === 'string'
             ? parseFloat(a.price.replace(/[^0-9.-]+/g, ''))
@@ -279,15 +260,11 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
       selectedSort?.id === 'price_high_to_low'
     ) {
       result = result.sort((a, b) => {
-        // Check if products are sold
         const aIsSold = (a as any).product_status === 'sold';
         const bIsSold = (b as any).product_status === 'sold';
+        if (aIsSold && !bIsSold) return 1;
+        if (!aIsSold && bIsSold) return -1;
 
-        // If one is sold and the other is not, sold goes to top
-        if (aIsSold && !bIsSold) return -1;
-        if (!aIsSold && bIsSold) return 1;
-
-        // Both have same sold status, sort by price
         const priceA =
           typeof a.price === 'string'
             ? parseFloat(a.price.replace(/[^0-9.-]+/g, ''))
@@ -303,8 +280,14 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
 
         return priceB - priceA;
       });
-    } else if (!isLogged && selectedSort?.id === 'Newest First') {
+    } else if (selectedSort?.id === 'Newest First') {
       result = result.sort((a, b) => {
+        const aIsSold = (a as any).product_status === 'sold';
+        const bIsSold = (b as any).product_status === 'sold';
+
+        if (aIsSold && !bIsSold) return 1;
+        if (!aIsSold && bIsSold) return -1;
+
         const dateA = (a as any).createdAt
           ? new Date((a as any).createdAt).getTime()
           : 0;
@@ -316,10 +299,23 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
         }
         return dateB - dateA;
       });
-    } else if (!isLogged && selectedSort?.id === 'Name: A to Z') {
-      result = result.sort((a, b) => a.name.localeCompare(b.name));
-    } else if (!isLogged && selectedSort?.id === 'Name: Z to A') {
-      result = result.sort((a, b) => b.name.localeCompare(a.name));
+    } else if (selectedSort?.id === 'Name: A to Z') {
+      result = result.sort((a, b) => {
+        const aIsSold = (a as any).product_status === 'sold';
+        const bIsSold = (b as any).product_status === 'sold';
+        if (aIsSold && !bIsSold) return 1;
+        if (!aIsSold && bIsSold) return -1;
+
+        return a.name.localeCompare(b.name);
+      });
+    } else if (selectedSort?.id === 'Name: Z to A') {
+      result = result.sort((a, b) => {
+        const aIsSold = (a as any).product_status === 'sold';
+        const bIsSold = (b as any).product_status === 'sold';
+        if (aIsSold && !bIsSold) return 1;
+        if (!aIsSold && bIsSold) return -1;
+        return b.name.localeCompare(a.name);
+      });
     }
 
     console.log(
@@ -353,7 +349,6 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
     });
   };
 
-  // Check if any filters are active
   const hasActiveFilters =
     selectedCategories.length > 0 ||
     selectedSort !== null ||

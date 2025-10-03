@@ -790,8 +790,8 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
       setModalVisible(false);
 
       // Navigate after payment success
-      if (navigation && navigation.replace) {
-        navigation.replace(SCREENS.OrderTrackScreen, {
+      if (navigation && navigation.navigate) {
+        navigation.navigate(SCREENS.OrderTrackScreen, {
           productId: productId,
         });
       } else {

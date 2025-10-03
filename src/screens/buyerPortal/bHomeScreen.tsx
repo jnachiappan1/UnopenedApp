@@ -401,6 +401,7 @@ const BHomeScreen: React.FC<LoginProps> = ({route, navigation}) => {
         onChangeText={setSearchQuery}
         onSubmit={handleSearch}
         onFilterPress={handleFilterPress}
+        hasActiveFilters={hasActiveFilters()}
       />
 
       <CategoryList

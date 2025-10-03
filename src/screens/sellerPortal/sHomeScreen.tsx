@@ -1,27 +1,39 @@
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { useState, useCallback, useEffect, useRef } from 'react'
-import HeaderHomeContainer from '../../components/headerContainer/headerHomeContainer'
-import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation'
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import {FlatList, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import React, {useState, useCallback, useEffect, useRef} from 'react';
+import HeaderHomeContainer from '../../components/headerContainer/headerHomeContainer';
+import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import DashboardAnalyticsCard from '../../components/card/dashboardAnalyticsCard';
-import { IconName } from '../../assets/svg/iconsSvg';
+import {IconName} from '../../assets/svg/iconsSvg';
 import ProductListingCard from '../../components/card/productListingCard';
-import { fontSizes } from '../../utils/utils';
+import {fontSizes} from '../../utils/utils';
 import colors from '../../utils/colors';
 import fonts from '../../assets/fonts/fonts';
-import { IRootState } from '../../redux/store';
-import { useDispatch, useSelector } from 'react-redux';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { getLegalcontent, getSellerDashboardCount, getSellerOwnProductList, updateProfile, viewProfile } from '../../utils/apiAction';
-import { ProductData } from '../../utils/types';
-import { useFocusEffect } from '@react-navigation/native';
+import {IRootState} from '../../redux/store';
+import {useDispatch, useSelector} from 'react-redux';
+import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
+import {
+  getLegalcontent,
+  getSellerDashboardCount,
+  getSellerOwnProductList,
+  updateProfile,
+  viewProfile,
+} from '../../utils/apiAction';
+import {ProductData} from '../../utils/types';
+import {useFocusEffect} from '@react-navigation/native';
 import TermsModal from '../../components/model/termsModal';
-import { showLoader } from '../../components/loader/loader';
-import { saveUserData, saveUserType } from '../../redux/reducers/user/UserReducer';
-import { showAlert } from '../../components/cAlert';
-import { handleError, handleSettled } from '../../utils/method';
+import {showLoader} from '../../components/loader/loader';
+import {
+  saveUserData,
+  saveUserType,
+} from '../../redux/reducers/user/UserReducer';
+import {showAlert} from '../../components/cAlert';
+import {handleError, handleSettled} from '../../utils/method';
 
-type PHomeScreenProps = NativeStackScreenProps<RootStackParamList, SCREENS.SHomeScreen>;
+type PHomeScreenProps = NativeStackScreenProps<
+  RootStackParamList,
+  SCREENS.SHomeScreen
+>;
 
 type DashboardAnalyticsItem = {
   title: string;
@@ -38,7 +50,7 @@ const defaultCounts = {
   wallet_balance: 0,
 };
 
-const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation, route }) => {
+const SHomeScreen: React.FC<PHomeScreenProps> = ({navigation, route}) => {
   const [selectedTab, setSelectedTab] = useState('All');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [termsModalVisible, setTermsModalVisible] = useState(false);
@@ -46,7 +58,8 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation, route }) => {
   const [termsLoading, setTermsLoading] = useState(false);
   const [termsChecked, setTermsChecked] = useState(false);
   const [acceptLoading, setAcceptLoading] = useState(false);
-  const [termsModalManuallyClosed, setTermsModalManuallyClosed] = useState(false);
+  const [termsModalManuallyClosed, setTermsModalManuallyClosed] =
+    useState(false);
   const hasTermsModalOpened = useRef(false);
   const userData = useSelector((user: IRootState) => user.user.userData);
   const queryClient = useQueryClient();
@@ -55,11 +68,11 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation, route }) => {
     queryKey: ['getProfile'],
     queryFn: viewProfile,
   });
-  
+
   useEffect(() => {
     if (!userData) {
-      queryClient.removeQueries({ queryKey: ['getSellerDashboardCount'] });
-      queryClient.removeQueries({ queryKey: ['getSellerOwnProductList'] });
+      queryClient.removeQueries({queryKey: ['getSellerDashboardCount']});
+      queryClient.removeQueries({queryKey: ['getSellerOwnProductList']});
     }
   }, [userData, queryClient]);
   const {
@@ -67,7 +80,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation, route }) => {
     refetch: refetchDashboardCountData,
     error: dashboardError,
     isError: isDashboardError,
-    isFetching: isDashboardFetching
+    isFetching: isDashboardFetching,
   } = useQuery({
     queryKey: ['getSellerDashboardCount'],
     queryFn: async () => {
@@ -78,8 +91,8 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation, route }) => {
         console.error('Dashboard API error:', error);
         return {
           data: {
-            counts: defaultCounts
-          }
+            counts: defaultCounts,
+          },
         };
       }
     },
@@ -94,7 +107,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation, route }) => {
     refetch: refetchsellerOwnProductList,
     error: productError,
     isError: isProductError,
-    isFetching: isProductFetching
+    isFetching: isProductFetching,
   } = useQuery({
     queryKey: ['getSellerOwnProductList'],
     queryFn: async () => {
@@ -105,8 +118,8 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation, route }) => {
         console.error('Product API error:', error);
         return {
           data: {
-            product: []
-          }
+            product: [],
+          },
         };
       }
     },
@@ -123,7 +136,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation, route }) => {
           try {
             const refreshPromises = [
               refetchDashboardCountData(),
-              refetchsellerOwnProductList()
+              refetchsellerOwnProductList(),
             ];
           } catch (error) {
             console.error('Error during focus refresh:', error);
@@ -134,7 +147,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation, route }) => {
       } else {
         setSelectedTab('All');
       }
-    }, [userData, refetchDashboardCountData, refetchsellerOwnProductList])
+    }, [userData, refetchDashboardCountData, refetchsellerOwnProductList]),
   );
 
   const handleRefresh = useCallback(async () => {
@@ -146,7 +159,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation, route }) => {
     try {
       const refreshPromises = [
         refetchDashboardCountData(),
-        refetchsellerOwnProductList()
+        refetchsellerOwnProductList(),
       ];
       const results = await Promise.allSettled(refreshPromises);
       results.forEach((result, index) => {
@@ -159,7 +172,9 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation, route }) => {
     }
   }, [userData, refetchDashboardCountData, refetchsellerOwnProductList]);
 
-  const isAnyApiFetching = userData ? (isDashboardFetching || isProductFetching) : false;
+  const isAnyApiFetching = userData
+    ? isDashboardFetching || isProductFetching
+    : false;
 
   const products: ProductData[] = React.useMemo(() => {
     if (!userData) {
@@ -173,69 +188,77 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation, route }) => {
     }
   }, [sellerOwnProductList, userData]);
 
-  const EmptyStateMessage = React.memo(({ selectedTab }: { selectedTab: string }) => {
-    const getEmptyMessage = () => {
-      switch (selectedTab) {
-        case 'Active':
-          return {
-            title: 'No Active Listings',
-            subtitle: 'You don\'t have any active products listed at the moment.'
-          };
-        case 'Sold':
-          return {
-            title: 'No Sold Products',
-            subtitle: 'You haven\'t sold any products yet. Keep promoting your listings!'
-          };
-        case 'In Review':
-          return {
-            title: 'No Products Under Review',
-            subtitle: 'You don\'t have any products currently under review.'
-          };
-        default:
-          return {
-            title: 'No Products Found',
-            subtitle: 'You don\'t have any products at the moment.'
-          };
-      }
-    };
-    const message = getEmptyMessage();
-    return (
-      <View style={styles.emptyStateContainer}>
-        <Text style={styles.emptyStateTitle}>{message.title}</Text>
-        <Text style={styles.emptyStateSubtitle}>{message.subtitle}</Text>
-      </View>
-    );
-  });
+  const EmptyStateMessage = React.memo(
+    ({selectedTab}: {selectedTab: string}) => {
+      const getEmptyMessage = () => {
+        switch (selectedTab) {
+          case 'Active':
+            return {
+              title: 'No Active Listings',
+              subtitle:
+                "You don't have any active products listed at the moment.",
+            };
+          case 'Sold':
+            return {
+              title: 'No Sold Products',
+              subtitle:
+                "You haven't sold any products yet. Keep promoting your listings!",
+            };
+          case 'In Review':
+            return {
+              title: 'No Products Under Review',
+              subtitle: "You don't have any products currently under review.",
+            };
+          default:
+            return {
+              title: 'No Products Found',
+              subtitle: "You don't have any products at the moment.",
+            };
+        }
+      };
+      const message = getEmptyMessage();
+      return (
+        <View style={styles.emptyStateContainer}>
+          <Text style={styles.emptyStateTitle}>{message.title}</Text>
+          <Text style={styles.emptyStateSubtitle}>{message.subtitle}</Text>
+        </View>
+      );
+    },
+  );
 
-  const transformDashboardCounts = React.useCallback((counts: any): DashboardAnalyticsItem[] => {
-    const safeCounts = counts && typeof counts === 'object' ? counts : defaultCounts;
-    return [
-      {
-        key: 'active',
-        title: (safeCounts.active ?? 0).toString(),
-        subtitle: 'Active Listings',
-        icon: 'productListPrimaryIcon',
-      },
-      {
-        key: 'in_review',
-        title: (safeCounts.in_review ?? 0).toString(),
-        subtitle: 'Pending Review',
-        icon: 'pendingIcon',
-      },
-      {
-        key: 'sold',
-        title: (safeCounts.sold ?? 0).toString(),
-        subtitle: 'Sold Products',
-        icon: 'boxIcon',
-      },
-      {
-        key: 'wallet_balance',
-        title: `$${safeCounts.wallet_balance ?? 0}`,
-        subtitle: 'Wallet Balance',
-        icon: 'walletPrimaryIcon',
-      },
-    ];
-  }, []);
+  const transformDashboardCounts = React.useCallback(
+    (counts: any): DashboardAnalyticsItem[] => {
+      const safeCounts =
+        counts && typeof counts === 'object' ? counts : defaultCounts;
+      return [
+        {
+          key: 'active',
+          title: (safeCounts.active ?? 0).toString(),
+          subtitle: 'Active Listings',
+          icon: 'productListPrimaryIcon',
+        },
+        {
+          key: 'in_review',
+          title: (safeCounts.in_review ?? 0).toString(),
+          subtitle: 'Pending Review',
+          icon: 'pendingIcon',
+        },
+        {
+          key: 'sold',
+          title: (safeCounts.sold ?? 0).toString(),
+          subtitle: 'Sold Products',
+          icon: 'boxIcon',
+        },
+        {
+          key: 'wallet_balance',
+          title: `$${safeCounts.wallet_balance ?? 0}`,
+          subtitle: 'Wallet Balance',
+          icon: 'walletPrimaryIcon',
+        },
+      ];
+    },
+    [],
+  );
 
   const counts = React.useMemo(() => {
     if (!userData) {
@@ -289,7 +312,12 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation, route }) => {
     ) {
       openTermsModal();
     }
-  }, [route?.params?.openSellerAgreement, data, termsModalVisible, termsModalManuallyClosed]);
+  }, [
+    route?.params?.openSellerAgreement,
+    data,
+    termsModalVisible,
+    termsModalManuallyClosed,
+  ]);
   const openTermsModal = async () => {
     hasTermsModalOpened.current = true;
     setTermsModalVisible(true);
@@ -297,27 +325,33 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation, route }) => {
     setTermsChecked(false);
     try {
       const response = await getLegalcontent('seller_agreement');
-      
+
       // Validate the response content before setting it
-      if (response?.data?.legalContent?.content && 
-          typeof response.data.legalContent.content === 'string' &&
-          response.data.legalContent.content.trim()) {
+      if (
+        response?.data?.legalContent?.content &&
+        typeof response.data.legalContent.content === 'string' &&
+        response.data.legalContent.content.trim()
+      ) {
         setTermsContent(response.data.legalContent.content);
       } else {
         console.warn('Invalid or empty terms content received:', response);
-        setTermsContent('<p>Terms & Conditions content is not available at the moment.</p>');
+        setTermsContent(
+          '<p>Terms & Conditions content is not available at the moment.</p>',
+        );
       }
     } catch (error) {
       console.error('Error fetching terms content:', error);
-      setTermsContent('<p>Failed to load Terms & Conditions. Please try again later.</p>');
+      setTermsContent(
+        '<p>Failed to load Terms & Conditions. Please try again later.</p>',
+      );
     }
     setTermsLoading(false);
   };
-  const { mutate } = useMutation({
+  const {mutate} = useMutation({
     mutationFn: updateProfile,
-    onSuccess: (data) => {
+    onSuccess: data => {
       dispatch(saveUserData(data.data.user));
-      queryClient.invalidateQueries({ queryKey: ['getProfile'] });
+      queryClient.invalidateQueries({queryKey: ['getProfile']});
       showLoader(false);
       setAcceptLoading(false);
       setTermsModalVisible(false);
@@ -330,12 +364,10 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation, route }) => {
         title: 'Seller Agreement Accepted',
         description: 'You have successfully accepted the Seller Agreement.',
         doneText: 'Okay',
-        onDonePress: () => {
-
-        },
+        onDonePress: () => {},
       });
     },
-    onError: (error) => {
+    onError: error => {
       showLoader(false);
       setAcceptLoading(false);
     },
@@ -373,12 +405,16 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation, route }) => {
   }, [selectedTab, products, getStatusForTab]);
   const getTabCounts = React.useCallback(() => {
     try {
-      const counts: { [key: string]: number } = {
+      const counts: {[key: string]: number} = {
         All: products.length,
-        Active: products.filter(item => item?.product_status === 'active').length,
+        Active: products.filter(item => item?.product_status === 'active')
+          .length,
         Sold: products.filter(item => item?.product_status === 'sold').length,
-        Withdrawn: products.filter(item => item.product_status === 'withdrawn').length,
-        'In Review': products.filter(item => item?.product_status === 'in_review').length,
+        Withdrawn: products.filter(item => item.product_status === 'withdrawn')
+          .length,
+        'In Review': products.filter(
+          item => item?.product_status === 'in_review',
+        ).length,
       };
       return counts;
     } catch (error) {
@@ -395,59 +431,71 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation, route }) => {
   const tabCounts = getTabCounts();
   const filteredData = filterData();
 
-  const renderProductItem = React.useCallback(({ item }: { item: ProductData }) => {
-    try {
-      return (
-        <ProductListingCard
-          item={item}
-          nameStyle={{width:240}}
-          onSelect={(selectedItem) => {
-            try {
-              navigation.navigate(SCREENS.ProductDetailScreen, { productId: selectedItem.id });
-            } catch (navError) {
-              console.error('Navigation error:', navError);
-            }
-          }}
-        />
-      );
-    } catch (error) {
-      console.error('Error rendering product item:', error);
-      return <View />;
-    }
-  }, [navigation]);
+  const renderProductItem = React.useCallback(
+    ({item}: {item: ProductData}) => {
+      try {
+        return (
+          <ProductListingCard
+            item={item}
+            nameStyle={{width: 240}}
+            onSelect={selectedItem => {
+              try {
+                navigation.navigate(SCREENS.ProductDetailScreen, {
+                  productId: selectedItem.id,
+                });
+              } catch (navError) {
+                console.error('Navigation error:', navError);
+              }
+            }}
+          />
+        );
+      } catch (error) {
+        console.error('Error rendering product item:', error);
+        return <View />;
+      }
+    },
+    [navigation],
+  );
 
-  const renderTab = React.useCallback(({ item }: { item: string }) => {
-    try {
-      return (
-        <TouchableOpacity
-          key={item}
-          onPress={() => {
-            try {
-              setSelectedTab(item);
-            } catch (error) {
-              console.error('Error setting tab:', error);
-            }
-          }}
-          style={[
-            styles.tab,
-            selectedTab === item && styles.activeTab,
-          ]}
-        >
-          <Text style={[styles.tabText, selectedTab === item && styles.activeTabText]}>
-            {item}
-          </Text>
-          <View style={styles.countContainer}>
-            <Text style={[styles.tabCountText, selectedTab === item && styles.activeTabCountText]}>
-              {tabCounts[item] ?? 0}
+  const renderTab = React.useCallback(
+    ({item}: {item: string}) => {
+      try {
+        return (
+          <TouchableOpacity
+            key={item}
+            onPress={() => {
+              try {
+                setSelectedTab(item);
+              } catch (error) {
+                console.error('Error setting tab:', error);
+              }
+            }}
+            style={[styles.tab, selectedTab === item && styles.activeTab]}>
+            <Text
+              style={[
+                styles.tabText,
+                selectedTab === item && styles.activeTabText,
+              ]}>
+              {item}
             </Text>
-          </View>
-        </TouchableOpacity>
-      );
-    } catch (error) {
-      console.error('Error rendering tab:', error);
-      return <View key={item} />;
-    }
-  }, [selectedTab, tabCounts]);
+            <View style={styles.countContainer}>
+              <Text
+                style={[
+                  styles.tabCountText,
+                  selectedTab === item && styles.activeTabCountText,
+                ]}>
+                {tabCounts[item] ?? 0}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        );
+      } catch (error) {
+        console.error('Error rendering tab:', error);
+        return <View key={item} />;
+      }
+    },
+    [selectedTab, tabCounts],
+  );
 
   return (
     <HeaderHomeContainer
@@ -456,17 +504,14 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation, route }) => {
       isHome
       refreshing={isRefreshing || isAnyApiFetching}
       onRefresh={handleRefresh}
-      onSearchPress={() => {
-       
-      }}
-      profileImage={userData?.profile_picture}
-    >
+      onSearchPress={() => {}}
+      profileImage={userData?.profile_picture}>
       <FlatList
         data={dashboardAnalyticsData}
-        keyExtractor={(item) => item.key}
+        keyExtractor={item => item.key}
         numColumns={2}
         contentContainerStyle={styles.container}
-        renderItem={({ item }) => (
+        renderItem={({item}) => (
           <DashboardAnalyticsCard
             title={item.title}
             subtitle={item.subtitle}
@@ -477,85 +522,92 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation, route }) => {
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>My Listing</Text>
-          <Text style={styles.viewAllText}
-            onPress={() => navigation.navigate(SCREENS.ProductListScreen)}
-          >View All</Text>
+          <Text
+            style={styles.viewAllText}
+            onPress={() => navigation.navigate(SCREENS.ProductListScreen)}>
+            View All
+          </Text>
         </View>
         <FlatList
-          data={['All', 'Active', 'Sold', 'In Review', "Withdrawn"]}
+          data={['All', 'Active', 'Sold', 'In Review', 'Withdrawn']}
           horizontal
           showsHorizontalScrollIndicator={false}
           renderItem={renderTab}
-          keyExtractor={(item) => item}
+          keyExtractor={item => item}
           style={styles.tabs}
         />
-        {
-          userData ? (
-            filteredData.length > 0 ? (
-              <FlatList
-                data={filteredData.slice(0, 5)}
-                renderItem={renderProductItem}
-                keyExtractor={(item) => item?.id?.toString() || Math.random().toString()}
-                contentContainerStyle={styles.list}
-              />
-            ) : (
-              <EmptyStateMessage selectedTab={selectedTab} />
-            )
+        {userData ? (
+          filteredData.length > 0 ? (
+            <FlatList
+              data={filteredData.slice(0, 5)}
+              renderItem={renderProductItem}
+              keyExtractor={item =>
+                item?.id?.toString() || Math.random().toString()
+              }
+              contentContainerStyle={styles.list}
+            />
           ) : (
-            <View style={styles.loginPromptContainer}>
-              <Text style={styles.loginPromptTitle}>Please log in first</Text>
-              <Text style={styles.loginPromptSubtitle}>
-                You must be logged in to view your listings and recent products.
-              </Text>
-            </View>
+            <EmptyStateMessage selectedTab={selectedTab} />
           )
-        }
+        ) : (
+          <View style={styles.loginPromptContainer}>
+            <Text style={styles.loginPromptTitle}>Please log in first</Text>
+            <Text style={styles.loginPromptSubtitle}>
+              You must be logged in to view your listings and recent products.
+            </Text>
+          </View>
+        )}
       </View>
       <View style={styles.recentProductView}>
         <View style={styles.header}>
           <Text style={styles.title}>Recently Added Products</Text>
-          <Text style={styles.viewAllText}
-            onPress={() => navigation.navigate(SCREENS.ProductListScreen)}>View All</Text>
+          <Text
+            style={styles.viewAllText}
+            onPress={() => navigation.navigate(SCREENS.ProductListScreen)}>
+            View All
+          </Text>
         </View>
-        {
-          userData && products.length > 0 ? (
-            <FlatList
-              data={products.slice(0, 5)}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              renderItem={({ item }) => (
-                <ProductListingCard
-                  item={item}
-                  nameStyle={{width:180}}
-                  cardStyle={{ marginHorizontal: 5, width: 320 }}
-                  onSelect={(selectedItem) => {
-                    try {
-                      navigation.navigate(SCREENS.ProductDetailScreen, { productId: selectedItem.id });
-                    } catch (navError) {
-                      console.error('Recent navigation error:', navError);
-                    }
-                  }}
-                />
-              )}
-              keyExtractor={(item) => item?.id?.toString() || Math.random().toString()}
-              contentContainerStyle={styles.contentContainerStyle}
-            />
-          ) : userData ? (
-            <View style={styles.emptyStateContainer}>
-              <Text style={styles.emptyStateTitle}>No Recent Products</Text>
-              <Text style={styles.emptyStateSubtitle}>
-                You haven't added any products recently.
-              </Text>
-            </View>
-          ) : (
-            <View style={styles.loginPromptContainer}>
-              <Text style={styles.loginPromptTitle}>Please log in first</Text>
-              <Text style={styles.loginPromptSubtitle}>
-                You must be logged in to view recent products.
-              </Text>
-            </View>
-          )
-        }
+        {userData && products.length > 0 ? (
+          <FlatList
+            data={products.slice(0, 5)}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            renderItem={({item}) => (
+              <ProductListingCard
+                item={item}
+                nameStyle={{width: 180}}
+                cardStyle={{marginHorizontal: 5, width: 320}}
+                onSelect={selectedItem => {
+                  try {
+                    navigation.navigate(SCREENS.ProductDetailScreen, {
+                      productId: selectedItem.id,
+                    });
+                  } catch (navError) {
+                    console.error('Recent navigation error:', navError);
+                  }
+                }}
+              />
+            )}
+            keyExtractor={item =>
+              item?.id?.toString() || Math.random().toString()
+            }
+            contentContainerStyle={styles.contentContainerStyle}
+          />
+        ) : userData ? (
+          <View style={styles.emptyStateContainer}>
+            <Text style={styles.emptyStateTitle}>No Recent Products</Text>
+            <Text style={styles.emptyStateSubtitle}>
+              You haven't added any products recently.
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.loginPromptContainer}>
+            <Text style={styles.loginPromptTitle}>Please log in first</Text>
+            <Text style={styles.loginPromptSubtitle}>
+              You must be logged in to view recent products.
+            </Text>
+          </View>
+        )}
       </View>
       <TermsModal
         visible={termsModalVisible}
@@ -564,7 +616,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation, route }) => {
           setTermsModalVisible(false);
           dispatch(saveUserType('buyer'));
           setTimeout(() => {
-            navigation.replace(SCREENS.BottomTab);
+            navigation.navigate(SCREENS.BottomTab);
           }, 300);
         }}
         content={termsContent}
@@ -572,12 +624,14 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation, route }) => {
         checked={termsChecked}
         onCheck={setTermsChecked}
         onAccept={handleTermsAcceptance}
-        isMandatory={data?.data?.user && data?.data?.user?.is_seller_agreement === false}
+        isMandatory={
+          data?.data?.user && data?.data?.user?.is_seller_agreement === false
+        }
         acceptLoading={acceptLoading}
       />
     </HeaderHomeContainer>
   );
-}
+};
 
 export default SHomeScreen;
 
@@ -602,7 +656,7 @@ const styles = StyleSheet.create({
   tabs: {
     flexDirection: 'row',
     marginVertical: 16,
-    paddingHorizontal: 15
+    paddingHorizontal: 15,
   },
   tab: {
     flexDirection: 'row',
@@ -616,7 +670,7 @@ const styles = StyleSheet.create({
   },
   activeTab: {
     backgroundColor: colors.black,
-    borderRadius: 60
+    borderRadius: 60,
   },
   tabText: {
     fontSize: fontSizes.regular,
@@ -624,7 +678,7 @@ const styles = StyleSheet.create({
   },
   activeTabText: {
     color: colors.white,
-    fontSize: fontSizes.regular
+    fontSize: fontSizes.regular,
   },
   tabCountText: {
     fontSize: fontSizes.small,
@@ -632,7 +686,7 @@ const styles = StyleSheet.create({
   },
   activeTabCountText: {
     color: colors.label,
-    fontSize: fontSizes.small
+    fontSize: fontSizes.small,
   },
   list: {
     paddingHorizontal: 15,
@@ -642,14 +696,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 20,
-    marginStart: 5
+    marginStart: 5,
   },
   recentProductView: {
-    marginBottom: 100
+    marginBottom: 100,
   },
   contentContainerStyle: {
     paddingVertical: 10,
-    paddingHorizontal: 10
+    paddingHorizontal: 10,
   },
   emptyStateContainer: {
     flex: 1,

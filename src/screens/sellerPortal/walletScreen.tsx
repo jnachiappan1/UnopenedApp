@@ -30,7 +30,7 @@ import {IRootState} from '../../redux/store';
 import {useFocusEffect} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import {ProductData} from '../../utils/types';
-import { showLoader } from '../../components/loader/loader';
+import {showLoader} from '../../components/loader/loader';
 type WalletScreenProps = NativeStackScreenProps<
   RootStackParamList,
   SCREENS.WalletScreen
@@ -93,7 +93,6 @@ const WalletScreen: React.FC<WalletScreenProps> = ({navigation}) => {
       setTimeout(() => {
         refetchWalletDetail();
         refetchTransactionData();
-        
       }, 100);
     }
   }, [userData, refetchWalletDetail, refetchTransactionData]);
