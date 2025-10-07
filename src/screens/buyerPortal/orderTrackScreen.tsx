@@ -21,6 +21,7 @@ import {
   getProductDetailByID,
   trackShipment,
   createShipping,
+  labelPurchase,
 } from '../../utils/apiAction';
 import {useMutation, useQuery} from '@tanstack/react-query';
 import {image_url} from '../../utils/api';
@@ -62,6 +63,7 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({
     queryFn: () => getProductDetailByID(productId?.productId),
   });
 
+
   // const addressId = productDetail?.data?.product[0]?.address_id;
 
   // // Create shipping when both productId and addressId are available
@@ -94,6 +96,12 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({
     queryFn: () => trackShipment(productDetail?.data?.product[0]?.shipment_id),
     enabled: !!productDetail?.data?.product[0]?.shipment_id,
   });
+  const {data: purchaseLabelData} = useQuery({
+    queryKey: ['purchaseData', productDetail?.data?.product[0]?.shipment_id],
+    queryFn: () => labelPurchase(productDetail?.data?.product[0]?.shipment_id),
+    enabled: !!productDetail?.data?.product[0]?.shipment_id,
+  });
+
   const trackingUrl = shippingTrackingData?.tracking?.tracking_url;
 
   const generateTrackingSteps = (status: string) => {
@@ -539,7 +547,6 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({
             </View>
           </>
         )}
-
 
         <View style={styles.helpSection}>
           <Text style={styles.headingText}>Need help with your order?</Text>

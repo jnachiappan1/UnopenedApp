@@ -102,8 +102,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
     useMutation({
       mutationFn: createShipping,
       onSuccess: async response => {
-        console.log('response---', JSON.stringify(response));
-        
+
         setShippingApiCalled(true);
         setIsShippingRatesLoading(false); // No need for loading state since we're using direct response
         // Use shipping rates directly from the shipping response (no need for separate API call)
@@ -164,6 +163,8 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
       product_id: productId.toString(),
       address_id: addressId,
     };
+    console.log('shippingPayload---', shippingPayload);
+
     setShippingApiCalled(false);
     createShippingMutation(shippingPayload);
   };
@@ -566,10 +567,6 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
                     try {
                       await applyCouponAfterPayment();
                     } catch (error) {
-                      console.log(
-                        'Error applying coupon after hybrid payment:',
-                        error,
-                      );
                       // Continue with payment success even if coupon application fails
                     }
                     setModalVisible(true);
@@ -621,8 +618,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
           rate_id: selectedShippingRate ? selectedShippingRate.id : '',
           shipmentId: shippingID,
         };
-        console.log('stripePaymentPayload---', JSON.stringify(stripePaymentPayload));
-        
+
         handleStripePayment(stripePaymentPayload);
       } else {
         showAlert({
@@ -686,7 +682,6 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
       if (isSuccess) {
         const {clientSecret, ephemeralKey, customer, paymentIntentId} =
           paymentResponse.data;
-       
 
         const missingCredentials = [];
         if (!clientSecret) missingCredentials.push('Client Secret');
@@ -742,10 +737,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
           // Apply coupon after successful Stripe payment
           try {
             await applyCouponAfterPayment();
-          } catch (error) {
-            console.log('Error applying coupon after Stripe payment:', error);
-            // Continue with payment success even if coupon application fails
-          }
+          } catch (error) {}
           setModalVisible(true);
         }
       } else {
@@ -793,19 +785,14 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
           productId: productId,
         });
       } else {
-        console.log('Navigation not available, falling back to navigate');
         navigation.navigate(SCREENS.OrderTrackScreen, {
           productId: productId,
         });
       }
     } catch (error) {
-      console.log('Error in modal success navigation:', error);
-      // Fallback navigation
       try {
         navigation.navigate(SCREENS.BottomTab);
-      } catch (fallbackError) {
-        console.log('Fallback navigation also failed:', fallbackError);
-      }
+      } catch (fallbackError) {}
     }
   };
 
@@ -1701,8 +1688,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
                   rate_id: selectedShippingRate ? selectedShippingRate.id : '',
                   shipmentId: shippingID,
                 };
-                
-                
+
                 handleStripePayment(paymentPayload);
               }}>
               <Text style={styles.proceedButtonText}>Proceed to Payment</Text>

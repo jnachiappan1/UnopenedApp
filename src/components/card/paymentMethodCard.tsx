@@ -23,7 +23,6 @@ const PaymentMethodCard: React.FC<PaymentMethodCardProps> = ({
   selected,
   onPress,
 }) => {
-console.log("item.icon", item.icon);
 
   return (
     <TouchableOpacity 

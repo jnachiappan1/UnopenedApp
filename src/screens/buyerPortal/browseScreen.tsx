@@ -192,7 +192,8 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
     // Note: API may already handle some filtering based on parameters sent
     if (selectedCategories.length > 0) {
       result = result.filter(product => {
-        const productCategory = (product as any).category || (product as any).category_id;
+        const productCategory =
+          (product as any).category || (product as any).category_id;
         if (productCategory) {
           return selectedCategories.some(
             category =>
@@ -209,9 +210,7 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
       result = result.filter(
         product =>
           product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          product.description
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()),
+          product.description.toLowerCase().includes(searchQuery.toLowerCase()),
       );
     }
 
@@ -318,15 +317,6 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
       });
     }
 
-    console.log(
-      '🔍 After sorting - Products status:',
-      result.map(p => ({
-        name: (p as any).name,
-        status: (p as any).product_status,
-        price: p.price,
-      })),
-    );
-
     return result;
   };
 
@@ -382,8 +372,8 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
             <RefreshControl
               refreshing={isRefreshing}
               onRefresh={onRefresh}
-              colors={[colors.primary]} 
-              tintColor={colors.primary} 
+              colors={[colors.primary]}
+              tintColor={colors.primary}
             />
           }>
           {recentSearches.length > 0 && (

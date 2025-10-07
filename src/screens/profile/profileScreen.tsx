@@ -41,7 +41,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({navigation}) => {
     Boolean((useSelector((user: IRootState) => user.user.userData)?.is_notification))
   );
   const userData = useSelector((user: IRootState) => user.user.userData);
-  console.log('isEnabled---', userData);
   
   const {mutate: deleteMutation} = useMutation({
     mutationFn: deleteAPI,

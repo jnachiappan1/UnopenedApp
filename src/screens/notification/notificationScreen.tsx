@@ -15,9 +15,9 @@ import fonts from '../../assets/fonts/fonts';
 import {useQuery} from '@tanstack/react-query';
 import moment from 'moment';
 // import IMAGE from '../../assets/images';
-import { showLoader } from '../../components/loader/loader';
+import {showLoader} from '../../components/loader/loader';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
-import { getNotification } from '../../utils/apiAction';
+import {getNotification} from '../../utils/apiAction';
 import IconsSvg from '../../assets/svg/iconsSvg';
 
 type NotificationScreenProps = NativeStackScreenProps<
@@ -44,11 +44,7 @@ const NotificationScreen: React.FC<NotificationScreenProps> = ({}) => {
     queryFn: getNotification,
     refetchInterval: 10000,
   });
-console.log("getAllNotification",getAllNotification);
 
-  
-
-  
   const clearNotification = () => {
     showLoader(true);
     // deleteData();
@@ -73,7 +69,7 @@ console.log("getAllNotification",getAllNotification);
 
   const renderNotification = ({item}: {item: Notification}) => {
     return (
-      <View style={[styles.notificationCard]}> 
+      <View style={[styles.notificationCard]}>
         <View style={styles.row}>
           {/* <View
             style={[
@@ -95,7 +91,9 @@ console.log("getAllNotification",getAllNotification);
               {item?.body}
             </Text>
           </View>
-          <Text style={styles.timeText}>{getRelativeTimeShort(item?.createdAt)}</Text>
+          <Text style={styles.timeText}>
+            {getRelativeTimeShort(item?.createdAt)}
+          </Text>
         </View>
       </View>
     );
@@ -103,8 +101,10 @@ console.log("getAllNotification",getAllNotification);
 
   return (
     <>
-    
-        <TitleBackHeaderContainer isBack title="Notification" isNormalHeader={false}>
+      <TitleBackHeaderContainer
+        isBack
+        title="Notification"
+        isNormalHeader={false}>
         {getAllNotification?.data?.notification?.length > 0 ? (
           <View>
             <FlatList
@@ -129,18 +129,15 @@ console.log("getAllNotification",getAllNotification);
               }
               showsVerticalScrollIndicator={false}
             />
-            
           </View>
         ) : (
           <View style={styles.container}>
-            
             <Text style={styles.emptyText}>
-              {('No notifications available.')}
+              {'No notifications available.'}
             </Text>
           </View>
         )}
-      
-   </TitleBackHeaderContainer>
+      </TitleBackHeaderContainer>
     </>
   );
 };

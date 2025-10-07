@@ -154,7 +154,6 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({route, navigation}) => {
       ...data,
       ...(type === 'login' || type === 'register' ? {fcmToken: fcmToken} : {}),
     };
-    console.log('fcmToken---', fcmToken);
 
     showLoader(true);
     mutate({type, payload});

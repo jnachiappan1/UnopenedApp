@@ -243,12 +243,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     }
     return [];
   };
-  useEffect(() => {
-    if (categoryData) {
-      const transformedData = transformCategoryData(categoryData);
-      setDropdownData(transformedData);
-    }
-  }, [categoryData]);
   const {
     control,
     reset,
@@ -279,6 +273,22 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       productImages: [],
     },
   });
+
+  useEffect(() => {
+    if (categoryData) {
+      const transformedData = transformCategoryData(categoryData);
+      setDropdownData(transformedData);
+      
+      // If no category is selected and we have dropdown data, show error
+      const currentCategory = getValues('category');
+      if (!currentCategory && transformedData.length > 0) {
+        setError('category', {
+          type: 'manual',
+          message: 'Category is required',
+        });
+      }
+    }
+  }, [categoryData, getValues, setError]);
 
   useEffect(() => {
     const subscription = watch((value, {name}) => {
@@ -465,7 +475,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     if (scanProductData?.data?.product) {
       const productData = scanProductData.data.product;
       const scannedCategory = productData.category;
-      console.log('[][[[][][[[[]', productData);
 
       setScannedCategoryName(scannedCategory || '');
 
@@ -487,6 +496,12 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
         if (matchedCategory) {
           setValue('category', matchedCategory);
           clearErrors('category');
+        } else {
+          // If no category match found, set error to show validation message
+          setError('category', {
+            type: 'manual',
+            message: 'Category is required',
+          });
         }
       }
 
@@ -944,7 +959,13 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     if (isStep1Valid && isImagesValid) {
       setCurrentStep(1);
     } else {
-      console.log('Form errors:', errors);
+      const currentCategory = getValues('category');
+      if (!currentCategory) {
+        setError('category', {
+          type: 'manual',
+          message: 'Category is required',
+        });
+      }
     }
   };
 
@@ -1057,10 +1078,9 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             required={{value: true, message: 'Category is required'}}
             error={errors}
             onChangeValue={selectedItem => {
-              // Category selected
+              // Category selected - clear error immediately
               setValue('category', selectedItem);
               clearErrors('category');
-              console.log('Selected category:', selectedItem);
             }}
             containerStyle={styles.categoryStyle}
           />

@@ -120,7 +120,6 @@ const AddBankDetailsScreen: React.FC<AddBankDetailsProps> = ({ navigation }) => 
   };
 
   const onSubmit = (data: BankDetailsForm) => {
-    console.log('Bank Details:', JSON.stringify(data));
     showLoader(true);
     mutate(data);
   };

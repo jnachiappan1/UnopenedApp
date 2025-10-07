@@ -1,8 +1,16 @@
-import { API } from './api';
+import {API} from './api';
 import axios from './axios';
 import axiosmultipart from './axiosmultipart';
-import { ChangePasswordPayloadType, ResendInputPayloadType, SignUpPayloadType } from './payload';
-import { ContactSupportType, AddressPayloadType, PaymentPayloadType } from './types';
+import {
+  ChangePasswordPayloadType,
+  ResendInputPayloadType,
+  SignUpPayloadType,
+} from './payload';
+import {
+  ContactSupportType,
+  AddressPayloadType,
+  PaymentPayloadType,
+} from './types';
 
 //Plan Owner Auth API Action
 
@@ -18,7 +26,10 @@ export const verifyOtpApi = async (type: string, payload: any) => {
   const response = await axios.post(API.buyer.verifyOtp + type, payload);
   return response;
 };
-export const resendOtpApi = async (type: string, payload: ResendInputPayloadType) => {
+export const resendOtpApi = async (
+  type: string,
+  payload: ResendInputPayloadType,
+) => {
   const response = await axios.post(API.buyer.resendOtp + type, payload);
   return response;
 };
@@ -64,7 +75,7 @@ export const getBankAccount = async () => {
   return response;
 };
 
-export const cashOut = async (data: { amount: string }) => {
+export const cashOut = async (data: {amount: string}) => {
   const response = await axios.post(API.buyer.cashOut, data);
   return response;
 };
@@ -82,10 +93,7 @@ export const getCategoryDetail = async () => {
   return response;
 };
 export const addProduct = async (data: FormData) => {
-  console.log("dataaddProduct===", JSON.stringify(data));
-  
   const response = await axiosmultipart.post(API.seller.add_Product, data);
-  console.log(response,"response--");
 
   return response;
 };
@@ -97,8 +105,10 @@ export const getSellerOwnProductList = async () => {
   const response = await axios.get(API.seller.product_List);
   return response;
 };
-export const getSellerProductByID = async (productID?: string | number | null | undefined) => {
-  const response = await axios.get(API.seller.product_List + "/" + productID);
+export const getSellerProductByID = async (
+  productID?: string | number | null | undefined,
+) => {
+  const response = await axios.get(API.seller.product_List + '/' + productID);
   return response;
 };
 export const getLegalcontent = async (type: string | null | undefined) => {
@@ -108,15 +118,15 @@ export const getLegalcontent = async (type: string | null | undefined) => {
 
 export const updateProductStatus = async (
   productID: string | number | null | undefined,
-  data: globalThis.FormData
+  data: globalThis.FormData,
 ) => {
-  console.log("data", JSON.stringify(data));
-  console.log("productID", productID);
-  
-  const response = await axiosmultipart.patch(API.seller.add_Product + "/" + productID, data);
+
+  const response = await axiosmultipart.patch(
+    API.seller.add_Product + '/' + productID,
+    data,
+  );
   return response;
 };
-
 
 //Buyer Side API call
 interface productListParams {
@@ -154,7 +164,9 @@ export const getProductList = async ({
       queryParts.push(`user_id=${encodeURIComponent(user_id.toString())}`);
     }
     const queryString = queryParts.join('&');
-    const url = `${API.seller.getProductList}${queryString ? `?${queryString}` : ''}`;
+    const url = `${API.seller.getProductList}${
+      queryString ? `?${queryString}` : ''
+    }`;
     const response = await axios.get(url);
     return response;
   } catch (error) {
@@ -192,19 +204,39 @@ export const getSalesProductList = async () => {
   const response = await axios.get(API.seller.sales_product_List);
   return response;
 };
-export const getProductDetailByID = async (productID?: string | number | null | undefined) => {
-  const response = await axios.get(API.buyer.getProductList + "/" + productID);
+export const getProductDetailByID = async (
+  productID?: string | number | null | undefined,
+) => {
+  const response = await axios.get(API.buyer.getProductList + '/' + productID);
   return response;
 };
 
-export const validateCoupon = async (data: { coupon_code: string; purchase_amount: number }) => {
+export const getProductAddressById = async (
+  productID?: string | number | null | undefined,
+) => {
+  const response = await axios.get(
+    API.buyer.getProductAddress + '/' + productID,
+  );
+  return response;
+};
+export const validateCoupon = async (data: {
+  coupon_code: string;
+  purchase_amount: number;
+}) => {
   const response = await axios.post(API.buyer.validateCoupon, data);
   return response;
 };
-export const soldProduct = async (productId: string | number | null | undefined, payload?: { address_id: number }) => {
-  const response = await axios.patch(`${API.seller.soldProduct}${productId}`, payload);
+export const soldProduct = async (
+  productId: string | number | null | undefined,
+  payload?: {address_id: number},
+) => {
+  const response = await axios.patch(
+    `${API.seller.soldProduct}${productId}`,
+    payload,
+  );
   return response.data;
-};export const getMyOrderList = async () => {
+};
+export const getMyOrderList = async () => {
   const response = await axios.get(API.seller.getMyOrderList);
   return response;
 };
@@ -264,8 +296,8 @@ export const getCityAction = async ({
   return response.data;
 };
 
-export const getScanProductDetail = async (scannedBarcode:string) => {
-  const response = await axios.get(API.seller.getScanProduct+scannedBarcode);
+export const getScanProductDetail = async (scannedBarcode: string) => {
+  const response = await axios.get(API.seller.getScanProduct + scannedBarcode);
   return response;
 };
 
@@ -284,7 +316,7 @@ export const getAddresses = async () => {
   return response;
 };
 export const getAddressesByID = async (addressID: number) => {
-  const response = await axios.get(API.buyer.getAddresses + "/" + addressID);
+  const response = await axios.get(API.buyer.getAddresses + '/' + addressID);
   return response;
 };
 export const getPublishKeyAction = async () => {
@@ -293,13 +325,17 @@ export const getPublishKeyAction = async () => {
 };
 
 export const makePayment = async (
-  type: 'add_funds' | 'buy_product' | 'wallet_funds' | 'wallet_buy_product_funds',
-  payload: { 
+  type:
+    | 'add_funds'
+    | 'buy_product'
+    | 'wallet_funds'
+    | 'wallet_buy_product_funds',
+  payload: {
     amount?: string;
     address_id?: number;
     wallet_amount?: string;
   },
-  productId?: string | number
+  productId?: string | number,
 ) => {
   // Build URL dynamically
   let url = `${API.buyer.makePayment}/?type=${type}`;
@@ -318,19 +354,25 @@ export const applyCoupon = async (payload: {
   return response;
 };
 
-export const createShipping = async (payload: { product_id: string; address_id: number }) => {
+export const createShipping = async (payload: {
+  product_id: string;
+  address_id: number;
+}) => {
   const response = await axios.post(API.buyer.createShipping, payload);
   return response;
 };
 
 export const getShippingRates = async (shippingRecordId: number) => {
-  const response = await axios.get(`${API.buyer.getShippingRates}/${shippingRecordId}/rates`);
+  const response = await axios.get(
+    `${API.buyer.getShippingRates}/${shippingRecordId}/rates`,
+  );
   return response;
 };
 
 export const trackShipment = async (shipmentId: any) => {
-  
-  const response = await axios.get(`${API.buyer.trackShipment}/${shipmentId}/track`);
+  const response = await axios.get(
+    `${API.buyer.trackShipment}/${shipmentId}/track`,
+  );
   return response;
 };
 export const getNotification = async () => {
@@ -340,5 +382,12 @@ export const getNotification = async () => {
 
 export const createCashOut = async (payload: PaymentPayloadType) => {
   const response = await axios.post(API.buyer.cashOut_request, payload);
+  return response;
+};
+
+export const labelPurchase = async (shipmentId: any) => {
+  const response = await axios.get(
+    `${API.buyer.trackShipment}/${shipmentId}/purchase`,
+  );
   return response;
 };

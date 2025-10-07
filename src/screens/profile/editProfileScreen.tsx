@@ -82,7 +82,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
 
   // Add debug logging for watchedProfileImage
   useEffect(() => {
-    console.log('Watched profile image changed:', watchedProfileImage);
   }, [watchedProfileImage]);
 
   const {mutate} = useMutation({

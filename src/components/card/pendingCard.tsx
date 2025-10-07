@@ -32,7 +32,6 @@ type Props = {
 };
 
 const PendingCard: React.FC<Props> = ({ item }) => {
-  console.log("-----", item);
   
   const formatDate = (dateString: string) => {
     if (!dateString) return '';

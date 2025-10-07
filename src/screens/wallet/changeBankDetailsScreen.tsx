@@ -173,7 +173,6 @@ const ChangeBankDetailsScreen: React.FC<ChangeBankDetailsProps> = ({ navigation 
   };
 
   const onSubmit = (data: BankDetailsForm) => {
-    console.log('Updated Bank Details:', JSON.stringify(data));
     showLoader(true);
     mutate(data);
   };

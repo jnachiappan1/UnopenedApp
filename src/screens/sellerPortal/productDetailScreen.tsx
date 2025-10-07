@@ -95,7 +95,6 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
       onDonePress: () => {
         const formData = new FormData();
         formData.append('product_status', 'withdrawn');
-        console.log('formData', formData);
 
         showLoader(true);
         mutate(formData);

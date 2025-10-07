@@ -21,6 +21,7 @@ import Button from '../../components/button/buttons';
 import {
   getAddresses,
   getAddressesByID,
+  getProductAddressById,
   getProductDetailByID,
   getProductPriceDetail,
 } from '../../utils/apiAction';
@@ -64,6 +65,10 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
   } = useQuery({
     queryKey: ['getProductDetailByID', productId],
     queryFn: () => getProductDetailByID(productId),
+  });
+  const {data: addData} = useQuery({
+    queryKey: ['getProductAddress', productId],
+    queryFn: () => getProductAddressById(productId),
   });
   const {data: addressesData} = useQuery({
     queryKey: ['getAddresses'],
@@ -136,48 +141,16 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
   }, [allProductList]);
 
   const deliveryTitleText = React.useMemo(() => {
-    const payload: any = addressData;
-    let root: any;
+    const user = addData?.data?.product?.[0]?.product_user;
+    if (!user) return 'Ships from';
 
-    if (Array.isArray(payload)) {
-      root = payload[0];
-    } else if (payload?.data?.address) {
-      root = Array.isArray(payload.data.address)
-        ? payload.data.address[0]
-        : payload.data.address;
-    } else if (Array.isArray(payload?.data)) {
-      root = payload.data[0];
-    } else if (payload?.data) {
-      root = payload.data;
-    } else if (payload?.address) {
-      root = Array.isArray(payload.address)
-        ? payload.address[0]
-        : payload.address;
-    } else {
-      root = payload;
-    }
+    const address = user?.address;
+    const country = user?.country;
+    const state = user?.state;
 
-    if (!root) return 'Ships from';
-
-    const country =
-      root?.country ||
-      root?.country_name ||
-      root?.countryName ||
-      root?.address_user?.country;
-    const state =
-      root?.state ||
-      root?.state_name ||
-      root?.stateName ||
-      root?.address_user?.state;
-    const city =
-      root?.city ||
-      root?.city_name ||
-      root?.cityName ||
-      root?.address_user?.city;
-
-    const parts = [country, state, city].filter(Boolean);
+    const parts = [address, country, state].filter(Boolean);
     return parts.length ? `Ships from ${parts.join(', ')}` : 'Ships from';
-  }, [addressData]);
+  }, [addData]);
 
   // Show error if no product data found
   if (!isLoading && !allProductList?.data?.product?.[0]) {

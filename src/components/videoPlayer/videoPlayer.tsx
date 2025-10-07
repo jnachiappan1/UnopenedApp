@@ -36,7 +36,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({source, style}) => {
   const [loading, setLoading] = useState(true);
   const [showControls, setShowControls] = useState(true);
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-console.log("source",source);
 
   // Auto-hide controls after 3 seconds
   useEffect(() => {
@@ -217,7 +216,6 @@ console.log("source",source);
         onEnd={handleVideoEnd}
         onBuffer={() => setLoading(false)}
         onError={error => {
-          console.log('Video error:', error);
           setLoading(false);
         }}
       />

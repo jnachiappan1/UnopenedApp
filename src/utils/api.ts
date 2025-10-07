@@ -33,6 +33,7 @@ export const API = {
     cashOutHistory: `${base_url}/api/v1/cashout/history`,
     cashOut_request: `${base_url}/api/v1/cashout/cashout-request`,
     notification: `${base_url}/api/v1/notification`,
+    getProductAddress: `${base_url}/api/v1/product/`,
   },
   seller: {
     sign_up: `${base_url}/api/v1/users/auth/create`,

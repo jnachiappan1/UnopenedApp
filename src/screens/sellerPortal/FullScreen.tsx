@@ -132,7 +132,6 @@ const FullScreen: React.FC<ScreenProps> = ({navigation, route}) => {
               setLoading(false);
             }}
             onError={data => {
-              console.log('Error..', data);
             }}
           />
           {loading && (
