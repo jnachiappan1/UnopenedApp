@@ -11,7 +11,8 @@ import {
 } from 'react-native';
 import colors from '../../utils/colors';
 import fonts from '../../assets/fonts/fonts';
-import { fontSizes } from '../../utils/utils';
+import {fontSizes} from '../../utils/utils';
+import IconsSvg from '../../assets/svg/iconsSvg';
 
 interface PrivacyTermsCheckboxProps {
   value: boolean;
@@ -31,24 +32,21 @@ const PrivacyTermsCheckbox: React.FC<PrivacyTermsCheckboxProps> = ({
   return (
     <View style={[styles.container, containerStyle]}>
       <TouchableOpacity
-        style={[styles.checkbox, value && styles.checkboxChecked]}
         activeOpacity={0.7}
+        style={styles.checkIcon}
         onPress={() => onValueChange(!value)}>
-        {value && <Text style={styles.checkIcon}>✓</Text>}
+        <IconsSvg name={value ? 'checkBoxSelected' : 'checkBox'} />
       </TouchableOpacity>
       <Text style={styles.text}>
         I agree{' '}
-        <Text
-          style={styles.link}
-          onPress={onPrivacyPress}>
+        <Text style={styles.link} onPress={onPrivacyPress}>
           Privacy policy
         </Text>{' '}
         &{' '}
-        <Text
-          style={styles.link}
-          onPress={onTermsPress}>
+        <Text style={styles.link} onPress={onTermsPress}>
           Terms & Conditions
-        </Text>.
+        </Text>
+        .
       </Text>
     </View>
   );
@@ -58,8 +56,9 @@ export default PrivacyTermsCheckbox;
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignSelf: 'center',
     paddingVertical: 8,
+    justifyContent: 'center',
   },
   checkbox: {
     width: 20,
@@ -68,17 +67,17 @@ const styles = StyleSheet.create({
     borderColor: '#999',
     borderRadius: 4,
     justifyContent: 'center',
-    alignItems: 'center',
+    alignSelf: 'center',
     marginRight: 10,
   },
   checkboxChecked: {
     borderColor: colors.primary,
+    justifyContent: 'center',
+    alignSelf: 'center',
   },
   checkIcon: {
-    color: colors.primary,
-    fontSize: 16,
-    fontFamily: fonts.medium,
-    lineHeight: 18,
+    alignSelf: 'center',
+    justifyContent: 'center',
   },
   text: {
     flex: 1,
@@ -86,6 +85,8 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.small,
     color: '#333',
     fontFamily: fonts.medium,
+    alignSelf: 'center',
+    marginStart: 10,
   },
   link: {
     color: colors.primary,

@@ -42,6 +42,7 @@ type IInputCountryProps = {
   containerStyle?: StyleProp<ViewStyle>;
   style?: StyleProp<ViewStyle>;
   isShowError?: boolean;
+  disabled?: boolean
 };
 
 export interface ICountry {
@@ -65,6 +66,7 @@ const InputCountry: React.FC<IInputCountryProps> = ({
   pattern,
   validate,
   isShowError = true,
+  disabled
 }) => {
   const colors = getColors();
   const searchInputRef = useRef<TextInput | null>(null);
@@ -135,7 +137,7 @@ const allCountries = useMemo(() => {
           <TouchableOpacity
             style={[commonStyles.inputWrapper, style]}
             onPress={() => setShowList(true)}
-            disabled={isLoading}
+            disabled={disabled}
             activeOpacity={0.7}>
             <View style={styles.view}>
               {isLoading ? (

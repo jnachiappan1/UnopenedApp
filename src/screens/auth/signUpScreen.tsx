@@ -1,30 +1,30 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import React, { useState } from 'react';
+import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
+import React, {useState} from 'react';
 import fonts from '../../assets/fonts/fonts';
 import Input from '../../components/input/input';
-import { useForm } from 'react-hook-form';
-import { capitalizeFirstLetter, emailPattern } from '../../utils/utils';
+import {useForm} from 'react-hook-form';
+import {capitalizeFirstLetter, emailPattern} from '../../utils/utils';
 import Header from '../../components/headerContainer/header';
 import ImageBackgroundHeader from '../../components/headerContainer/imageBackgroundHeader';
 import IconsSvg from '../../assets/svg/iconsSvg';
 import colors from '../../utils/colors';
 import Button from '../../components/button/buttons';
 import WhiteButton from '../../components/button/whiteButton';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
 import DropdownInput from '../../components/input/dropdownInput';
 import InputCountry from '../../components/input/inputCountry';
 import InputState from '../../components/input/inputState';
 import InputCity from '../../components/input/inputCity';
 import GenderDropdown from '../../components/input/genderDropdown';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { useMutation } from '@tanstack/react-query';
-import { signUp } from '../../utils/apiAction';
-import { handleError, handleSettled } from '../../utils/method';
-import { showAlert } from '../../components/cAlert';
-import { showLoader } from '../../components/loader/loader';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
+import {useMutation} from '@tanstack/react-query';
+import {signUp} from '../../utils/apiAction';
+import {handleError, handleSettled} from '../../utils/method';
+import {showAlert} from '../../components/cAlert';
+import {showLoader} from '../../components/loader/loader';
 import PhoneNumberInputs from '../../components/input/phoneNumberInputs';
-import { selectedCountryType } from '../../utils/types';
+import {selectedCountryType} from '../../utils/types';
 import PrivacyTermsCheckbox from '../../components/card/privacyTermsCheckbox';
 
 type LoginProps = NativeStackScreenProps<
@@ -45,25 +45,27 @@ export type InputsRegistration = {
   gender: string;
   password: string;
 };
-const SignUpScreen: React.FC<LoginProps> = ({ route, navigation }) => {
+const SignUpScreen: React.FC<LoginProps> = ({route, navigation}) => {
   const [email, setEmail] = useState('johndoe@gmail.com');
   const [accepted, setAccepted] = useState(false);
   const [selectedCountry, setPhoneCountry] = useState<selectedCountryType>({
-    callingCode: ['91'],
-    cca2: 'IN',
-    currency: ['INR'],
-    flag: 'flag-in',
-    name: 'India',
-    region: 'Asia',
-    subregion: 'Southern Asia',
+    callingCode: ['1'],
+    cca2: 'US',
+    currency: ['USD'],
+    flag: 'flag-us',
+    name: 'United States',
+    region: 'Americas',
+    subregion: 'North America',
   });
+  console.log('----->>>', selectedCountry);
+
   const defaultValues = {
     full_name: '',
     email: '',
-    country_code: '+91',
+    country_code: '+1',
     phone_number: '',
     address: '',
-    country: '',
+    country: 'US',
     state: '',
     city: '',
     pincode: '',
@@ -72,12 +74,12 @@ const SignUpScreen: React.FC<LoginProps> = ({ route, navigation }) => {
   };
   const {
     control,
-    formState: { errors },
+    formState: {errors},
     handleSubmit,
     watch,
     setValue,
     getValues,
-  } = useForm<InputsRegistration>({ defaultValues });
+  } = useForm<InputsRegistration>({defaultValues});
   // Track required visible fields to control button disabled state
   const requiredFields: Array<keyof InputsRegistration> = [
     'full_name',
@@ -96,9 +98,9 @@ const SignUpScreen: React.FC<LoginProps> = ({ route, navigation }) => {
     typeof value === 'string' ? value.trim().length > 0 : !!value,
   );
   const isCreateAccountDisabled = !accepted || !areAllRequiredFieldsFilled;
-  const { mutate } = useMutation({
+  const {mutate} = useMutation({
     mutationFn: signUp,
-    onSuccess: (data) => {
+    onSuccess: data => {
       showLoader(false);
       showAlert({
         isVisible: true,
@@ -110,8 +112,8 @@ const SignUpScreen: React.FC<LoginProps> = ({ route, navigation }) => {
           navigation.navigate(SCREENS.VerifyOTP, {
             otp: data?.data.otp,
             email: watch('email') && getValues('email'),
-            type: 'register'
-          })
+            type: 'register',
+          });
         },
       });
     },
@@ -131,8 +133,7 @@ const SignUpScreen: React.FC<LoginProps> = ({ route, navigation }) => {
         contentContainerStyle={styles.content}
         enableOnAndroid={true}
         extraScrollHeight={20}
-        keyboardShouldPersistTaps="handled"
-      >
+        keyboardShouldPersistTaps="handled">
         <IconsSvg name="box" style={styles.boxIconStyle} />
         <Text style={styles.title}>Get Started now</Text>
         <Text style={styles.subtitle}>
@@ -146,7 +147,7 @@ const SignUpScreen: React.FC<LoginProps> = ({ route, navigation }) => {
           inputProps={{
             placeholder: 'Enter Name',
           }}
-          required={{ value: true, message: 'Please enter your name' }}
+          required={{value: true, message: 'Please enter your name'}}
           error={errors}
           maxLength={40}
           inputStyle={styles.inputStyle}
@@ -194,7 +195,7 @@ const SignUpScreen: React.FC<LoginProps> = ({ route, navigation }) => {
           inputProps={{
             placeholder: 'Enter Email Address Here',
           }}
-          required={{ value: true, message: 'Email address required' }}
+          required={{value: true, message: 'Email address required'}}
           pattern={{
             value: emailPattern,
             message: 'Invalid email format',
@@ -212,7 +213,7 @@ const SignUpScreen: React.FC<LoginProps> = ({ route, navigation }) => {
           inputProps={{
             placeholder: 'Enter Address',
           }}
-          required={{ value: true, message: 'Please enter your address' }}
+          required={{value: true, message: 'Please enter your address'}}
           error={errors}
           maxLength={40}
           inputStyle={styles.inputStyle}
@@ -224,27 +225,32 @@ const SignUpScreen: React.FC<LoginProps> = ({ route, navigation }) => {
             label={'Country'}
             placeholder={'Country'}
             error={errors}
-            required={{ value: true, message: 'Country is required' }}
+            required={{value: true, message: 'Country is required'}}
+            disabled={true}
           />
           <InputState
             control={control}
             name="state"
             label={'State'}
-            country={watch('country') ? getValues('country') : undefined}
+            country={
+              watch('country') === 'US' ? 'United States' : getValues('country')
+            }
             placeholder={'State'}
             error={errors}
-            required={{ value: true, message: 'State is required' }}
+            required={{value: true, message: 'State is required'}}
           />
 
           <InputCity
             control={control}
             name="city"
             label={'City'}
-            country={watch('country') ? getValues('country') : undefined}
+            country={
+              watch('country') === 'US' ? 'United States' : getValues('country')
+            }
             state={watch('state') ? getValues('state') : undefined}
             placeholder={'City'}
             error={errors}
-            required={{ value: true, message: 'City is required' }}
+            required={{value: true, message: 'City is required'}}
           />
           <Input
             control={control}
@@ -267,7 +273,7 @@ const SignUpScreen: React.FC<LoginProps> = ({ route, navigation }) => {
             control={control}
             name="gender"
             label="Gender"
-            required={{ value: true, message: 'Please select gender' }}
+            required={{value: true, message: 'Please select gender'}}
             error={errors}
           />
         </View>
@@ -275,19 +281,21 @@ const SignUpScreen: React.FC<LoginProps> = ({ route, navigation }) => {
           value={accepted}
           onValueChange={setAccepted}
           onPrivacyPress={() => {
-            navigation.navigate(SCREENS.TermsConditionsScreen,{
-              type:"privacy_policy"
-            })
+            navigation.navigate(SCREENS.TermsConditionsScreen, {
+              type: 'privacy_policy',
+            });
           }}
-          onTermsPress={() => navigation.navigate(SCREENS.TermsConditionsScreen,{
-            type:"terms_and_conditions"
-          })}
+          onTermsPress={() =>
+            navigation.navigate(SCREENS.TermsConditionsScreen, {
+              type: 'terms_and_conditions',
+            })
+          }
         />
         <Button
           title={'Create Account'}
           style={styles.sendOtpButton}
           disabled={isCreateAccountDisabled}
-          onPress={handleSubmit((data) => {
+          onPress={handleSubmit(data => {
             showLoader(true);
             mutate(data);
           })}
@@ -296,8 +304,7 @@ const SignUpScreen: React.FC<LoginProps> = ({ route, navigation }) => {
         <View style={styles.registerContainer}>
           <Text style={styles.registerText}>Already have an account?</Text>
           <TouchableOpacity
-            onPress={() => navigation.navigate(SCREENS.LoginScreen)}
-          >
+            onPress={() => navigation.navigate(SCREENS.LoginScreen)}>
             <Text style={styles.registerLink}>Login</Text>
           </TouchableOpacity>
         </View>
@@ -319,7 +326,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingBottom: 30, // Add padding at bottom for better spacing
   },
-  boxIconStyle: { alignSelf: 'center', marginTop: 30 },
+  boxIconStyle: {alignSelf: 'center', marginTop: 30},
   inputStyle: {
     height: 53,
     borderRadius: 160,
@@ -330,7 +337,6 @@ const styles = StyleSheet.create({
     color: colors.primaryBlack,
     fontFamily: fonts.bold,
     marginVertical: 10,
-
   },
   subtitle: {
     fontSize: 16,
@@ -342,7 +348,7 @@ const styles = StyleSheet.create({
   },
   locationContainer: {
     marginTop: 20,
-    width: '100%'
+    width: '100%',
   },
   sendOtpButton: {
     backgroundColor: colors.primary,
@@ -367,6 +373,6 @@ const styles = StyleSheet.create({
     marginLeft: 5,
   },
   emailContainer: {
-    marginTop: 20
+    marginTop: 20,
   },
 });
