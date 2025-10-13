@@ -255,14 +255,14 @@ const SignUpScreen: React.FC<LoginProps> = ({route, navigation}) => {
           <Input
             control={control}
             name="pincode"
-            label={'Pincode'}
+            label={'Zipcode'}
             // containerStyle={styles.emailContainer}
             inputProps={{
-              placeholder: 'Enter Pincode',
+              placeholder: 'Enter Zipcode',
             }}
             required={{
               value: true,
-              message: 'Please enter your pincode',
+              message: 'Please enter your zipcode',
             }}
             error={errors}
             keyboardType="numeric"

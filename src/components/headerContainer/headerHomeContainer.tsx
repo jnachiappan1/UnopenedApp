@@ -24,7 +24,8 @@ import { saveUserType } from '../../redux/reducers/user/UserReducer';
 import { IRootState } from '../../redux/store';
 import { useContainer } from '../hooks/useContainer';
 import { image_url } from '../../utils/api';
-import { viewProfile } from '../../utils/apiAction';
+import { viewProfile, getNotification } from '../../utils/apiAction';
+import { useQuery } from '@tanstack/react-query';
 
 type HeaderHomeContainerProps = {
   children?: React.ReactNode | undefined;
@@ -70,6 +71,12 @@ const HeaderHomeContainer: React.FC<HeaderHomeContainerProps> = props => {
   const dispatch = useDispatch();
   const container = useContainer();
   const userType = useSelector((state: IRootState) => state.user.userType);
+  
+  const { data: notificationData } = useQuery({
+    queryKey: ['notification'],
+    queryFn: getNotification,
+    refetchInterval: 10000,
+  });
 
   const onBackPress = () => {
     navigation.goBack();
@@ -115,7 +122,12 @@ const HeaderHomeContainer: React.FC<HeaderHomeContainerProps> = props => {
               {title} 
             </Text>
           </View>
-          <IconsSvg name='notificationIcon' onPress={() => navigation.navigate(SCREENS.NotificationScreen)} />
+          <View>
+            <IconsSvg name='notificationIcon' onPress={() => navigation.navigate(SCREENS.NotificationScreen)} />
+            {!notificationData?.data?.is_all_notification_read && (
+              <View style={styles.notificationDot} />
+            )}
+          </View>
           <TouchableOpacity style={styles.userContainer}
             onPress={async () => {
               try {
@@ -229,5 +241,16 @@ const getStyles = (colors: IColors) =>
       fontFamily: fonts.bold,
       color: colors.primary,
       paddingHorizontal: 5
+    },
+    notificationDot: {
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      backgroundColor: 'red',
+      borderRadius: 6,
+      height: 12,
+      width: 12,
+      borderWidth: 2,
+      borderColor: colors.background,
     },
   });

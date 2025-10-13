@@ -19,6 +19,7 @@ import IMAGE from '../../assets/images';
 import { handleError, handleSettled } from '../../utils/method';
 import { useMutation } from '@tanstack/react-query';
 import { signInApi } from '../../utils/apiAction';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 type ProfileLoginScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -81,6 +82,7 @@ const ProfileLoginScreen: React.FC<ProfileLoginScreenProps> = ({
           paddingHorizontal: 20,
         }}>
         <StatusBar backgroundColor={colors.primary} barStyle="light-content" />
+        <KeyboardAwareScrollView>
         <View style={styles.content}>
           <IconsSvg name="box" />
           <Text style={styles.title}>Get Started now</Text>
@@ -120,6 +122,7 @@ const ProfileLoginScreen: React.FC<ProfileLoginScreenProps> = ({
             </TouchableOpacity>
           </View>
         </View>
+        </KeyboardAwareScrollView>
       </ImageBackground>
     </IconBackHeaderContainer>
   );

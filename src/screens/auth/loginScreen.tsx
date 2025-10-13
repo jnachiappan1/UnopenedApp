@@ -79,11 +79,11 @@ const LoginScreen: React.FC<LoginProps> = ({route, navigation}) => {
       hideBack={false}
       onBackPress={() => navigation.goBack()}>
       <KeyboardAwareScrollView
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={true}
         contentContainerStyle={styles.content}
-        enableOnAndroid={true}
-        extraScrollHeight={20}
-        keyboardShouldPersistTaps="handled"
+        // enableOnAndroid={false}
+        // extraScrollHeight={20}
+        // keyboardShouldPersistTaps="handled"
       >
         <IconsSvg name="box" />
         <Text style={styles.title}>Get Started now</Text>

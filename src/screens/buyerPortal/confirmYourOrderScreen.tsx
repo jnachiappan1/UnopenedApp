@@ -163,7 +163,6 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
       product_id: productId.toString(),
       address_id: addressId,
     };
-    console.log('shippingPayload---', shippingPayload);
 
     setShippingApiCalled(false);
     createShippingMutation(shippingPayload);
@@ -970,7 +969,12 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
 
   const getEstimatedDeliveryText = (): string => {
     if (!selectedShippingRate) {
-      return 'Select a shipping option';
+      // Check if shipment is being created or calculated
+      if (shippingApiCalled) {
+        return 'Select a shipping option';
+      } else {
+        return 'Calculating shipping option';
+      }
     }
     const daysValue = Number(
       selectedShippingRate?.est_delivery_days ??

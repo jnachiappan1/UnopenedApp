@@ -7,18 +7,25 @@ import {
   Text,
   FlatList,
   ActivityIndicator,
+  TouchableOpacity,
 } from 'react-native';
 import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
 import colors from '../../utils/colors';
 import {fontSizes} from '../../utils/utils';
 import fonts from '../../assets/fonts/fonts';
-import {useQuery} from '@tanstack/react-query';
+import {useMutation, useQuery} from '@tanstack/react-query';
 import moment from 'moment';
 // import IMAGE from '../../assets/images';
 import {showLoader} from '../../components/loader/loader';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
-import {getNotification} from '../../utils/apiAction';
+import {
+  getNotification,
+  updateNotificationAction,
+  readSingleNotificationAction,
+} from '../../utils/apiAction';
 import IconsSvg from '../../assets/svg/iconsSvg';
+import NotificationHeader from '../../components/headerContainer/notificationHeader';
+import {formatProdErrorMessage} from '@reduxjs/toolkit';
 
 type NotificationScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -34,13 +41,20 @@ type Notification = {
   date: string;
   message: string;
   color: string;
+  isRead: boolean;
+  meta_data: {
+    product_id?: number;
+    wallet_id?: number;
+  } | null;
 };
 
-const NotificationScreen: React.FC<NotificationScreenProps> = ({}) => {
+const NotificationScreen: React.FC<NotificationScreenProps> = ({
+  navigation,
+}) => {
   const [loading, setLoading] = useState(false);
   const styles = getStyles();
-  const {data: getAllNotification} = useQuery({
-    queryKey: ['fetchNotification'],
+  const {data: getAllNotification, refetch} = useQuery({
+    queryKey: ['notification'],
     queryFn: getNotification,
     refetchInterval: 10000,
   });
@@ -67,9 +81,79 @@ const NotificationScreen: React.FC<NotificationScreenProps> = ({}) => {
     return date.format('MMM D');
   };
 
+  const handleNotificationPress = async (item: Notification) => {
+    try {
+      // Mark notification as read
+      await readSingleNotificationAction(item.id);
+      refetch();
+
+      // Navigate based on notification type
+      const meta = item.meta_data as any;
+
+      switch (item.type) {
+        case 'product':
+        case 'product_approval':
+          if (meta?.product_id) {
+            // Navigate to ProductDetailScreen for product-related notifications
+            navigation.navigate(SCREENS.ProductDetailScreen, {
+              productId: meta.product_id,
+            });
+          }
+          break;
+
+        case 'product_sold':
+          if (meta?.product_id) {
+            // Seller's product sold - navigate to ProductDetailScreen
+            navigation.navigate(SCREENS.ProductDetailScreen, {
+              productId: meta.product_id,
+            });
+          } else {
+            // Navigate to Sales screen if no product_id
+            navigation.navigate(SCREENS.BottomTab, {
+              screen: SCREENS.SalesScreen,
+            });
+          }
+          break;
+
+        case 'order':
+        case 'purchase':
+          if (meta?.product_id) {
+            // Navigate to order tracking or order detail screen
+            navigation.navigate(SCREENS.OrderTrackScreen, {
+              productId: meta.product_id,
+            });
+          } else {
+            // Navigate to My Orders screen
+            navigation.navigate(SCREENS.BottomTab, {
+              screen: SCREENS.MyOrderScreen,
+            });
+          }
+          break;
+
+        case 'wallet':
+          // Navigate to Wallet screen
+          navigation.navigate(SCREENS.BottomTab, {
+            screen: SCREENS.WalletScreen,
+          });
+          break;
+
+        default:
+          break;
+      }
+    } catch (error) {
+      console.error('Error handling notification press:', error);
+    }
+  };
+
   const renderNotification = ({item}: {item: Notification}) => {
     return (
-      <View style={[styles.notificationCard]}>
+      <TouchableOpacity
+        onPress={() => handleNotificationPress(item)}
+        activeOpacity={0.7}
+        style={[
+          styles.notificationCard,
+          !item.isRead && styles.unreadNotificationCard,
+        ]}>
         <View style={styles.row}>
           {/* <View
             style={[
@@ -95,41 +179,65 @@ const NotificationScreen: React.FC<NotificationScreenProps> = ({}) => {
             {getRelativeTimeShort(item?.createdAt)}
           </Text>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
+  const {mutate: readData} = useMutation({
+    mutationFn: updateNotificationAction,
+    onSuccess: () => {},
+    onError: (error: any) => {
+      formatProdErrorMessage(error.message);
+    },
+    onSettled: () => {
+      showLoader(false);
+      refetch();
+    },
+  });
+  const readNotification = () => {
+    showLoader(true);
+    readData();
+  };
+
+  const notifications = getAllNotification?.data?.notification || [];
+  const allRead = getAllNotification?.data?.is_all_notification_read;
 
   return (
     <>
-      <TitleBackHeaderContainer
+      {/* <TitleBackHeaderContainer
         isBack
         title="Notification"
-        isNormalHeader={false}>
-        {getAllNotification?.data?.notification?.length > 0 ? (
-          <View>
-            <FlatList
-              data={getAllNotification?.data?.notification}
-              renderItem={renderNotification}
-              keyExtractor={item => item.id}
-              contentContainerStyle={styles.listContainer}
-              ListHeaderComponent={
-                <View style={styles.sectionHeader}>
-                  <Text style={styles.sectionHeaderText}>Today</Text>
-                </View>
-              }
-              // onEndReached={loadMore}
-              ListFooterComponent={
-                <>
-                  {loading && (
-                    <View style={styles.footer}>
-                      <ActivityIndicator size="small" color={colors.primary} />
-                    </View>
-                  )}
-                </>
-              }
-              showsVerticalScrollIndicator={false}
-            />
-          </View>
+        isNormalHeader={false}> */}
+      <NotificationHeader
+        title="Notification"
+        isBack
+        isDelete
+        onDelete={clearNotification}
+        onRead={readNotification}
+        allRead={allRead}
+        notificationCount={notifications.length}>
+        {notifications?.length > 0 ? (
+          <FlatList
+            data={notifications}
+            renderItem={renderNotification}
+            keyExtractor={item => item.id.toString()}
+            contentContainerStyle={styles.listContainer}
+            ListHeaderComponent={
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionHeaderText}>Today</Text>
+              </View>
+            }
+            // onEndReached={loadMore}
+            ListFooterComponent={
+              <>
+                {loading && (
+                  <View style={styles.footer}>
+                    <ActivityIndicator size="small" color={colors.primary} />
+                  </View>
+                )}
+              </>
+            }
+            showsVerticalScrollIndicator={false}
+          />
         ) : (
           <View style={styles.container}>
             <Text style={styles.emptyText}>
@@ -137,7 +245,7 @@ const NotificationScreen: React.FC<NotificationScreenProps> = ({}) => {
             </Text>
           </View>
         )}
-      </TitleBackHeaderContainer>
+      </NotificationHeader>
     </>
   );
 };
@@ -147,7 +255,7 @@ export default NotificationScreen;
 const getStyles = () =>
   StyleSheet.create({
     listContainer: {
-      paddingHorizontal: 20,
+      paddingHorizontal: 5,
       paddingBottom: 30,
     },
     sectionHeader: {
@@ -167,14 +275,12 @@ const getStyles = () =>
     notificationCard: {
       backgroundColor: colors.white,
       padding: 15,
-      borderRadius: 5,
+      borderRadius: 10,
       marginTop: 20,
       position: 'relative',
-      shadowColor: '#000',
-      shadowOffset: {width: 0, height: 1},
-      shadowOpacity: 0.06,
-      shadowRadius: 2,
-      elevation: 1,
+    },
+    unreadNotificationCard: {
+      backgroundColor: '#26000010',
     },
     row: {flexDirection: 'row', alignItems: 'flex-start'},
     leftStatus: {

@@ -1,4 +1,6 @@
-export const base_url = 'http://45.248.33.161:5019';
+// export const base_url = 'http://45.248.33.161:5019';
+export const base_url = 'http://54.221.164.94';
+
 // export const base_url = 'http://192.168.29.37:5019';
 
 export const image_url = 'https://minio.techreale.com/unoppened';
@@ -56,4 +58,6 @@ export const API = {
     state: '/api/v1/helper/states',
     city: '/api/v1/helper/cities',
   },
+  readNotification: `${base_url}/api/v1/notification/mark-all-read`,
+  readSingleNotification: `${base_url}/api/v1/notification`,
 };

@@ -379,7 +379,14 @@ export const getNotification = async () => {
   const response = await axios.get(API.buyer.notification);
   return response;
 };
-
+export const updateNotificationAction = async () => {
+  const response = await axios.patch(API.readNotification);
+  return response;
+};
+export const readSingleNotificationAction = async (notificationId: number | string) => {
+  const response = await axios.patch(`${API.readSingleNotification}/${notificationId}`);
+  return response;
+};
 export const createCashOut = async (payload: PaymentPayloadType) => {
   const response = await axios.post(API.buyer.cashOut_request, payload);
   return response;

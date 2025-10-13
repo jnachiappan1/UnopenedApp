@@ -1,41 +1,46 @@
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import React, { useState } from 'react';
+import {Alert, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import React, {useState} from 'react';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
-import { fontSizes } from '../../utils/utils';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
+import {fontSizes} from '../../utils/utils';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
 import colors from '../../utils/colors';
 import fonts from '../../assets/fonts/fonts';
 import Button from '../../components/button/buttons';
 import Input from '../../components/input/input';
-import { useForm } from 'react-hook-form';
-import { paymentOptions, quickAmounts } from '../../utils/static';
+import {useForm} from 'react-hook-form';
+import {paymentOptions, quickAmounts} from '../../utils/static';
 import PaymentMethodOption from '../../components/card/paymentMethodOption';
-import { useMutation } from '@tanstack/react-query';
-import { makePayment } from '../../utils/apiAction';
-import { useStripe } from '@stripe/stripe-react-native';
-import { useSelector } from 'react-redux';
-import { IRootState } from '../../redux/store';
-import { showLoader } from '../../components/loader/loader';
-import { showAlert } from '../../components/cAlert';
+import {useMutation} from '@tanstack/react-query';
+import {makePayment} from '../../utils/apiAction';
+import {useStripe} from '@stripe/stripe-react-native';
+import {useSelector} from 'react-redux';
+import {IRootState} from '../../redux/store';
+import {showLoader} from '../../components/loader/loader';
+import {showAlert} from '../../components/cAlert';
 
-type AddFundScreenProps = NativeStackScreenProps<RootStackParamList, SCREENS.AddFundScreen>;
+type AddFundScreenProps = NativeStackScreenProps<
+  RootStackParamList,
+  SCREENS.AddFundScreen
+>;
 type Inputs = {
   amount: string;
 };
 
-const AddFundScreen: React.FC<AddFundScreenProps> = ({ navigation }) => {
-  const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
-  const { initPaymentSheet, presentPaymentSheet } = useStripe();
+const AddFundScreen: React.FC<AddFundScreenProps> = ({navigation}) => {
+  const [selectedPayment, setSelectedPayment] = useState<string | null>(
+    'stripe',
+  );
+  const {initPaymentSheet, presentPaymentSheet} = useStripe();
   const userData = useSelector((user: IRootState) => user.user.userData);
-  
+
   const defaultValues = {
     amount: '',
   };
-  
+
   const {
     control,
-    formState: { errors },
+    formState: {errors},
     handleSubmit,
     setValue,
     watch,
@@ -48,9 +53,9 @@ const AddFundScreen: React.FC<AddFundScreenProps> = ({ navigation }) => {
   };
 
   // Add Stripe payment mutation
-  const { mutate: addFundsMutation } = useMutation({
-    mutationFn: (data: { amount: string }) => 
-      makePayment('add_funds', { amount: data.amount }),  
+  const {mutate: addFundsMutation} = useMutation({
+    mutationFn: (data: {amount: string}) =>
+      makePayment('add_funds', {amount: data.amount}),
     onSuccess: (data: any) => {
       handleStripePayment(data);
     },
@@ -78,8 +83,9 @@ const AddFundScreen: React.FC<AddFundScreenProps> = ({ navigation }) => {
         return;
       }
 
-      const { clientSecret, ephemeralKey, customer, paymentIntentId } = paymentResponse.data;
-      
+      const {clientSecret, ephemeralKey, customer, paymentIntentId} =
+        paymentResponse.data;
+
       // Validate Stripe credentials
       if (!clientSecret || !ephemeralKey || !customer) {
         showLoader(false);
@@ -87,13 +93,14 @@ const AddFundScreen: React.FC<AddFundScreenProps> = ({ navigation }) => {
           isVisible: true,
           type: 'error',
           title: 'Payment Configuration Error',
-          description: 'Invalid payment credentials received. Please try again.',
+          description:
+            'Invalid payment credentials received. Please try again.',
         });
         return;
       }
-      
+
       // Initialize Stripe payment sheet
-      const { error } = await initPaymentSheet({
+      const {error} = await initPaymentSheet({
         merchantDisplayName: 'Unopened Mobile',
         customerId: customer,
         customerEphemeralKeySecret: ephemeralKey,
@@ -117,8 +124,8 @@ const AddFundScreen: React.FC<AddFundScreenProps> = ({ navigation }) => {
       }
 
       // Present Stripe payment sheet
-      const { error: presentError } = await presentPaymentSheet();
-      
+      const {error: presentError} = await presentPaymentSheet();
+
       if (presentError) {
         showLoader(false);
         showAlert({
@@ -166,7 +173,7 @@ const AddFundScreen: React.FC<AddFundScreenProps> = ({ navigation }) => {
 
     if (selectedPayment === 'stripe') {
       showLoader(true);
-      addFundsMutation({ amount: data.amount });
+      addFundsMutation({amount: data.amount});
     } else {
       // Handle other payment methods here
       Alert.alert('Payment method not implemented yet.');
@@ -179,8 +186,8 @@ const AddFundScreen: React.FC<AddFundScreenProps> = ({ navigation }) => {
     {
       title: 'Stripe',
       icon: 'securePayment' as const,
-      id: 'stripe'
-    }
+      id: 'stripe',
+    },
   ];
 
   return (
@@ -195,19 +202,18 @@ const AddFundScreen: React.FC<AddFundScreenProps> = ({ navigation }) => {
             placeholder: 'Enter Amount',
             keyboardType: 'numeric',
           }}
-          required={{ value: true, message: 'Please enter amount' }}
+          required={{value: true, message: 'Please enter amount'}}
           error={errors}
           maxLength={40}
           inputStyle={styles.inputStyle}
         />
 
         <View style={styles.quickAmountsContainer}>
-          {quickAmounts.map((item) => (
+          {quickAmounts.map(item => (
             <TouchableOpacity
               key={item.toString()}
               style={styles.quickBtn}
-              onPress={() => handleQuickSelect(item)}
-            >
+              onPress={() => handleQuickSelect(item)}>
               <Text style={styles.quickText}>${item}</Text>
             </TouchableOpacity>
           ))}
@@ -216,23 +222,23 @@ const AddFundScreen: React.FC<AddFundScreenProps> = ({ navigation }) => {
         <Text style={styles.titleStyle}>Select Payment Method</Text>
 
         <View style={styles.paymentOptionsContainer}>
-          {enhancedPaymentOptions.map((item) => (
+          {enhancedPaymentOptions.map(item => (
             <PaymentMethodOption
               key={item.id}
               title={item.title}
               icon={item.icon}
               selected={selectedPayment === item.id}
-              onPress={(selectedItem) => {
+              onPress={selectedItem => {
                 setSelectedPayment(item.id);
               }}
             />
           ))}
         </View>
 
-        <Button 
-          title={'Add Fund'} 
-          style={styles.cashOutButton} 
-          onPress={handleSubmit(onSubmit)} 
+        <Button
+          title={'Add Fund'}
+          style={styles.cashOutButton}
+          onPress={handleSubmit(onSubmit)}
         />
       </View>
     </TitleBackHeaderContainer>
