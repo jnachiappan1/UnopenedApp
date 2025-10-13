@@ -57,7 +57,6 @@ const SignUpScreen: React.FC<LoginProps> = ({route, navigation}) => {
     region: 'Americas',
     subregion: 'North America',
   });
-  console.log('----->>>', selectedCountry);
 
   const defaultValues = {
     full_name: '',

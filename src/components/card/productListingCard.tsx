@@ -42,6 +42,7 @@ const ProductListingCard: React.FC<ProductListingCardProps> = ({
         <Image
           source={{uri: image_url + item?.product_image[1]?.image}}
           style={styles.cardImage}
+          resizeMode='cover'
         />
         <View style={{width: '70%'}}>
           <Text style={[styles.cardTitle, nameStyle]} numberOfLines={2}>

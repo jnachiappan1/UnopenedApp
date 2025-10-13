@@ -5,6 +5,7 @@ import {
   View,
   Text,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import { useForm } from 'react-hook-form';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -53,13 +54,13 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({ navigation }) => {
   const [selectedState, setSelectedState] = useState<string>('');
   const [selectedCity, setSelectedCity] = useState<string>('');
   const [selectedCountry, setPhoneCountry] = useState<selectedCountryType>({
-    callingCode: ['91'],
-    cca2: 'IN',
-    currency: ['INR'],
-    flag: 'flag-in',
-    name: 'India',
-    region: 'Asia',
-    subregion: 'Southern Asia',
+    callingCode: ['1'],
+    cca2: 'US',
+    currency: ['USD'],
+    flag: 'flag-us',
+    name: 'United States',
+    region: 'Americas',
+    subregion: 'North America',
   });
   const {
     control,
@@ -67,18 +68,19 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({ navigation }) => {
     formState: { errors },
     watch,
     setValue,
+    getValues
   } = useForm<AddressFormData>({
     defaultValues: {
       fullName: '',
       phone_number: '',
       address: '',
-      country: '',
+      country: 'US',
       state: '',
       city: '',
       zipCode: '',
       addressType: 'Home',
       isDefault: false,
-      country_code: '+91',
+      country_code: '+1',
     },
   });
 
@@ -131,6 +133,7 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({ navigation }) => {
 
   const onSubmit = (data: AddressFormData) => {
     showLoader(true);
+  
     const payload: AddressPayloadType = {
       full_name: data.fullName,
       country_code: data.country_code,
@@ -141,6 +144,8 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({ navigation }) => {
       city: data.city,
       pincode: data.zipCode,
     };
+    console.log("payload",payload);
+    
     mutate(payload);
   };
 
@@ -214,7 +219,7 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({ navigation }) => {
           />
 
           {/* State */}
-          <InputState
+          {/* <InputState
             control={control}
             name="state"
             placeholder="Select State"
@@ -223,10 +228,22 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({ navigation }) => {
             country={watchedCountry}
             containerStyle={styles.containerStyle}
             required={{ value: true, message: 'Country is required' }}
+          /> */}
+          <InputState
+            control={control}
+            name="state"
+            label={'State'}
+            country={
+              watch('country') === 'US' ? 'United States' : getValues('country')
+            }
+            placeholder={'State'}
+            error={errors}
+            required={{value: true, message: 'State is required'}}
           />
 
+
           {/* City */}
-          <InputCity
+          {/* <InputCity
             control={control}
             name="city"
             placeholder="Select City"
@@ -236,6 +253,18 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({ navigation }) => {
             country={watchedCountry}
             state={watchedState}
             containerStyle={styles.containerStyle}
+          /> */}
+          <InputCity
+            control={control}
+            name="city"
+            label={'City'}
+            country={
+              watch('country') === 'US' ? 'United States' : getValues('country')
+            }
+            state={watch('state') ? getValues('state') : undefined}
+            placeholder={'City'}
+            error={errors}
+            required={{value: true, message: 'City is required'}}
           />
 
           {/* Zip Code */}
