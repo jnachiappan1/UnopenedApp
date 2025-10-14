@@ -19,7 +19,7 @@ import {
 } from 'react-hook-form';
 import { getColors, IColors } from '../../utils/colors';
 import { InfiniteData, useInfiniteQuery } from '@tanstack/react-query';
-import { getCityAction } from '../../utils/apiAction';
+import { getCityAction, getStateAction } from '../../utils/apiAction';
 import IconsSvg from '../../assets/svg/iconsSvg';
 import Header from './header';
 import commonStyles from '../../utils/common-styles';
@@ -40,6 +40,7 @@ type IInputCityProps = {
   style?: any;
   country: string | undefined;
   state: string | undefined;
+  stateCode?: string | undefined;
   isShowError?: boolean;
 };
 
@@ -57,6 +58,7 @@ const InputCity: React.FC<IInputCityProps> = ({
   validate,
   country,
   state,
+  stateCode,
   isShowError = true,
 }) => {
   const colors = getColors();
@@ -65,6 +67,33 @@ const InputCity: React.FC<IInputCityProps> = ({
   const [showList, setShowList] = useState(false);
   const [searchText, setSearchText] = useState('');
   const styles = getStyles(colors);
+  // Query to get state name from state code
+  const {
+    data: stateData,
+  } = useInfiniteQuery<any, Error, InfiniteData<any>, string[], number>({
+    queryKey: ['getStateAction', '', country as string],
+    queryFn: ({ pageParam }) =>
+      getStateAction({
+        page: pageParam,
+        limit: 100,
+        search: '',
+        country: country as string,
+      }),
+    initialPageParam: 1,
+    enabled: Boolean(country) && Boolean(stateCode),
+    getNextPageParam: lastPage => {
+      if (lastPage?.data?.hasNext) {
+        return lastPage.data.currentPage + 1;
+      }
+      return undefined;
+    },
+  });
+
+  // Get state name from state code
+  const allStates = (stateData?.pages.flatMap(page => page.data || []) || []);
+  const selectedState = allStates.find(state => state.state_code === stateCode);
+  const stateName = selectedState?.name || state;
+
   const {
     data,
     fetchNextPage,
@@ -73,17 +102,17 @@ const InputCity: React.FC<IInputCityProps> = ({
     isLoading,
     refetch,
   } = useInfiniteQuery<any, Error, InfiniteData<any>, string[], number>({
-    queryKey: ['getCityAction', searchText],
+    queryKey: ['getCityAction', searchText, country, stateName],
     queryFn: ({ pageParam }) =>
       getCityAction({
         page: pageParam,
         limit: 30,
         search: searchText,
         country: country as string,
-        state: state as string,
+        state: stateName as string,
       }),
     initialPageParam: 1,
-    enabled: Boolean(country) && Boolean(state),
+    enabled: Boolean(country) && Boolean(stateName),
     getNextPageParam: lastPage => {
       if (lastPage?.data?.hasNext) {
         return lastPage.data.currentPage + 1;
@@ -91,9 +120,10 @@ const InputCity: React.FC<IInputCityProps> = ({
       return undefined;
     },
   });
+ 
   useEffect(() => {
     refetch();
-  }, [refetch, searchText, country, state]);
+  }, [refetch, searchText, country, stateName]);
 
   const allCities = (data?.pages.flatMap(page => page.data || []) || []).map(
     (city, index) => ({
@@ -125,10 +155,10 @@ const InputCity: React.FC<IInputCityProps> = ({
           <TouchableOpacity
             style={[commonStyles.inputWrapper, style]}
             onPress={() => setShowList(true)}
-            disabled={isLoading || (!country && !state)}
+            disabled={isLoading || (!country && !stateName)}
           >
            <View style={styles.view}>
-              {isLoading && country && state ? (
+              {isLoading && country && stateName ? (
                 <ActivityIndicator size="small" color={colors.primary} />
               ) : value ? (
                 <Text style={commonStyles.valueText}>{value}</Text>

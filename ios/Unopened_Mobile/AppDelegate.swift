@@ -4,6 +4,8 @@ import React_RCTAppDelegate
 import ReactAppDependencyProvider
 import UserNotifications
 import FirebaseCore
+import GoogleMaps
+import GooglePlaces
 
 @main
 class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate {
@@ -13,6 +15,13 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate {
     self.moduleName = "Unopened_Mobile"
     self.dependencyProvider = RCTAppDependencyProvider()
 
+    // Provide Google Maps/Places API key from Info.plist (key: GMSApiKey)
+    if let path = Bundle.main.path(forResource: "Info", ofType: "plist"),
+       let info = NSDictionary(contentsOfFile: path),
+       let apiKey = info["GMSApiKey"] as? String, !apiKey.isEmpty {
+      GMSServices.provideAPIKey(apiKey)
+      GMSPlacesClient.provideAPIKey(apiKey)
+    }
 
     // Configure push notifications
    configurePushNotifications(application)

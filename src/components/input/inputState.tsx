@@ -47,9 +47,7 @@ type IInputStateProps = {
 
 export interface IItem {
   name: string;
-  iso2: string;
-  iso3: string;
-  unicodeFlag: string;
+  state_code: string;
 }
 
 const InputState: React.FC<IInputStateProps> = ({
@@ -105,6 +103,7 @@ const InputState: React.FC<IInputStateProps> = ({
     },
   });
 
+
   useEffect(() => {
     refetch();
   }, [refetch, country, searchText]);
@@ -121,8 +120,9 @@ const allStates = useMemo(() => {
     setSearchText('');
   };
 
-  const handleState = (onChange: (val: any) => void, state: string) => {
-    onChange(state);
+  const handleState = (onChange: (val: any) => void, item: IItem) => {
+    
+    onChange(item.state_code);
     onClose();
   };
 
@@ -154,7 +154,7 @@ const allStates = useMemo(() => {
                   <ActivityIndicator size="small" />
                 ) : value ? (
                   <Text style={commonStyles.valueText} numberOfLines={1}>
-                    {value}
+                    {allStates.find(state => state.state_code === value)?.name || value}
                   </Text>
                 ) : (
                   <Text style={commonStyles.placeholder}>{placeholder}</Text>
@@ -197,11 +197,11 @@ const allStates = useMemo(() => {
                 </View>
                 <FlatList
                   data={allStates}
-                  keyExtractor={item => item.name}
+                  keyExtractor={item => item.state_code}
                   renderItem={({item}) => (
                     <Text
                       style={commonStyles.countryItem}
-                      onPress={() => handleState(onChange, item.name)}>
+                      onPress={() => handleState(onChange, item)}>
                       {item.name}
                     </Text>
                   )}
@@ -218,7 +218,7 @@ const allStates = useMemo(() => {
                       <ActivityIndicator style={{marginVertical: 10}} />
                     ) : null
                   }
-                  ListEmptyComponent={<Text style={commonStyles.noDataText}>No cities found</Text>}
+                  ListEmptyComponent={<Text style={commonStyles.noDataText}>No states found</Text>}
                 />
               </View>
             </Modal>

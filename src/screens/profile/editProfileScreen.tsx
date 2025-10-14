@@ -281,6 +281,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
             label={'City'}
             country={watch('country') ? getValues('country') : undefined}
             state={watch('state') ? getValues('state') : undefined}
+            stateCode={watch('state') ? getValues('state') : undefined}
             placeholder={'City'}
             error={errors}
             required={{value: true, message: 'City is required'}}

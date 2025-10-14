@@ -10,7 +10,7 @@ import {
   Animated,
   Platform,
 } from 'react-native';
-import React, {useState, useRef, useEffect} from 'react';
+import React, {useState, useRef, useEffect, useCallback} from 'react';
 import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
@@ -41,6 +41,7 @@ import {showAlert} from '../../components/cAlert';
 import {useStripe} from '@stripe/stripe-react-native';
 import {useForm} from 'react-hook-form';
 import ApplyOfferInput from '../../components/input/applyOfferInput';
+import { useFocusEffect } from '@react-navigation/native';
 
 const {width} = Dimensions.get('window');
 
@@ -70,6 +71,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
   const [isModalVisible, setModalVisible] = useState(false);
   const [isStripeModalVisible, setStripeModalVisible] = useState(false);
   const [discountAmount, setDiscountAmount] = useState<number>(0);
+console.log("::::::::::::::--->>", selectedAddress);
 
   // Form setup for discount code
   const {
@@ -96,6 +98,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
   const [priorityShippingRate, setPriorityShippingRate] = useState<any>(null);
   const [shippingID, setShippingID] = useState<any>(null);
   const [lastAddressId, setLastAddressId] = useState<number | null>(null);
+  const hasCalledInitialShipping = useRef(false);
 
   // Shipping API mutation
   const {mutate: createShippingMutation, isPending: isShippingPending} =
@@ -286,16 +289,31 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
   };
 
   // Set default address from API data
-  useEffect(() => {
-    if (addressesData?.data?.address && addressesData.data.address.length > 0) {
-      const firstAddress = addressesData.data.address[0];
-      setDefaultAddress(firstAddress);
-      if (!selectedAddress && !isAddressChanged) {
-        setSelectedAddress(firstAddress);
-      }
-    }
-  }, [addressesData, selectedAddress, isAddressChanged]);
+  // useEffect(() => {
+  //   if (addressesData?.data?.address && addressesData.data.address.length > 0) {
+  //     const firstAddress = addressesData.data.address[0];
+  //     console.log("setSelectedAddress--->>", firstAddress);
+      
+  //     setDefaultAddress(firstAddress);
+  //     if (!selectedAddress && !isAddressChanged) {
+  //       setSelectedAddress(firstAddress);
+  //     }
+  //   }
+  // }, [addressesData, selectedAddress, isAddressChanged]);
 
+  useFocusEffect(
+    useCallback(() => {
+      if (addressesData?.data?.address && addressesData.data.address.length > 0) {
+        const firstAddress = addressesData.data.address[0];
+        console.log("setSelectedAddress--->>", firstAddress);
+        
+        setDefaultAddress(firstAddress);
+        if (!selectedAddress && !isAddressChanged) {
+          setSelectedAddress(firstAddress);
+        }
+      }
+    }, [addressesData, selectedAddress, isAddressChanged])
+  );
   // Auto-switch to Stripe if wallet becomes disabled
   useEffect(() => {
     if (isWalletPaymentDisabled() && paymentMethod === 'wallet') {
@@ -309,8 +327,10 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
       productId &&
       !shippingApiCalled &&
       addressesData?.data?.address &&
-      defaultAddress
+      defaultAddress &&
+      !hasCalledInitialShipping.current
     ) {
+      hasCalledInitialShipping.current = true;
       callShippingAPI(currentAddressId);
     }
   }, [addressesData, defaultAddress]);
@@ -353,6 +373,8 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
       }
 
       const addressId = getCurrentAddressId();
+      console.log("addressId--->>", addressId);
+      
       if (!addressId) {
         showAlert({
           isVisible: true,
@@ -617,8 +639,9 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
           rate_id: selectedShippingRate ? selectedShippingRate.id : '',
           shipmentId: shippingID,
         };
+console.log("stripePaymentPayload--->>", stripePaymentPayload);
 
-        handleStripePayment(stripePaymentPayload);
+        // handleStripePayment(stripePaymentPayload);
       } else {
         showAlert({
           isVisible: true,
@@ -804,6 +827,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
         setLastAddressId(null);
         setSelectedShippingRate(null);
         setPriorityShippingRate(null);
+        hasCalledInitialShipping.current = false;
 
         // Automatically fetch new shipping rates for the new address
         if (address?.id && productId) {
@@ -822,6 +846,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
       setLastAddressId(null);
       setSelectedShippingRate(null);
       setPriorityShippingRate(null);
+      hasCalledInitialShipping.current = false;
 
       // Automatically fetch new shipping rates for the default address
       if (defaultAddress?.id && productId) {

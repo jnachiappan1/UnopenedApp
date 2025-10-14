@@ -21,6 +21,9 @@ target 'Unopened_Mobile' do
   pod 'FirebaseCoreInternal', :modular_headers => true
   pod 'GoogleUtilities', :modular_headers => true
   pod 'FirebaseCore', :modular_headers => true
+  # Google SDKs for Maps and Places (used by address search)
+  pod 'GoogleMaps'
+  pod 'GooglePlaces'
   $RNFirebaseAsStaticFramework = true
   use_react_native!(
     :path => config[:reactNativePath],

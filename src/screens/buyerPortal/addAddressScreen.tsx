@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   StyleSheet,
   ScrollView,
@@ -7,12 +7,12 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import { useForm } from 'react-hook-form';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
+import {useForm} from 'react-hook-form';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
 import colors from '../../utils/colors';
-import { fontSizes } from '../../utils/utils';
+import {fontSizes} from '../../utils/utils';
 import fonts from '../../assets/fonts/fonts';
 import Input from '../../components/input/input';
 import InputCountry from '../../components/input/inputCountry';
@@ -20,15 +20,17 @@ import InputState from '../../components/input/inputState';
 import InputCity from '../../components/input/inputCity';
 import PhoneNumberInputs from '../../components/input/phoneNumberInputs';
 import Button from '../../components/button/buttons';
-import { useSelector } from 'react-redux';
-import { IRootState } from '../../redux/store';
-import CountryPicker, { Country } from 'react-native-country-picker-modal';
-import { selectedCountryType } from '../../utils/types';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { addAddress } from '../../utils/apiAction';
-import { AddressPayloadType } from '../../utils/types';
-import { showLoader } from '../../components/loader/loader';
-import { showAlert } from '../../components/cAlert';
+import {useSelector} from 'react-redux';
+import {IRootState} from '../../redux/store';
+import CountryPicker, {Country} from 'react-native-country-picker-modal';
+import {selectedCountryType} from '../../utils/types';
+import {useMutation, useQueryClient} from '@tanstack/react-query';
+import {addAddress} from '../../utils/apiAction';
+import {AddressPayloadType} from '../../utils/types';
+import {showLoader} from '../../components/loader/loader';
+import {showAlert} from '../../components/cAlert';
+import LocationInput from '../../components/input/locationInput';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 
 type AddAddressProps = NativeStackScreenProps<
   RootStackParamList,
@@ -48,7 +50,7 @@ interface AddressFormData {
   country_code: string;
 }
 
-const AddAddressScreen: React.FC<AddAddressProps> = ({ navigation }) => {
+const AddAddressScreen: React.FC<AddAddressProps> = ({navigation}) => {
   const userData = useSelector((user: IRootState) => user.user.userData);
   const queryClient = useQueryClient();
   const [selectedState, setSelectedState] = useState<string>('');
@@ -65,10 +67,10 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({ navigation }) => {
   const {
     control,
     handleSubmit,
-    formState: { errors },
+    formState: {errors},
     watch,
     setValue,
-    getValues
+    getValues,
   } = useForm<AddressFormData>({
     defaultValues: {
       fullName: '',
@@ -86,6 +88,7 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({ navigation }) => {
 
   const watchedCountry = watch('country');
   const watchedState = watch('state');
+  console.log('watchedState--->>', watchedState);
 
   // Clear state and city when country changes
   useEffect(() => {
@@ -102,12 +105,12 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({ navigation }) => {
     }
   }, [watchedState, setValue]);
 
-  const { mutate } = useMutation({
+  const {mutate} = useMutation({
     mutationFn: addAddress,
-    onSuccess: (data) => {
+    onSuccess: data => {
       showLoader(false);
       // Invalidate and refetch addresses
-      queryClient.invalidateQueries({ queryKey: ['getAddresses'] });
+      queryClient.invalidateQueries({queryKey: ['getAddresses']});
       showAlert({
         isVisible: true,
         type: 'success',
@@ -119,7 +122,7 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({ navigation }) => {
         },
       });
     },
-    onError: (error) => {
+    onError: error => {
       showLoader(false);
       showAlert({
         isVisible: true,
@@ -133,7 +136,7 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({ navigation }) => {
 
   const onSubmit = (data: AddressFormData) => {
     showLoader(true);
-  
+
     const payload: AddressPayloadType = {
       full_name: data.fullName,
       country_code: data.country_code,
@@ -144,25 +147,24 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({ navigation }) => {
       city: data.city,
       pincode: data.zipCode,
     };
-    console.log("payload",payload);
-    
+
+
     mutate(payload);
   };
 
-  const addressTypes = [
-    { id: 'Home', label: 'Home' },
-    { id: 'Work', label: 'Work' },
-    { id: 'Other', label: 'Other' },
-  ];
   const setPhoneCountryData = (item: any) => {
     setPhoneCountry(item);
     setValue('country_code', '+' + item.callingCode[0]);
   };
   return (
     <TitleBackHeaderContainer title="Add New Address" isBack>
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        <View style={styles.formContainer}>
-          {/* Full Name */}
+      {/* <ScrollView style={styles.container} showsVerticalScrollIndicator={false}> */}
+        <KeyboardAwareScrollView
+        showsVerticalScrollIndicator={false}
+        enableOnAndroid={true}
+        style={styles.container}
+        keyboardShouldPersistTaps="handled">
+        {/* <View style={styles.formContainer}> */}
           <Input
             control={control}
             name="fullName"
@@ -170,7 +172,7 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({ navigation }) => {
             required="Full name is required"
             error={errors}
             inputProps={{
-              placeholder: "Enter Your Full Name",
+              placeholder: 'Enter Your Full Name',
               autoCapitalize: 'words',
             }}
           />
@@ -190,21 +192,54 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({ navigation }) => {
             error={errors}
             disabled={false}
             style={{}}
-            containerStyle={{ height: 80 ,marginVertical:20}}
+            containerStyle={{height: 80, marginVertical: 20}}
           />
-          <Input
+         
+          <LocationInput
             control={control}
             name="address"
-            label="Address"
-            required="Address is required"
-            error={errors}
-            multiline={true}
+            label={'Address'}
             inputProps={{
-              placeholder: "Enter Your Address",
-              numberOfLines: 3,
-              textAlignVertical: 'top',
+              placeholder: 'Enter Address',
             }}
-            inputStyle={styles.multilineInput}
+            required={{
+              value: true,
+              message: 'Please enter your address',
+            }}
+            error={errors}
+            editable={true}
+            maxLength={40}
+            onChangeText={(value: string) => {
+              
+            }}
+            onPlaceParsed={info => {
+              if (info?.countryCode === 'US') {
+                if (info.stateCode) {
+                  setValue('state', info.stateCode, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  });
+                } else if (info.stateName) {
+                  setValue('state', info.stateName, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  });
+                }
+                if (info.city) {
+                  setValue('city', info.city, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  });
+                }
+                if (info.postalCode) {
+                  setValue('zipCode', info.postalCode, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  });
+                }
+              }
+            }}
+            toggleShowCurrentOnly={undefined}
           />
 
           {/* Country */}
@@ -213,22 +248,13 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({ navigation }) => {
             name="country"
             placeholder="Select Country"
             label="Country"
-            required={{ value: true, message: 'Country is required' }}
+            required={{value: true, message: 'Country is required'}}
             error={errors}
             containerStyle={styles.containerStyle}
+            disabled={true}
           />
 
-          {/* State */}
-          {/* <InputState
-            control={control}
-            name="state"
-            placeholder="Select State"
-            label="State"
-            error={errors}
-            country={watchedCountry}
-            containerStyle={styles.containerStyle}
-            required={{ value: true, message: 'Country is required' }}
-          /> */}
+        
           <InputState
             control={control}
             name="state"
@@ -241,19 +267,7 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({ navigation }) => {
             required={{value: true, message: 'State is required'}}
           />
 
-
-          {/* City */}
-          {/* <InputCity
-            control={control}
-            name="city"
-            placeholder="Select City"
-            label="City"
-            required="City is required"
-            error={errors}
-            country={watchedCountry}
-            state={watchedState}
-            containerStyle={styles.containerStyle}
-          /> */}
+     
           <InputCity
             control={control}
             name="city"
@@ -262,12 +276,13 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({ navigation }) => {
               watch('country') === 'US' ? 'United States' : getValues('country')
             }
             state={watch('state') ? getValues('state') : undefined}
+            stateCode={watch('state') ? getValues('state') : undefined}
             placeholder={'City'}
             error={errors}
             required={{value: true, message: 'City is required'}}
           />
 
-          {/* Zip Code */}
+         
           <Input
             control={control}
             name="zipCode"
@@ -276,11 +291,10 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({ navigation }) => {
             error={errors}
             keyboardType="numeric"
             inputProps={{
-              placeholder: "Enter zip code",
+              placeholder: 'Enter zip code',
               maxLength: 10,
             }}
             containerStyle={styles.containerStyle}
-
           />
 
           {/* Address Type */}
@@ -330,8 +344,9 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({ navigation }) => {
           <View style={styles.buttonContainer}>
             <Button title="Save Address" onPress={handleSubmit(onSubmit)} />
           </View>
-        </View>
-      </ScrollView>
+        {/* </View> */}
+        </KeyboardAwareScrollView>
+      {/* </ScrollView> */}
     </TitleBackHeaderContainer>
   );
 };
@@ -342,6 +357,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+    padding: 20,
   },
   formContainer: {
     padding: 20,
@@ -359,7 +375,7 @@ const styles = StyleSheet.create({
   multilineInput: {
     height: 80,
     textAlignVertical: 'top',
-    borderRadius: 10
+    borderRadius: 10,
   },
   addressTypeContainer: {
     flexDirection: 'row',
@@ -376,7 +392,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.white,
     marginHorizontal: 4,
-},
+  },
   selectedAddressTypeButton: {
     backgroundColor: colors.primary,
     borderColor: colors.primary,
@@ -422,5 +438,5 @@ const styles = StyleSheet.create({
     marginTop: 30,
     marginBottom: 20,
   },
-  containerStyle:{marginVertical:5}
-}); 
+  containerStyle: {marginVertical: 5},
+});

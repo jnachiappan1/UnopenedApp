@@ -74,7 +74,7 @@ const TitleBackHeaderContainer: React.FC<
       <View style={[styles.headerRowContainer, headerRowContainerStyle]}>
         {isBack && (
             <TouchableOpacity
-              style={[styles.back, {}]}
+              style={[styles.back, {}]} 
               onPress={onBackPress}>
               <IconsSvg name="backArrow" />
             </TouchableOpacity>
@@ -90,9 +90,11 @@ const TitleBackHeaderContainer: React.FC<
   <KeyboardAvoidingView
     style={{ flex: 1 }}
     behavior={OS === 'ios' ? 'padding' : 'height'}
+     
     keyboardVerticalOffset={HEADER_MIN_HEIGHT}>
     <ScrollView
       showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
       refreshControl={
         onRefresh ? (
           <RefreshControl

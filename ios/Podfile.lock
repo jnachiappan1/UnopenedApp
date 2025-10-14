@@ -90,6 +90,10 @@ PODS:
     - GoogleUtilities/Environment (~> 7.7)
     - nanopb (< 2.30911.0, >= 2.30908.0)
     - PromisesObjC (< 3.0, >= 1.2)
+  - GoogleMaps (10.4.0):
+    - GoogleMaps/Maps (= 10.4.0)
+  - GoogleMaps/Maps (10.4.0)
+  - GooglePlaces (10.4.0)
   - GoogleUtilities (7.13.3):
     - GoogleUtilities/AppDelegateSwizzler (= 7.13.3)
     - GoogleUtilities/Environment (= 7.13.3)
@@ -1531,7 +1535,7 @@ PODS:
     - Yoga
   - react-native-splash-screen (3.3.0):
     - React-Core
-  - react-native-video (6.16.1):
+  - react-native-video (6.17.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1544,7 +1548,7 @@ PODS:
     - React-featureflags
     - React-graphics
     - React-ImageManager
-    - react-native-video/Video (= 6.16.1)
+    - react-native-video/Video (= 6.17.0)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-rendererdebug
@@ -1553,7 +1557,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-video/Fabric (6.16.1):
+  - react-native-video/Fabric (6.17.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1574,7 +1578,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-video/Video (6.16.1):
+  - react-native-video/Video (6.17.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2035,7 +2039,7 @@ PODS:
     - RNNotifee/NotifeeCore (= 9.1.8)
   - RNNotifee/NotifeeCore (9.1.8):
     - React-Core
-  - RNReanimated (4.1.0):
+  - RNReanimated (4.1.3):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2057,10 +2061,10 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNReanimated/reanimated (= 4.1.0)
+    - RNReanimated/reanimated (= 4.1.3)
     - RNWorklets
     - Yoga
-  - RNReanimated/reanimated (4.1.0):
+  - RNReanimated/reanimated (4.1.3):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2082,10 +2086,10 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNReanimated/reanimated/apple (= 4.1.0)
+    - RNReanimated/reanimated/apple (= 4.1.3)
     - RNWorklets
     - Yoga
-  - RNReanimated/reanimated/apple (4.1.0):
+  - RNReanimated/reanimated/apple (4.1.3):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2154,7 +2158,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNSVG (15.13.0):
+  - RNSVG (15.14.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2174,9 +2178,9 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNSVG/common (= 15.13.0)
+    - RNSVG/common (= 15.14.0)
     - Yoga
-  - RNSVG/common (15.13.0):
+  - RNSVG/common (15.14.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2365,6 +2369,8 @@ DEPENDENCIES:
   - FirebaseCoreInternal
   - fmt (from `../node_modules/react-native/third-party-podspecs/fmt.podspec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
+  - GoogleMaps
+  - GooglePlaces
   - GoogleUtilities
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
@@ -2465,6 +2471,8 @@ SPEC REPOS:
     - FirebaseMessaging
     - GoogleAppMeasurement
     - GoogleDataTransport
+    - GoogleMaps
+    - GooglePlaces
     - GoogleUtilities
     - GTMSessionFetcher
     - nanopb
@@ -2680,6 +2688,8 @@ SPEC CHECKSUMS:
   glog: eb93e2f488219332457c3c4eafd2738ddc7e80b8
   GoogleAppMeasurement: f3abf08495ef2cba7829f15318c373b8d9226491
   GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a
+  GoogleMaps: a40d3b1f511f0fa2036e7b08c920c33279b1d5fd
+  GooglePlaces: de7f2e3024abd2ded98ae7b0206a45e3dae347b1
   GoogleUtilities: ea963c370a38a8069cc5f7ba4ca849a60b6d7d15
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   hermes-engine: b417d2b2aee3b89b58e63e23a51e02be91dc876d
@@ -2722,7 +2732,7 @@ SPEC CHECKSUMS:
   react-native-safe-area-context: afc464441362333ffe4cd96f3e623e374362a2f6
   react-native-slider: 1e655d76622a8611de2e6f403cd206f876acc16a
   react-native-splash-screen: 95994222cc95c236bd3cdc59fe45ed5f27969594
-  react-native-video: 85cc10d4eb38921b0cae5df50af465e94bfbe4cc
+  react-native-video: a7d2063f5a4a08cad69dd90f6aad6ed2e51060e5
   React-NativeModulesApple: ec44c21ae0bbb5f9a2df72db00294e33a00e07f0
   React-perflogger: 9e8d3c0dc0194eb932162812a168aa5dc662f418
   React-performancetimeline: 350424518f433dd43f063dc5f2cf3195c1a5b60f
@@ -2762,9 +2772,9 @@ SPEC CHECKSUMS:
   RNGestureHandler: 34f241199f5b2ce0225054450bf097287bb3abad
   RNImageCropPicker: 39c4f77eea6d6570c1ef104f6f14acc68d4ccdd7
   RNNotifee: 5e3b271e8ea7456a36eec994085543c9adca9168
-  RNReanimated: 6850cb060406d44c7eaf8f527fb3ef1a6141707d
+  RNReanimated: aab3fb61ab766c81204ca260fce157cd72efb9e9
   RNScreens: 150e342212af4d9dd7ba8a2d786a32dbe15cca04
-  RNSVG: 799a6ac538f026335bd64639629894a432bbf65e
+  RNSVG: bb8cfac75649a133646f119ae3c9157e9485610d
   RNWorklets: 82c88b0e178c31b9a3f85797146bdcca73c44327
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Stripe: d1824162e4bcb6ead10401a0dc8e8a3d5ffee41f
@@ -2779,6 +2789,6 @@ SPEC CHECKSUMS:
   TOCropViewController: 80b8985ad794298fb69d3341de183f33d1853654
   Yoga: be02ca501b03c79d7027a6bbbd0a8db985034f11
 
-PODFILE CHECKSUM: 2e71570cd6c42a012307d4a146077ca4999cd864
+PODFILE CHECKSUM: d3505fe240df8ba320da367d9cd856e5ae98a6a6
 
 COCOAPODS: 1.16.2

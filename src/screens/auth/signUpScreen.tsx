@@ -26,6 +26,7 @@ import {showLoader} from '../../components/loader/loader';
 import PhoneNumberInputs from '../../components/input/phoneNumberInputs';
 import {selectedCountryType} from '../../utils/types';
 import PrivacyTermsCheckbox from '../../components/card/privacyTermsCheckbox';
+import LocationInput from '../../components/input/locationInput';
 
 type LoginProps = NativeStackScreenProps<
   RootStackParamList,
@@ -204,7 +205,7 @@ const SignUpScreen: React.FC<LoginProps> = ({route, navigation}) => {
           maxLength={40}
           inputStyle={styles.inputStyle}
         />
-        <Input
+        {/* <Input
           control={control}
           name="address"
           label={'Address	'}
@@ -216,7 +217,48 @@ const SignUpScreen: React.FC<LoginProps> = ({route, navigation}) => {
           error={errors}
           maxLength={40}
           inputStyle={styles.inputStyle}
-        />
+        /> */}
+        <LocationInput
+            control={control}
+            name="address"
+            label={"Address"}
+            inputProps={{
+              placeholder: ('Enter Address'),
+            }}
+            required={{
+              value: true,
+              message: ('Please enter your address'),
+            }}
+            error={errors}
+            editable={true}
+            maxLength={40}
+            //iconName="destinationLocation"
+            //rightIconName="rightIcon"
+            onChangeText={(value: string) => {
+              
+            }}
+            onPlaceParsed={(info) => {
+              // Only auto-fill when the selected place is in the US
+              if (info?.countryCode === 'US') {
+                // Country stays as 'US' already
+                if (info.stateCode) {
+                  setValue('state', info.stateCode, { shouldValidate: true, shouldDirty: true });
+                } else if (info.stateName) {
+                  // If only state name is present, leave as-is; InputState expects code but api may accept name
+                  setValue('state', info.stateName, { shouldValidate: true, shouldDirty: true });
+                }
+                if (info.city) {
+                  setValue('city', info.city, { shouldValidate: true, shouldDirty: true });
+                }
+                if (info.postalCode) {
+                  setValue('pincode', info.postalCode, { shouldValidate: true, shouldDirty: true });
+                }
+              }
+            }}
+            toggleShowCurrentOnly={undefined}
+            style={styles.inputStyle}
+            //defaultValues={formStep1.watch('address') || ''}
+          />
         <View style={styles.locationContainer}>
           <InputCountry
             control={control}
@@ -247,6 +289,7 @@ const SignUpScreen: React.FC<LoginProps> = ({route, navigation}) => {
               watch('country') === 'US' ? 'United States' : getValues('country')
             }
             state={watch('state') ? getValues('state') : undefined}
+            stateCode={watch('state') ? getValues('state') : undefined}
             placeholder={'City'}
             error={errors}
             required={{value: true, message: 'City is required'}}
@@ -330,6 +373,11 @@ const styles = StyleSheet.create({
     height: 53,
     borderRadius: 160,
     width: '100%',
+  },
+  multilineInput: {
+    height: 80,
+    textAlignVertical: 'top',
+    borderRadius: 10,
   },
   title: {
     fontSize: 32,
