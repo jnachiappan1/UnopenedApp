@@ -145,10 +145,8 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
     if (!user) return 'Ships from';
 
     const address = user?.address;
-    const country = user?.country;
-    const state = user?.state;
 
-    const parts = [address, country, state].filter(Boolean);
+    const parts = [address].filter(Boolean);
     return parts.length ? `Ships from ${parts.join(', ')}` : 'Ships from';
   }, [addData]);
 

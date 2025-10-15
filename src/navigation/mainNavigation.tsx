@@ -239,6 +239,7 @@ export type RootStackParamList = {
   };
   [SCREENS.OrderTrackScreen]: {
     productId:  string | number | null | undefined
+    source ?: string | null | undefined
   };
   [SCREENS.BProductDetailScreen]: {
     productId:  string | number | null | undefined

@@ -41,7 +41,7 @@ import {
 } from '../../utils/method';
 import {showLoader} from '../../components/loader/loader';
 import ApplyOfferInput from '../../components/input/applyOfferInput';
-import {API} from '../../utils/api';
+import {API, image_url} from '../../utils/api';
 
 type MediaObject = {
   uri: string;
@@ -278,7 +278,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     if (categoryData) {
       const transformedData = transformCategoryData(categoryData);
       setDropdownData(transformedData);
-      
+
       // If no category is selected and we have dropdown data, show error
       const currentCategory = getValues('category');
       if (!currentCategory && transformedData.length > 0) {
@@ -475,7 +475,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     if (scanProductData?.data?.product) {
       const productData = scanProductData.data.product;
       const scannedCategory = productData.category;
-
       setScannedCategoryName(scannedCategory || '');
 
       if (scannedCategory && dropdownData.length > 0) {
@@ -568,6 +567,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       );
 
       if (productData.images && productData.images.length > 0) {
+        
         setUploadedImages([]);
         setValue('productImages', []);
 
@@ -575,29 +575,35 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
           ? productData.images[0]
           : productData.images;
 
+        
+
         const handleRemoteImage = async (url: string) => {
           try {
-            const response = await fetch(url);
-            const blob = await response.blob();
-
-            const base64Data = await new Promise<string>((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onloadend = () => resolve(reader.result as string);
-              reader.onerror = reject;
-              reader.readAsDataURL(blob);
-            });
-
+           
             const scannedImage: MediaObject = {
-              uri: base64Data,
+              uri: url,
               name: 'scanned_product_image.jpg',
               type: 'image/jpeg',
             };
 
+            
             setUploadedImages([scannedImage]);
             setValue('productImages', [scannedImage]);
             clearErrors('productImages');
             setImageError('');
-          } catch (error) {}
+           
+          } catch (error) {
+           
+            const scannedImage: MediaObject = {
+              uri: url,
+              name: 'scanned_product_image.jpg',
+              type: 'image/jpeg',
+            };
+            setUploadedImages([scannedImage]);
+            setValue('productImages', [scannedImage]);
+            clearErrors('productImages');
+            setImageError('');
+          }
         };
 
         if (firstImageUrl.startsWith('http')) {
@@ -1203,35 +1209,44 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
                 showsHorizontalScrollIndicator={false}
                 style={styles.imagesPreviewScroll}
                 contentContainerStyle={styles.imagesPreviewContent}>
-                {uploadedImages.map((mediaObj, index) => (
-                  <View key={index} style={styles.previewImageContainer}>
-                    {isVideo(mediaObj) ? (
-                      <View style={styles.videoPreviewContainer}>
-                        <Text style={styles.videoPreviewIcon}>🎥</Text>
-                        <Text style={styles.videoPreviewText}>
-                          Video {index + 1}
-                        </Text>
-                        <Text style={styles.videoFileName} numberOfLines={1}>
-                          {mediaObj.name}
-                        </Text>
+                {uploadedImages.map((mediaObj, index) => {
+                  
+                  return (
+                    <View key={index} style={styles.previewImageContainer}>
+                      {isVideo(mediaObj) ? (
+                        <View style={styles.videoPreviewContainer}>
+                          <Text style={styles.videoPreviewIcon}>🎥</Text>
+                          <Text style={styles.videoPreviewText}>
+                            Video {index + 1}
+                          </Text>
+                          <Text style={styles.videoFileName} numberOfLines={1}>
+                            {mediaObj.name}
+                          </Text>
+                        </View>
+                      ) : (
+                        <Image
+                          source={{
+                            uri: mediaObj.uri.startsWith('http')
+                              ? mediaObj.uri
+                              : image_url + mediaObj.uri,
+                          }}
+                          style={styles.previewImage}
+                          resizeMode="cover"
+                          onError={error => {}}
+                          onLoad={() => {}}
+                        />
+                      )}
+                      <TouchableOpacity
+                        style={styles.removeImageButton}
+                        onPress={() => removeImage(index)}>
+                        <Text style={styles.removeImageText}>×</Text>
+                      </TouchableOpacity>
+                      <View style={styles.imageNumberBadge}>
+                        <Text style={styles.imageNumberText}>{index + 1}</Text>
                       </View>
-                    ) : (
-                      <Image
-                        source={{uri: mediaObj.uri}}
-                        style={styles.previewImage}
-                        resizeMode="cover"
-                      />
-                    )}
-                    <TouchableOpacity
-                      style={styles.removeImageButton}
-                      onPress={() => removeImage(index)}>
-                      <Text style={styles.removeImageText}>×</Text>
-                    </TouchableOpacity>
-                    <View style={styles.imageNumberBadge}>
-                      <Text style={styles.imageNumberText}>{index + 1}</Text>
                     </View>
-                  </View>
-                ))}
+                  );
+                })}
               </ScrollView>
               <View style={styles.imageActionsContainer}>
                 <TouchableOpacity

@@ -23,6 +23,7 @@ type TitleBackHeaderContainerProps = {
   children?: React.ReactNode | undefined;
   title?: string;
   isBack?: boolean;
+  onBackPress?: () => void;
   userName?: string;
   isRight?: boolean;
   isSearch?: boolean;
@@ -48,6 +49,7 @@ const TitleBackHeaderContainer: React.FC<
     children,
     title = '',
     isBack = false,
+    onBackPress,
     isSearch = false,
     isMenu = false,
     isUpload = false,
@@ -65,7 +67,11 @@ const TitleBackHeaderContainer: React.FC<
   } = props;
   const navigation = useNavigation<string | any>();
   const container = useNormalContainer();
-  const onBackPress = () => {
+  const handleBackPress = () => {
+    if (onBackPress) {
+      onBackPress();
+      return;
+    }
     navigation.goBack();
   };
   const HEADER_MIN_HEIGHT = 30;
@@ -75,7 +81,7 @@ const TitleBackHeaderContainer: React.FC<
         {isBack && (
             <TouchableOpacity
               style={[styles.back, {}]} 
-              onPress={onBackPress}>
+              onPress={handleBackPress}>
               <IconsSvg name="backArrow" />
             </TouchableOpacity>
           )}

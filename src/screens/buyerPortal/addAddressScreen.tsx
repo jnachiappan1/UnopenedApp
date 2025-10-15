@@ -89,8 +89,6 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation}) => {
   const watchedCountry = watch('country');
   const watchedState = watch('state');
   const watchedCity = watch('city');
-  console.log('watchedState--->>', watchedState);
-  console.log('watchedCity--->>', watchedCity);
 
   // Clear state and city when country changes
   useEffect(() => {
@@ -238,13 +236,11 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation}) => {
               
               // Handle city - this should work for all countries
               if (info?.city) {
-                console.log('Setting city to:', info.city);
                 setValue('city', info.city, {
                   shouldValidate: true,
                   shouldDirty: true,
                 });
               } else {
-                console.log('No city found in parsed info, clearing city field');
                 // Clear city if no city found
                 setValue('city', '', {
                   shouldValidate: true,

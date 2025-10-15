@@ -52,6 +52,8 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({
   route,
 }) => {
   const productId = route.params;
+  const {source} = route.params;
+  
   const [isContactSupportModalVisible, setIsContactSupportModalVisible] =
     useState(false);
   const [modalKey, setModalKey] = useState(0);
@@ -420,7 +422,18 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({
   };
 
   return (
-    <TitleBackHeaderContainer isBack title="Track Order">
+    <TitleBackHeaderContainer
+      isBack
+      title="Track Order"
+      onBackPress={() => {
+       
+        if (source === 'confirm_your_order') {
+          navigation.navigate(SCREENS.BottomTab, { screen: SCREENS.BHomeScreen });
+        } else {
+          navigation.goBack();
+        }
+      }}
+    >
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.container}>
           <View style={styles.orderIdRow}>

@@ -46,6 +46,7 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
     queryFn: getBankAccount,
   });
 
+
   // Fetch cash out history
   const {
     data: cashOutHistoryData,
@@ -141,6 +142,16 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
     //   });
     //   return;
     // }
+    if (bankAccountData?.data?.verified === null) {
+      showAlert({
+        isVisible: true,
+        type: 'error',
+        title: 'Error!',
+        description: 'Your bank details are under verification once approved you will be able to cash out',
+        doneText: 'Okay',
+      });
+      return;
+    }
 
     if (!data.amount || parseFloat(data.amount) <= 0) {
       showAlert({
@@ -360,6 +371,7 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
             // (!bankAccountData?.data?.bankDetails || isCashOutPending) &&
             //   styles.disabledButton,
           ]}
+     
           textStyle={[
             styles.cashOutButtonText,
             // (!bankAccountData?.data?.bankDetails || isCashOutPending) &&

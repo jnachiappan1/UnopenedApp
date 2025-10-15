@@ -790,10 +790,12 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
       if (navigation && navigation.navigate) {
         navigation.navigate(SCREENS.OrderTrackScreen, {
           productId: productId,
+          source: 'confirm_your_order',
         });
       } else {
         navigation.navigate(SCREENS.OrderTrackScreen, {
           productId: productId,
+          source: 'confirm_your_order',
         });
       }
     } catch (error) {
