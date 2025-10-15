@@ -626,7 +626,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
           shipmentId: shippingID,
         };
 
-        // handleStripePayment(stripePaymentPayload);
+        handleStripePayment(stripePaymentPayload);
       } else {
         showAlert({
           isVisible: true,
@@ -1010,7 +1010,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
     }
     return 'Estimate unavailable';
   };
-  console.log('selectedShippingRate--->>', selectedShippingRate);
+  
 
   return (
     <TitleBackHeaderContainer title="Confirm Your Order" isBack>
