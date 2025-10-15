@@ -77,18 +77,9 @@ const HeaderHomeContainer: React.FC<HeaderHomeContainerProps> = props => {
     queryKey: ['notification'],
     queryFn: getNotification,
     refetchInterval: 10000,
-    enabled: !!token, // Only fetch notifications when user is logged in (not guest)
+    enabled: !!token, 
   });
 
-  const onBackPress = () => {
-    navigation.goBack();
-  };
-
-  const onNotificationPress = () => {
-    //navigation.navigate(SCREENS.NotificationScreen);
-  };
-
-  // Always provide RefreshControl, but only make it functional when onRefresh is provided
   const refreshControl = (
     <RefreshControl
       refreshing={refreshing}
@@ -96,7 +87,7 @@ const HeaderHomeContainer: React.FC<HeaderHomeContainerProps> = props => {
      
       })}
       tintColor={colors.primary}
-      enabled={!!onRefresh} // Only enable pull-to-refresh when onRefresh is provided
+      enabled={!!onRefresh} 
     />
   );
 

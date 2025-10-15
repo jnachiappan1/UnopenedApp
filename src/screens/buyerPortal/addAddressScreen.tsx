@@ -88,7 +88,9 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation}) => {
 
   const watchedCountry = watch('country');
   const watchedState = watch('state');
+  const watchedCity = watch('city');
   console.log('watchedState--->>', watchedState);
+  console.log('watchedCity--->>', watchedCity);
 
   // Clear state and city when country changes
   useEffect(() => {
@@ -98,12 +100,13 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation}) => {
     }
   }, [watchedCountry, setValue]);
 
-  // Clear city when state changes
+  // Note: Removed automatic city clearing when state changes
+  // This was interfering with programmatic city setting from LocationInput
+  
+  // Debug city changes
   useEffect(() => {
-    if (watchedState) {
-      setValue('city', '');
-    }
-  }, [watchedState, setValue]);
+    console.log('City value changed to:', watchedCity);
+  }, [watchedCity]);
 
   const {mutate} = useMutation({
     mutationFn: addAddress,
@@ -208,75 +211,53 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation}) => {
             }}
             error={errors}
             editable={true}
-            maxLength={40}
+            // maxLength={40}
             onChangeText={(value: string) => {
               
             }}
             onPlaceParsed={info => {
-              if (info?.countryCode === 'US') {
-                if (info.stateCode) {
-                  setValue('state', info.stateCode, {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  });
-                } else if (info.stateName) {
-                  setValue('state', info.stateName, {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  });
-                }
-                if (info.city) {
-                  setValue('city', info.city, {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  });
-                } else {
-                  setValue('city', '', {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  });
-                }
-                if (info.postalCode) {
-                  setValue('zipCode', info.postalCode, {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  });
-                }
+              if (info?.countryCode) {
+                setValue('country', info.countryCode, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                });
+              }
+              
+              // Handle state
+              if (info?.stateCode) {
+                setValue('state', info.stateCode, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                });
+              } else if (info?.stateName) {
+                setValue('state', info.stateName, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                });
+              }
+              
+              // Handle city - this should work for all countries
+              if (info?.city) {
+                console.log('Setting city to:', info.city);
+                setValue('city', info.city, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                });
               } else {
-                if (info?.countryCode) {
-                  setValue('country', info.countryCode, {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  });
-                }
-                if (info?.stateCode) {
-                  setValue('state', info.stateCode, {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  });
-                } else if (info?.stateName) {
-                  setValue('state', info.stateName, {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  });
-                }
-                if (info?.city) {
-                  setValue('city', info.city, {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  });
-                } else {
-                  setValue('city', '', {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  });
-                }
-                if (info?.postalCode) {
-                  setValue('zipCode', info.postalCode, {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  });
-                }
+                console.log('No city found in parsed info, clearing city field');
+                // Clear city if no city found
+                setValue('city', '', {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                });
+              }
+              
+              // Handle postal code
+              if (info?.postalCode) {
+                setValue('zipCode', info.postalCode, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                });
               }
             }}
             toggleShowCurrentOnly={undefined}

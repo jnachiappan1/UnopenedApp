@@ -231,9 +231,7 @@ const SignUpScreen: React.FC<LoginProps> = ({route, navigation}) => {
             }}
             error={errors}
             editable={true}
-            maxLength={40}
-            //iconName="destinationLocation"
-            //rightIconName="rightIcon"
+            
             onChangeText={(value: string) => {
               
             }}

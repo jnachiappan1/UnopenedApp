@@ -5,9 +5,6 @@ import {
   StyleSheet,
   StyleProp,
   ViewStyle,
-  TouchableOpacity,
-  I18nManager,
-  Alert,
 } from 'react-native';
 import {
   Controller,
@@ -56,7 +53,6 @@ type InputPropsStyle = {
   productError?: string | any;
   defaultValues?: string;
   biasLocation?: {latitude: number; longitude: number} | undefined;
-  // Called when a place is selected and parsed, e.g. to autofill state/city/zip
   onPlaceParsed?: (info: {
     countryCode?: string;
     countryName?: string;
@@ -72,9 +68,6 @@ const SearchLocationInput: React.FC<InputPropsStyle> = props => {
     control,
     name,
     label,
-    rightLabel,
-    onRightLabelPress,
-    rightLabelColor,
     locationName,
     pattern,
     validate,
@@ -83,8 +76,6 @@ const SearchLocationInput: React.FC<InputPropsStyle> = props => {
     inputProps,
     style,
     keyboardType,
-    iconName,
-    rightIconName,
     maxLength,
     editable,
     onChangeText,
@@ -92,8 +83,6 @@ const SearchLocationInput: React.FC<InputPropsStyle> = props => {
     biasLocation,
     onPlaceParsed,
   } = props;
-  // keeping for future dynamic theming within component if needed
-  const themeColors = getColors();
   const err =
     error &&
     Object.keys(error).length !== 0 &&
@@ -109,18 +98,13 @@ const SearchLocationInput: React.FC<InputPropsStyle> = props => {
   const autoCompleteRef = useRef<any>(null);
   const hasAppliedDefaultRef = useRef<boolean>(false);
 
-  // Generate session token for Google Places API
   useEffect(() => {
     if (!sessionTokenRef.current) {
       sessionTokenRef.current = Math.random().toString(36).substring(7);
-      // session token generated
     }
   }, []);
-  console.log('locationName', locationName);
 
-  // Log component mount
   useEffect(() => {
-    console.log('SearchLocationInput component mounted');
     return () => console.log('SearchLocationInput component unmounted');
   }, []);
 
@@ -145,10 +129,8 @@ const SearchLocationInput: React.FC<InputPropsStyle> = props => {
               typeof value === 'string' ? value : value ?? '';
             if (nextValue && nextValue.trim() !== currentValue.trim()) {
               setIsExternalUpdate(true);
-              // Update the form value first
               onChange(nextValue);
 
-              // Then update the GooglePlacesAutocomplete component
               if (autoCompleteRef.current) {
                 try {
                   autoCompleteRef.current.setAddressText(nextValue);
@@ -156,13 +138,11 @@ const SearchLocationInput: React.FC<InputPropsStyle> = props => {
                   console.log('Error setting address text:', error);
                 }
               }
-              // Keep external flag for a short time to ignore internal onChangeText
               const timer = setTimeout(() => setIsExternalUpdate(false), 200);
               return () => clearTimeout(timer);
             }
           }, [locationName, onChange, value]);
 
-          // Handle defaultValues prop
           useEffect(() => {
             const defaultText = props.defaultValues ?? '';
             const currentValue =
@@ -179,7 +159,6 @@ const SearchLocationInput: React.FC<InputPropsStyle> = props => {
                 try {
                   autoCompleteRef.current.setAddressText(defaultText);
                 } catch (error) {
-                  console.log('Error setting default value:', error);
                 }
               }
               const timer = setTimeout(() => setIsExternalUpdate(false), 200);
@@ -187,10 +166,8 @@ const SearchLocationInput: React.FC<InputPropsStyle> = props => {
             }
           }, [props.defaultValues]);
 
-          // Cleanup effect
           useEffect(() => {
             return () => {
-              // setIsExternalUpdate(false);
             };
           }, []);
 
@@ -227,7 +204,6 @@ const SearchLocationInput: React.FC<InputPropsStyle> = props => {
                             const stateComp = findComp(
                               'administrative_area_level_1',
                             );
-                            // Try multiple fallbacks for city/locality
                             const localityComp =
                               findComp('locality') ||
                               findComp('sublocality') ||
@@ -238,20 +214,30 @@ const SearchLocationInput: React.FC<InputPropsStyle> = props => {
                               findComp('sublocality_level_1') ||
                               findComp('sublocality_level_2');
                             const postalComp = findComp('postal_code');
-                            
-                            // Additional fallback: if no specific locality found, try to extract from formatted address
                             let cityName = localityComp?.long_name;
+                            
+                            // Enhanced city parsing with better fallback logic
                             if (!cityName && data?.description) {
-                              // Try to extract city from the formatted address
                               const addressParts = data.description.split(',');
-                              if (addressParts.length >= 2) {
-                                // Usually city is the second-to-last part before state/country
-                                const potentialCity = addressParts[addressParts.length - 2]?.trim();
-                                if (potentialCity && !potentialCity.match(/^\d+$/)) {
+                              // Try different positions in the address string
+                              for (let i = addressParts.length - 2; i >= 0; i--) {
+                                const potentialCity = addressParts[i]?.trim();
+                                if (potentialCity && 
+                                    !potentialCity.match(/^\d+$/) && 
+                                    !potentialCity.match(/^[A-Z]{2}$/) && // Not a state code
+                                    potentialCity.length > 2) {
                                   cityName = potentialCity;
+                                  break;
                                 }
                               }
                             }
+                            
+                            console.log('City parsing debug:', {
+                              localityComp: localityComp?.long_name,
+                              cityName,
+                              addressParts: data?.description?.split(','),
+                              allComponents: comps.map(c => ({ types: c.types, long_name: c.long_name }))
+                            });
                             
                             const parsed = {
                               countryCode: countryComp?.short_name,
@@ -498,7 +484,6 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     alignItems: 'center',
     width: '100%',
-    // textAlign: I18nManager.isRTL ? 'right' : 'left',
     fontSize: fontSizes.regular,
     color: colors.primaryBlack,
     fontFamily: fonts.medium,
@@ -532,8 +517,6 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.medium,
   },
   rowWrapper: {
-    // flexDirection: 'row',
-    // alignItems: 'center',
     paddingHorizontal: 5,
   },
   distanceCol: {
@@ -547,7 +530,6 @@ const styles = StyleSheet.create({
   },
 
   placeCol: {
-    // flex: 1,
   },
   placeTitle: {
     color: colors.primaryBlack,

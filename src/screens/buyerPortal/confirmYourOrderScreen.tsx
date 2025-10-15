@@ -5,10 +5,6 @@ import {
   Text,
   Image,
   TouchableOpacity,
-  Dimensions,
-  FlatList,
-  Animated,
-  Platform,
 } from 'react-native';
 import React, {useState, useRef, useEffect, useCallback} from 'react';
 import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
@@ -26,11 +22,9 @@ import {
   getWalletDetail,
   getAddresses,
   makePayment,
-  soldProduct,
   validateCoupon,
   applyCoupon,
   createShipping,
-  getShippingRates,
 } from '../../utils/apiAction';
 import {image_url} from '../../utils/api';
 import {useSelector} from 'react-redux';
@@ -41,9 +35,8 @@ import {showAlert} from '../../components/cAlert';
 import {useStripe} from '@stripe/stripe-react-native';
 import {useForm} from 'react-hook-form';
 import ApplyOfferInput from '../../components/input/applyOfferInput';
-import { useFocusEffect } from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 
-const {width} = Dimensions.get('window');
 
 type LoginProps = NativeStackScreenProps<
   RootStackParamList,
@@ -55,7 +48,6 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
   const userData = useSelector((user: IRootState) => user.user.userData);
   const {initPaymentSheet, presentPaymentSheet} = useStripe();
   const [quantity, setQuantity] = useState(4);
-  const [walletBalance, setWalletBalance] = useState(2430.0);
   const [paymentMethod, setPaymentMethod] = useState<'wallet' | 'stripe'>(
     'stripe',
   );
@@ -71,9 +63,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
   const [isModalVisible, setModalVisible] = useState(false);
   const [isStripeModalVisible, setStripeModalVisible] = useState(false);
   const [discountAmount, setDiscountAmount] = useState<number>(0);
-console.log("::::::::::::::--->>", selectedAddress);
 
-  // Form setup for discount code
   const {
     control,
     formState: {errors},
@@ -85,13 +75,9 @@ console.log("::::::::::::::--->>", selectedAddress);
     },
   });
 
-  // Watch the discount code value
-  const discountCode = watch('discount_code');
 
-  // Store the applied discount code for payment success flow
   const [appliedDiscountCode, setAppliedDiscountCode] = useState<string>('');
 
-  // Track shipping API calls
   const [shippingApiCalled, setShippingApiCalled] = useState(false);
   const [selectedShippingRate, setSelectedShippingRate] = useState<any>(null);
   const [isShippingRatesLoading, setIsShippingRatesLoading] = useState(false);
@@ -105,7 +91,6 @@ console.log("::::::::::::::--->>", selectedAddress);
     useMutation({
       mutationFn: createShipping,
       onSuccess: async response => {
-
         setShippingApiCalled(true);
         setIsShippingRatesLoading(false); // No need for loading state since we're using direct response
         // Use shipping rates directly from the shipping response (no need for separate API call)
@@ -120,7 +105,7 @@ console.log("::::::::::::::--->>", selectedAddress);
             const uspsPriorityRate = shippingRates.find(
               (rate: any) =>
                 rate.carrier === 'USPS' &&
-                rate.service?.trim().toLowerCase() === 'priority',
+                rate.service?.trim().toLowerCase() === 'GroundAdvantage',
             );
 
             if (uspsPriorityRate) {
@@ -129,7 +114,7 @@ console.log("::::::::::::::--->>", selectedAddress);
             } else {
               // Fallback: try to find any Priority service
               const priorityRate = shippingRates.find(
-                (rate: any) => rate.service === 'Priority',
+                (rate: any) => rate.service === 'GroundAdvantage',
               );
               if (priorityRate) {
                 setPriorityShippingRate(priorityRate);
@@ -293,7 +278,7 @@ console.log("::::::::::::::--->>", selectedAddress);
   //   if (addressesData?.data?.address && addressesData.data.address.length > 0) {
   //     const firstAddress = addressesData.data.address[0];
   //     console.log("setSelectedAddress--->>", firstAddress);
-      
+
   //     setDefaultAddress(firstAddress);
   //     if (!selectedAddress && !isAddressChanged) {
   //       setSelectedAddress(firstAddress);
@@ -303,16 +288,18 @@ console.log("::::::::::::::--->>", selectedAddress);
 
   useFocusEffect(
     useCallback(() => {
-      if (addressesData?.data?.address && addressesData.data.address.length > 0) {
+      if (
+        addressesData?.data?.address &&
+        addressesData.data.address.length > 0
+      ) {
         const firstAddress = addressesData.data.address[0];
-        console.log("setSelectedAddress--->>", firstAddress);
-        
+
         setDefaultAddress(firstAddress);
         if (!selectedAddress && !isAddressChanged) {
           setSelectedAddress(firstAddress);
         }
       }
-    }, [addressesData, selectedAddress, isAddressChanged])
+    }, [addressesData, selectedAddress, isAddressChanged]),
   );
   // Auto-switch to Stripe if wallet becomes disabled
   useEffect(() => {
@@ -373,8 +360,7 @@ console.log("::::::::::::::--->>", selectedAddress);
       }
 
       const addressId = getCurrentAddressId();
-      console.log("addressId--->>", addressId);
-      
+
       if (!addressId) {
         showAlert({
           isVisible: true,
@@ -629,9 +615,9 @@ console.log("::::::::::::::--->>", selectedAddress);
           });
         }
       } else if (paymentMethod === 'stripe') {
-        const finalAmount = getFinalAmount(); // Use discounted amount
+        const finalAmount = getFinalAmount();
         const stripePaymentPayload = {
-          amount: finalAmount.toString(), // Use discounted amount
+          amount: finalAmount.toString(),
           rate_amount: selectedShippingRate
             ? selectedShippingRate.rate.toString()
             : '0',
@@ -639,7 +625,6 @@ console.log("::::::::::::::--->>", selectedAddress);
           rate_id: selectedShippingRate ? selectedShippingRate.id : '',
           shipmentId: shippingID,
         };
-console.log("stripePaymentPayload--->>", stripePaymentPayload);
 
         // handleStripePayment(stripePaymentPayload);
       } else {
@@ -1025,6 +1010,7 @@ console.log("stripePaymentPayload--->>", stripePaymentPayload);
     }
     return 'Estimate unavailable';
   };
+  console.log('selectedShippingRate--->>', selectedShippingRate);
 
   return (
     <TitleBackHeaderContainer title="Confirm Your Order" isBack>

@@ -4,7 +4,7 @@ export const base_url = 'http://45.248.33.161:5019';
 // export const base_url = 'http://192.168.29.37:5019';
 
 export const image_url = 'https://minio.techreale.com/unoppened';
-export const google_api_key = 'AIzaSyB-Ll0w3bnlVAVLAOpX_jM9A2la3eLKh88';
+export const google_api_key = 'AIzaSyDgYwd7eBxFOYR4rg6WN2jKlf9rYyopqgw';
 
 export const API = {
   buyer: {
