@@ -227,17 +227,38 @@ const SearchLocationInput: React.FC<InputPropsStyle> = props => {
                             const stateComp = findComp(
                               'administrative_area_level_1',
                             );
+                            // Try multiple fallbacks for city/locality
                             const localityComp =
                               findComp('locality') ||
                               findComp('sublocality') ||
-                              findComp('postal_town');
+                              findComp('postal_town') ||
+                              findComp('administrative_area_level_2') ||
+                              findComp('administrative_area_level_3') ||
+                              findComp('neighborhood') ||
+                              findComp('sublocality_level_1') ||
+                              findComp('sublocality_level_2');
                             const postalComp = findComp('postal_code');
+                            
+                            // Additional fallback: if no specific locality found, try to extract from formatted address
+                            let cityName = localityComp?.long_name;
+                            if (!cityName && data?.description) {
+                              // Try to extract city from the formatted address
+                              const addressParts = data.description.split(',');
+                              if (addressParts.length >= 2) {
+                                // Usually city is the second-to-last part before state/country
+                                const potentialCity = addressParts[addressParts.length - 2]?.trim();
+                                if (potentialCity && !potentialCity.match(/^\d+$/)) {
+                                  cityName = potentialCity;
+                                }
+                              }
+                            }
+                            
                             const parsed = {
                               countryCode: countryComp?.short_name,
                               countryName: countryComp?.long_name,
                               stateCode: stateComp?.short_name,
                               stateName: stateComp?.long_name,
-                              city: localityComp?.long_name,
+                              city: cityName,
                               postalCode: postalComp?.long_name,
                             };
                             if (onPlaceParsed) {

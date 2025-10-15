@@ -238,19 +238,35 @@ const SignUpScreen: React.FC<LoginProps> = ({route, navigation}) => {
               
             }}
             onPlaceParsed={(info) => {
-              // Only auto-fill when the selected place is in the US
               if (info?.countryCode === 'US') {
-                // Country stays as 'US' already
                 if (info.stateCode) {
                   setValue('state', info.stateCode, { shouldValidate: true, shouldDirty: true });
                 } else if (info.stateName) {
-                  // If only state name is present, leave as-is; InputState expects code but api may accept name
                   setValue('state', info.stateName, { shouldValidate: true, shouldDirty: true });
                 }
                 if (info.city) {
                   setValue('city', info.city, { shouldValidate: true, shouldDirty: true });
+                } else {
+                  setValue('city', '', { shouldValidate: true, shouldDirty: true });
                 }
                 if (info.postalCode) {
+                  setValue('pincode', info.postalCode, { shouldValidate: true, shouldDirty: true });
+                }
+              } else {
+                if (info?.countryCode) {
+                  setValue('country', info.countryCode, { shouldValidate: true, shouldDirty: true });
+                }
+                if (info?.stateCode) {
+                  setValue('state', info.stateCode, { shouldValidate: true, shouldDirty: true });
+                } else if (info?.stateName) {
+                  setValue('state', info.stateName, { shouldValidate: true, shouldDirty: true });
+                }
+                if (info?.city) {
+                  setValue('city', info.city, { shouldValidate: true, shouldDirty: true });
+                } else {
+                  setValue('city', '', { shouldValidate: true, shouldDirty: true });
+                }
+                if (info?.postalCode) {
                   setValue('pincode', info.postalCode, { shouldValidate: true, shouldDirty: true });
                 }
               }

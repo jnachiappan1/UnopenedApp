@@ -71,11 +71,13 @@ const HeaderHomeContainer: React.FC<HeaderHomeContainerProps> = props => {
   const dispatch = useDispatch();
   const container = useContainer();
   const userType = useSelector((state: IRootState) => state.user.userType);
+  const token = useSelector((state: IRootState) => state.user.token);
   
   const { data: notificationData } = useQuery({
     queryKey: ['notification'],
     queryFn: getNotification,
     refetchInterval: 10000,
+    enabled: !!token, // Only fetch notifications when user is logged in (not guest)
   });
 
   const onBackPress = () => {
@@ -124,7 +126,7 @@ const HeaderHomeContainer: React.FC<HeaderHomeContainerProps> = props => {
           </View>
           <View>
             <IconsSvg name='notificationIcon' onPress={() => navigation.navigate(SCREENS.NotificationScreen)} />
-            {!notificationData?.data?.is_all_notification_read && (
+            {token && !notificationData?.data?.is_all_notification_read && (
               <View style={styles.notificationDot} />
             )}
           </View>

@@ -230,8 +230,48 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation}) => {
                     shouldValidate: true,
                     shouldDirty: true,
                   });
+                } else {
+                  setValue('city', '', {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  });
                 }
                 if (info.postalCode) {
+                  setValue('zipCode', info.postalCode, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  });
+                }
+              } else {
+                if (info?.countryCode) {
+                  setValue('country', info.countryCode, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  });
+                }
+                if (info?.stateCode) {
+                  setValue('state', info.stateCode, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  });
+                } else if (info?.stateName) {
+                  setValue('state', info.stateName, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  });
+                }
+                if (info?.city) {
+                  setValue('city', info.city, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  });
+                } else {
+                  setValue('city', '', {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  });
+                }
+                if (info?.postalCode) {
                   setValue('zipCode', info.postalCode, {
                     shouldValidate: true,
                     shouldDirty: true,
