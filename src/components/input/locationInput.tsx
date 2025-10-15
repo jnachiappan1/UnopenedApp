@@ -1,11 +1,5 @@
 import React, {useEffect, useRef, useState, useMemo} from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  StyleProp,
-  ViewStyle,
-} from 'react-native';
+import {View, Text, StyleSheet, StyleProp, ViewStyle} from 'react-native';
 import {
   Controller,
   Control,
@@ -158,8 +152,7 @@ const SearchLocationInput: React.FC<InputPropsStyle> = props => {
               if (autoCompleteRef.current) {
                 try {
                   autoCompleteRef.current.setAddressText(defaultText);
-                } catch (error) {
-                }
+                } catch (error) {}
               }
               const timer = setTimeout(() => setIsExternalUpdate(false), 200);
               return () => clearTimeout(timer);
@@ -167,8 +160,7 @@ const SearchLocationInput: React.FC<InputPropsStyle> = props => {
           }, [props.defaultValues]);
 
           useEffect(() => {
-            return () => {
-            };
+            return () => {};
           }, []);
 
           return (
@@ -215,30 +207,39 @@ const SearchLocationInput: React.FC<InputPropsStyle> = props => {
                               findComp('sublocality_level_2');
                             const postalComp = findComp('postal_code');
                             let cityName = localityComp?.long_name;
-                            
+
                             // Enhanced city parsing with better fallback logic
                             if (!cityName && data?.description) {
                               const addressParts = data.description.split(',');
                               // Try different positions in the address string
-                              for (let i = addressParts.length - 2; i >= 0; i--) {
+                              for (
+                                let i = addressParts.length - 2;
+                                i >= 0;
+                                i--
+                              ) {
                                 const potentialCity = addressParts[i]?.trim();
-                                if (potentialCity && 
-                                    !potentialCity.match(/^\d+$/) && 
-                                    !potentialCity.match(/^[A-Z]{2}$/) && // Not a state code
-                                    potentialCity.length > 2) {
+                                if (
+                                  potentialCity &&
+                                  !potentialCity.match(/^\d+$/) &&
+                                  !potentialCity.match(/^[A-Z]{2}$/) && // Not a state code
+                                  potentialCity.length > 2
+                                ) {
                                   cityName = potentialCity;
                                   break;
                                 }
                               }
                             }
-                            
+
                             console.log('City parsing debug:', {
                               localityComp: localityComp?.long_name,
                               cityName,
                               addressParts: data?.description?.split(','),
-                              allComponents: comps.map(c => ({ types: c.types, long_name: c.long_name }))
+                              allComponents: comps.map(c => ({
+                                types: c.types,
+                                long_name: c.long_name,
+                              })),
                             });
-                            
+
                             const parsed = {
                               countryCode: countryComp?.short_name,
                               countryName: countryComp?.long_name,
@@ -529,8 +530,7 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.medium,
   },
 
-  placeCol: {
-  },
+  placeCol: {},
   placeTitle: {
     color: colors.primaryBlack,
     fontFamily: fonts.medium,
