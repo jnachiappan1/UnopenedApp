@@ -102,7 +102,7 @@
 	<key>NSCameraUsageDescription</key>
 	<string>Unopened needs access to your camera to capture photos for product and scan QR code</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<string>We need your location to show nearby stores and provide accurate delivery estimates</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Unopened needs access to your photo library to allow uploading product pictures </string>
 	<key>NSMicrophoneUsageDescription</key>

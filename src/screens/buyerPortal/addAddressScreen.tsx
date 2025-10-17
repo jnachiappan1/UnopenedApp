@@ -48,6 +48,7 @@ interface AddressFormData {
   addressType: string;
   isDefault: boolean;
   country_code: string;
+  building?: string;
 }
 
 const AddAddressScreen: React.FC<AddAddressProps> = ({navigation}) => {
@@ -83,6 +84,7 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation}) => {
       addressType: 'Home',
       isDefault: false,
       country_code: '+1',
+      building: '',
     },
   });
 
@@ -100,7 +102,7 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation}) => {
 
   // Note: Removed automatic city clearing when state changes
   // This was interfering with programmatic city setting from LocationInput
-  
+
   // Debug city changes
   useEffect(() => {
     console.log('City value changed to:', watchedCity);
@@ -147,8 +149,8 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation}) => {
       state: data.state,
       city: data.city,
       pincode: data.zipCode,
+      building: data.building,
     };
-
 
     mutate(payload);
   };
@@ -160,162 +162,168 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation}) => {
   return (
     <TitleBackHeaderContainer title="Add New Address" isBack>
       {/* <ScrollView style={styles.container} showsVerticalScrollIndicator={false}> */}
-        <KeyboardAwareScrollView
+      <KeyboardAwareScrollView
         showsVerticalScrollIndicator={false}
         enableOnAndroid={true}
         style={styles.container}
         keyboardShouldPersistTaps="handled">
         {/* <View style={styles.formContainer}> */}
-          <Input
-            control={control}
-            name="fullName"
-            label="Full Name"
-            required="Full name is required"
-            error={errors}
-            inputProps={{
-              placeholder: 'Enter Your Full Name',
-              autoCapitalize: 'words',
-            }}
-          />
-          <PhoneNumberInputs
-            label={'Personal Phone Number'}
-            control={control}
-            name="phone_number"
-            placeholder={'Enter Phone Number'}
-            keyboardType="phone-pad"
-            //value={getValues('mobileNumber')}
-            selectedCountry={selectedCountry}
-            setPhoneCountry={setPhoneCountryData}
-            required={{
-              value: true,
-              message: 'Please enter your phone number',
-            }}
-            error={errors}
-            disabled={false}
-            style={{}}
-            containerStyle={{height: 80, marginVertical: 20}}
-          />
-         
-          <LocationInput
-            control={control}
-            name="address"
-            label={'Address'}
-            inputProps={{
-              placeholder: 'Enter Address',
-            }}
-            required={{
-              value: true,
-              message: 'Please enter your address',
-            }}
-            error={errors}
-            editable={true}
-            // maxLength={40}
-            onChangeText={(value: string) => {
-              
-            }}
-            onPlaceParsed={info => {
-              if (info?.countryCode) {
-                setValue('country', info.countryCode, {
-                  shouldValidate: true,
-                  shouldDirty: true,
-                });
-              }
-              
-              // Handle state
-              if (info?.stateCode) {
-                setValue('state', info.stateCode, {
-                  shouldValidate: true,
-                  shouldDirty: true,
-                });
-              } else if (info?.stateName) {
-                setValue('state', info.stateName, {
-                  shouldValidate: true,
-                  shouldDirty: true,
-                });
-              }
-              
-              // Handle city - this should work for all countries
-              if (info?.city) {
-                setValue('city', info.city, {
-                  shouldValidate: true,
-                  shouldDirty: true,
-                });
-              } else {
-                // Clear city if no city found
-                setValue('city', '', {
-                  shouldValidate: true,
-                  shouldDirty: true,
-                });
-              }
-              
-              // Handle postal code
-              if (info?.postalCode) {
-                setValue('zipCode', info.postalCode, {
-                  shouldValidate: true,
-                  shouldDirty: true,
-                });
-              }
-            }}
-            toggleShowCurrentOnly={undefined}
-          />
+        <Input
+          control={control}
+          name="fullName"
+          label="Full Name"
+          required="Full name is required"
+          error={errors}
+          inputProps={{
+            placeholder: 'Enter Your Full Name',
+            autoCapitalize: 'words',
+          }}
+        />
+        <PhoneNumberInputs
+          label={'Personal Phone Number'}
+          control={control}
+          name="phone_number"
+          placeholder={'Enter Phone Number'}
+          keyboardType="phone-pad"
+          //value={getValues('mobileNumber')}
+          selectedCountry={selectedCountry}
+          setPhoneCountry={setPhoneCountryData}
+          required={{
+            value: true,
+            message: 'Please enter your phone number',
+          }}
+          error={errors}
+          disabled={false}
+          style={{}}
+          containerStyle={{height: 80, marginVertical: 20}}
+        />
 
-          {/* Country */}
-          <InputCountry
-            control={control}
-            name="country"
-            placeholder="Select Country"
-            label="Country"
-            required={{value: true, message: 'Country is required'}}
-            error={errors}
-            containerStyle={styles.containerStyle}
-            disabled={true}
-          />
-
-        
-          <InputState
-            control={control}
-            name="state"
-            label={'State'}
-            country={
-              watch('country') === 'US' ? 'United States' : getValues('country')
+        <LocationInput
+          control={control}
+          name="address"
+          label={'Address'}
+          inputProps={{
+            placeholder: 'Enter Address',
+          }}
+          required={{
+            value: true,
+            message: 'Please enter your address',
+          }}
+          error={errors}
+          editable={true}
+          // maxLength={40}
+          onChangeText={(value: string) => {}}
+          onPlaceParsed={info => {
+            if (info?.countryCode) {
+              setValue('country', info.countryCode, {
+                shouldValidate: true,
+                shouldDirty: true,
+              });
             }
-            placeholder={'State'}
-            error={errors}
-            required={{value: true, message: 'State is required'}}
-          />
 
-     
-          <InputCity
-            control={control}
-            name="city"
-            label={'City'}
-            country={
-              watch('country') === 'US' ? 'United States' : getValues('country')
+            // Handle state
+            if (info?.stateCode) {
+              setValue('state', info.stateCode, {
+                shouldValidate: true,
+                shouldDirty: true,
+              });
+            } else if (info?.stateName) {
+              setValue('state', info.stateName, {
+                shouldValidate: true,
+                shouldDirty: true,
+              });
             }
-            state={watch('state') ? getValues('state') : undefined}
-            stateCode={watch('state') ? getValues('state') : undefined}
-            placeholder={'City'}
-            error={errors}
-            required={{value: true, message: 'City is required'}}
-          />
 
-         
-          <Input
-            control={control}
-            name="zipCode"
-            label="Zip Code"
-            required="Zip code is required"
-            error={errors}
-            keyboardType="numeric"
-            inputProps={{
-              placeholder: 'Enter zip code',
-              maxLength: 10,
-            }}
-            containerStyle={styles.containerStyle}
-          />
+            // Handle city - this should work for all countries
+            if (info?.city) {
+              setValue('city', info.city, {
+                shouldValidate: true,
+                shouldDirty: true,
+              });
+            } else {
+              // Clear city if no city found
+              setValue('city', '', {
+                shouldValidate: true,
+                shouldDirty: true,
+              });
+            }
 
-          {/* Address Type */}
-          {/* <View style={styles.inputContainer}>
+            // Handle postal code
+            if (info?.postalCode) {
+              setValue('zipCode', info.postalCode, {
+                shouldValidate: true,
+                shouldDirty: true,
+              });
+            }
+          }}
+          toggleShowCurrentOnly={undefined}
+        />
+        <Input
+          control={control}
+          name="building"
+          label={'House No. / Apartment No. (optional)'}
+          // containerStyle={styles.emailContainer}
+          inputProps={{
+            placeholder: 'Enter House No. / Apartment No.',
+          }}
+          maxLength={40}
+          containerStyle={styles.containerStyle}
+          // inputStyle={styles.inputStyle}
+        />
+        {/* Country */}
+        <InputCountry
+          control={control}
+          name="country"
+          placeholder="Select Country"
+          label="Country"
+          required={{value: true, message: 'Country is required'}}
+          error={errors}
+          containerStyle={styles.containerStyle}
+          disabled={true}
+        />
+
+        <InputState
+          control={control}
+          name="state"
+          label={'State'}
+          country={
+            watch('country') === 'US' ? 'United States' : getValues('country')
+          }
+          placeholder={'State'}
+          error={errors}
+          required={{value: true, message: 'State is required'}}
+        />
+
+        <InputCity
+          control={control}
+          name="city"
+          label={'City'}
+          country={
+            watch('country') === 'US' ? 'United States' : getValues('country')
+          }
+          state={watch('state') ? getValues('state') : undefined}
+          stateCode={watch('state') ? getValues('state') : undefined}
+          placeholder={'City'}
+          error={errors}
+          required={{value: true, message: 'City is required'}}
+        />
+
+        <Input
+          control={control}
+          name="zipCode"
+          label="Zip Code"
+          required="Zip code is required"
+          error={errors}
+          keyboardType="numeric"
+          inputProps={{
+            placeholder: 'Enter zip code',
+            maxLength: 10,
+          }}
+          containerStyle={styles.containerStyle}
+        />
+
+        {/* Address Type */}
+        {/* <View style={styles.inputContainer}>
             <Text style={styles.label}>Address Type</Text>
             <View style={styles.addressTypeContainer}>
               {addressTypes.map((type) => {
@@ -357,12 +365,12 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation}) => {
             </TouchableOpacity>
           </View> */}
 
-          {/* Save Button */}
-          <View style={styles.buttonContainer}>
-            <Button title="Save Address" onPress={handleSubmit(onSubmit)} />
-          </View>
+        {/* Save Button */}
+        <View style={styles.buttonContainer}>
+          <Button title="Save Address" onPress={handleSubmit(onSubmit)} />
+        </View>
         {/* </View> */}
-        </KeyboardAwareScrollView>
+      </KeyboardAwareScrollView>
       {/* </ScrollView> */}
     </TitleBackHeaderContainer>
   );

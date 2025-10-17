@@ -282,7 +282,7 @@
 				CODE_SIGN_ENTITLEMENTS = Unopened_Mobile/Unopened_Mobile.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 27;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 848YS6ZHJH;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Unopened_Mobile/Info.plist;
@@ -291,7 +291,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -318,7 +318,7 @@
 				CODE_SIGN_ENTITLEMENTS = Unopened_Mobile/Unopened_Mobile.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 27;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 848YS6ZHJH;
 				INFOPLIST_FILE = Unopened_Mobile/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
@@ -326,7 +326,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
 					"$(inherited)",

@@ -73,7 +73,7 @@ const ProfileLoginScreen: React.FC<ProfileLoginScreenProps> = ({
     mutate(userData);
   };
   return (
-    <IconBackHeaderContainer isBack>
+    <IconBackHeaderContainer isBack={false}>
       <ImageBackground
         source={IMAGE.imageBackground}
         resizeMode="contain"

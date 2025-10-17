@@ -192,6 +192,7 @@ export interface AddressPayloadType {
   city: string;
   pincode: string;
   country_code: string;
+  building?: string;
 }
 
 export interface PaymentPayloadType {

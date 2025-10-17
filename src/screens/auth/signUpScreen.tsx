@@ -39,6 +39,7 @@ export type InputsRegistration = {
   country_code: string;
   phone_number: string;
   address: string;
+  building: string;
   country: string;
   state: string;
   city: string;
@@ -65,6 +66,7 @@ const SignUpScreen: React.FC<LoginProps> = ({route, navigation}) => {
     country_code: '+1',
     phone_number: '',
     address: '',
+    building: '',
     country: 'US',
     state: '',
     city: '',
@@ -219,60 +221,95 @@ const SignUpScreen: React.FC<LoginProps> = ({route, navigation}) => {
           inputStyle={styles.inputStyle}
         /> */}
         <LocationInput
-            control={control}
-            name="address"
-            label={"Address"}
-            inputProps={{
-              placeholder: ('Enter Address'),
-            }}
-            required={{
-              value: true,
-              message: ('Please enter your address'),
-            }}
-            error={errors}
-            editable={true}
-            
-            onChangeText={(value: string) => {
-              
-            }}
-            onPlaceParsed={(info) => {
-              if (info?.countryCode === 'US') {
-                if (info.stateCode) {
-                  setValue('state', info.stateCode, { shouldValidate: true, shouldDirty: true });
-                } else if (info.stateName) {
-                  setValue('state', info.stateName, { shouldValidate: true, shouldDirty: true });
-                }
-                if (info.city) {
-                  setValue('city', info.city, { shouldValidate: true, shouldDirty: true });
-                } else {
-                  setValue('city', '', { shouldValidate: true, shouldDirty: true });
-                }
-                if (info.postalCode) {
-                  setValue('pincode', info.postalCode, { shouldValidate: true, shouldDirty: true });
-                }
-              } else {
-                if (info?.countryCode) {
-                  setValue('country', info.countryCode, { shouldValidate: true, shouldDirty: true });
-                }
-                if (info?.stateCode) {
-                  setValue('state', info.stateCode, { shouldValidate: true, shouldDirty: true });
-                } else if (info?.stateName) {
-                  setValue('state', info.stateName, { shouldValidate: true, shouldDirty: true });
-                }
-                if (info?.city) {
-                  setValue('city', info.city, { shouldValidate: true, shouldDirty: true });
-                } else {
-                  setValue('city', '', { shouldValidate: true, shouldDirty: true });
-                }
-                if (info?.postalCode) {
-                  setValue('pincode', info.postalCode, { shouldValidate: true, shouldDirty: true });
-                }
+          control={control}
+          name="address"
+          label={'Address'}
+          inputProps={{
+            placeholder: 'Enter Address',
+          }}
+          required={{
+            value: true,
+            message: 'Please enter your address',
+          }}
+          error={errors}
+          editable={true}
+          onChangeText={(value: string) => {}}
+          onPlaceParsed={info => {
+            if (info?.countryCode === 'US') {
+              if (info.stateCode) {
+                setValue('state', info.stateCode, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                });
+              } else if (info.stateName) {
+                setValue('state', info.stateName, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                });
               }
-            }}
-            toggleShowCurrentOnly={undefined}
-            style={styles.inputStyle}
-            //defaultValues={formStep1.watch('address') || ''}
-          />
+              if (info.city) {
+                setValue('city', info.city, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                });
+              } else {
+                setValue('city', '', {shouldValidate: true, shouldDirty: true});
+              }
+              if (info.postalCode) {
+                setValue('pincode', info.postalCode, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                });
+              }
+            } else {
+              if (info?.countryCode) {
+                setValue('country', info.countryCode, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                });
+              }
+              if (info?.stateCode) {
+                setValue('state', info.stateCode, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                });
+              } else if (info?.stateName) {
+                setValue('state', info.stateName, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                });
+              }
+              if (info?.city) {
+                setValue('city', info.city, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                });
+              } else {
+                setValue('city', '', {shouldValidate: true, shouldDirty: true});
+              }
+              if (info?.postalCode) {
+                setValue('pincode', info.postalCode, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                });
+              }
+            }
+          }}
+          toggleShowCurrentOnly={undefined}
+          style={styles.inputStyle}
+          //defaultValues={formStep1.watch('address') || ''}
+        />
+        <Input
+          control={control}
+          name="building"
+          label={'House No. / Apartment No. (optional)'}
+          containerStyle={styles.emailContainer}
+          inputProps={{
+            placeholder: 'Enter House No. / Apartment No.',
+          }}
+          maxLength={40}
+          inputStyle={styles.inputStyle}
+        />
         <View style={styles.locationContainer}>
           <InputCountry
             control={control}

@@ -10,6 +10,7 @@ export type SignUpPayloadType = {
   country_code?: string | null;
   phone_number?: string | null;
   address?: string | null;
+  building?: string | null;
   country?: string | null;
   state?: string | null;
   city?: string | null;

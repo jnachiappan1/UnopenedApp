@@ -76,7 +76,7 @@ const LoginScreen: React.FC<LoginProps> = ({route, navigation}) => {
   return (
     <ImageBackgroundHeader
       containerStyle={[container, styles.container]}
-      hideBack={false}
+      hideBack={true}
       onBackPress={() => navigation.goBack()}>
       <KeyboardAwareScrollView
         showsVerticalScrollIndicator={true}
