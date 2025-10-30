@@ -39,7 +39,7 @@ export type InputsRegistration = {
   country_code: string;
   phone_number: string;
   address: string;
-  building: string;
+  second_line_address: string;
   country: string;
   state: string;
   city: string;
@@ -66,7 +66,7 @@ const SignUpScreen: React.FC<LoginProps> = ({route, navigation}) => {
     country_code: '+1',
     phone_number: '',
     address: '',
-    building: '',
+    second_line_address: '',
     country: 'US',
     state: '',
     city: '',
@@ -301,7 +301,7 @@ const SignUpScreen: React.FC<LoginProps> = ({route, navigation}) => {
         />
         <Input
           control={control}
-          name="building"
+          name="second_line_address"
           label={'House No. / Apartment No. (optional)'}
           containerStyle={styles.emailContainer}
           inputProps={{
@@ -389,8 +389,16 @@ const SignUpScreen: React.FC<LoginProps> = ({route, navigation}) => {
           style={styles.sendOtpButton}
           disabled={isCreateAccountDisabled}
           onPress={handleSubmit(data => {
+            const payload: Partial<InputsRegistration> = {...data};
+            if (
+              !payload.second_line_address ||
+              payload.second_line_address.trim() === ''
+            ) {
+              delete payload.second_line_address;
+            }
+
             showLoader(true);
-            mutate(data);
+            mutate(payload);
           })}
         />
 

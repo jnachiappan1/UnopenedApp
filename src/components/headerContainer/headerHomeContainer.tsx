@@ -8,24 +8,26 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Switch,
+  Animated,
 } from 'react-native';
-import React from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import commonStyles from '../../utils/common-styles';
-import { IColors, getColors } from '../../utils/colors';
+import {IColors, getColors} from '../../utils/colors';
 import fonts from '../../assets/fonts/fonts';
-import { useNavigation } from '@react-navigation/native';
-import { SCREENS } from '../../navigation/mainNavigation';
-import { KeyboardAvoidingView } from 'react-native';
+import {useNavigation} from '@react-navigation/native';
+import {SCREENS} from '../../navigation/mainNavigation';
+import {KeyboardAvoidingView} from 'react-native';
 import IconsSvg from '../../assets/svg/iconsSvg';
 import IMAGE from '../../assets/images';
-import { fontSizes } from '../../utils/utils';
-import { useDispatch, useSelector } from 'react-redux';
-import { saveUserType } from '../../redux/reducers/user/UserReducer';
-import { IRootState } from '../../redux/store';
-import { useContainer } from '../hooks/useContainer';
-import { image_url } from '../../utils/api';
-import { viewProfile, getNotification } from '../../utils/apiAction';
-import { useQuery } from '@tanstack/react-query';
+import {fontSizes} from '../../utils/utils';
+import {useDispatch, useSelector} from 'react-redux';
+import {saveUserType} from '../../redux/reducers/user/UserReducer';
+import {IRootState} from '../../redux/store';
+import {useContainer} from '../hooks/useContainer';
+import {image_url} from '../../utils/api';
+import {viewProfile, getNotification} from '../../utils/apiAction';
+import {useQuery} from '@tanstack/react-query';
 
 type HeaderHomeContainerProps = {
   children?: React.ReactNode | undefined;
@@ -55,7 +57,7 @@ const HeaderHomeContainer: React.FC<HeaderHomeContainerProps> = props => {
     isSearch = true,
     isHome = false,
     userName = '',
-    onPressBack = () => { },
+    onPressBack = () => {},
     isBackNavigation = false,
     isNewNotification = false,
     refreshing = false,
@@ -63,7 +65,7 @@ const HeaderHomeContainer: React.FC<HeaderHomeContainerProps> = props => {
     isNormalHeader = false,
     isNotification = true,
     onSearchPress,
-    profileImage
+    profileImage,
   } = props;
   const navigation = useNavigation<string | any>();
   const colors = getColors();
@@ -72,22 +74,58 @@ const HeaderHomeContainer: React.FC<HeaderHomeContainerProps> = props => {
   const container = useContainer();
   const userType = useSelector((state: IRootState) => state.user.userType);
   const token = useSelector((state: IRootState) => state.user.token);
-  
-  const { data: notificationData } = useQuery({
+  const [segmentWidth, setSegmentWidth] = useState(0);
+  const slideAnim = useRef(
+    new Animated.Value(userType === 'seller' ? 1 : 0),
+  ).current;
+
+  const {data: notificationData} = useQuery({
     queryKey: ['notification'],
     queryFn: getNotification,
     refetchInterval: 10000,
-    enabled: !!token, 
+    enabled: !!token,
   });
+
+  useEffect(() => {
+    Animated.timing(slideAnim, {
+      toValue: userType === 'seller' ? 1 : 0,
+      duration: 180,
+      useNativeDriver: true,
+    }).start();
+  }, [userType]);
+
+  const handleSwitchToSeller = async () => {
+    try {
+      try {
+        const response = await viewProfile();
+        const isAccepted = response?.data?.user?.is_seller_agreement === true;
+        dispatch(saveUserType('seller'));
+        navigation.navigate(
+          SCREENS.BottomTab,
+          !isAccepted
+            ? {screen: SCREENS.SHomeScreen, params: {openSellerAgreement: true}}
+            : {screen: SCREENS.SHomeScreen},
+        );
+      } catch (error) {
+        dispatch(saveUserType('seller'));
+        navigation.navigate(SCREENS.BottomTab, {screen: SCREENS.SHomeScreen});
+      }
+    } catch (e) {}
+  };
+
+  const handleSwitchToBuyer = () => {
+    try {
+      dispatch(saveUserType('buyer'));
+      navigation.navigate(SCREENS.BottomTab, {screen: SCREENS.BHomeScreen});
+    } catch (e) {}
+  };
 
   const refreshControl = (
     <RefreshControl
       refreshing={refreshing}
-      onRefresh={onRefresh || (() => {
-     
-      })}
+      onRefresh={onRefresh || (() => {})}
       tintColor={colors.primary}
-      enabled={!!onRefresh} 
+      enabled={!!onRefresh}
     />
   );
 
@@ -95,78 +133,99 @@ const HeaderHomeContainer: React.FC<HeaderHomeContainerProps> = props => {
     <View style={[container, commonStyles.container]}>
       <StatusBar backgroundColor={colors.background} barStyle="dark-content" />
       <View style={commonStyles.headerRowContainer}>
-        <TouchableOpacity onPress={() => navigation.navigate(SCREENS.ProfileScreen)}>
+        <TouchableOpacity
+          onPress={() => navigation.navigate(SCREENS.ProfileScreen)}>
           <Image
             source={
               profileImage
-                ? { uri: profileImage.startsWith('http') ? profileImage : `${image_url}${profileImage}` }
+                ? {
+                    uri: profileImage.startsWith('http')
+                      ? profileImage
+                      : `${image_url}${profileImage}`,
+                  }
                 : IMAGE.profileImage
             }
             style={styles.icon}
           />
-         
         </TouchableOpacity>
         <View style={styles.itemContainer}>
-          <View style={{ width: '40%', paddingStart: 5}}>
+          <View style={{width: '80%', paddingStart: 5}}>
             {isHome && userName && (
-              <Text style={styles.user} numberOfLines={2}>{userName}</Text>
+              <Text style={styles.user} numberOfLines={2}>
+                {userName}
+              </Text>
             )}
             <Text numberOfLines={1} style={styles.title}>
-              {title} 
+              {title}
             </Text>
           </View>
           <View>
-            <IconsSvg name='notificationIcon' onPress={() => navigation.navigate(SCREENS.NotificationScreen)} />
+            <IconsSvg
+              name="notificationIcon"
+              onPress={() => navigation.navigate(SCREENS.NotificationScreen)}
+            />
             {token && !notificationData?.data?.is_all_notification_read && (
               <View style={styles.notificationDot} />
             )}
           </View>
-          <TouchableOpacity style={styles.userContainer}
-            onPress={async () => {
-              try {
-                const newType = userType === 'buyer' ? 'seller' : 'buyer';
-                if (newType === 'seller') {
-                  try {
-                    const response = await viewProfile();
-                    const isAccepted = response?.data?.user?.is_seller_agreement === true;
-                    dispatch(saveUserType('seller'));
-                    navigation.navigate(
-                      SCREENS.BottomTab,
-                      !isAccepted
-                        ? { screen: SCREENS.SHomeScreen, params: { openSellerAgreement: true } }
-                        : { screen: SCREENS.SHomeScreen }
-                    );
-                  } catch (error) {
-                    dispatch(saveUserType('seller'));
-                    navigation.navigate(SCREENS.BottomTab, { screen: SCREENS.SHomeScreen });
-                  }
-                } else {
-                  dispatch(saveUserType('buyer'));
-                  navigation.navigate(SCREENS.BottomTab, { screen: SCREENS.BHomeScreen });
-                }
-              } catch (e) {}
-            }}
-          >
-            <IconsSvg name='addUser' />
-            <Text style={styles.buyerTitle}>
-              {userType === 'buyer' ? 'Sell' : 'Buy'}
-            </Text>
-          </TouchableOpacity>
+          <View
+            style={styles.segmentedContainer}
+            onLayout={e => setSegmentWidth(e.nativeEvent.layout.width)}>
+            <Animated.View
+              pointerEvents="none"
+              style={[
+                styles.segmentThumb,
+                {
+                  transform: [
+                    {
+                      translateX: slideAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0, Math.max(0, segmentWidth / 2)],
+                      }),
+                    },
+                  ],
+                },
+              ]}
+            />
+            <TouchableOpacity
+              style={styles.segment}
+              onPress={handleSwitchToBuyer}
+              activeOpacity={0.9}>
+              <Text
+                style={
+                  userType === 'buyer'
+                    ? styles.segmentTextActive
+                    : styles.segmentText
+                }>
+                Buy
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.segment}
+              onPress={handleSwitchToSeller}
+              activeOpacity={0.9}>
+              <Text
+                style={
+                  userType === 'seller'
+                    ? styles.segmentTextActive
+                    : styles.segmentText
+                }>
+                Sell
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
       {isNormalHeader ? (
-        <View style={{ flex: 1 }}>
-          {children}
-        </View>
+        <View style={{flex: 1}}>{children}</View>
       ) : (
         <KeyboardAvoidingView
-          style={{ flex: 1 }}
+          style={{flex: 1}}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={HEADER_MIN_HEIGHT}>
           <ScrollView
             showsVerticalScrollIndicator={false}
-            refreshControl={refreshControl}
-          >
+            refreshControl={refreshControl}>
             {children}
           </ScrollView>
         </KeyboardAvoidingView>
@@ -209,8 +268,8 @@ const getStyles = (colors: IColors) =>
     itemContainer: {
       alignItems: 'center',
       flexDirection: 'row',
-      justifyContent:'space-between'
-      // width: "82%"
+      justifyContent: 'space-between',
+      width: '50%',
     },
     user: {
       fontSize: fontSizes.regularSmall,
@@ -219,7 +278,7 @@ const getStyles = (colors: IColors) =>
       marginTop: 2,
     },
     userContainer: {
-      flexDirection: "row",
+      flexDirection: 'row',
       paddingHorizontal: 15,
       paddingVertical: 10,
       marginStart: 8,
@@ -227,13 +286,60 @@ const getStyles = (colors: IColors) =>
       borderColor: colors.primary,
       backgroundColor: colors.white,
       borderWidth: 1,
-    
     },
     buyerTitle: {
       fontSize: fontSizes.medium,
       fontFamily: fonts.bold,
       color: colors.primary,
-      paddingHorizontal: 5
+      paddingHorizontal: 5,
+    },
+    toggleText: {
+      fontSize: fontSizes.medium,
+      fontFamily: fonts.medium,
+      color: colors.text,
+      paddingHorizontal: 6,
+    },
+    toggleTextActive: {
+      fontFamily: fonts.bold,
+      color: colors.primary,
+    },
+    segmentedContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.white,
+      borderRadius: 999,
+      padding: 4,
+      marginStart: 8,
+      minWidth: '32%',
+    },
+    segment: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 8,
+    },
+    segmentThumb: {
+      position: 'absolute',
+      top: 4,
+      bottom: 4,
+      width: '50%',
+      backgroundColor: colors.primary,
+      borderRadius: 999,
+      elevation: 1,
+    },
+    segmentText: {
+      fontSize: fontSizes.medium,
+      fontFamily: fonts.bold,
+      color: colors.primary,
+      justifyContent: 'center',
+      textAlign: 'center',
+    },
+    segmentTextActive: {
+      fontSize: fontSizes.medium,
+      fontFamily: fonts.bold,
+      color: colors.white,
+      justifyContent: 'center',
+      textAlign: 'center',
     },
     notificationDot: {
       position: 'absolute',

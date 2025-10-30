@@ -48,7 +48,7 @@ interface AddressFormData {
   addressType: string;
   isDefault: boolean;
   country_code: string;
-  building?: string;
+  second_line_address?: string;
 }
 
 const AddAddressScreen: React.FC<AddAddressProps> = ({navigation}) => {
@@ -84,7 +84,7 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation}) => {
       addressType: 'Home',
       isDefault: false,
       country_code: '+1',
-      building: '',
+      second_line_address: '',
     },
   });
 
@@ -140,7 +140,7 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation}) => {
   const onSubmit = (data: AddressFormData) => {
     showLoader(true);
 
-    const payload: AddressPayloadType = {
+    const basePayload = {
       full_name: data.fullName,
       country_code: data.country_code,
       phone_number: data.phone_number,
@@ -149,8 +149,12 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation}) => {
       state: data.state,
       city: data.city,
       pincode: data.zipCode,
-      building: data.building,
-    };
+    } as const;
+
+    const payload: AddressPayloadType =
+      data.second_line_address && data.second_line_address.trim() !== ''
+        ? {...basePayload, second_line_address: data.second_line_address.trim()}
+        : {...basePayload};
 
     mutate(payload);
   };
@@ -260,7 +264,7 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation}) => {
         />
         <Input
           control={control}
-          name="building"
+          name="second_line_address"
           label={'House No. / Apartment No. (optional)'}
           // containerStyle={styles.emailContainer}
           inputProps={{
