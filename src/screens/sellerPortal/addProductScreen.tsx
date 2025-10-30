@@ -567,7 +567,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       );
 
       if (productData.images && productData.images.length > 0) {
-        
         setUploadedImages([]);
         setValue('productImages', []);
 
@@ -575,25 +574,19 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
           ? productData.images[0]
           : productData.images;
 
-        
-
         const handleRemoteImage = async (url: string) => {
           try {
-           
             const scannedImage: MediaObject = {
               uri: url,
               name: 'scanned_product_image.jpg',
               type: 'image/jpeg',
             };
 
-            
             setUploadedImages([scannedImage]);
             setValue('productImages', [scannedImage]);
             clearErrors('productImages');
             setImageError('');
-           
           } catch (error) {
-           
             const scannedImage: MediaObject = {
               uri: url,
               name: 'scanned_product_image.jpg',
@@ -1210,7 +1203,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
                 style={styles.imagesPreviewScroll}
                 contentContainerStyle={styles.imagesPreviewContent}>
                 {uploadedImages.map((mediaObj, index) => {
-                  
                   return (
                     <View key={index} style={styles.previewImageContainer}>
                       {isVideo(mediaObj) ? (

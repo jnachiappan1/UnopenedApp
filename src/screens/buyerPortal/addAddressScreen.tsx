@@ -1,11 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import {
   StyleSheet,
-  ScrollView,
   View,
-  Text,
-  TouchableOpacity,
-  Alert,
 } from 'react-native';
 import {useForm} from 'react-hook-form';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
@@ -20,9 +16,6 @@ import InputState from '../../components/input/inputState';
 import InputCity from '../../components/input/inputCity';
 import PhoneNumberInputs from '../../components/input/phoneNumberInputs';
 import Button from '../../components/button/buttons';
-import {useSelector} from 'react-redux';
-import {IRootState} from '../../redux/store';
-import CountryPicker, {Country} from 'react-native-country-picker-modal';
 import {selectedCountryType} from '../../utils/types';
 import {useMutation, useQueryClient} from '@tanstack/react-query';
 import {addAddress} from '../../utils/apiAction';
@@ -52,10 +45,7 @@ interface AddressFormData {
 }
 
 const AddAddressScreen: React.FC<AddAddressProps> = ({navigation}) => {
-  const userData = useSelector((user: IRootState) => user.user.userData);
   const queryClient = useQueryClient();
-  const [selectedState, setSelectedState] = useState<string>('');
-  const [selectedCity, setSelectedCity] = useState<string>('');
   const [selectedCountry, setPhoneCountry] = useState<selectedCountryType>({
     callingCode: ['1'],
     cca2: 'US',
@@ -89,10 +79,8 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation}) => {
   });
 
   const watchedCountry = watch('country');
-  const watchedState = watch('state');
   const watchedCity = watch('city');
 
-  // Clear state and city when country changes
   useEffect(() => {
     if (watchedCountry) {
       setValue('state', '');
@@ -100,10 +88,6 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation}) => {
     }
   }, [watchedCountry, setValue]);
 
-  // Note: Removed automatic city clearing when state changes
-  // This was interfering with programmatic city setting from LocationInput
-
-  // Debug city changes
   useEffect(() => {
     console.log('City value changed to:', watchedCity);
   }, [watchedCity]);
@@ -112,7 +96,6 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation}) => {
     mutationFn: addAddress,
     onSuccess: data => {
       showLoader(false);
-      // Invalidate and refetch addresses
       queryClient.invalidateQueries({queryKey: ['getAddresses']});
       showAlert({
         isVisible: true,
@@ -165,13 +148,11 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation}) => {
   };
   return (
     <TitleBackHeaderContainer title="Add New Address" isBack>
-      {/* <ScrollView style={styles.container} showsVerticalScrollIndicator={false}> */}
       <KeyboardAwareScrollView
         showsVerticalScrollIndicator={false}
         enableOnAndroid={true}
         style={styles.container}
         keyboardShouldPersistTaps="handled">
-        {/* <View style={styles.formContainer}> */}
         <Input
           control={control}
           name="fullName"
@@ -189,7 +170,6 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation}) => {
           name="phone_number"
           placeholder={'Enter Phone Number'}
           keyboardType="phone-pad"
-          //value={getValues('mobileNumber')}
           selectedCountry={selectedCountry}
           setPhoneCountry={setPhoneCountryData}
           required={{
@@ -215,7 +195,6 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation}) => {
           }}
           error={errors}
           editable={true}
-          // maxLength={40}
           onChangeText={(value: string) => {}}
           onPlaceParsed={info => {
             if (info?.countryCode) {
@@ -225,7 +204,6 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation}) => {
               });
             }
 
-            // Handle state
             if (info?.stateCode) {
               setValue('state', info.stateCode, {
                 shouldValidate: true,
