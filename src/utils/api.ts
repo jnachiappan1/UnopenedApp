@@ -3,7 +3,7 @@
 export const base_url = 'http://13.222.176.76';
 // export const base_url = 'http://192.168.29.37:5019';
 
-export const image_url = 'https://minio.techreale.com/unoppened';
+export const image_url = 'https://unopened-storage.s3.us-east-1.amazonaws.com';
 export const google_api_key = 'AIzaSyDgYwd7eBxFOYR4rg6WN2jKlf9rYyopqgw';
 
 export const API = {

@@ -38,10 +38,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({navigation}) => {
   const [isDeleteModalVisible, setDeleteModalVisible] = useState(false);
   const [isLogoutModalVisible, setLogoutModalVisible] = useState(false);
   const [isEnabled, setIsEnabled] = useState<boolean>(
-    Boolean((useSelector((user: IRootState) => user.user.userData)?.is_notification))
+    Boolean(
+      useSelector((user: IRootState) => user.user.userData)?.is_notification,
+    ),
   );
   const userData = useSelector((user: IRootState) => user.user.userData);
-  
+
   const {mutate: deleteMutation} = useMutation({
     mutationFn: deleteAPI,
     onSuccess: (data: any) => {
@@ -119,7 +121,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({navigation}) => {
   });
 
   const handleToggle = (nextValue: boolean) => {
-    
     setIsEnabled(nextValue);
     setLoader(true);
     const formData = new FormData();
@@ -127,6 +128,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({navigation}) => {
     formData.append('is_notification', nextValue);
     updateNotificationMutation(formData as any);
   };
+
   return (
     <TitleBackHeaderContainer isBack title={'My Profile'} containerStyle={{}}>
       {!userData ? (
@@ -141,12 +143,20 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({navigation}) => {
       ) : (
         <View style={styles.profileContainer}>
           <View style={styles.profileDetailContainer}>
-            <Image
-              source={{uri: image_url + userData?.profile_picture}}
-              // source={IMAGE.profileImage}
-              style={styles.profileImage}
-              resizeMode="cover"
-            />
+            {userData?.profile_picture ? (
+              <Image
+                source={{uri: image_url + userData?.profile_picture}}
+                style={styles.profileImage}
+                resizeMode="cover"
+              />
+            ) : (
+              <Image
+                source={IMAGE.profileImage}
+                style={styles.profileImage}
+                resizeMode="cover"
+              />
+            )}
+
             <View style={styles.nameContainer}>
               <View style={styles.userTypeCOntainer}>
                 <IconsSvg name="rupesIcon" style={styles.rupesIconStyle} />
@@ -347,6 +357,8 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 1300,
+    borderWidth: 1,
+    borderColor: colors.primary,
   },
   editIconStyle: {
     //  position: 'absolute', bottom: 0, right: 0
