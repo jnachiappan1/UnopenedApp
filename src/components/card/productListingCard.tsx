@@ -35,7 +35,6 @@ const ProductListingCard: React.FC<ProductListingCardProps> = ({
   const handleCardPress = () => {
     onSelect?.(item);
   };
-console.log("--------------------------", image_url + item?.product_image[1]?.image);
 
   return (
     <View style={[styles.cardContainer, cardStyle]}>

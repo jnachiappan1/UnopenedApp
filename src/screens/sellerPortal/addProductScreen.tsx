@@ -8,6 +8,7 @@ import {
   ScrollView,
   Image,
 } from 'react-native';
+import IMAGE from '../../assets/images';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
 import IconsSvg from '../../assets/svg/iconsSvg';
@@ -61,7 +62,7 @@ type FormData = {
   package_dimension_length: string;
   package_dimension_width: string;
   package_dimension_height: string;
-  weight: string;
+  // weight: string;
   description: string;
   productImages: MediaObject[];
   address_id: string;
@@ -86,6 +87,10 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
   const [isNavigatingToPreview, setIsNavigatingToPreview] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [isAgreed, setIsAgreed] = useState(false);
+  const [selectedPackageTier, setSelectedPackageTier] =
+    useState<string>('small');
+  console.log('selectedPackageTier', selectedPackageTier);
+
   const userData = useSelector((user: IRootState) => user.user.userData);
   const isLogged = userData ? true : false;
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -138,6 +143,48 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     'ulta.com',
   ];
   const APPROVED_MARKETPLACES = ['amazon.com'];
+
+  // Package tiers with dimensions to autofill (submitted to API in inches)
+  const PACKAGE_TIERS = [
+    {
+      id: 'small',
+      title: 'Small',
+      displayCm: '20×15×2 cm',
+      dimsInches: {l: '12', w: '9', h: '2'}, // 12×9×2 in
+      color: '#4F7BFF',
+      description: '≤ 2 lb (0.9 kg)',
+      image: IMAGE.smallBox,
+    },
+    {
+      id: 'medium',
+      title: 'Medium',
+      displayCm: '30×25×20 cm',
+      dimsInches: {l: '14', w: '10', h: '5'}, // 14×10×5 in
+      color: '#2CC36B',
+      description: '≤ 5 lb (2.3 kg)',
+      image: IMAGE.mediumBox,
+    },
+    {
+      id: 'large',
+      title: 'Large',
+      displayCm: '45×35×30 cm',
+      dimsInches: {l: '18', w: '12', h: '8'}, // 18×12×8 in
+      color: '#F58020',
+      description: '≤ 12 lb (5.4 kg)',
+      image: IMAGE.largeBox,
+    },
+    {
+      id: 'extra_large',
+      title: 'XL',
+      displayCm: '60×50×40 cm',
+      dimsInches: {l: '22', w: '14', h: '10'}, // 22×14×10 in
+      color: '#E74C3C',
+      description: '≤ 20 lb (9.1 kg)',
+      image: IMAGE.xlBox,
+    },
+  ] as const;
+
+  // Keep L/W/H in sync with selected package tier and set defaults on mount
 
   const calculateMSRP = (productData: any): number => {
     // Check if offers array exists
@@ -269,10 +316,25 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       package_dimension_length: '',
       package_dimension_width: '',
       package_dimension_height: '',
-      weight: '',
+      // weight: '',
       productImages: [],
     },
   });
+
+  // Keep L/W/H in sync with selected package tier and set defaults on mount
+  useEffect(() => {
+    const activeTier = PACKAGE_TIERS.find(t => t.id === selectedPackageTier);
+    if (activeTier) {
+      setValue('package_dimension_length', activeTier.dimsInches.l);
+      setValue('package_dimension_width', activeTier.dimsInches.w);
+      setValue('package_dimension_height', activeTier.dimsInches.h);
+      clearErrors([
+        'package_dimension_length',
+        'package_dimension_width',
+        'package_dimension_height',
+      ]);
+    }
+  }, [selectedPackageTier, setValue, clearErrors]);
 
   useEffect(() => {
     if (categoryData) {
@@ -327,7 +389,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     'package_dimension_length',
     'package_dimension_width',
     'package_dimension_height',
-    'weight',
+    // 'weight',
     'description',
   ]);
 
@@ -340,7 +402,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       length,
       width,
       height,
-      weight,
+      // weight,
       description,
     ] = watchedFields;
 
@@ -352,7 +414,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       length?.trim() &&
       width?.trim() &&
       height?.trim() &&
-      weight?.trim() &&
+      // weight?.trim() &&
       description?.trim();
 
     const hasVideo = uploadedImages.some(media => isVideo(media));
@@ -475,9 +537,24 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     if (scanProductData?.data?.product) {
       const productData = scanProductData.data.product;
       const scannedCategory = productData.category;
+      // console.log("productData---", productData);
+
       setScannedCategoryName(scannedCategory || '');
 
-      if (scannedCategory && dropdownData.length > 0) {
+      // If scanned category includes both Food and Tobacco (any formatting), force empty and require manual selection
+      if (
+        scannedCategory &&
+        scannedCategory.toLowerCase().includes('food') &&
+        scannedCategory.toLowerCase().includes('tobacco')
+      ) {
+        setValue('category', '');
+        setScannedCategoryName('');
+        setError('category', {
+          type: 'manual',
+          message: 'Category is required',
+        });
+        // Skip auto-matching
+      } else if (scannedCategory && dropdownData.length > 0) {
         const primaryCategory =
           scannedCategory.split('>')[0]?.trim() || scannedCategory;
 
@@ -561,13 +638,12 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
         setValue('package_dimension_height', '');
       }
 
-      setValue(
-        'weight',
-        productData.weight ? productData.weight.toString() : '',
-      );
+      // setValue(
+      //   'weight',
+      //   productData.weight ? productData.weight.toString() : '',
+      // );
 
       if (productData.images && productData.images.length > 0) {
-        
         setUploadedImages([]);
         setValue('productImages', []);
 
@@ -575,25 +651,19 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
           ? productData.images[0]
           : productData.images;
 
-        
-
         const handleRemoteImage = async (url: string) => {
           try {
-           
             const scannedImage: MediaObject = {
               uri: url,
               name: 'scanned_product_image.jpg',
               type: 'image/jpeg',
             };
 
-            
             setUploadedImages([scannedImage]);
             setValue('productImages', [scannedImage]);
             clearErrors('productImages');
             setImageError('');
-           
           } catch (error) {
-           
             const scannedImage: MediaObject = {
               uri: url,
               name: 'scanned_product_image.jpg',
@@ -773,13 +843,14 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
         : '';
     formData.append('category_id', categoryId);
     formData.append('msrp', data.msrp);
-    data?.package_dimension_length &&
-      formData.append('length', data.package_dimension_length);
-    data?.package_dimension_width &&
-      formData.append('width', data.package_dimension_width);
-    data?.package_dimension_height &&
-      formData.append('height', data.package_dimension_height);
-    data?.weight && formData.append('weight', data.weight);
+    formData.append('dimension', selectedPackageTier);
+    // data?.package_dimension_length &&
+    //   formData.append('length', data.package_dimension_length);
+    // data?.package_dimension_width &&
+    //   formData.append('width', data.package_dimension_width);
+    // data?.package_dimension_height &&
+    //   formData.append('height', data.package_dimension_height);
+    // data?.weight && formData.append('weight', data.weight);
     formData.append('price', data.price);
     formData.append('platform_fee', data.platform_fee);
     formData.append('seller_final_price', data.seller_final_price);
@@ -875,9 +946,10 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       return;
     }
     const apiFormData = prepareFormDataForAPI(data);
+    console.log('apiFormData--', apiFormData);
 
-    showLoader(true);
-    mutate(apiFormData);
+    // showLoader(true);
+    // mutate(apiFormData);
   };
 
   const handleUploadPress = () => {
@@ -958,7 +1030,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       'package_dimension_length',
       'package_dimension_width',
       'package_dimension_height',
-      'weight',
+
       'description',
     ]);
     const isImagesValid = validateImages();
@@ -1090,56 +1162,48 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             }}
             containerStyle={styles.categoryStyle}
           />
-          <View style={styles.dimensionContainer}>
-            <Text style={styles.dimensionLabel}>Dimensions In Inches*</Text>
-            <View style={styles.dimensionInputsRow}>
-              <Input
-                control={control}
-                name="package_dimension_length"
-                label={''}
-                containerStyle={styles.dimensionInputContainer}
-                inputProps={{
-                  placeholder: 'Length',
-                }}
-                required={{value: true, message: 'Please enter length'}}
-                error={errors}
-                maxLength={10}
-                keyboardType="numeric"
-                inputStyle={styles.dimensionInputStyle}
-              />
-              <Text style={styles.xLabel}>X</Text>
-              <Input
-                control={control}
-                name="package_dimension_width"
-                label={''}
-                containerStyle={styles.dimensionInputContainer}
-                inputProps={{
-                  placeholder: 'Width',
-                }}
-                required={{value: true, message: 'Please enter width'}}
-                error={errors}
-                maxLength={10}
-                keyboardType="numeric"
-                inputStyle={styles.dimensionInputStyle}
-              />
-              <Text style={styles.xLabel}>X</Text>
-              <Input
-                control={control}
-                name="package_dimension_height"
-                label={''}
-                containerStyle={styles.dimensionInputContainer}
-                inputProps={{
-                  placeholder: 'Height',
-                }}
-                required={{value: true, message: 'Please enter height'}}
-                error={errors}
-                maxLength={10}
-                keyboardType="numeric"
-                inputStyle={styles.dimensionInputStyle}
-              />
-            </View>
+          {/* Package size selection (no manual L/W/H inputs) */}
+          <Text style={styles.label}>{'Select Product Size'}</Text>
+          <View style={styles.packageGridContainer}>
+            {PACKAGE_TIERS.map(tier => {
+              const isSelected = selectedPackageTier === tier.id;
+              return (
+                <TouchableOpacity
+                  key={tier.id}
+                  activeOpacity={0.9}
+                  style={[
+                    styles.packageCard,
+                    // {backgroundColor: tier.color + '1A'},
+                    {backgroundColor: colors.white},
+
+                    isSelected && styles.packageCardSelected,
+                  ]}
+                  onPress={() => {
+                    setSelectedPackageTier(tier.id);
+                    setValue('package_dimension_length', tier.dimsInches.l);
+                    setValue('package_dimension_width', tier.dimsInches.w);
+                    setValue('package_dimension_height', tier.dimsInches.h);
+                    clearErrors([
+                      'package_dimension_length',
+                      'package_dimension_width',
+                      'package_dimension_height',
+                    ]);
+                  }}>
+                  <View
+                    style={[
+                      styles.packageIconWrap,
+                      {backgroundColor: tier.color},
+                    ]}>
+                    <Image source={tier?.image} style={styles.packageIcon} />
+                  </View>
+                  <Text style={styles.packageTitle}>{tier.title}</Text>
+                  <Text style={styles.packageSubtitle}>{tier.displayCm}</Text>
+                  <Text style={styles.packageSubtitle}>{tier.description}</Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
-          <Input
+          {/* <Input
             control={control}
             name="weight"
             label={'Weight In Pounds*'}
@@ -1152,7 +1216,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             maxLength={40}
             keyboardType={'numeric'}
             inputStyle={styles.inputStyle}
-          />
+          /> */}
           <Input
             control={control}
             name="description"
@@ -1210,7 +1274,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
                 style={styles.imagesPreviewScroll}
                 contentContainerStyle={styles.imagesPreviewContent}>
                 {uploadedImages.map((mediaObj, index) => {
-                  
                   return (
                     <View key={index} style={styles.previewImageContainer}>
                       {isVideo(mediaObj) ? (
@@ -2026,5 +2089,64 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 16,
     paddingHorizontal: 20,
+  },
+  // Package grid styles
+  packageGridContainer: {
+    marginTop: 24,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  packageCard: {
+    width: '48%',
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    marginBottom: 12,
+    backgroundColor: 'rgba(0,0,0,0.04)',
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  packageCardSelected: {
+    borderColor: colors.primary,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    borderWidth: 2,
+  },
+  packageIconWrap: {
+    width: 60,
+    height: 60,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignSelf: 'center',
+    marginBottom: 10,
+  },
+  packageIcon: {
+    width: 40,
+    height: 40,
+    resizeMode: 'contain',
+    alignSelf: 'center',
+  },
+  packageTitle: {
+    fontFamily: fonts.bold,
+    color: colors.primaryBlack,
+    fontSize: fontSizes.small,
+    textAlign: 'center',
+  },
+  packageSubtitle: {
+    marginTop: 2,
+    color: colors.primaryBlack,
+    fontFamily: fonts.medium,
+    fontSize: fontSizes.small,
+    textAlign: 'center',
+  },
+  label: {
+    fontWeight: '500',
+    fontSize: 12,
+    fontFamily: fonts.medium,
+    color: colors.label,
+    marginTop: 20,
   },
 });
