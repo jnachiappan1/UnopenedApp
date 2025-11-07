@@ -107,7 +107,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     queryFn: () => getProductPriceDetail(),
     enabled: isLogged,
   });
-
+  
   const {data: ProductPriceChargeData, refetch: refetchProductPriceChargeData} =
     useQuery({
       queryKey: ['getProductPriceChargeDetail'],
@@ -138,10 +138,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
   useEffect(() => {
     if (typeof discountPercentage === 'number') {
       // Ensure discountPercent is within the new bounds
-      const clampedValue = Math.max(
-        sliderMin,
-        Math.min(sliderMax, discountPercentage),
-      );
+      const clampedValue = Math.max(sliderMin, Math.min(sliderMax, discountPercentage));
       setDiscountPercent(clampedValue);
     }
   }, [discountPercentage, sliderMin, sliderMax]);
