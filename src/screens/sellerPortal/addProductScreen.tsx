@@ -8,6 +8,7 @@ import {
   ScrollView,
   Image,
 } from 'react-native';
+import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import IMAGE from '../../assets/images';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
@@ -89,7 +90,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
   const [isAgreed, setIsAgreed] = useState(false);
   const [selectedPackageTier, setSelectedPackageTier] =
     useState<string>('small');
-  console.log('selectedPackageTier', selectedPackageTier);
 
   const userData = useSelector((user: IRootState) => user.user.userData);
   const isLogged = userData ? true : false;
@@ -107,6 +107,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     queryFn: () => getProductPriceDetail(),
     enabled: isLogged,
   });
+
   const {data: ProductPriceChargeData, refetch: refetchProductPriceChargeData} =
     useQuery({
       queryKey: ['getProductPriceChargeDetail'],
@@ -125,6 +126,25 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
   });
 
   const discountPercentage = ProductPriceData?.data?.product_price?.price;
+
+  const [discountPercent, setDiscountPercent] = useState<number>(0);
+
+  // Calculate min slider value based on price: min = 100 - price
+  const sliderMin = ProductPriceData?.data?.product_price?.price
+    ? 100 - ProductPriceData.data.product_price.price
+    : 10;
+  const sliderMax = 90;
+
+  useEffect(() => {
+    if (typeof discountPercentage === 'number') {
+      // Ensure discountPercent is within the new bounds
+      const clampedValue = Math.max(
+        sliderMin,
+        Math.min(sliderMax, discountPercentage),
+      );
+      setDiscountPercent(clampedValue);
+    }
+  }, [discountPercentage, sliderMin, sliderMax]);
 
   // Pricing tier hierarchy
   const TIER_1_RETAILERS = [
@@ -313,15 +333,30 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       platform_fee: '',
       seller_final_price: '',
       description: '',
-      package_dimension_length: '',
-      package_dimension_width: '',
-      package_dimension_height: '',
+      package_dimension_length: '12', // Default to small tier dimensions
+      package_dimension_width: '9', // Default to small tier dimensions
+      package_dimension_height: '2', // Default to small tier dimensions
       // weight: '',
       productImages: [],
     },
   });
 
-  // Keep L/W/H in sync with selected package tier and set defaults on mount
+  // Set default small tier dimensions on mount
+  useEffect(() => {
+    const smallTier = PACKAGE_TIERS.find(t => t.id === 'small');
+    if (smallTier) {
+      setValue('package_dimension_length', smallTier.dimsInches.l);
+      setValue('package_dimension_width', smallTier.dimsInches.w);
+      setValue('package_dimension_height', smallTier.dimsInches.h);
+      clearErrors([
+        'package_dimension_length',
+        'package_dimension_width',
+        'package_dimension_height',
+      ]);
+    }
+  }, []); // Run once on mount
+
+  // Keep L/W/H in sync with selected package tier when it changes
   useEffect(() => {
     const activeTier = PACKAGE_TIERS.find(t => t.id === selectedPackageTier);
     if (activeTier) {
@@ -591,8 +626,8 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       const msrpValue = calculateMSRP(productData);
       setValue('msrp', msrpValue > 0 ? msrpValue.toString() : '');
 
-      if (msrpValue && discountPercentage) {
-        const {amountToPay} = calculateDiscount(msrpValue, discountPercentage);
+      if (msrpValue && typeof discountPercent === 'number') {
+        const {amountToPay} = calculateDiscount(msrpValue, discountPercent);
         setValue('price', amountToPay.toFixed(2));
         if (ProductPriceChargeData?.data?.product_price?.price_charge) {
           const platformFeePercentage =
@@ -946,10 +981,9 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       return;
     }
     const apiFormData = prepareFormDataForAPI(data);
-    console.log('apiFormData--', apiFormData);
 
-    // showLoader(true);
-    // mutate(apiFormData);
+    showLoader(true);
+    mutate(apiFormData);
   };
 
   const handleUploadPress = () => {
@@ -1358,25 +1392,22 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             containerStyle={styles.emailContainer}
             onValueChange={text => {
               const msrpValue = parseFloat(text);
-              if (!isNaN(msrpValue) && discountPercentage) {
+              if (!isNaN(msrpValue) && typeof discountPercent === 'number') {
                 const {amountToPay} = calculateDiscount(
                   msrpValue,
-                  discountPercentage,
+                  discountPercent,
                 );
                 setValue('price', amountToPay.toFixed(2));
 
-                // Calculate platform fee and seller final price when MSRP changes
                 if (ProductPriceChargeData?.data?.product_price?.price_charge) {
                   const platformFeePercentage =
                     ProductPriceChargeData.data.product_price.price_charge;
                   const priceAmount = parseFloat(amountToPay.toFixed(2));
 
-                  // Calculate platform fee (17% of price)
                   const platformFee =
                     (priceAmount * platformFeePercentage) / 100;
                   setValue('platform_fee', platformFee.toFixed(2));
 
-                  // Calculate seller final price (price - platform fee)
                   const sellerFinalPrice = priceAmount - platformFee;
                   setValue('seller_final_price', sellerFinalPrice.toFixed(2));
                 }
@@ -1387,6 +1418,55 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
               }
             }}
           />
+          {/* Discount Percentage Slider */}
+          <View style={styles.discountSliderContainer}>
+            <Text style={styles.discountTitle}>Discount Percentage</Text>
+            <Text style={styles.discountValue}>{discountPercent}%</Text>
+            <View style={{marginHorizontal: 10}}>
+              <MultiSlider
+                values={[discountPercent]}
+                sliderLength={350}
+                min={sliderMin}
+                max={sliderMax}
+                step={1}
+                onValuesChangeFinish={values => {
+                  const newPercent = values[0];
+                  setDiscountPercent(newPercent);
+                  const msrpStr = getValues('msrp');
+                  const msrpNum = parseFloat(msrpStr as unknown as string);
+                  if (!isNaN(msrpNum)) {
+                    const {amountToPay} = calculateDiscount(
+                      msrpNum,
+                      newPercent,
+                    );
+                    setValue('price', amountToPay.toFixed(2));
+                    if (
+                      ProductPriceChargeData?.data?.product_price?.price_charge
+                    ) {
+                      const platformFeePercentage =
+                        ProductPriceChargeData.data.product_price.price_charge;
+                      const priceAmount = parseFloat(amountToPay.toFixed(2));
+                      const platformFee =
+                        (priceAmount * platformFeePercentage) / 100;
+                      setValue('platform_fee', platformFee.toFixed(2));
+                      const sellerFinalPrice = priceAmount - platformFee;
+                      setValue(
+                        'seller_final_price',
+                        sellerFinalPrice.toFixed(2),
+                      );
+                    }
+                  }
+                }}
+                selectedStyle={{backgroundColor: colors.primary}}
+                unselectedStyle={{backgroundColor: '#ccc'}}
+                markerStyle={{
+                  backgroundColor: colors.primary,
+                  height: 20,
+                  width: 20,
+                }}
+              />
+            </View>
+          </View>
           <Input
             control={control}
             name="price"
@@ -1841,6 +1921,22 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     // elevation: 2,
+  },
+  discountSliderContainer: {
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  discountTitle: {
+    fontSize: fontSizes.medium,
+    fontFamily: fonts.medium,
+    color: colors.primaryBlack,
+    marginBottom: 8,
+  },
+  discountValue: {
+    fontSize: fontSizes.small,
+    fontFamily: fonts.medium,
+    color: colors.black,
+    marginBottom: 12,
   },
   confirmationContainer: {
     marginTop: 24,

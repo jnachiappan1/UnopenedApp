@@ -7,8 +7,8 @@ import ImagePicker, {
 } from 'react-native-image-crop-picker';
 import {showAlert} from '../components/cAlert';
 import colors from './colors';
-import { showLoader } from '../components/loader/loader';
-import { errorMsg } from './types';
+import {showLoader} from '../components/loader/loader';
+import {errorMsg} from './types';
 const maxSize = 5 * 1024 * 1024;
 export const LATITUDE_DELTA = 0.01;
 
@@ -87,11 +87,9 @@ const checkCameraPermissions = async () => {
 };
 
 export const formatCamelCaseToTitle = (str: string): string => {
-  return (
-    str
-      ?.replace(/([a-z])([A-Z])/g, '$1 $2')
-      ?.replace(/\b\w/g, char => char.toUpperCase())
-  );
+  return str
+    ?.replace(/([a-z])([A-Z])/g, '$1 $2')
+    ?.replace(/\b\w/g, char => char.toUpperCase());
 };
 
 export const capitalizeFirstLetter = (text: string) => {
@@ -104,7 +102,6 @@ export const capitalizeFirstLetterSentence = (text: string) => {
   return text ? text.charAt(0).toUpperCase() + text.slice(1) : text;
 };
 export const handleError = (error: errorMsg) => {
-  
   showLoader(false);
   showAlert({
     isVisible: true,
@@ -121,17 +118,25 @@ export const handleSettled = () => {
 export const calculateDaysAgo = (createdAt: string): string => {
   const createdDate = new Date(createdAt);
   const today = new Date();
-  
+
   // Reset time to start of day for accurate day calculation
-  const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  const startOfCreatedDate = new Date(createdDate.getFullYear(), createdDate.getMonth(), createdDate.getDate());
-  
+  const startOfToday = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate(),
+  );
+  const startOfCreatedDate = new Date(
+    createdDate.getFullYear(),
+    createdDate.getMonth(),
+    createdDate.getDate(),
+  );
+
   // Calculate difference in milliseconds
   const timeDifference = startOfToday.getTime() - startOfCreatedDate.getTime();
-  
+
   // Convert to days
   const daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
-  
+
   // Format with leading zeros based on the number of digits
   if (daysDifference < 10) {
     return `0${daysDifference}`; // 01, 02, 03, etc.
@@ -142,13 +147,16 @@ export const calculateDaysAgo = (createdAt: string): string => {
   }
 };
 
-export const calculateDiscount = (originalPrice: number, percentagePaid: number) => {
+export const calculateDiscount = (
+  originalPrice: number,
+  percentagePaid: number,
+) => {
   const amountToPay = (percentagePaid / 100) * originalPrice;
   const discount = originalPrice - amountToPay;
   return {
     amountToPay,
     discount,
-    discountPercentage: 100 - percentagePaid
+    discountPercentage: 100 - percentagePaid,
   };
 };
 
