@@ -44,6 +44,7 @@ import {
 import {showLoader} from '../../components/loader/loader';
 import ApplyOfferInput from '../../components/input/applyOfferInput';
 import {API, image_url} from '../../utils/api';
+import commonStyles from '../../utils/common-styles';
 
 type MediaObject = {
   uri: string;
@@ -88,8 +89,8 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
   const [isNavigatingToPreview, setIsNavigatingToPreview] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [isAgreed, setIsAgreed] = useState(false);
-  const [selectedPackageTier, setSelectedPackageTier] =
-    useState<string>('small');
+  const [selectedPackageTier, setSelectedPackageTier] = useState<string>('');
+  const [packageTierError, setPackageTierError] = useState<string>('');
 
   const userData = useSelector((user: IRootState) => user.user.userData);
   const isLogged = userData ? true : false;
@@ -102,23 +103,19 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     queryFn: () => getCategoryDetail(),
     enabled: isLogged,
   });
-  const {data: ProductPriceData, } = useQuery({
+  const {data: ProductPriceData} = useQuery({
     queryKey: ['getProductPriceDetail'],
     queryFn: () => getProductPriceDetail(),
     enabled: isLogged,
   });
 
-  const {data: ProductPriceChargeData} =
-    useQuery({
-      queryKey: ['getProductPriceChargeDetail'],
-      queryFn: () => getProductPriceChargeDetail(),
-      enabled: isLogged,
-    });
+  const {data: ProductPriceChargeData} = useQuery({
+    queryKey: ['getProductPriceChargeDetail'],
+    queryFn: () => getProductPriceChargeDetail(),
+    enabled: isLogged,
+  });
 
-  const {
-    data: scanProductData,
-    isFetching: isScanFetching,
-  } = useQuery({
+  const {data: scanProductData, isFetching: isScanFetching} = useQuery({
     queryKey: ['getScanProductDetail', scannedBarcode],
     queryFn: () => getScanProductDetail(scannedBarcode as string),
     enabled: !!scannedBarcode,
@@ -165,40 +162,43 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       id: 'small',
       title: 'Small',
       displayCm: '20×15×2 cm',
-      dimsInches: {l: '12', w: '9', h: '2'}, 
+      dimsInches: {l: '12', w: '9', h: '2'},
       color: '#4F7BFF',
       description: '≤ 2 lb (0.9 kg)',
       image: IMAGE.smallBox,
+      typicalItem: 'Tees, small apparel, accessories, phone cases',
     },
     {
       id: 'medium',
       title: 'Medium',
       displayCm: '30×25×20 cm',
-      dimsInches: {l: '14', w: '10', h: '5'}, 
+      dimsInches: {l: '14', w: '10', h: '5'},
       color: '#2CC36B',
       description: '≤ 5 lb (2.3 kg)',
       image: IMAGE.mediumBox,
+      typicalItem: 'Sneakers, headphones, small gadgets',
     },
     {
       id: 'large',
       title: 'Large',
       displayCm: '45×35×30 cm',
-      dimsInches: {l: '18', w: '12', h: '8'}, 
+      dimsInches: {l: '18', w: '12', h: '8'},
       color: '#F58020',
       description: '≤ 12 lb (5.4 kg)',
       image: IMAGE.largeBox,
+      typicalItem: 'Mid-size electronics, LEGO sets, small kitchenware',
     },
     {
       id: 'extra_large',
       title: 'XL',
       displayCm: '60×50×40 cm',
-      dimsInches: {l: '22', w: '14', h: '10'}, 
+      dimsInches: {l: '22', w: '14', h: '10'},
       color: '#E74C3C',
       description: '≤ 20 lb (9.1 kg)',
       image: IMAGE.xlBox,
+      typicalItem: 'Consoles + controllers, larger appliances (compact)',
     },
   ] as const;
-
 
   const calculateMSRP = (productData: any): number => {
     if (!productData.offers || productData.offers.length === 0) {
@@ -326,26 +326,12 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       platform_fee: '',
       seller_final_price: '',
       description: '',
-      package_dimension_length: '12', 
-      package_dimension_width: '9',
-      package_dimension_height: '2',
+      package_dimension_length: '',
+      package_dimension_width: '',
+      package_dimension_height: '',
       productImages: [],
     },
   });
-
-  useEffect(() => {
-    const smallTier = PACKAGE_TIERS.find(t => t.id === 'small');
-    if (smallTier) {
-      setValue('package_dimension_length', smallTier.dimsInches.l);
-      setValue('package_dimension_width', smallTier.dimsInches.w);
-      setValue('package_dimension_height', smallTier.dimsInches.h);
-      clearErrors([
-        'package_dimension_length',
-        'package_dimension_width',
-        'package_dimension_height',
-      ]);
-    }
-  }, []);
 
   useEffect(() => {
     const activeTier = PACKAGE_TIERS.find(t => t.id === selectedPackageTier);
@@ -441,7 +427,9 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     const hasVideo = uploadedImages.some(media => isVideo(media));
     const hasValidImages = hasVideo && uploadedImages.length >= 2;
 
-    return allFieldsFilled && hasValidImages;
+    const isPackageTierSelected = selectedPackageTier !== '';
+
+    return allFieldsFilled && hasValidImages && isPackageTierSelected;
   };
 
   // useEffect(() => {
@@ -807,7 +795,15 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
   const validateAllFields = async () => {
     const isFormValid = await trigger();
     const isImagesValid = validateImages();
-    return isFormValid && isImagesValid;
+    const isPackageTierSelected = selectedPackageTier !== '';
+
+    if (!isPackageTierSelected) {
+      setPackageTierError('Please select a product size');
+    } else {
+      setPackageTierError('');
+    }
+
+    return isFormValid && isImagesValid && isPackageTierSelected;
   };
 
   const handlePreviewAndConfirm = async (productInput: FormData) => {
@@ -949,6 +945,8 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
           setUploadedImages([]);
           setImageError('');
           setScannedCategoryName('');
+          setSelectedPackageTier('');
+          setPackageTierError('');
           navigation.navigate(SCREENS.BottomTab);
         },
       });
@@ -1050,11 +1048,18 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       'package_dimension_length',
       'package_dimension_width',
       'package_dimension_height',
-
       'description',
     ]);
     const isImagesValid = validateImages();
-    if (isStep1Valid && isImagesValid) {
+    const isPackageTierSelected = selectedPackageTier !== '';
+
+    if (!isPackageTierSelected) {
+      setPackageTierError('Please select a product size');
+    } else {
+      setPackageTierError('');
+    }
+
+    if (isStep1Valid && isImagesValid && isPackageTierSelected) {
       setCurrentStep(1);
     } else {
       const currentCategory = getValues('category');
@@ -1069,6 +1074,25 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
 
   const goToPreviousStep = () => {
     setCurrentStep(0);
+  };
+
+  const calculateAndUpdatePrices = (newPercent: number) => {
+    setDiscountPercent(newPercent);
+    const msrpStr = getValues('msrp');
+    const msrpNum = parseFloat(msrpStr as unknown as string);
+    if (!isNaN(msrpNum) && msrpNum > 0) {
+      const {amountToPay} = calculateDiscount(msrpNum, newPercent);
+      setValue('price', amountToPay.toFixed(2));
+      if (ProductPriceChargeData?.data?.product_price?.price_charge) {
+        const platformFeePercentage =
+          ProductPriceChargeData.data.product_price.price_charge;
+        const priceAmount = parseFloat(amountToPay.toFixed(2));
+        const platformFee = (priceAmount * platformFeePercentage) / 100;
+        setValue('platform_fee', platformFee.toFixed(2));
+        const sellerFinalPrice = priceAmount - platformFee;
+        setValue('seller_final_price', sellerFinalPrice.toFixed(2));
+      }
+    }
   };
 
   const renderScanSection = () => {
@@ -1183,7 +1207,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             containerStyle={styles.categoryStyle}
           />
           {/* Package size selection (no manual L/W/H inputs) */}
-          <Text style={styles.label}>{'Select Product Size'}</Text>
+          <Text style={styles.label}>{'Select Product Size *'}</Text>
           <View style={styles.packageGridContainer}>
             {PACKAGE_TIERS.map(tier => {
               const isSelected = selectedPackageTier === tier.id;
@@ -1199,15 +1223,38 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
                     isSelected && styles.packageCardSelected,
                   ]}
                   onPress={() => {
-                    setSelectedPackageTier(tier.id);
-                    setValue('package_dimension_length', tier.dimsInches.l);
-                    setValue('package_dimension_width', tier.dimsInches.w);
-                    setValue('package_dimension_height', tier.dimsInches.h);
-                    clearErrors([
-                      'package_dimension_length',
-                      'package_dimension_width',
-                      'package_dimension_height',
-                    ]);
+                    if (isSelected) {
+                      // Deselect if already selected
+                      setSelectedPackageTier('');
+                      setValue('package_dimension_length', '');
+                      setValue('package_dimension_width', '');
+                      setValue('package_dimension_height', '');
+                      setPackageTierError('Please select a product size');
+                      setError('package_dimension_length', {
+                        type: 'manual',
+                        message: 'Package dimensions are required',
+                      });
+                      setError('package_dimension_width', {
+                        type: 'manual',
+                        message: 'Package dimensions are required',
+                      });
+                      setError('package_dimension_height', {
+                        type: 'manual',
+                        message: 'Package dimensions are required',
+                      });
+                    } else {
+                      // Select the tier
+                      setSelectedPackageTier(tier.id);
+                      setValue('package_dimension_length', tier.dimsInches.l);
+                      setValue('package_dimension_width', tier.dimsInches.w);
+                      setValue('package_dimension_height', tier.dimsInches.h);
+                      clearErrors([
+                        'package_dimension_length',
+                        'package_dimension_width',
+                        'package_dimension_height',
+                      ]);
+                      setPackageTierError('');
+                    }
                   }}>
                   <View
                     style={[
@@ -1217,12 +1264,15 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
                     <Image source={tier?.image} style={styles.packageIcon} />
                   </View>
                   <Text style={styles.packageTitle}>{tier.title}</Text>
-                  <Text style={styles.packageSubtitle}>{tier.displayCm}</Text>
+                  <Text style={styles.packageSubtitle}>{tier.typicalItem}</Text>
                   <Text style={styles.packageSubtitle}>{tier.description}</Text>
                 </TouchableOpacity>
               );
             })}
           </View>
+          {packageTierError ? (
+            <Text style={commonStyles.error}>{packageTierError}</Text>
+          ) : null}
           {/* <Input
             control={control}
             name="weight"
@@ -1347,7 +1397,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
           title="Next Step"
           style={styles.nextStepButton}
           onPress={goToNextStep}
-          disabled={!isStep1Complete()}
         />
       </View>
     </ScrollView>
@@ -1415,33 +1464,13 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
                 min={sliderMin}
                 max={sliderMax}
                 step={1}
+                onValuesChange={values => {
+                  const newPercent = values[0];
+                  calculateAndUpdatePrices(newPercent);
+                }}
                 onValuesChangeFinish={values => {
                   const newPercent = values[0];
-                  setDiscountPercent(newPercent);
-                  const msrpStr = getValues('msrp');
-                  const msrpNum = parseFloat(msrpStr as unknown as string);
-                  if (!isNaN(msrpNum)) {
-                    const {amountToPay} = calculateDiscount(
-                      msrpNum,
-                      newPercent,
-                    );
-                    setValue('price', amountToPay.toFixed(2));
-                    if (
-                      ProductPriceChargeData?.data?.product_price?.price_charge
-                    ) {
-                      const platformFeePercentage =
-                        ProductPriceChargeData.data.product_price.price_charge;
-                      const priceAmount = parseFloat(amountToPay.toFixed(2));
-                      const platformFee =
-                        (priceAmount * platformFeePercentage) / 100;
-                      setValue('platform_fee', platformFee.toFixed(2));
-                      const sellerFinalPrice = priceAmount - platformFee;
-                      setValue(
-                        'seller_final_price',
-                        sellerFinalPrice.toFixed(2),
-                      );
-                    }
-                  }
+                  calculateAndUpdatePrices(newPercent);
                 }}
                 selectedStyle={{backgroundColor: colors.primary}}
                 unselectedStyle={{backgroundColor: '#ccc'}}
@@ -2182,8 +2211,8 @@ const styles = StyleSheet.create({
   packageCard: {
     width: '48%',
     borderRadius: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 12,
+    paddingVertical: 5,
+    paddingHorizontal: 5,
     marginBottom: 12,
     backgroundColor: 'rgba(0,0,0,0.04)',
     borderWidth: 1,
