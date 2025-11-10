@@ -57,43 +57,46 @@ const ProductSection: React.FC<Props> = ({
             : 'https://via.placeholder.com/150';
 
           return (
-            <View style={styles.productWrapper}>
-              <TouchableOpacity
-                style={[
-                  styles.productCard,
-                  isHorizontal && styles.horizontalCard,
-                ]}
-                onPress={() => handlePress(item.item)}>
-                <Image
-                  source={{uri: imageUri}}
-                  style={[
-                    styles.productImage,
-                    isHorizontal && styles.horizontalImage,
-                  ]}
-                  
-                />
-                <View style={styles.productInfo}>
-                  <Text style={styles.productName} numberOfLines={1}>
-                    {item.item?.name}
-                  </Text>
-                  <Text style={styles.productDescription} numberOfLines={1}>
-                    {item.item?.description}
-                  </Text>
-                  {item?.item?.product_status === 'sold' ? (
-                    <StatusBadge status={item.item?.product_status} />
-                  ) : (
-                    <View style={styles.priceContainer}>
-                      <Text style={styles.price}>${item.item?.price}</Text>
-                      {item.item?.msrp && (
-                        <Text style={styles.originalPrice}>
-                          ${item.item?.msrp}
-                        </Text>
+            <>
+              {item?.item?.product_status !== 'sold' && (
+                <View style={styles.productWrapper}>
+                  <TouchableOpacity
+                    style={[
+                      styles.productCard,
+                      isHorizontal && styles.horizontalCard,
+                    ]}
+                    onPress={() => handlePress(item.item)}>
+                    <Image
+                      source={{uri: imageUri}}
+                      style={[
+                        styles.productImage,
+                        isHorizontal && styles.horizontalImage,
+                      ]}
+                    />
+                    <View style={styles.productInfo}>
+                      <Text style={styles.productName} numberOfLines={1}>
+                        {item.item?.name}
+                      </Text>
+                      <Text style={styles.productDescription} numberOfLines={1}>
+                        {item.item?.description}
+                      </Text>
+                      {item?.item?.product_status === 'sold' ? (
+                        <StatusBadge status={item.item?.product_status} />
+                      ) : (
+                        <View style={styles.priceContainer}>
+                          <Text style={styles.price}>${item.item?.price}</Text>
+                          {item.item?.msrp && (
+                            <Text style={styles.originalPrice}>
+                              ${item.item?.msrp}
+                            </Text>
+                          )}
+                        </View>
                       )}
                     </View>
-                  )}
+                  </TouchableOpacity>
                 </View>
-              </TouchableOpacity>
-            </View>
+              )}
+            </>
           );
         }}
       />

@@ -1264,8 +1264,8 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
                     <Image source={tier?.image} style={styles.packageIcon} />
                   </View>
                   <Text style={styles.packageTitle}>{tier.title}</Text>
-                  <Text style={styles.packageSubtitle}>{tier.typicalItem}</Text>
                   <Text style={styles.packageSubtitle}>{tier.description}</Text>
+                  <Text style={styles.packageSubtitle}>{tier.typicalItem}</Text>
                 </TouchableOpacity>
               );
             })}
