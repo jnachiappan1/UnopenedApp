@@ -97,18 +97,18 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
   const [imageError, setImageError] = useState<string>('');
   const [dropdownData, setDropdownData] = useState<DropDownType[]>([]);
   const [scannedCategoryName, setScannedCategoryName] = useState<string>('');
-  const {data: categoryData, refetch: refetchcategoryDetail} = useQuery({
+  const {data: categoryData} = useQuery({
     queryKey: ['getCategoryDetail'],
     queryFn: () => getCategoryDetail(),
     enabled: isLogged,
   });
-  const {data: ProductPriceData, refetch: refetchProductPriceData} = useQuery({
+  const {data: ProductPriceData, } = useQuery({
     queryKey: ['getProductPriceDetail'],
     queryFn: () => getProductPriceDetail(),
     enabled: isLogged,
   });
-  
-  const {data: ProductPriceChargeData, refetch: refetchProductPriceChargeData} =
+
+  const {data: ProductPriceChargeData} =
     useQuery({
       queryKey: ['getProductPriceChargeDetail'],
       queryFn: () => getProductPriceChargeDetail(),
@@ -117,7 +117,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
 
   const {
     data: scanProductData,
-    refetch: refetchScanProductData,
     isFetching: isScanFetching,
   } = useQuery({
     queryKey: ['getScanProductDetail', scannedBarcode],
@@ -130,15 +129,16 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
   const [discountPercent, setDiscountPercent] = useState<number>(0);
 
   // Calculate min slider value based on price: min = 100 - price
-  const sliderMin = ProductPriceData?.data?.product_price?.price
-    ? 100 - ProductPriceData.data.product_price.price
-    : 10;
+  const sliderMin = ProductPriceData?.data?.product_price?.price;
   const sliderMax = 90;
 
   useEffect(() => {
     if (typeof discountPercentage === 'number') {
       // Ensure discountPercent is within the new bounds
-      const clampedValue = Math.max(sliderMin, Math.min(sliderMax, discountPercentage));
+      const clampedValue = Math.max(
+        sliderMin,
+        Math.min(sliderMax, discountPercentage),
+      );
       setDiscountPercent(clampedValue);
     }
   }, [discountPercentage, sliderMin, sliderMax]);
@@ -159,15 +159,13 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     'sephora.com',
     'ulta.com',
   ];
-  const APPROVED_MARKETPLACES = ['amazon.com'];
 
-  // Package tiers with dimensions to autofill (submitted to API in inches)
   const PACKAGE_TIERS = [
     {
       id: 'small',
       title: 'Small',
       displayCm: '20×15×2 cm',
-      dimsInches: {l: '12', w: '9', h: '2'}, // 12×9×2 in
+      dimsInches: {l: '12', w: '9', h: '2'}, 
       color: '#4F7BFF',
       description: '≤ 2 lb (0.9 kg)',
       image: IMAGE.smallBox,
@@ -176,7 +174,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       id: 'medium',
       title: 'Medium',
       displayCm: '30×25×20 cm',
-      dimsInches: {l: '14', w: '10', h: '5'}, // 14×10×5 in
+      dimsInches: {l: '14', w: '10', h: '5'}, 
       color: '#2CC36B',
       description: '≤ 5 lb (2.3 kg)',
       image: IMAGE.mediumBox,
@@ -185,7 +183,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       id: 'large',
       title: 'Large',
       displayCm: '45×35×30 cm',
-      dimsInches: {l: '18', w: '12', h: '8'}, // 18×12×8 in
+      dimsInches: {l: '18', w: '12', h: '8'}, 
       color: '#F58020',
       description: '≤ 12 lb (5.4 kg)',
       image: IMAGE.largeBox,
@@ -194,17 +192,15 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       id: 'extra_large',
       title: 'XL',
       displayCm: '60×50×40 cm',
-      dimsInches: {l: '22', w: '14', h: '10'}, // 22×14×10 in
+      dimsInches: {l: '22', w: '14', h: '10'}, 
       color: '#E74C3C',
       description: '≤ 20 lb (9.1 kg)',
       image: IMAGE.xlBox,
     },
   ] as const;
 
-  // Keep L/W/H in sync with selected package tier and set defaults on mount
 
   const calculateMSRP = (productData: any): number => {
-    // Check if offers array exists
     if (!productData.offers || productData.offers.length === 0) {
       return productData.highest_recorded_price || 0;
     }
@@ -330,15 +326,13 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       platform_fee: '',
       seller_final_price: '',
       description: '',
-      package_dimension_length: '12', // Default to small tier dimensions
-      package_dimension_width: '9', // Default to small tier dimensions
-      package_dimension_height: '2', // Default to small tier dimensions
-      // weight: '',
+      package_dimension_length: '12', 
+      package_dimension_width: '9',
+      package_dimension_height: '2',
       productImages: [],
     },
   });
 
-  // Set default small tier dimensions on mount
   useEffect(() => {
     const smallTier = PACKAGE_TIERS.find(t => t.id === 'small');
     if (smallTier) {
@@ -351,9 +345,8 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
         'package_dimension_height',
       ]);
     }
-  }, []); // Run once on mount
+  }, []);
 
-  // Keep L/W/H in sync with selected package tier when it changes
   useEffect(() => {
     const activeTier = PACKAGE_TIERS.find(t => t.id === selectedPackageTier);
     if (activeTier) {
@@ -373,7 +366,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       const transformedData = transformCategoryData(categoryData);
       setDropdownData(transformedData);
 
-      // If no category is selected and we have dropdown data, show error
       const currentCategory = getValues('category');
       if (!currentCategory && transformedData.length > 0) {
         setError('category', {
@@ -421,7 +413,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     'package_dimension_length',
     'package_dimension_width',
     'package_dimension_height',
-    // 'weight',
     'description',
   ]);
 
@@ -434,7 +425,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       length,
       width,
       height,
-      // weight,
       description,
     ] = watchedFields;
 
@@ -446,7 +436,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       length?.trim() &&
       width?.trim() &&
       height?.trim() &&
-      // weight?.trim() &&
       description?.trim();
 
     const hasVideo = uploadedImages.some(media => isVideo(media));
@@ -1417,7 +1406,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
           />
           {/* Discount Percentage Slider */}
           <View style={styles.discountSliderContainer}>
-            <Text style={styles.discountTitle}>Discount Percentage</Text>
+            <Text style={styles.discountTitle}>Listing Price Percentage</Text>
             <Text style={styles.discountValue}>{discountPercent}%</Text>
             <View style={{marginHorizontal: 10}}>
               <MultiSlider
