@@ -56,6 +56,7 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
     queryKey: ['getProductDetailByID', productId],
     queryFn: () => getProductDetailByID(productId),
   });
+
   const {data: addData} = useQuery({
     queryKey: ['getProductAddress', productId],
     queryFn: () => getProductAddressById(productId),
