@@ -93,7 +93,7 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({
   // });
 
   // const trackingUrl = shippingTrackingData?.data?.tracking?.tracking_url;
-  const {data: shippingTrackingData, isLoading: isTrackingLoading} = useQuery({
+  const {data: shippingTrackingData, isLoading: isTrackingLoading}:any = useQuery({
     queryKey: ['trackShipment', productDetail?.data?.product[0]?.shipment_id],
     queryFn: () => trackShipment(productDetail?.data?.product[0]?.shipment_id),
     enabled: !!productDetail?.data?.product[0]?.shipment_id,
