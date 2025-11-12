@@ -210,7 +210,7 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
                 ProductPriceData?.data?.product_price?.price && (
                   <View style={styles.discountContainer}>
                     <Text style={styles.stockText}>
-                      {100 - ProductPriceData.data.product_price.price}% off
+                      {100 - addData?.data?.product[0]?.set_price}% off
                     </Text>
                   </View>
                 )

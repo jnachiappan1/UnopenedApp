@@ -746,6 +746,8 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     formData.append('platform_fee', data.platform_fee);
     formData.append('seller_final_price', data.seller_final_price);
     formData.append('description', data.description);
+    formData.append('set_price', discountPercent);
+
     uploadedImages.forEach((media, index) => {
       formData.append('images', {
         uri: media.uri,
