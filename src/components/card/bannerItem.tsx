@@ -1,9 +1,8 @@
 // components/DashboardCard.tsx
 import React from 'react';
 import {View, Text, StyleSheet, Image} from 'react-native';
-import IconsSvg, {IconName} from '../../assets/svg/iconsSvg';
 import colors from '../../utils/colors';
-import {fontSizes, width} from '../../utils/utils';
+import { width} from '../../utils/utils';
 import fonts from '../../assets/fonts/fonts';
 import IMAGE from '../../assets/images';
 

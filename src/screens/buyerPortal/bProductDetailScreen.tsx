@@ -19,15 +19,11 @@ import fonts from '../../assets/fonts/fonts';
 import IconsSvg from '../../assets/svg/iconsSvg';
 import Button from '../../components/button/buttons';
 import {
-  getAddresses,
-  getAddressesByID,
   getProductAddressById,
   getProductDetailByID,
   getProductPriceDetail,
 } from '../../utils/apiAction';
 import {useQuery} from '@tanstack/react-query';
-import {productData} from '../../utils/static';
-import {ProductData} from '../../utils/types';
 import {image_url} from '../../utils/api';
 import InfoRow from '../../components/card/infoRow';
 import {useSelector} from 'react-redux';
@@ -53,36 +49,16 @@ interface ProductImage {
 
 const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
   const {productId} = route?.params;
-  const product: ProductData = productData[0];
   const userData = useSelector((user: IRootState) => user.user.userData);
   const isLogged = userData ? true : false;
-  const userType = useSelector((state: IRootState) => state.user.userType);
 
-  const {
-    data: allProductList,
-    refetch: refetchAllProduct,
-    isLoading,
-  } = useQuery({
+  const {data: allProductList, isLoading} = useQuery({
     queryKey: ['getProductDetailByID', productId],
     queryFn: () => getProductDetailByID(productId),
   });
   const {data: addData} = useQuery({
     queryKey: ['getProductAddress', productId],
     queryFn: () => getProductAddressById(productId),
-  });
-  const {data: addressesData} = useQuery({
-    queryKey: ['getAddresses'],
-    queryFn: getAddresses,
-  });
-  const addressId = addressesData?.data?.address[0]?.id;
-  const {
-    data: addressData,
-    refetch: refetchAddressData,
-    isLoading: isLoadingAddressData,
-  } = useQuery({
-    queryKey: ['getAddressesByID', addressId],
-    queryFn: () => getAddressesByID(addressId),
-    enabled: !!addressId,
   });
 
   const {
@@ -106,7 +82,6 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
     setCurrentImageIndex(index);
   };
 
-  // Show loader while data is being fetched
   React.useEffect(() => {
     showLoader(isLoading);
   }, [isLoading]);
@@ -150,7 +125,6 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
     return parts.length ? `Ships from ${parts.join(', ')}` : 'Ships from';
   }, [addData]);
 
-  // Show error if no product data found
   if (!isLoading && !allProductList?.data?.product?.[0]) {
     return (
       <TitleBackHeaderContainer title="Product Detail" isBack>
@@ -161,7 +135,6 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
     );
   }
 
-  // Don't render content while loading
   if (isLoading) {
     return (
       <TitleBackHeaderContainer title="Product Details" isBack>
@@ -191,11 +164,6 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
             decelerationRate="fast"
             renderItem={({item}) => (
               <View style={styles.imageSlide}>
-                {/* <Image
-                  source={{uri: image_url + item.image}}
-                  style={styles.productImage}
-                  resizeMode="contain"
-                /> */}
                 {isVideo(item) ? (
                   <VideoPlayer
                     source={item.image}
@@ -279,17 +247,6 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
             />
 
             <View style={styles.deliveryInfo}>
-              {/* <View style={styles.deliveryRow}>
-             <View style={styles.deliveryIcon}>
-               <IconsSvg name="vehicle" />
-             </View>
-             <View style={styles.deliveryDetails}>
-               <Text style={styles.deliveryTitle}>
-                 Estimated delivery by Friday, 11 July
-               </Text>
-               <Text style={styles.deliverySubtitle}>Standard delivery</Text>
-             </View>
-           </View> */}
               <View style={styles.deliveryRow}>
                 <View style={styles.deliveryIcon}>
                   <IconsSvg name="deliverBox" />

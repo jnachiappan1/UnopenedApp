@@ -188,10 +188,7 @@ export const getAllProductList = async (user_id?: number) => {
   }
 };
 
-// export const getPlanOwnerInfo = async () => {
-//   const response = await axios.get(API.planOwner.plan_owner_info);
-//   return response;
-// };
+
 export const getProductPriceDetail = async () => {
   const response = await axios.get(API.seller.getProductPrice);
   return response;

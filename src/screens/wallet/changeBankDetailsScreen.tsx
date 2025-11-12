@@ -3,19 +3,15 @@ import React, { useState, useEffect } from 'react';
 import fonts from '../../assets/fonts/fonts';
 import Input from '../../components/input/input';
 import { useForm } from 'react-hook-form';
-import Header from '../../components/headerContainer/header';
-import ImageBackgroundHeader from '../../components/headerContainer/imageBackgroundHeader';
-import IconsSvg from '../../assets/svg/iconsSvg';
 import colors from '../../utils/colors';
 import Button from '../../components/button/buttons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import DatePiker from '../../components/datePicker/datePiker';
 import moment from 'moment';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { addBankAccount, changeBankAccount, getBankAccount } from '../../utils/apiAction';
+import { changeBankAccount, getBankAccount } from '../../utils/apiAction';
 import { handleError, handleSettled } from '../../utils/method';
 import { showAlert } from '../../components/cAlert';
 import { showLoader } from '../../components/loader/loader';
@@ -49,7 +45,6 @@ const ChangeBankDetailsScreen: React.FC<ChangeBankDetailsProps> = ({ navigation 
   const [dateModalVisible, setDateModalVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState('');
 
-  // Fetch existing bank account details
   const {
     data: bankAccountData,
     isLoading: isLoadingBankDetails,
@@ -92,39 +87,7 @@ const ChangeBankDetailsScreen: React.FC<ChangeBankDetailsProps> = ({ navigation 
     mode: 'onChange'
   });
 
-  // Populate form with existing bank details when data is loaded
-//   useEffect(() => {
-//     if (bankAccountData?.data?.bankDetails) {
-//       const bankDetails = bankAccountData.data.bankDetails;
-//       reset({
-//         first_name: bankDetails.first_name?.replace(/"/g, '') || '',
-//         last_name: bankDetails.last_name?.replace(/"/g, '') || '',
-//         dob: {
-//           day: bankDetails.dob?.day || '',
-//           month: bankDetails.dob?.month || '',
-//           year: bankDetails.dob?.year || '',
-//         },
-//         phone_number: bankDetails.phone_number || '',
-//         address: bankDetails.address || '',
-//         city: bankDetails.city || '',
-//         state: bankDetails.state || '',
-//         postal_code: bankDetails.postal_code || '',
-//         ssn_last_4: bankDetails.ssn_last_4 || '',
-//         holder_name: bankDetails.holder_name?.replace(/"/g, '') || '',
-//         bank_name: bankDetails.bank_name?.replace(/"/g, '') || '',
-//         routing_number: bankDetails.routing_number || '',
-//         account_number: bankDetails.account_number || '',
-//       });
-
-//       // Set selected date for display
-//       if (bankDetails.dob?.day && bankDetails.dob?.month && bankDetails.dob?.year) {
-//         const dateString = `${bankDetails.dob.year}-${bankDetails.dob.month}-${bankDetails.dob.day}`;
-//         setSelectedDate(dateString);
-//       }
-//     }
-//   }, [bankAccountData, reset]);
-
-  // Show loader while fetching bank details
+ 
   useEffect(() => {
     if (isLoadingBankDetails) {
       showLoader(true);
@@ -133,7 +96,6 @@ const ChangeBankDetailsScreen: React.FC<ChangeBankDetailsProps> = ({ navigation 
     }
   }, [isLoadingBankDetails]);
 
-  // Custom validation for dob field
   const validateDob = (value: any) => {
     if (!value || !value.day || !value.month || !value.year) {
       return 'Date of birth is required';
@@ -168,7 +130,6 @@ const ChangeBankDetailsScreen: React.FC<ChangeBankDetailsProps> = ({ navigation 
     setValue('dob.month', date.format('MM'));
     setValue('dob.year', date.format('YYYY'));
     setDateModalVisible(false);
-    // Trigger validation for the dob field
     trigger('dob');
   };
 
@@ -177,12 +138,7 @@ const ChangeBankDetailsScreen: React.FC<ChangeBankDetailsProps> = ({ navigation 
     mutate(data);
   };
 
-  const formatDisplayDate = () => {
-    if (selectedDate) {
-      return moment(selectedDate).format('MM/DD/YYYY');
-    }
-    return 'Select Date of Birth';
-  };
+ 
 
   return (
     <TitleBackHeaderContainer isBack title="Change Bank Details">

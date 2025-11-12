@@ -1,8 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {
-  StyleSheet,
-  View,
-} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import {useForm} from 'react-hook-form';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
@@ -216,21 +213,18 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation}) => {
               });
             }
 
-            // Handle city - this should work for all countries
             if (info?.city) {
               setValue('city', info.city, {
                 shouldValidate: true,
                 shouldDirty: true,
               });
             } else {
-              // Clear city if no city found
               setValue('city', '', {
                 shouldValidate: true,
                 shouldDirty: true,
               });
             }
 
-            // Handle postal code
             if (info?.postalCode) {
               setValue('zipCode', info.postalCode, {
                 shouldValidate: true,
@@ -244,15 +238,12 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation}) => {
           control={control}
           name="second_line_address"
           label={'House No. / Apartment No. (optional)'}
-          // containerStyle={styles.emailContainer}
           inputProps={{
             placeholder: 'Enter House No. / Apartment No.',
           }}
           maxLength={40}
           containerStyle={styles.containerStyle}
-          // inputStyle={styles.inputStyle}
         />
-        {/* Country */}
         <InputCountry
           control={control}
           name="country"
@@ -304,56 +295,10 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation}) => {
           containerStyle={styles.containerStyle}
         />
 
-        {/* Address Type */}
-        {/* <View style={styles.inputContainer}>
-            <Text style={styles.label}>Address Type</Text>
-            <View style={styles.addressTypeContainer}>
-              {addressTypes.map((type) => {
-                const isSelected = watch('addressType') === type.id;
-                return (
-                  <TouchableOpacity
-                    key={type.id}
-                    style={[
-                      styles.addressTypeButton,
-                      isSelected && styles.selectedAddressTypeButton
-                    ]}
-                    onPress={() => setValue('addressType', type.id)}
-                  >
-                    <Text style={[
-                      styles.addressTypeText,
-                      isSelected && styles.selectedAddressTypeText
-                    ]}>
-                      {type.label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </View>
-          <View style={styles.inputContainer}>
-            <TouchableOpacity
-              style={styles.checkboxContainer}
-              onPress={() => setValue('isDefault', !watch('isDefault'))}
-            >
-              <View style={[
-                styles.checkbox,
-                watch('isDefault') && styles.checkboxChecked
-              ]}>
-                {watch('isDefault') && (
-                  <Text style={styles.checkmark}>✓</Text>
-                )}
-              </View>
-              <Text style={styles.checkboxLabel}>Set as default address</Text>
-            </TouchableOpacity>
-          </View> */}
-
-        {/* Save Button */}
         <View style={styles.buttonContainer}>
           <Button title="Save Address" onPress={handleSubmit(onSubmit)} />
         </View>
-        {/* </View> */}
       </KeyboardAwareScrollView>
-      {/* </ScrollView> */}
     </TitleBackHeaderContainer>
   );
 };

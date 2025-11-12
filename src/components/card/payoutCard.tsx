@@ -13,12 +13,10 @@ export type PayoutItem = {
   dateTime?: string;
   amount: number | string;
   status: PayoutStatus;
-  // API response fields
   created_at?: string;
   amount_requested?: string | number;
   status_api?: string;
   bank_details?: any;
-  // New API response fields
   purpose?: string;
   createdAt?: string;
   transactionType?: string;
@@ -31,7 +29,6 @@ type Props = {
 };
 
 const PayoutCard: React.FC<Props> = ({ item }) => {
-  // Map API status to display status
   const mapApiStatusToDisplay = (apiStatus: string | undefined): PayoutStatus => {
     if (!apiStatus) return 'Pending';
     
@@ -43,7 +40,6 @@ const PayoutCard: React.FC<Props> = ({ item }) => {
     return 'Pending';
   };
 
-  // Format date to readable format
   const formatDate = (dateString: string | undefined): string => {
     if (!dateString) return 'N/A';
     
@@ -62,7 +58,6 @@ const PayoutCard: React.FC<Props> = ({ item }) => {
   };
 
 
-  // Get display values from API data or fallback to static data
   const displayAmount = item.amount || item.amount_requested;
   const displayDate = formatDate(item.createdAt || item.created_at);
   const displayStatus = mapApiStatusToDisplay(item.status);

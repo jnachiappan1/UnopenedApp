@@ -28,7 +28,6 @@ export default InfoRow;
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
-    // justifyContent: 'space-between',
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderTopWidth: 1,

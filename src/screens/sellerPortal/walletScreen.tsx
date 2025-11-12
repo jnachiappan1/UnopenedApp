@@ -11,8 +11,6 @@ import colors from '../../utils/colors';
 import {fontSizes} from '../../utils/utils';
 import fonts from '../../assets/fonts/fonts';
 import IconsSvg from '../../assets/svg/iconsSvg';
-
-import {pendingTranferData, transactions} from '../../utils/static';
 import TransactionCard, {
   TransactionType,
 } from '../../components/card/transactionCard';
@@ -50,7 +48,7 @@ const WalletScreen: React.FC<WalletScreenProps> = ({navigation}) => {
     queryKey: ['getWalletDetail', userData?.id],
     queryFn: () => getWalletDetail(),
     enabled: !!userData,
-    staleTime: 0, // Always consider data stale
+    staleTime: 0,
     refetchOnMount: true,
     refetchOnWindowFocus: true,
     retry: 3,
@@ -67,29 +65,22 @@ const WalletScreen: React.FC<WalletScreenProps> = ({navigation}) => {
     queryKey: ['getTransactionList', userData?.id],
     queryFn: () => getTransactionList(),
     enabled: !!userData,
-    staleTime: 0, // Always consider data stale
+    staleTime: 0,
     refetchOnMount: true,
     refetchOnWindowFocus: true,
     retry: 3,
     retryDelay: 1000,
   });
 
-  // Check if any API is currently fetching (following SHomeScreen pattern)
-  const isAnyApiFetching = userData
-    ? isWalletFetching || isTransactionFetching
-    : false;
-  const {data: sellerOwnProductList, refetch: refetchSalesProductList} =
-    useQuery({
-      queryKey: ['getSalesProductList'],
-      queryFn: () => getSalesProductList(),
-      enabled: !!userData,
-    });
+  const {data: sellerOwnProductList} = useQuery({
+    queryKey: ['getSalesProductList'],
+    queryFn: () => getSalesProductList(),
+    enabled: !!userData,
+  });
 
-  // Auto-focus API calls when screen loads
   useEffect(() => {
     showLoader(false);
     if (userData) {
-      // Use setTimeout to ensure the component is fully mounted
       setTimeout(() => {
         refetchWalletDetail();
         refetchTransactionData();
@@ -97,7 +88,6 @@ const WalletScreen: React.FC<WalletScreenProps> = ({navigation}) => {
     }
   }, [userData, refetchWalletDetail, refetchTransactionData]);
 
-  // Refresh data when screen comes into focus (following SHomeScreen pattern)
   useFocusEffect(
     useCallback(() => {
       if (userData) {
@@ -118,7 +108,6 @@ const WalletScreen: React.FC<WalletScreenProps> = ({navigation}) => {
     }, [userData, refetchWalletDetail, refetchTransactionData]),
   );
 
-  // Pull to refresh handler following SHomeScreen pattern
   const handleRefresh = useCallback(async () => {
     if (!userData) {
       setIsRefreshing(false);
@@ -138,19 +127,6 @@ const WalletScreen: React.FC<WalletScreenProps> = ({navigation}) => {
     }
   }, [userData, refetchWalletDetail, refetchTransactionData]);
 
-  // Force refresh function as fallback
-  const forceRefresh = useCallback(async () => {
-    try {
-      setIsRefreshing(true);
-      await Promise.all([getWalletDetail(), getTransactionList()]);
-    } catch (error) {
-      console.error('Force refresh fallback failed:', error);
-    } finally {
-      setIsRefreshing(false);
-    }
-  }, []);
-
-  // Calculate transaction summaries
   const getTransactionSummary = () => {
     if (!transactionData?.data?.transaction) return null;
 
@@ -183,7 +159,6 @@ const WalletScreen: React.FC<WalletScreenProps> = ({navigation}) => {
             acc.buyProductWallet += numWalletAmount;
             break;
           case 'wallet_buy_product_funds':
-            // For hybrid payments, add the total amount (Stripe + wallet)
             acc.buyProduct += numAmount + numWalletAmount;
             acc.buyProductWallet += numWalletAmount;
             break;
@@ -205,9 +180,6 @@ const WalletScreen: React.FC<WalletScreenProps> = ({navigation}) => {
     return summary;
   };
 
-  const transactionSummary = getTransactionSummary();
-
-  // Filter transactions based on selected tab
   const getFilteredTransactions = () => {
     if (!transactionData?.data?.transaction) return [];
 
@@ -232,7 +204,6 @@ const WalletScreen: React.FC<WalletScreenProps> = ({navigation}) => {
 
   const filteredTransactions = getFilteredTransactions();
 
-  // Show loading state when initially loading and no data exists
   if (
     (isTransactionLoading || isWalletFetching) &&
     !transactionData &&
@@ -280,7 +251,6 @@ const WalletScreen: React.FC<WalletScreenProps> = ({navigation}) => {
           <Text style={styles.title}>Transaction History</Text>
         </View>
 
-        {/* Tabs */}
         <View style={styles.tabsContainer}>
           {(['all', 'wallet'] as const).map(tab => (
             <TouchableOpacity

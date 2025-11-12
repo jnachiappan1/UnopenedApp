@@ -13,9 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
 import SearchBar from '../../components/card/searchBar';
-import TopPicksSection from '../../components/card/topPicksSection';
 import ProductSection from '../../components/card/productSection';
-import {products} from '../../utils/static';
 import fonts from '../../assets/fonts/fonts';
 import colors from '../../utils/colors';
 import IconsSvg from '../../assets/svg/iconsSvg';
@@ -51,7 +49,6 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
   } | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const userData = useSelector((user: IRootState) => user.user.userData);
-  const isLogged = userData ? true : false;
   const searchQueryRef = useRef(searchQuery);
   const insets = useSafeAreaInsets();
 
@@ -188,8 +185,6 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
       product => (product as any).product_status !== 'withdrawn',
     );
 
-    // Apply client-side filtering for search, categories, and price if not handled by API
-    // Note: API may already handle some filtering based on parameters sent
     if (selectedCategories.length > 0) {
       result = result.filter(product => {
         const productCategory =
@@ -406,11 +401,7 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
               />
             </View>
           )}
-          {/* <TopPicksSection
-          title="Trending Searches"
-          products={topPicks}
-          onViewAll={() => console.log('View All Top Picks')}
-        /> */}
+          
           <ProductSection
             title="Popular Products"
             products={getFilteredProducts()}

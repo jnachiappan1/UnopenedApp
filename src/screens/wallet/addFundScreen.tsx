@@ -9,7 +9,7 @@ import fonts from '../../assets/fonts/fonts';
 import Button from '../../components/button/buttons';
 import Input from '../../components/input/input';
 import {useForm} from 'react-hook-form';
-import {paymentOptions, quickAmounts} from '../../utils/static';
+import { quickAmounts} from '../../utils/static';
 import PaymentMethodOption from '../../components/card/paymentMethodOption';
 import {useMutation} from '@tanstack/react-query';
 import {makePayment} from '../../utils/apiAction';
@@ -34,10 +34,7 @@ const AddFundScreen: React.FC<AddFundScreenProps> = ({navigation}) => {
   const {initPaymentSheet, presentPaymentSheet} = useStripe();
   const userData = useSelector((user: IRootState) => user.user.userData);
 
-  const defaultValues = {
-    amount: '',
-  };
-
+  
   const {
     control,
     formState: {errors},
@@ -52,7 +49,6 @@ const AddFundScreen: React.FC<AddFundScreenProps> = ({navigation}) => {
     setValue('amount', value.toString());
   };
 
-  // Add Stripe payment mutation
   const {mutate: addFundsMutation} = useMutation({
     mutationFn: (data: {amount: string}) =>
       makePayment('add_funds', {amount: data.amount}),
@@ -86,7 +82,6 @@ const AddFundScreen: React.FC<AddFundScreenProps> = ({navigation}) => {
       const {clientSecret, ephemeralKey, customer, paymentIntentId} =
         paymentResponse.data;
 
-      // Validate Stripe credentials
       if (!clientSecret || !ephemeralKey || !customer) {
         showLoader(false);
         showAlert({
@@ -99,7 +94,6 @@ const AddFundScreen: React.FC<AddFundScreenProps> = ({navigation}) => {
         return;
       }
 
-      // Initialize Stripe payment sheet
       const {error} = await initPaymentSheet({
         merchantDisplayName: 'Unopened Mobile',
         customerId: customer,
@@ -123,7 +117,6 @@ const AddFundScreen: React.FC<AddFundScreenProps> = ({navigation}) => {
         return;
       }
 
-      // Present Stripe payment sheet
       const {error: presentError} = await presentPaymentSheet();
 
       if (presentError) {
@@ -135,7 +128,6 @@ const AddFundScreen: React.FC<AddFundScreenProps> = ({navigation}) => {
           description: `Payment failed: ${presentError.message}`,
         });
       } else {
-        // Payment successful
         showLoader(false);
         showAlert({
           isVisible: true,
@@ -175,14 +167,11 @@ const AddFundScreen: React.FC<AddFundScreenProps> = ({navigation}) => {
       showLoader(true);
       addFundsMutation({amount: data.amount});
     } else {
-      // Handle other payment methods here
       Alert.alert('Payment method not implemented yet.');
     }
   };
 
-  // Add Stripe to payment options with proper typing
   const enhancedPaymentOptions = [
-    // ...paymentOptions.map(option => ({ ...option, id: option.title.toLowerCase().replace(/\s+/g, '_') })),
     {
       title: 'Stripe',
       icon: 'securePayment' as const,

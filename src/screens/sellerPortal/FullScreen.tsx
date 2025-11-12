@@ -5,7 +5,6 @@ import {
   Platform,
   Dimensions,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
   ActivityIndicator,
   TouchableWithoutFeedback,
@@ -15,7 +14,6 @@ import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import Slider from '@react-native-community/slider';
 import Orientation from 'react-native-orientation-locker';
 import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
-import {height, width} from '../../utils/utils';
 import colors from '../../utils/colors';
 import IconsSvg from '../../assets/svg/iconsSvg';
 
@@ -36,11 +34,8 @@ const FullScreen: React.FC<ScreenProps> = ({navigation, route}) => {
   const [isShowControl, setIsShowControl] = useState(false);
   const videoRef = useRef<any>(null);
 
-  // Get screen dimensions
   const screenData = Dimensions.get('screen');
-  const windowData = Dimensions.get('window');
 
-  // For landscape full screen, use the larger dimension as width
   const screenWidth = Math.max(screenData.width, screenData.height);
   const screenHeight = Math.min(screenData.width, screenData.height);
 
@@ -84,6 +79,7 @@ const FullScreen: React.FC<ScreenProps> = ({navigation, route}) => {
 
   const formatTime = (time: number) => {
     const hrs = Math.floor(time / 3600);
+
     const mins = Math.floor((time % 3600) / 60);
     const secs = Math.floor(time % 60);
     if (hrs > 0) {
@@ -99,7 +95,6 @@ const FullScreen: React.FC<ScreenProps> = ({navigation, route}) => {
     Orientation.lockToLandscape();
 
     return () => {
-      // Cleanup: unlock orientation when component unmounts
       Orientation.unlockAllOrientations();
     };
   }, []);
@@ -131,8 +126,7 @@ const FullScreen: React.FC<ScreenProps> = ({navigation, route}) => {
             onBuffer={() => {
               setLoading(false);
             }}
-            onError={data => {
-            }}
+            onError={data => {}}
           />
           {loading && (
             <View style={styles.controls}>
@@ -146,7 +140,6 @@ const FullScreen: React.FC<ScreenProps> = ({navigation, route}) => {
           <View style={styles.controls}>
             {isShowControl && (
               <View style={styles.controlView}>
-                {/* Top Controls */}
                 <View
                   style={{
                     flexDirection: 'row',
@@ -172,7 +165,6 @@ const FullScreen: React.FC<ScreenProps> = ({navigation, route}) => {
                   </TouchableOpacity>
                 </View>
 
-                {/* Center Play/Pause Button */}
                 <View style={styles.controlCenterView}>
                   <TouchableOpacity
                     onPress={togglePause}
@@ -184,7 +176,6 @@ const FullScreen: React.FC<ScreenProps> = ({navigation, route}) => {
                   </TouchableOpacity>
                 </View>
 
-                {/* Bottom Controls - Progress Bar */}
                 <View>
                   <View style={styles.progressBar}>
                     <Text style={styles.timeText}>

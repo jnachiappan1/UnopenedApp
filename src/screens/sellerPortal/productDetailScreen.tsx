@@ -6,9 +6,7 @@ import {
   NativeSyntheticEvent,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
-  Dimensions,
 } from 'react-native';
 import React, {useRef, useState} from 'react';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
@@ -22,7 +20,6 @@ import InfoRow from '../../components/card/infoRow';
 import Button from '../../components/button/buttons';
 import {useMutation, useQuery} from '@tanstack/react-query';
 import {
-  addProduct,
   getSellerProductByID,
   updateProductStatus,
 } from '../../utils/apiAction';
@@ -31,8 +28,6 @@ import {handleError, handleSettled} from '../../utils/method';
 import {showAlert} from '../../components/cAlert';
 import {image_url, base_url} from '../../utils/api';
 import {showLoader} from '../../components/loader/loader';
-import Video from 'react-native-video';
-import IconsSvg from '../../assets/svg/iconsSvg';
 import VideoPlayer from '../../components/videoPlayer/videoPlayer';
 
 type ProductDetailScreenProps = NativeStackScreenProps<
@@ -43,18 +38,11 @@ interface ProductImage {
   id: number;
   product_id: number;
   image: string;
-  type?: string; // Add type to distinguish between image and video
+  type?: string;
   createdAt: string;
   updatedAt: string;
 }
-const buildMediaUrl = (path: string): string => {
-  if (!path) return '';
-  if (/^https?:\/\//i.test(path)) return path;
-  if (path.startsWith('/')) {
-    return `${base_url}${path}`;
-  }
-  return `${image_url}${path}`;
-};
+
 const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
   navigation,
   route,
@@ -109,13 +97,10 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
     setCurrentIndex(index);
   };
 
-  // Helper function to check if media is video
   const isVideo = (mediaItem: ProductImage) => {
-    // Check if it's explicitly marked as video
     if (mediaItem.type && mediaItem.type.includes('video')) {
       return true;
     }
-    // Fallback: check file extension for common video formats
     if (mediaItem.image) {
       const videoExtensions = [
         '.mp4',
@@ -179,7 +164,6 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
           )}
         />
 
-        {/* Media Type Indicator */}
         {mediaList && mediaList.length > 0 && (
           <View style={styles.mediaIndicator}>
             <Text style={styles.mediaIndicatorText}>
@@ -191,10 +175,7 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
           </View>
         )}
 
-        {/* <Image
-          source={{ uri: productDetail?.data?.product[0]?.product_image?.[0]?.image }}
-          style={styles.productImage}
-          resizeMode='stretch' /> */}
+    
         <StatusBadge
           status={productDetail?.data?.product[0]?.product_status}
           statusStyle={styles.statusStyle}
@@ -249,12 +230,7 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
           )}
           showColon
         />
-        {/* <InfoRow title="Buyer Name" style={styles.containerStyle} subtitle="Jay" showColon />
-        <View style={styles.row}>
-          <Text style={styles.title}>{"Delivery Status"}</Text>
-          <Text style={styles.colon}>{': '}</Text>
-          <StatusBadge status={"Delivered"} statusStyle={{}} />
-        </View> */}
+        
       </View>
       {!['sold', 'withdrawn', 'rejected'].includes(
         productDetail?.data?.product?.[0]?.product_status,
@@ -338,7 +314,6 @@ const styles = StyleSheet.create({
   },
   withdrawButton: {
     backgroundColor: colors.primary,
-    // width: '100%',
     marginTop: 20,
     marginBottom: 20,
   },
@@ -387,7 +362,6 @@ const styles = StyleSheet.create({
   playButton: {
     position: 'absolute',
     top: '50%',
-    // left: '50%',
     transform: [{translateX: -25}, {translateY: -25}],
     width: 50,
     height: 50,
@@ -415,8 +389,6 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bold,
   },
   videoTouchArea: {
-    // flex: 1,
-    // position: 'relative',
   },
   videoPlayerContainer: {
     width: '100%',

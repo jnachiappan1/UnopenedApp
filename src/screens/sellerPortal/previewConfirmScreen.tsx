@@ -4,9 +4,7 @@ import {
   Text,
   View,
   ScrollView,
-  SafeAreaView,
   Image,
-  TouchableOpacity,
   Dimensions,
   FlatList,
   NativeSyntheticEvent,
@@ -19,11 +17,11 @@ import Button from '../../components/button/buttons';
 import colors from '../../utils/colors';
 import fonts from '../../assets/fonts/fonts';
 import {capitalizeFirstLetter, fontSizes} from '../../utils/utils';
-import { useMutation } from '@tanstack/react-query';
-import { addProduct } from '../../utils/apiAction';
-import { showAlert } from '../../components/cAlert';
-import { handleError, handleSettled } from '../../utils/method';
-import { showLoader } from '../../components/loader/loader';
+import {useMutation} from '@tanstack/react-query';
+import {addProduct} from '../../utils/apiAction';
+import {showAlert} from '../../components/cAlert';
+import {handleError, handleSettled} from '../../utils/method';
+import {showLoader} from '../../components/loader/loader';
 
 const {width} = Dimensions.get('window');
 
@@ -50,7 +48,7 @@ type PreviewProps = NativeStackScreenProps<
 };
 
 const PreviewConfirmScreen: React.FC<PreviewProps> = ({route, navigation}) => {
-  const { productData, formData } = route.params;
+  const {productData, formData} = route.params;
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef<FlatList<string>>(null);
 
@@ -58,7 +56,8 @@ const PreviewConfirmScreen: React.FC<PreviewProps> = ({route, navigation}) => {
     const index = Math.round(event.nativeEvent.contentOffset.x / (width - 32));
     setCurrentIndex(index);
   };
-  const { mutate } = useMutation({
+
+  const {mutate} = useMutation({
     mutationFn: (data: globalThis.FormData) => addProduct(data),
     onSuccess: data => {
       showLoader(false);
@@ -69,7 +68,6 @@ const PreviewConfirmScreen: React.FC<PreviewProps> = ({route, navigation}) => {
         description: 'Product added successfully',
         doneText: 'Okay',
         onDonePress: () => {
-       
           navigation.navigate(SCREENS.BottomTab);
         },
       });
@@ -77,13 +75,13 @@ const PreviewConfirmScreen: React.FC<PreviewProps> = ({route, navigation}) => {
     onError: handleError,
     onSettled: handleSettled,
   });
+
   const handleSubmitForReview = () => {
     if (!formData) {
-      // Alert.alert('Error', 'Form data is missing');
       return;
     }
     showLoader(true);
-    mutate(formData); // this will call the API with FormData
+    mutate(formData);
   };
 
   const renderDetailRow = (label: string, value: string, isPrice?: boolean) => (

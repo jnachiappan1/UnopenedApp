@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  View,
   Text,
   StyleSheet,
   TouchableOpacity,
@@ -29,26 +28,21 @@ const CategoryList: React.FC<CategoryListProps> = ({
 }) => {
   
   const handleCategoryPress = (item: CategoryItem) => {
-    // If the clicked item is already selected, deselect it
     if (item.id === selectedCategoryId) {
       onSelectCategory(null, null);
     } else {
-      // Otherwise, select the new item
       onSelectCategory(item.id, item.name);
     }
   };
 
-  // Show only first 5 categories and add "See More" as the last item
   const displayedCategories = categories.slice(0, 5);
   const hasMoreCategories = categories.length > 5;
 
-  // Create the data array with categories and "See More" button
   const listData = hasMoreCategories 
     ? [...displayedCategories, { id: -999, name: 'See More' }]
     : displayedCategories;
 
   const renderItem = ({ item }: { item: CategoryItem }) => {
-    // Check if this is the "See More" item
     if (item.id === -999) {
       return (
         <TouchableOpacity

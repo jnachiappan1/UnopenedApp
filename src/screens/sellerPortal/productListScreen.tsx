@@ -2,7 +2,6 @@ import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native
 import React, { useCallback, useState } from 'react'
 import { FlashList } from '@shopify/flash-list'
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer'
-import { productData } from '../../utils/static';
 import ProductListingCard from '../../components/card/productListingCard';
 import colors from '../../utils/colors';
 import { fontSizes } from '../../utils/utils';
@@ -23,7 +22,7 @@ type ProductListScreenProps = NativeStackScreenProps<RootStackParamList, SCREENS
 const ProductListScreen: React.FC<ProductListScreenProps> = ({ navigation }) => {
   const [selectedTab, setSelectedTab] = useState('All');
   const userData = useSelector((user: IRootState) => user.user.userData);
-  const { data: sellerOwnProductList, refetch: refetchsellerOwnProductList,isLoading } = useQuery({
+  const { data: sellerOwnProductList, refetch: refetchsellerOwnProductList, } = useQuery({
     queryKey: ['getSellerOwnProductList'],
     queryFn: () => getSellerOwnProductList(),
     enabled: !!userData, 

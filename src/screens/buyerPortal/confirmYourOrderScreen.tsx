@@ -37,7 +37,6 @@ import {useForm} from 'react-hook-form';
 import ApplyOfferInput from '../../components/input/applyOfferInput';
 import {useFocusEffect} from '@react-navigation/native';
 
-
 type LoginProps = NativeStackScreenProps<
   RootStackParamList,
   SCREENS.ConfirmYourOrderScreen
@@ -67,14 +66,11 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
   const {
     control,
     formState: {errors},
-    handleSubmit,
-    watch,
   } = useForm({
     defaultValues: {
       discount_code: '',
     },
   });
-
 
   const [appliedDiscountCode, setAppliedDiscountCode] = useState<string>('');
 
@@ -86,52 +82,47 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
   const [lastAddressId, setLastAddressId] = useState<number | null>(null);
   const hasCalledInitialShipping = useRef(false);
 
-  // Shipping API mutation
-  const {mutate: createShippingMutation, isPending: isShippingPending} =
-    useMutation({
-      mutationFn: createShipping,
-      onSuccess: async response => {
-        setShippingApiCalled(true);
-        setIsShippingRatesLoading(false); // No need for loading state since we're using direct response
-        // Use shipping rates directly from the shipping response (no need for separate API call)
-        const resData = (response as any)?.data ?? response;
+  const {mutate: createShippingMutation} = useMutation({
+    mutationFn: createShipping,
+    onSuccess: async response => {
+      setShippingApiCalled(true);
+      setIsShippingRatesLoading(false);
+      const resData = (response as any)?.data ?? response;
 
-        if (resData?.success && resData?.shipment?.rates) {
-          setShippingID(resData.shipment.id);
-          const shippingRates = resData.shipment.rates;
+      if (resData?.success && resData?.shipment?.rates) {
+        setShippingID(resData.shipment.id);
+        const shippingRates = resData.shipment.rates;
 
-          if (Array.isArray(shippingRates) && shippingRates.length > 0) {
-            // First, try to find USPS Priority service
-            const uspsPriorityRate = shippingRates.find(
-              (rate: any) =>
-                rate.carrier === 'USPS' &&
-                rate.service?.trim().toLowerCase() === 'GroundAdvantage',
+        if (Array.isArray(shippingRates) && shippingRates.length > 0) {
+          const uspsPriorityRate = shippingRates.find(
+            (rate: any) =>
+              rate.carrier === 'USPS' &&
+              rate.service?.trim().toLowerCase() === 'GroundAdvantage',
+          );
+
+          if (uspsPriorityRate) {
+            setPriorityShippingRate(uspsPriorityRate);
+            setSelectedShippingRate(uspsPriorityRate);
+          } else {
+            const priorityRate = shippingRates.find(
+              (rate: any) => rate.service === 'GroundAdvantage',
             );
-
-            if (uspsPriorityRate) {
-              setPriorityShippingRate(uspsPriorityRate);
-              setSelectedShippingRate(uspsPriorityRate);
+            if (priorityRate) {
+              setPriorityShippingRate(priorityRate);
+              setSelectedShippingRate(priorityRate);
             } else {
-              // Fallback: try to find any Priority service
-              const priorityRate = shippingRates.find(
-                (rate: any) => rate.service === 'GroundAdvantage',
-              );
-              if (priorityRate) {
-                setPriorityShippingRate(priorityRate);
-                setSelectedShippingRate(priorityRate);
-              } else {
-                const firstRate = shippingRates[0];
-                setSelectedShippingRate(firstRate);
-                setPriorityShippingRate(firstRate);
-              }
+              const firstRate = shippingRates[0];
+              setSelectedShippingRate(firstRate);
+              setPriorityShippingRate(firstRate);
             }
           }
         }
-      },
-      onError: (error: any) => {
-        setShippingApiCalled(false);
-      },
-    });
+      }
+    },
+    onError: (error: any) => {
+      setShippingApiCalled(false);
+    },
+  });
   const callShippingAPI = (addressId: number) => {
     if (!productId) {
       return;
@@ -155,11 +146,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
     setShippingApiCalled(false);
     createShippingMutation(shippingPayload);
   };
-  const resetShippingStatus = () => {
-    setShippingApiCalled(false);
-    setLastAddressId(null);
-    setIsShippingRatesLoading(false);
-  };
+
   const handleDiscountCodeApply = async (code: string) => {
     try {
       const subtotal = getSubtotal();
@@ -179,9 +166,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
         coupon_code: code,
         purchase_amount: subtotal,
       };
-      // Make API call to validate coupon
       const response = await validateCoupon(couponPayload);
-      // Access the response data properly from axios response
       const responseData = response;
 
       if (responseData?.data?.is_valid && responseData?.data?.is_available) {
@@ -189,9 +174,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
         const discountAmountValue = parseFloat(couponData.discount_amount);
         const minimumPurchase = couponData.minimum_purchase_amount;
 
-        // Store the discount amount for payment calculations
         setDiscountAmount(discountAmountValue);
-        // Store the applied discount code for payment success flow
         setAppliedDiscountCode(code);
 
         showAlert({
@@ -200,12 +183,9 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
           title: 'Coupon Applied Successfully!',
           description: `Coupon "${couponData.title}" applied! You get $${discountAmountValue} off on minimum purchase of $${minimumPurchase}`,
           doneText: 'Okay',
-          onDonePress: () => {
-            // Do nothing - just close the modal
-          },
+          onDonePress: () => {},
         });
       } else {
-        // Check specific validation failures
         if (responseData?.data?.is_valid === false) {
           showAlert({
             isVisible: true,
@@ -243,48 +223,29 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
     }
   };
 
-  const {data: allProductList, refetch: refetchAllProduct} = useQuery({
+  const {data: allProductList} = useQuery({
     queryKey: ['getProductDetailByID', productId],
     queryFn: () => getProductDetailByID(productId),
   });
 
-  const {
-    data: walletData,
-    refetch: refetchWalletDetail,
-    isLoading: isWalletLoading,
-  } = useQuery({
+  const {data: walletData, isLoading: isWalletLoading} = useQuery({
     queryKey: ['getWalletDetail'],
     queryFn: () => getWalletDetail(),
     enabled: !!userData,
   });
 
-  const {data: addressesData, refetch: refetchAddresses} = useQuery({
+  const {data: addressesData} = useQuery({
     queryKey: ['getAddresses'],
     queryFn: getAddresses,
     enabled: !!userData,
   });
 
-  // Helper function to check if wallet payment should be disabled
   const isWalletPaymentDisabled = () => {
     const walletBalance = getSafeNumber(walletData?.data?.wallet?.amount);
     const productPrice = getSafeNumber(allProductList?.data?.product[0]?.price);
 
-    // Disable if wallet balance is 0, negative, or product price is 0/negative
     return walletBalance <= 0 || productPrice <= 0 || isWalletLoading;
   };
-
-  // Set default address from API data
-  // useEffect(() => {
-  //   if (addressesData?.data?.address && addressesData.data.address.length > 0) {
-  //     const firstAddress = addressesData.data.address[0];
-  //     console.log("setSelectedAddress--->>", firstAddress);
-
-  //     setDefaultAddress(firstAddress);
-  //     if (!selectedAddress && !isAddressChanged) {
-  //       setSelectedAddress(firstAddress);
-  //     }
-  //   }
-  // }, [addressesData, selectedAddress, isAddressChanged]);
 
   useFocusEffect(
     useCallback(() => {
@@ -301,7 +262,6 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
       }
     }, [addressesData, selectedAddress, isAddressChanged]),
   );
-  // Auto-switch to Stripe if wallet becomes disabled
   useEffect(() => {
     if (isWalletPaymentDisabled() && paymentMethod === 'wallet') {
       setPaymentMethod('stripe');
@@ -322,7 +282,6 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
     }
   }, [addressesData, defaultAddress]);
 
-  // Monitor priorityShippingRate changes
   useEffect(() => {}, [
     priorityShippingRate,
     selectedShippingRate,
@@ -330,7 +289,6 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
     isShippingRatesLoading,
   ]);
 
-  // Debug shipping display state
   useEffect(() => {}, [
     selectedShippingRate,
     isShippingRatesLoading,
@@ -371,7 +329,6 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
         return;
       }
 
-      // Check if shipping rate is selected
       if (!selectedShippingRate) {
         showAlert({
           isVisible: true,
@@ -382,7 +339,6 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
         return;
       }
 
-      // Validate shipping rate has required properties
       if (!selectedShippingRate.id || !selectedShippingRate.rate) {
         showAlert({
           isVisible: true,
@@ -405,7 +361,6 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
         return;
       }
 
-      // Check if wallet payment is disabled and user selected wallet
       if (paymentMethod === 'wallet' && isWalletPaymentDisabled()) {
         showAlert({
           isVisible: true,
@@ -417,10 +372,6 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
         return;
       }
 
-      const paymentPayload = {
-        amount: productPrice.toString(),
-        address_id: addressId,
-      };
       if (paymentMethod === 'wallet') {
         const currentWalletBalance = getSafeNumber(
           walletData?.data?.wallet?.amount,
@@ -741,7 +692,6 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
           });
         } else {
           showLoader(false);
-          // Apply coupon after successful Stripe payment
           try {
             await applyCouponAfterPayment();
           } catch (error) {}
@@ -786,7 +736,6 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
     try {
       setModalVisible(false);
 
-      // Navigate after payment success
       if (navigation && navigation.navigate) {
         navigation.navigate(SCREENS.OrderTrackScreen, {
           productId: productId,
@@ -816,30 +765,12 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
         setPriorityShippingRate(null);
         hasCalledInitialShipping.current = false;
 
-        // Automatically fetch new shipping rates for the new address
         if (address?.id && productId) {
           callShippingAPI(address.id);
         }
       },
       selectedAddressId: getCurrentAddressId() ?? null,
     });
-  };
-
-  const resetToDefaultAddress = () => {
-    if (defaultAddress) {
-      setSelectedAddress(defaultAddress);
-      setIsAddressChanged(false);
-      setShippingApiCalled(false);
-      setLastAddressId(null);
-      setSelectedShippingRate(null);
-      setPriorityShippingRate(null);
-      hasCalledInitialShipping.current = false;
-
-      // Automatically fetch new shipping rates for the default address
-      if (defaultAddress?.id && productId) {
-        callShippingAPI(defaultAddress.id);
-      }
-    }
   };
 
   const getCurrentAddress = () => {
@@ -867,7 +798,6 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
     return isNaN(num) ? defaultValue : num;
   };
 
-  // Calculate subtotal (product price + shipping)
   const getSubtotal = (): number => {
     const productPrice = getSafeNumber(allProductList?.data?.product[0]?.price);
     const shippingCost = selectedShippingRate
@@ -876,13 +806,11 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
     return productPrice + shippingCost;
   };
 
-  // Calculate final amount after applying discount and shipping
   const getFinalAmount = (): number => {
     const subtotal = getSubtotal();
     return Math.max(0, subtotal - discountAmount);
   };
 
-  // Get discount display text
   const getDiscountDisplay = (): string => {
     if (discountAmount > 0) {
       return `-$${discountAmount.toFixed(2)}`;
@@ -890,18 +818,11 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
     return '';
   };
 
-  // Clear discount amount
   const clearDiscount = () => {
     setDiscountAmount(0);
     setAppliedDiscountCode('');
   };
 
-  // Helper function to generate shipment ID
-  const generateShipmentId = (): string => {
-    return 'shp_' + Math.random().toString(36).substr(2, 15);
-  };
-
-  // Apply coupon after successful payment
   const applyCouponAfterPayment = async () => {
     if (appliedDiscountCode && discountAmount > 0) {
       try {
@@ -1012,7 +933,6 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
     }
     return 'Estimate unavailable';
   };
-  
 
   return (
     <TitleBackHeaderContainer title="Confirm Your Order" isBack>

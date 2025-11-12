@@ -1,5 +1,5 @@
-import {FlatList, StyleSheet, Text, View, TouchableOpacity} from 'react-native';
-import React, {useState, useEffect} from 'react';
+import {FlatList, StyleSheet, Text, View} from 'react-native';
+import React, {useState} from 'react';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
 import {fontSizes} from '../../utils/utils';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
@@ -36,7 +36,6 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
   const [paymentError, setPaymentError] = useState(false);
   const [useBankDetails, setUseBankDetails] = useState<boolean>(false);
 
-  // Fetch bank account details
   const {
     data: bankAccountData,
     isLoading: isLoadingBankDetails,
@@ -46,8 +45,6 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
     queryFn: getBankAccount,
   });
 
-
-  // Fetch cash out history
   const {
     data: cashOutHistoryData,
     isLoading: isLoadingHistory,
@@ -64,17 +61,6 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
     queryKey: ['cashOutRequest'],
     queryFn: getCashOutRequest,
   });
-  // Show loader while fetching bank details
-  // useEffect(() => {
-  //   if (isLoadingBankDetails) {
-  //     showLoader(true);
-  //   } else {
-  //     showLoader(false);
-  //   }
-  // }, [isLoadingBankDetails]);
-
-  // Do not auto-select bank account usage by default even if details exist
-  // Users must explicitly opt in by toggling the option
 
   const {
     control,
@@ -84,7 +70,6 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
     getValues,
   } = useForm<any>();
 
-  // Cash out mutation
   const {mutate: cashOutMutation, isPending: isCashOutPending} = useMutation({
     mutationFn: createCashOut,
     onSuccess: data => {
@@ -96,7 +81,6 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
         description: 'Cash out request submitted successfully',
         doneText: 'Okay',
         onDonePress: () => {
-          // Refresh bank details and payout history
           refetchBankDetails();
           refetchHistory();
           refetchRequest();
@@ -132,22 +116,13 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
     });
 
   const onSubmit = (data: any) => {
-    // if (!bankAccountData?.data?.bankDetails) {
-    //   showAlert({
-    //     isVisible: true,
-    //     type: 'error',
-    //     title: 'Error!',
-    //     description: 'Please add bank details before proceeding with cash out.',
-    //     doneText: 'Okay',
-    //   });
-    //   return;
-    // }
     if (bankAccountData?.data?.verified === null) {
       showAlert({
         isVisible: true,
         type: 'error',
         title: 'Error!',
-        description: 'Your bank details are under verification once approved you will be able to cash out',
+        description:
+          'Your bank details are under verification once approved you will be able to cash out',
         doneText: 'Okay',
       });
       return;
@@ -166,7 +141,6 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
 
     const amountValue = parseFloat(data.amount);
 
-    // If using bank details, submit directly to bank cash out endpoint
     if (useBankDetails && bankAccountData?.data?.bankDetails) {
       bankCashOutMutation({amount: amountValue.toString()});
       return;
@@ -178,15 +152,10 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
     }
 
     setPaymentError(false);
-    // showLoader(true);
-
-    // Build payload based on selected payment method and call createCashOut API
     const selectedMethod = paymentMethods.find(m => m.id === selectedId);
     const isVenmo =
       selectedMethod?.icon === 'venmo' ||
       selectedMethod?.title?.toLowerCase() === 'venmo';
-
-    // Validate handle based on selected method
     const venmoHandle: string | undefined = getValues('venmo');
     const cashAppHandle: string | undefined = getValues('cash_app');
 
@@ -225,7 +194,6 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
           cash_app: cashAppHandle,
           amount: amountValue,
         };
-
 
     cashOutMutation(payload);
   };
@@ -366,31 +334,11 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
               ? 'Processing...'
               : 'Cash Out'
           }
-          style={[
-            styles.cashOutButton,
-            // (!bankAccountData?.data?.bankDetails || isCashOutPending) &&
-            //   styles.disabledButton,
-          ]}
-     
-          textStyle={[
-            styles.cashOutButtonText,
-            // (!bankAccountData?.data?.bankDetails || isCashOutPending) &&
-            //   styles.disabledButtonText,
-          ]}
-          // onPress={
-          //   bankAccountData?.data?.bankDetails && !isCashOutPending
-          //     ? handleSubmit(onSubmit)
-          //     : undefined
-          // }
+          style={[styles.cashOutButton]}
+          textStyle={[styles.cashOutButtonText]}
           onPress={handleSubmit(onSubmit)}
-          // disabled={!bankAccountData?.data?.bankDetails || isCashOutPending}
         />
 
-        {/* {!bankAccountData?.data?.bankDetails && (
-          <Text style={styles.helpText}>
-            Please add bank details to enable cash out
-          </Text>
-        )} */}
         <Text style={styles.deductionText}>
           {'2.9 % Of amount will be deducted while cash out '}
         </Text>
@@ -400,18 +348,6 @@ const CashOutScreen: React.FC<CashOutScreenProps> = ({navigation}) => {
           </Text>
         )}
       </View>
-      {/* <View style={styles.container}>
-        {bankAccountData?.data?.bankDetails ? (
-          <BankDetailsCard bankDetails={bankAccountData.data.bankDetails} />
-        ) : (
-          <Button
-            title="Add Bank details"
-            style={styles.addBankDetailsButton}
-            textStyle={styles.addBankDetailsText}
-            onPress={() => navigation.navigate(SCREENS.AddBankDetailsScreen)}
-          />
-        )}
-      </View> */}
 
       <Text style={styles.heading}>Payout History</Text>
       {isLoadingHistory ? (

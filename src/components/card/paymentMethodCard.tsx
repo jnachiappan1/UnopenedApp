@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import {View, Text, StyleSheet, Image, TouchableOpacity} from 'react-native';
 import fonts from '../../assets/fonts/fonts';
-import { fontSizes } from '../../utils/utils';
-import IconsSvg, { IconName } from '../../assets/svg/iconsSvg';
+import {fontSizes} from '../../utils/utils';
+import IconsSvg, {IconName} from '../../assets/svg/iconsSvg';
 import colors from '../../utils/colors';
 
 export type PaymentMethodType = {
@@ -23,32 +23,26 @@ const PaymentMethodCard: React.FC<PaymentMethodCardProps> = ({
   selected,
   onPress,
 }) => {
-
   return (
-    <TouchableOpacity 
-      style={[
-        styles.card,
-        selected && styles.selectedCard
-      ]} 
+    <TouchableOpacity
+      style={[styles.card, selected && styles.selectedCard]}
       onPress={() => {
         onPress(item);
-      }} 
-      activeOpacity={0.8}
-    >
+      }}
+      activeOpacity={0.8}>
       <View style={styles.left}>
         <View style={styles.iconContainer}>
           <IconsSvg name={item.icon} />
         </View>
         <View>
           <Text style={styles.title}>{item.title}</Text>
-          {item.subtitle ? <Text style={styles.subtitle}>{item.subtitle}</Text> : null}
+          {item.subtitle ? (
+            <Text style={styles.subtitle}>{item.subtitle}</Text>
+          ) : null}
         </View>
       </View>
 
-      <View style={[
-        styles.radio,
-        selected && styles.radioSelected // Apply selected radio style
-      ]}>
+      <View style={[styles.radio, selected && styles.radioSelected]}>
         {selected && <View style={styles.innerDot} />}
       </View>
     </TouchableOpacity>
@@ -72,8 +66,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   selectedCard: {
-    borderColor: colors.primary, // Change border color when selected
-    backgroundColor: colors.primary + '10', // Add subtle background tint (10% opacity)
+    borderColor: colors.primary,
+    backgroundColor: colors.primary + '10',
   },
   left: {
     flexDirection: 'row',
@@ -116,7 +110,7 @@ const styles = StyleSheet.create({
   },
   radioSelected: {
     borderColor: colors.primary,
-    backgroundColor: colors.white, 
+    backgroundColor: colors.white,
   },
   innerDot: {
     width: 10,

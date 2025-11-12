@@ -1,42 +1,36 @@
 import React from 'react';
-import {
-  StyleSheet,
-  ScrollView,
-  View,
-  Text,
-  TouchableOpacity,
-  FlatList,
-} from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
+import {StyleSheet, View, Text, TouchableOpacity, FlatList} from 'react-native';
+import {useFocusEffect} from '@react-navigation/native';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
 import colors from '../../utils/colors';
-import { fontSizes } from '../../utils/utils';
+import {fontSizes} from '../../utils/utils';
 import fonts from '../../assets/fonts/fonts';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getAddresses } from '../../utils/apiAction';
-import { AddressType, IUser } from '../../utils/types';
-import { showLoader } from '../../components/loader/loader';
-import { showAlert } from '../../components/cAlert';
-import IconsSvg from '../../assets/svg/iconsSvg';
-import { useSelector } from 'react-redux';
-import { IRootState } from '../../redux/store';
+import {useQuery, useQueryClient} from '@tanstack/react-query';
+import {getAddresses} from '../../utils/apiAction';
+import {AddressType} from '../../utils/types';
+import {showAlert} from '../../components/cAlert';
+import {useSelector} from 'react-redux';
+import {IRootState} from '../../redux/store';
 
 type AddressSelectionScreenProps = NativeStackScreenProps<
   RootStackParamList,
   SCREENS.AddressSelectionScreen
 >;
 
-const AddressSelectionScreen: React.FC<AddressSelectionScreenProps> = ({ 
-  navigation, 
-  route 
+const AddressSelectionScreen: React.FC<AddressSelectionScreenProps> = ({
+  navigation,
+  route,
 }) => {
-  const { onAddressSelect, selectedAddressId } = route.params;
-  const queryClient = useQueryClient();
-  const userData = useSelector((user: IRootState) => user.user.userData);
+  const {onAddressSelect, selectedAddressId} = route.params;
 
-  const { data: addressesData, isLoading, refetch, error } = useQuery({
+  const {
+    data: addressesData,
+    isLoading,
+    refetch,
+    error,
+  } = useQuery({
     queryKey: ['getAddresses'],
     queryFn: getAddresses,
   });
@@ -52,16 +46,14 @@ const AddressSelectionScreen: React.FC<AddressSelectionScreenProps> = ({
     }
   }, [error]);
 
-  // Refresh addresses when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
       refetch();
-    }, [refetch])
+    }, [refetch]),
   );
 
   const addresses = addressesData?.data?.address || [];
 
-  // Set first address as default if available
   const allAddresses = React.useMemo(() => {
     if (addresses && addresses.length > 0) {
       const addressesWithDefault = addresses.map((address: AddressType) => ({
@@ -82,17 +74,20 @@ const AddressSelectionScreen: React.FC<AddressSelectionScreenProps> = ({
     navigation.navigate(SCREENS.AddAddressScreen);
   };
 
-  const renderAddressItem = ({ item }: { item: AddressType & { isDefault?: boolean } }) => {
+  const renderAddressItem = ({
+    item,
+  }: {
+    item: AddressType & {isDefault?: boolean};
+  }) => {
     const isDefaultAddress = item.isDefault;
-    
+
     return (
       <TouchableOpacity
         style={[
           styles.addressCard,
-          isDefaultAddress && styles.defaultAddressCard
+          isDefaultAddress && styles.defaultAddressCard,
         ]}
-        onPress={() => handleAddressSelect(item)}
-      >
+        onPress={() => handleAddressSelect(item)}>
         <View style={styles.addressHeader}>
           <Text style={styles.addressName}>{item.full_name}</Text>
           <View style={styles.addressHeaderRight}>
@@ -108,7 +103,8 @@ const AddressSelectionScreen: React.FC<AddressSelectionScreenProps> = ({
         </View>
         <Text style={styles.addressText}>{item.address}</Text>
         <Text style={styles.addressLocation}>
-          {item.city}, {item.state}, {item.country}{item.pincode ? ` - ${item.pincode}` : ''}
+          {item.city}, {item.state}, {item.country}
+          {item.pincode ? ` - ${item.pincode}` : ''}
         </Text>
       </TouchableOpacity>
     );
@@ -118,7 +114,8 @@ const AddressSelectionScreen: React.FC<AddressSelectionScreenProps> = ({
     <View style={styles.emptyContainer}>
       <Text style={styles.emptyTitle}>No Addresses Found</Text>
       <Text style={styles.emptySubtitle}>
-        You haven't added any addresses yet. Add your first address to get started.
+        You haven't added any addresses yet. Add your first address to get
+        started.
       </Text>
     </View>
   );
@@ -135,17 +132,16 @@ const AddressSelectionScreen: React.FC<AddressSelectionScreenProps> = ({
             <FlatList
               data={allAddresses}
               renderItem={renderAddressItem}
-              keyExtractor={(item) => item.id.toString()}
+              keyExtractor={item => item.id.toString()}
               showsVerticalScrollIndicator={false}
               contentContainerStyle={styles.listContainer}
               ListEmptyComponent={renderEmptyState}
             />
-            
+
             <View style={styles.addButtonContainer}>
               <TouchableOpacity
                 style={styles.addButton}
-                onPress={handleAddNewAddress}
-              >
+                onPress={handleAddNewAddress}>
                 <Text style={styles.addButtonText}>Add New Address</Text>
               </TouchableOpacity>
             </View>
@@ -278,4 +274,4 @@ const styles = StyleSheet.create({
     fontFamily: fonts.medium,
     color: colors.text3,
   },
-}); 
+});

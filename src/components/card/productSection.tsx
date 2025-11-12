@@ -5,13 +5,11 @@ import {
   Text,
   StyleSheet,
   Image,
-  Dimensions,
   TouchableOpacity,
   FlatList,
 } from 'react-native';
 import colors from '../../utils/colors';
 import fonts from '../../assets/fonts/fonts';
-import IMAGE from '../../assets/images';
 import {image_url} from '../../utils/api';
 import {ProductData} from '../../utils/types';
 import StatusBadge from './statusBadge';
@@ -109,7 +107,6 @@ export default ProductSection;
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 16,
-    // paddingTop: 20,
   },
   sectionHeader: {
     flexDirection: 'row',

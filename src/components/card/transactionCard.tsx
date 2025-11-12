@@ -111,7 +111,6 @@ const getTransactionDisplayInfo = (item: TransactionType) => {
         description: 'Product purchase transaction'
       };
     case 'wallet_buy_product_funds':
-      // Calculate total amount (Stripe + wallet) for hybrid payments
       const totalAmount = (Number(amount) + Number(wallet_amount)).toString();
       return {
         displayAmount: totalAmount,
@@ -169,12 +168,11 @@ const TransactionCard: React.FC<Props> = ({ item }) => {
     const total = Number(item?.amount) || 0;
     const walletAmt = Number(item?.wallet_amount) || 0;
     
-    // For wallet_buy_product_funds, amount is the Stripe amount, not total
     let externalAmt = 0;
     if (item?.payment_transaction_type === 'wallet_buy_product_funds') {
-      externalAmt = total; // amount field is the Stripe amount
+      externalAmt = total; 
     } else {
-      externalAmt = Math.max(total - walletAmt, 0); // For other types, calculate as before
+      externalAmt = Math.max(total - walletAmt, 0); 
     }
     
     const hasWallet = walletAmt > 0 || ['wallet_funds', 'add_funds'].includes(item?.payment_transaction_type);
@@ -187,7 +185,6 @@ const TransactionCard: React.FC<Props> = ({ item }) => {
 
   return (
     <View style={[styles.card, expanded && styles.cardExpanded]}>
-      {/* Main transaction row */}
       <View style={styles.mainRow}>
         <View style={styles.left}>
           <View style={styles.iconCircle}>
@@ -227,14 +224,12 @@ const TransactionCard: React.FC<Props> = ({ item }) => {
         </View>
       </View>
 
-      {/* Expanded payment breakdown */}
       {expanded && breakdown.shouldShow && (
         <View style={styles.breakdownContainer}>
           <View style={styles.breakdownHeader}>
             <Text style={styles.breakdownTitle}>Payment Breakdown</Text>
           </View>
           
-          {/* Wallet payment row */}
           {breakdown.walletAmt > 0 || ['wallet_funds', 'add_funds'].includes(item?.payment_transaction_type) ? (
             <View style={styles.breakdownRow}>
               <View style={styles.breakdownLeft}>
@@ -250,7 +245,6 @@ const TransactionCard: React.FC<Props> = ({ item }) => {
             </View>
           ) : null}
 
-          {/* External payment row */}
           {breakdown.externalAmt > 0 ? (
             <View style={styles.breakdownRow}>
               <View style={styles.breakdownLeft}>
@@ -289,7 +283,6 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.1,
     shadowRadius: 3.84,
-    // elevation: 5,
   },
   cardExpanded: {
     paddingBottom: 16,
@@ -398,7 +391,6 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.05,
     shadowRadius: 2,
-    // elevation: 2,
   },
   breakdownLeft: {
     flexDirection: 'row',

@@ -1,24 +1,20 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import React, { useState } from 'react';
+import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
+import React, {useState} from 'react';
 import fonts from '../../assets/fonts/fonts';
 import Input from '../../components/input/input';
-import { useForm } from 'react-hook-form';
-import Header from '../../components/headerContainer/header';
-import ImageBackgroundHeader from '../../components/headerContainer/imageBackgroundHeader';
-import IconsSvg from '../../assets/svg/iconsSvg';
+import {useForm} from 'react-hook-form';
 import colors from '../../utils/colors';
 import Button from '../../components/button/buttons';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
 import DatePiker from '../../components/datePicker/datePiker';
 import moment from 'moment';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
-import { useMutation } from '@tanstack/react-query';
-import { addBankAccount } from '../../utils/apiAction';
-import { handleError, handleSettled } from '../../utils/method';
-import { showAlert } from '../../components/cAlert';
-import { showLoader } from '../../components/loader/loader';
+import {useMutation} from '@tanstack/react-query';
+import {addBankAccount} from '../../utils/apiAction';
+import {handleError, handleSettled} from '../../utils/method';
+import {showAlert} from '../../components/cAlert';
+import {showLoader} from '../../components/loader/loader';
 
 type AddBankDetailsProps = NativeStackScreenProps<
   RootStackParamList,
@@ -45,7 +41,7 @@ export type BankDetailsForm = {
   account_number: string;
 };
 
-const AddBankDetailsScreen: React.FC<AddBankDetailsProps> = ({ navigation }) => {
+const AddBankDetailsScreen: React.FC<AddBankDetailsProps> = ({navigation}) => {
   const [dateModalVisible, setDateModalVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState('');
 
@@ -71,17 +67,16 @@ const AddBankDetailsScreen: React.FC<AddBankDetailsProps> = ({ navigation }) => 
 
   const {
     control,
-    formState: { errors },
+    formState: {errors},
     handleSubmit,
     setValue,
     watch,
     trigger,
-  } = useForm<BankDetailsForm>({ 
+  } = useForm<BankDetailsForm>({
     defaultValues,
-    mode: 'onChange'
+    mode: 'onChange',
   });
 
-  // Custom validation for dob field
   const validateDob = (value: any) => {
     if (!value || !value.day || !value.month || !value.year) {
       return 'Date of birth is required';
@@ -89,9 +84,9 @@ const AddBankDetailsScreen: React.FC<AddBankDetailsProps> = ({ navigation }) => 
     return true;
   };
 
-  const { mutate } = useMutation({
+  const {mutate} = useMutation({
     mutationFn: addBankAccount,
-    onSuccess: (data) => {
+    onSuccess: data => {
       showLoader(false);
       showAlert({
         isVisible: true,
@@ -115,7 +110,6 @@ const AddBankDetailsScreen: React.FC<AddBankDetailsProps> = ({ navigation }) => 
     setValue('dob.month', date.format('MM'));
     setValue('dob.year', date.format('YYYY'));
     setDateModalVisible(false);
-    // Trigger validation for the dob field
     trigger('dob');
   };
 
@@ -124,44 +118,36 @@ const AddBankDetailsScreen: React.FC<AddBankDetailsProps> = ({ navigation }) => 
     mutate(data);
   };
 
-  const formatDisplayDate = () => {
-    if (selectedDate) {
-      return moment(selectedDate).format('MM/DD/YYYY');
-    }
-    return 'Select Date of Birth';
-  };
-
   return (
     <TitleBackHeaderContainer isBack title="Add Bank Details">
-        <View style={styles.content}>
+      <View style={styles.content}>
         <Text style={styles.title}>Personal Information</Text>
-          <Input
-            control={control}
-            name="first_name"
-            label="First Name"
-            containerStyle={styles.halfWidth}
-            inputProps={{
-              placeholder: 'Enter First Name',
-            }}
-            required={{ value: true, message: 'First name is required' }}
-            error={errors}
-            maxLength={30}
-            inputStyle={styles.inputStyle}
-          />
-          <Input
-            control={control}
-            name="last_name"
-            label="Last Name"
-            containerStyle={styles.halfWidth}
-            inputProps={{
-              placeholder: 'Enter Last Name',
-            }}
-            required={{ value: true, message: 'Last name is required' }}
-            error={errors}
-            maxLength={30}
-            inputStyle={styles.inputStyle}
-          />
- 
+        <Input
+          control={control}
+          name="first_name"
+          label="First Name"
+          containerStyle={styles.halfWidth}
+          inputProps={{
+            placeholder: 'Enter First Name',
+          }}
+          required={{value: true, message: 'First name is required'}}
+          error={errors}
+          maxLength={30}
+          inputStyle={styles.inputStyle}
+        />
+        <Input
+          control={control}
+          name="last_name"
+          label="Last Name"
+          containerStyle={styles.halfWidth}
+          inputProps={{
+            placeholder: 'Enter Last Name',
+          }}
+          required={{value: true, message: 'Last name is required'}}
+          error={errors}
+          maxLength={30}
+          inputStyle={styles.inputStyle}
+        />
 
         <TouchableOpacity
           onPress={() => setDateModalVisible(true)}
@@ -173,7 +159,9 @@ const AddBankDetailsScreen: React.FC<AddBankDetailsProps> = ({ navigation }) => 
             label={'Date of Birth *'}
             inputProps={{
               placeholder: 'Select Date of Birth',
-              value: selectedDate ? moment(selectedDate).format('DD/MM/YYYY') : '',
+              value: selectedDate
+                ? moment(selectedDate).format('DD/MM/YYYY')
+                : '',
             }}
             disabled={true}
             isRightIcon={true}
@@ -191,7 +179,7 @@ const AddBankDetailsScreen: React.FC<AddBankDetailsProps> = ({ navigation }) => 
           inputProps={{
             placeholder: 'Enter Phone Number',
           }}
-          required={{ value: true, message: 'Phone number is required' }}
+          required={{value: true, message: 'Phone number is required'}}
           error={errors}
           keyboardType="phone-pad"
           maxLength={15}
@@ -206,7 +194,7 @@ const AddBankDetailsScreen: React.FC<AddBankDetailsProps> = ({ navigation }) => 
           inputProps={{
             placeholder: 'Enter Address',
           }}
-          required={{ value: true, message: 'Address is required' }}
+          required={{value: true, message: 'Address is required'}}
           error={errors}
           maxLength={100}
           inputStyle={styles.inputStyle}
@@ -221,7 +209,7 @@ const AddBankDetailsScreen: React.FC<AddBankDetailsProps> = ({ navigation }) => 
             inputProps={{
               placeholder: 'Enter City',
             }}
-            required={{ value: true, message: 'City is required' }}
+            required={{value: true, message: 'City is required'}}
             error={errors}
             maxLength={30}
             inputStyle={styles.inputStyle}
@@ -234,7 +222,7 @@ const AddBankDetailsScreen: React.FC<AddBankDetailsProps> = ({ navigation }) => 
             inputProps={{
               placeholder: 'Enter State',
             }}
-            required={{ value: true, message: 'State is required' }}
+            required={{value: true, message: 'State is required'}}
             error={errors}
             maxLength={30}
             inputStyle={styles.inputStyle}
@@ -249,7 +237,7 @@ const AddBankDetailsScreen: React.FC<AddBankDetailsProps> = ({ navigation }) => 
           inputProps={{
             placeholder: 'Enter Postal Code',
           }}
-          required={{ value: true, message: 'Postal code is required' }}
+          required={{value: true, message: 'Postal code is required'}}
           error={errors}
           keyboardType="numeric"
           maxLength={10}
@@ -264,7 +252,7 @@ const AddBankDetailsScreen: React.FC<AddBankDetailsProps> = ({ navigation }) => 
           inputProps={{
             placeholder: 'Enter Last 4 Digits of SSN',
           }}
-          required={{ value: true, message: 'SSN last 4 digits are required' }}
+          required={{value: true, message: 'SSN last 4 digits are required'}}
           error={errors}
           keyboardType="numeric"
           maxLength={4}
@@ -281,7 +269,7 @@ const AddBankDetailsScreen: React.FC<AddBankDetailsProps> = ({ navigation }) => 
           inputProps={{
             placeholder: 'Enter Account Holder Name',
           }}
-          required={{ value: true, message: 'Account holder name is required' }}
+          required={{value: true, message: 'Account holder name is required'}}
           error={errors}
           maxLength={50}
           inputStyle={styles.inputStyle}
@@ -295,7 +283,7 @@ const AddBankDetailsScreen: React.FC<AddBankDetailsProps> = ({ navigation }) => 
           inputProps={{
             placeholder: 'Enter Bank Name',
           }}
-          required={{ value: true, message: 'Bank name is required' }}
+          required={{value: true, message: 'Bank name is required'}}
           error={errors}
           maxLength={50}
           inputStyle={styles.inputStyle}
@@ -309,7 +297,7 @@ const AddBankDetailsScreen: React.FC<AddBankDetailsProps> = ({ navigation }) => 
           inputProps={{
             placeholder: 'Enter Routing Number',
           }}
-          required={{ value: true, message: 'Routing number is required' }}
+          required={{value: true, message: 'Routing number is required'}}
           error={errors}
           keyboardType="numeric"
           maxLength={9}
@@ -324,20 +312,19 @@ const AddBankDetailsScreen: React.FC<AddBankDetailsProps> = ({ navigation }) => 
           inputProps={{
             placeholder: 'Enter Account Number',
           }}
-          required={{ value: true, message: 'Account number is required' }}
+          required={{value: true, message: 'Account number is required'}}
           error={errors}
           keyboardType="numeric"
           maxLength={17}
           inputStyle={styles.inputStyle}
         />
+      </View>
 
-        </View>
-     
-        <Button
-          title="Add Bank Details"
-          style={styles.submitButton}
-          onPress={handleSubmit(onSubmit)}
-        />
+      <Button
+        title="Add Bank Details"
+        style={styles.submitButton}
+        onPress={handleSubmit(onSubmit)}
+      />
       <DatePiker
         isVisible={dateModalVisible}
         onClose={() => setDateModalVisible(false)}

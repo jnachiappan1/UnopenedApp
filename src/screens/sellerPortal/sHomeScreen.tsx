@@ -356,7 +356,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({navigation, route}) => {
       setAcceptLoading(false);
       setTermsModalVisible(false);
       setTermsChecked(false);
-      setTermsModalManuallyClosed(false); // Reset the flag when terms are accepted
+      setTermsModalManuallyClosed(false); 
 
       showAlert({
         isVisible: true,

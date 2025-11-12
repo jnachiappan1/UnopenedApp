@@ -3,16 +3,13 @@ import React, {useState} from 'react';
 import fonts from '../../assets/fonts/fonts';
 import Input from '../../components/input/input';
 import {useForm} from 'react-hook-form';
-import {capitalizeFirstLetter, emailPattern} from '../../utils/utils';
-import Header from '../../components/headerContainer/header';
+import {emailPattern} from '../../utils/utils';
 import ImageBackgroundHeader from '../../components/headerContainer/imageBackgroundHeader';
 import IconsSvg from '../../assets/svg/iconsSvg';
 import colors from '../../utils/colors';
 import Button from '../../components/button/buttons';
-import WhiteButton from '../../components/button/whiteButton';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
-import DropdownInput from '../../components/input/dropdownInput';
 import InputCountry from '../../components/input/inputCountry';
 import InputState from '../../components/input/inputState';
 import InputCity from '../../components/input/inputCity';
@@ -48,7 +45,6 @@ export type InputsRegistration = {
   password: string;
 };
 const SignUpScreen: React.FC<LoginProps> = ({route, navigation}) => {
-  const [email, setEmail] = useState('johndoe@gmail.com');
   const [accepted, setAccepted] = useState(false);
   const [selectedCountry, setPhoneCountry] = useState<selectedCountryType>({
     callingCode: ['1'],
@@ -82,7 +78,7 @@ const SignUpScreen: React.FC<LoginProps> = ({route, navigation}) => {
     setValue,
     getValues,
   } = useForm<InputsRegistration>({defaultValues});
-  // Track required visible fields to control button disabled state
+
   const requiredFields: Array<keyof InputsRegistration> = [
     'full_name',
     'phone_number',
@@ -94,7 +90,7 @@ const SignUpScreen: React.FC<LoginProps> = ({route, navigation}) => {
     'pincode',
     'gender',
   ];
-  // Subscribe to changes for these fields so the component re-renders
+
   const watchedRequiredFields = watch(requiredFields as any);
   const areAllRequiredFieldsFilled = watchedRequiredFields.every((value: any) =>
     typeof value === 'string' ? value.trim().length > 0 : !!value,
@@ -122,12 +118,12 @@ const SignUpScreen: React.FC<LoginProps> = ({route, navigation}) => {
     onError: handleError,
     onSettled: handleSettled,
   });
+
   const setPhoneCountryData = (item: any) => {
     setPhoneCountry(item);
     setValue('country_code', '+' + item.callingCode[0]);
-    // updateFormField('country_code', item.callingCode[0]);
-    // updateFormField('currency', item.currency[0]);
   };
+
   return (
     <ImageBackgroundHeader containerStyle={styles.container} hideBack={true}>
       <KeyboardAwareScrollView
@@ -154,30 +150,13 @@ const SignUpScreen: React.FC<LoginProps> = ({route, navigation}) => {
           maxLength={40}
           inputStyle={styles.inputStyle}
         />
-        {/* <Input
-          control={control}
-          name="phone_number"
-          label={'Phone Number'}
-          containerStyle={styles.emailContainer}
-          inputProps={{
-            placeholder: 'Enter Phone Number',
-          }}
-          required={{
-            value: true,
-            message: 'Please enter your phone number',
-          }}
-          error={errors}
-          keyboardType="numeric"
-          maxLength={40}
-          inputStyle={styles.inputStyle}
-        /> */}
+
         <PhoneNumberInputs
           label={'Personal Phone Number'}
           control={control}
           name="phone_number"
           placeholder={'Enter Phone Number'}
           keyboardType="phone-pad"
-          //value={getValues('mobileNumber')}
           selectedCountry={selectedCountry}
           setPhoneCountry={setPhoneCountryData}
           required={{
@@ -207,19 +186,7 @@ const SignUpScreen: React.FC<LoginProps> = ({route, navigation}) => {
           maxLength={40}
           inputStyle={styles.inputStyle}
         />
-        {/* <Input
-          control={control}
-          name="address"
-          label={'Address	'}
-          containerStyle={styles.emailContainer}
-          inputProps={{
-            placeholder: 'Enter Address',
-          }}
-          required={{value: true, message: 'Please enter your address'}}
-          error={errors}
-          maxLength={40}
-          inputStyle={styles.inputStyle}
-        /> */}
+
         <LocationInput
           control={control}
           name="address"
@@ -297,7 +264,6 @@ const SignUpScreen: React.FC<LoginProps> = ({route, navigation}) => {
           }}
           toggleShowCurrentOnly={undefined}
           style={styles.inputStyle}
-          //defaultValues={formStep1.watch('address') || ''}
         />
         <Input
           control={control}
@@ -349,7 +315,6 @@ const SignUpScreen: React.FC<LoginProps> = ({route, navigation}) => {
             control={control}
             name="pincode"
             label={'Zipcode'}
-            // containerStyle={styles.emailContainer}
             inputProps={{
               placeholder: 'Enter Zipcode',
             }}
@@ -425,7 +390,7 @@ const styles = StyleSheet.create({
   content: {
     flexGrow: 1,
     alignItems: 'center',
-    paddingBottom: 30, // Add padding at bottom for better spacing
+    paddingBottom: 30,
   },
   boxIconStyle: {alignSelf: 'center', marginTop: 30},
   inputStyle: {

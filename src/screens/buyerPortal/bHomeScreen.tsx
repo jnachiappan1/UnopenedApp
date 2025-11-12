@@ -19,7 +19,6 @@ import {IRootState} from '../../redux/store';
 import {useSelector} from 'react-redux';
 import {useQuery} from '@tanstack/react-query';
 import TopPicksSection from '../../components/card/topPicksSection';
-import {FlashList} from '@shopify/flash-list';
 import OrderListingCard from '../../components/card/orderListingCard';
 import fonts from '../../assets/fonts/fonts';
 import colors from '../../utils/colors';
@@ -28,14 +27,6 @@ type LoginProps = NativeStackScreenProps<
   RootStackParamList,
   SCREENS.BHomeScreen
 >;
-interface Product {
-  description: string;
-  originalPrice: string;
-  id: number;
-  name: string;
-  price: string;
-  image: string;
-}
 
 const BHomeScreen: React.FC<LoginProps> = ({route, navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -100,30 +91,26 @@ const BHomeScreen: React.FC<LoginProps> = ({route, navigation}) => {
     return params;
   };
 
-  const {data: categoryData, refetch: refetchcategoryDetail} = useQuery({
+  const {data: categoryData} = useQuery({
     queryKey: ['getCategoryDetail'],
     queryFn: () => getCategoryDetail(),
     enabled: isLogged,
   });
 
-  const {data: allProductList, refetch: refetchAllProduct} = useQuery({
+  const {data: allProductList} = useQuery({
     queryKey: ['getAllProductList', userData?.id],
     queryFn: () => getAllProductList(userData?.id),
   });
 
-  // SOLUTION 1: Reset data when user logs out and conditionally enable query
   const {data: sellerOwnProductList, refetch: refetchsellerOwnProductList} =
     useQuery({
-      queryKey: ['getMyOrderList', userData?.id], // Add userData?.id to invalidate cache when user changes
+      queryKey: ['getMyOrderList', userData?.id], 
       queryFn: () => getMyOrderList(),
-      enabled: !!userData && !!userData.id, // Only enable when userData exists
-      // Reset data when query is disabled
+      enabled: !!userData && !!userData.id,
       placeholderData: undefined,
-      // Force refetch when user logs in
       staleTime: 0,
       refetchOnMount: true,
     });
-  // SOLUTION 2: Only process data when user is logged in
   const sellerOwnProductData =
     isLogged &&
     Array.isArray(sellerOwnProductList?.data?.product) &&
@@ -172,7 +159,6 @@ const BHomeScreen: React.FC<LoginProps> = ({route, navigation}) => {
     refetchOnMount: true,
   });
 
-  // Check if any filters are applied
   const hasActiveFilters = () => {
     return (
       searchQuery.trim() !== '' ||
@@ -183,7 +169,6 @@ const BHomeScreen: React.FC<LoginProps> = ({route, navigation}) => {
     );
   };
 
-  // Get appropriate empty message
   const getEmptyMessage = () => {
     if (searchQuery.trim() !== '') {
       return {
@@ -218,7 +203,6 @@ const BHomeScreen: React.FC<LoginProps> = ({route, navigation}) => {
     }
   };
 
-  // Empty State Component
   const EmptyStateMessage = ({
     title,
     message,
@@ -383,7 +367,6 @@ const BHomeScreen: React.FC<LoginProps> = ({route, navigation}) => {
       isHome
       profileImage={userData?.profile_picture}
       onSearchPress={() => {}}>
-      {/* Only show banner when no recent purchase or user not logged in */}
       {!shouldShowMyPurchase ? (
         <FlatList
           data={bannerData}
@@ -411,7 +394,6 @@ const BHomeScreen: React.FC<LoginProps> = ({route, navigation}) => {
         onSeeMorePress={handleFilterPress}
       />
 
-      {/* Only render "My Purchase" section when user is logged in and has data */}
       {shouldShowMyPurchase && (
         <>
           <View style={styles.sectionHeader}>

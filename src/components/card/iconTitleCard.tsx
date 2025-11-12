@@ -23,7 +23,6 @@ type ICDrawer = {
   rightArrow?: boolean;
   isLanguage?: boolean;
   isToggleButtonOnOff?: boolean;
-  // Controlled toggle props
   toggled?: boolean;
   onToggle?: (nextValue: boolean) => void;
 };
@@ -73,7 +72,6 @@ const IconTitleCard = (props: ICDrawer) => {
         <Text
           style={[
             styles.titleStyle,
-            // eslint-disable-next-line react-native/no-inline-styles
             {color: title === 'Delete Account' ? '#D90505' : colors.gray},
           ]}>
           {title}

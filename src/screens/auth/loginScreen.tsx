@@ -1,10 +1,9 @@
 import {View, Text, TouchableOpacity, StyleSheet, Keyboard} from 'react-native';
-import React, {useState} from 'react';
+import React from 'react';
 import fonts from '../../assets/fonts/fonts';
 import Input from '../../components/input/input';
 import {useForm} from 'react-hook-form';
 import {capitalizeFirstLetter, emailPattern, OS} from '../../utils/utils';
-import Header from '../../components/headerContainer/header';
 import ImageBackgroundHeader from '../../components/headerContainer/imageBackgroundHeader';
 import IconsSvg from '../../assets/svg/iconsSvg';
 import colors from '../../utils/colors';
@@ -15,16 +14,10 @@ import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
 import {useDispatch, useSelector} from 'react-redux';
 import {useContainer} from '../../components/hooks/useContainer';
 import {showLoader} from '../../components/loader/loader';
-import {CommonActions} from '@react-navigation/native';
 import {showAlert} from '../../components/cAlert';
 import {useMutation} from '@tanstack/react-query';
 import {signInApi} from '../../utils/apiAction';
-import {errorMsg} from '../../utils/types';
 import {handleError, handleSettled} from '../../utils/method';
-import {
-  saveUserData,
-  setAuthToken,
-} from '../../redux/reducers/user/UserReducer';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 
 type LoginProps = NativeStackScreenProps<
@@ -36,9 +29,7 @@ type Inputs = {
 };
 
 const LoginScreen: React.FC<LoginProps> = ({route, navigation}) => {
-  let userType = useSelector((type: any) => type.user.userType);
   const container = useContainer();
-  const dispatch = useDispatch();
 
   const {
     control,
@@ -81,9 +72,6 @@ const LoginScreen: React.FC<LoginProps> = ({route, navigation}) => {
       <KeyboardAwareScrollView
         showsVerticalScrollIndicator={true}
         contentContainerStyle={styles.content}
-        // enableOnAndroid={false}
-        // extraScrollHeight={20}
-        // keyboardShouldPersistTaps="handled"
       >
         <IconsSvg name="box" />
         <Text style={styles.title}>Get Started now</Text>
@@ -115,7 +103,6 @@ const LoginScreen: React.FC<LoginProps> = ({route, navigation}) => {
           title={'Send OTP'}
           style={styles.sendOtpButton}
           onPress={handleSubmit(submit)}
-          // onPress={() => navigation.navigate(SCREENS.VerifyOTP)}
         />
         <WhiteButton
           title={'Login as Guest'}

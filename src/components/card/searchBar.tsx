@@ -2,13 +2,11 @@
 import React from 'react';
 import {
   View,
-  Text,
   StyleSheet,
-  Image,
   TextInput,
   TouchableOpacity,
 } from 'react-native';
-import IconsSvg, {IconName} from '../../assets/svg/iconsSvg';
+import IconsSvg from '../../assets/svg/iconsSvg';
 import colors from '../../utils/colors';
 
 interface BannerItemCardProps {

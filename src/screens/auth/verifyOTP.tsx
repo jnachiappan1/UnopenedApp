@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-shadow */
-import {StyleSheet, Text, View} from 'react-native';
+import {StyleSheet, Text} from 'react-native';
 import React, {useEffect, useState} from 'react';
 import {useForm} from 'react-hook-form';
 import {IColors, getColors} from '../../utils/colors';
@@ -25,7 +25,6 @@ import {
   setAuthToken,
 } from '../../redux/reducers/user/UserReducer';
 import {IRootState} from '../../redux/store';
-import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 
 type Inputs = {
   otp: string;
@@ -53,7 +52,7 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({route, navigation}) => {
     handleSubmit,
   } = useForm<Inputs>();
 
-  const {pause, reset, running, seconds, start, stop} = useTimer({
+  const {pause, reset, seconds, start} = useTimer({
     initialSeconds: 5,
     initiallyRunning: true,
   });
@@ -145,10 +144,7 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({route, navigation}) => {
 
   const submit = (data: Inputs) => {
     if (!type) return;
-    // const payload = {
-    //   email: email,
-    //   ...data,
-    // };
+
     const payload = {
       email,
       ...data,
@@ -164,9 +160,6 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({route, navigation}) => {
       title={''}
       containerStyle={styles.container}
       onBackPress={() => navigation.goBack()}>
-      {/* <KeyboardAwareScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContainer}> */}
       <Text style={styles.subHeading}>{'Verify OTP'}</Text>
       <Text style={styles.codeSentText}>
         {'Please enter 6 digit code we sent to you on'}
@@ -194,7 +187,6 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({route, navigation}) => {
         onPress={handleSubmit(submit)}
       />
       {showResendTxt}
-      {/* </KeyboardAwareScrollView> */}
     </ImageBackgroundHeader>
   );
 };
@@ -249,6 +241,5 @@ const getStyles = (colors: IColors) =>
     scrollContainer: {
       flexGrow: 0.5,
       justifyContent: 'center',
-      // paddingHorizontal: 20,
     },
   });

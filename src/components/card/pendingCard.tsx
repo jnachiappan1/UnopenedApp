@@ -1,9 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { fontSizes } from '../../utils/utils';
 import fonts from '../../assets/fonts/fonts';
-import IconsSvg, { IconName } from '../../assets/svg/iconsSvg';
-import colors from '../../utils/colors';
+import IconsSvg from '../../assets/svg/iconsSvg';
 export type TransactionTypeName = 'credit' | 'debit' | 'add';
 
 type TransactionType = {
@@ -24,7 +23,7 @@ type ProductType = {
   updatedAt: string;
   createdAt: string;
   product_status: string;
-  [key: string]: any; // Allow other properties
+  [key: string]: any; 
 };
 
 type Props = {
@@ -45,10 +44,8 @@ const PendingCard: React.FC<Props> = ({ item }) => {
     return `${day}/${month}/${year}`;
   };
 
-  // Check if item is a ProductType (has brand property) or TransactionType
   const isProductType = 'brand' in item;
   
-  // Extract data based on type
   const title = isProductType ? `${item.brand} ${item.name}` : item.title;
   const status = isProductType ? item.product_activity_status : item.status;
   const price = item.price;
@@ -85,7 +82,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 16,
     marginBottom: 12,
-    // elevation: 2,
   },
   badge: {
     alignSelf: 'flex-start',

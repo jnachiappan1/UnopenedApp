@@ -9,7 +9,6 @@ import {
   StatusBar,
   SafeAreaView,
   Dimensions,
-  Alert,
   AppState,
   BackHandler,
 } from 'react-native';
@@ -17,15 +16,13 @@ import {Camera, CameraType} from 'react-native-camera-kit';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
 import {showAlert} from '../../components/cAlert/cAlert';
-import {fontSizes} from '../../utils/utils';
-import fonts from '../../assets/fonts/fonts';
 
 type UnifiedBarcodeScannerProps = NativeStackScreenProps<
   RootStackParamList,
   SCREENS.BarcodeScanner
 >;
 
-const {width, height} = Dimensions.get('window');
+const {width} = Dimensions.get('window');
 const SCANNER_SIZE = width * 0.7;
 
 const UnifiedBarcodeScanner: React.FC<UnifiedBarcodeScannerProps> = ({
@@ -42,7 +39,6 @@ const UnifiedBarcodeScanner: React.FC<UnifiedBarcodeScannerProps> = ({
   const [appState, setAppState] = useState(AppState.currentState);
   const [isCleaningUp, setIsCleaningUp] = useState(false);
 
-  // Request camera permissions
   const requestPermissions = useCallback(async () => {
     if (Platform.OS === 'android') {
       try {
@@ -143,7 +139,7 @@ const UnifiedBarcodeScanner: React.FC<UnifiedBarcodeScannerProps> = ({
       'hardwareBackPress',
       () => {
         if (isCleaningUp) {
-          return true; // Prevent back press during cleanup
+          return true;
         }
         goBack();
         return true;
@@ -153,7 +149,6 @@ const UnifiedBarcodeScanner: React.FC<UnifiedBarcodeScannerProps> = ({
     return () => backHandler.remove();
   }, [isCleaningUp]);
 
-  // Handle barcode scan
   const handleBarcodeScan = useCallback(
     async (event: {
       nativeEvent: {codeStringValue: string; codeFormat?: string};
@@ -162,7 +157,6 @@ const UnifiedBarcodeScanner: React.FC<UnifiedBarcodeScannerProps> = ({
 
       if (!code || !isScanning || isProcessing || isCleaningUp) return;
 
-      // Prevent duplicate scans within 2 seconds
       const now = Date.now();
       if (now - lastScanTime < 2000) {
         return;
@@ -173,9 +167,8 @@ const UnifiedBarcodeScanner: React.FC<UnifiedBarcodeScannerProps> = ({
       setScannedFormat(codeFormat ?? 'unknown');
       setIsScanning(false);
       setIsProcessing(true);
-      setCountdown(10); // Start 10 second countdown for camera adjustment
+      setCountdown(10);
 
-      // Show confirmation alert
       showAlert({
         isVisible: true,
         type: 'success',
@@ -194,7 +187,7 @@ const UnifiedBarcodeScanner: React.FC<UnifiedBarcodeScannerProps> = ({
         onDonePress: () => {
           setIsProcessing(false);
           setCountdown(0);
-          // Clean up camera before navigation
+
           setIsScanning(false);
           setTimeout(() => {
             navigation.navigate(SCREENS.AddProductScreen, {
@@ -207,7 +200,6 @@ const UnifiedBarcodeScanner: React.FC<UnifiedBarcodeScannerProps> = ({
     [isScanning, isProcessing, isCleaningUp, lastScanTime, navigation],
   );
 
-  // Clean up camera and navigate back
   const goBack = useCallback(() => {
     if (isCleaningUp) return;
 
@@ -215,7 +207,6 @@ const UnifiedBarcodeScanner: React.FC<UnifiedBarcodeScannerProps> = ({
       setIsCleaningUp(true);
       setIsScanning(false);
 
-      // Add a small delay for cleanup
       setTimeout(() => {
         navigation.goBack();
       }, 100);
@@ -225,7 +216,6 @@ const UnifiedBarcodeScanner: React.FC<UnifiedBarcodeScannerProps> = ({
     }
   }, [isCleaningUp, navigation]);
 
-  // Toggle scanning state
   const toggleScanning = useCallback(() => {
     if (isProcessing || isCleaningUp) return;
 
@@ -236,14 +226,12 @@ const UnifiedBarcodeScanner: React.FC<UnifiedBarcodeScannerProps> = ({
     }
   }, [isProcessing, isCleaningUp, isScanning, scannedCode]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       setIsScanning(false);
     };
   }, []);
 
-  // Loading state
   if (hasPermission === null) {
     return (
       <SafeAreaView style={styles.container}>
@@ -262,7 +250,6 @@ const UnifiedBarcodeScanner: React.FC<UnifiedBarcodeScannerProps> = ({
     );
   }
 
-  // Permission denied state
   if (hasPermission === false) {
     return (
       <SafeAreaView style={styles.container}>
@@ -290,7 +277,6 @@ const UnifiedBarcodeScanner: React.FC<UnifiedBarcodeScannerProps> = ({
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#000" />
 
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={goBack}>
           <Text style={styles.backButtonText}>←</Text>
@@ -299,7 +285,6 @@ const UnifiedBarcodeScanner: React.FC<UnifiedBarcodeScannerProps> = ({
         <View style={styles.headerSpacer} />
       </View>
 
-      {/* Camera View */}
       <View style={styles.cameraContainer}>
         {isScanning ? (
           <>
@@ -310,7 +295,6 @@ const UnifiedBarcodeScanner: React.FC<UnifiedBarcodeScannerProps> = ({
               showFrame={false}
               scanThrottleDelay={1500}
               cameraType={CameraType.Back}
-              // Additional props for better performance
               focusMode="on"
               zoomMode="off"
               torchMode="off"
@@ -318,7 +302,6 @@ const UnifiedBarcodeScanner: React.FC<UnifiedBarcodeScannerProps> = ({
               ratioOverlayColor="#00000077"
             />
 
-            {/* Scanner Overlay */}
             <View style={styles.overlay}>
               <View style={styles.overlayTop}>
                 <Text style={styles.instructionText}>
@@ -332,16 +315,13 @@ const UnifiedBarcodeScanner: React.FC<UnifiedBarcodeScannerProps> = ({
               <View style={styles.overlayMiddle}>
                 <View style={styles.overlaySide} />
                 <View style={styles.scannerFrame}>
-                  {/* Scanner corners */}
                   <View style={[styles.corner, styles.topLeft]} />
                   <View style={[styles.corner, styles.topRight]} />
                   <View style={[styles.corner, styles.bottomLeft]} />
                   <View style={[styles.corner, styles.bottomRight]} />
 
-                  {/* Scanning line animation */}
                   <View style={styles.scanLine} />
 
-                  {/* Active scanning indicator */}
                   <View style={styles.scanningIndicator}>
                     <Text style={styles.scanningText}>SCANNING...</Text>
                   </View>
@@ -401,7 +381,6 @@ const UnifiedBarcodeScanner: React.FC<UnifiedBarcodeScannerProps> = ({
         )}
       </View>
 
-      {/* Bottom Controls */}
       <View style={styles.bottomControls}>
         <TouchableOpacity
           style={[
