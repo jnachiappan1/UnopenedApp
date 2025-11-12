@@ -1266,10 +1266,11 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
           <View style={styles.discountSliderContainer}>
             <Text style={styles.discountTitle}>Listing Price Percentage</Text>
             <Text style={styles.discountValue}>{discountPercent}%</Text>
-            <View style={{marginHorizontal: 10}}>
+            <View style={{marginHorizontal: 10, alignSelf:'center'}}>
               <MultiSlider
                 values={[discountPercent]}
-                sliderLength={350}
+                sliderLength={300}
+                trackStyle={{height:3}}
                 min={sliderMin}
                 max={sliderMax}
                 step={1}
@@ -1281,7 +1282,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
                   const newPercent = values[0];
                   calculateAndUpdatePrices(newPercent);
                 }}
-                selectedStyle={{backgroundColor: colors.primary}}
+                selectedStyle={{backgroundColor: colors.primary, alignSelf:'center'}}
                 unselectedStyle={{backgroundColor: '#ccc'}}
                 markerStyle={{
                   backgroundColor: colors.primary,
@@ -1412,7 +1413,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
   );
 
   return (
-    <TitleBackHeaderContainer isBack title="Add Product" isNormalHeader={false}>
+    <TitleBackHeaderContainer isBack = {true} title="Add Product" isNormalHeader={false}>
       <View style={styles.stepIndicator}>
         <View style={styles.stepIndicatorContainer}>
           {currentStep === 0 ? (

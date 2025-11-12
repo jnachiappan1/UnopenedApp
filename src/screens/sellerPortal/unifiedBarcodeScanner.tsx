@@ -200,21 +200,24 @@ const UnifiedBarcodeScanner: React.FC<UnifiedBarcodeScannerProps> = ({
     [isScanning, isProcessing, isCleaningUp, lastScanTime, navigation],
   );
 
-  const goBack = useCallback(() => {
-    if (isCleaningUp) return;
+  // const goBack = useCallback(() => {
+  //   if (isCleaningUp) return;
 
-    try {
-      setIsCleaningUp(true);
-      setIsScanning(false);
+  //   try {
+  //     setIsCleaningUp(true);
+  //     setIsScanning(false);
 
-      setTimeout(() => {
-        navigation.goBack();
-      }, 100);
-    } catch (error) {
-      console.error('Error during goBack cleanup:', error);
-      navigation.goBack();
-    }
-  }, [isCleaningUp, navigation]);
+  //     setTimeout(() => {
+  //       navigation.goBack();
+  //     }, 100);
+  //   } catch (error) {
+  //     console.error('Error during goBack cleanup:', error);
+  //     navigation.goBack();
+  //   }
+  // }, [isCleaningUp, navigation]);
+  const goBack = () => {
+    navigation.goBack();
+  };
 
   const toggleScanning = useCallback(() => {
     if (isProcessing || isCleaningUp) return;

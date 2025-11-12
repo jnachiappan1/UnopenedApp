@@ -18,7 +18,7 @@ type MyOrderScreenProps = NativeStackScreenProps<
   RootStackParamList,
   SCREENS.MyOrderScreen
 >;
-const ALLOWED_TABS = ['Pending', 'In Transit', 'Delivered', 'Cancelled'];
+const ALLOWED_TABS = ['Pre Transit', 'In Transit', 'Delivered', 'Cancelled'];
 
 const MyOrderScreen: React.FC<MyOrderScreenProps> = ({navigation}) => {
   const [selectedTab, setSelectedTab] = useState('All');
@@ -42,7 +42,7 @@ const MyOrderScreen: React.FC<MyOrderScreenProps> = ({navigation}) => {
   const normalizeStatus = (status: string): string => {
     switch (status.toLowerCase()) {
       case 'pending':
-        return 'Pending';
+        return 'Pre Transit';
       case 'in_transit':
       case 'shipped':
         return 'In Transit';
