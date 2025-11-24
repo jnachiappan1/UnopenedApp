@@ -8,6 +8,7 @@ import {
   ViewStyle,
   TextInputProps,
   TouchableOpacity,
+  TextStyle,
 } from 'react-native';
 import {
   Controller,
@@ -46,7 +47,8 @@ type InputProps = {
   multiline?: boolean;
   isPassword?: boolean;
   isRightIcon?: boolean;
-  onValueChange?: (text: string) => void; // ✅ NEW PROP
+  onValueChange?: (text: string) => void; 
+  textStyle?: boolean;
 };
 
 const Input: React.FC<InputProps> = props => {
@@ -71,7 +73,8 @@ const Input: React.FC<InputProps> = props => {
     disabled = false,
     isPassword = false,
     isRightIcon = false,
-    onValueChange, // ✅ DESTRUCTURE NEW PROP
+    onValueChange, 
+    textStyle
   } = props;
 
   const [showText, setShowText] = useState(!isPassword);
@@ -121,6 +124,7 @@ const Input: React.FC<InputProps> = props => {
                 {
                   backgroundColor: inputBgColor ? inputBgColor : colors.white,
                   paddingRight: isPassword ? 50 : isRightIcon ? 50 : 16,
+                  color: textStyle ? colors.white : colors.primaryBlack,
                 },
                 inputStyle,
               ]}
@@ -130,7 +134,7 @@ const Input: React.FC<InputProps> = props => {
                 onChange(text); // form state update
                 onValueChange?.(text); // ✅ custom handler from parent
               }}
-              placeholderTextColor={colors.primaryBlack}
+              placeholderTextColor={colors.primaryBlack }
               {...inputProps}
               keyboardType={keyboardType ? keyboardType : 'default'}
               maxLength={maxLength}
@@ -191,7 +195,7 @@ const getStyles = (colors: IColors, multiline: boolean) =>
       paddingHorizontal: 16,
       paddingVertical: 12,
       borderRadius: 160,
-      color: colors.primaryBlack,
+     
       fontFamily: fonts.medium,
       width: '100%',
     },

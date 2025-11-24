@@ -1305,8 +1305,9 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             error={errors}
             maxLength={40}
             keyboardType={'numeric'}
-            inputStyle={styles.inputStyle}
+            inputStyle={styles.inputStyle2}
             disabled
+            textStyle
           />
           <Input
             control={control}
@@ -1321,8 +1322,9 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             error={errors}
             maxLength={40}
             keyboardType={'numeric'}
-            inputStyle={styles.inputStyle}
+            inputStyle={styles.inputStyle2}
             disabled
+            textStyle
           />
           <Input
             control={control}
@@ -1337,8 +1339,9 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             error={errors}
             maxLength={40}
             keyboardType={'numeric'}
-            inputStyle={styles.inputStyle}
+            inputStyle={styles.inputStyle2}
             disabled
+            textStyle
           />
         </View>
 
@@ -1625,6 +1628,10 @@ const styles = StyleSheet.create({
   },
   inputStyle: {
     width: '100%',
+  },
+  inputStyle2: {
+    width: '100%',
+    backgroundColor: colors.primary,
   },
   imageUploadContainer: {
     marginTop: 24,
