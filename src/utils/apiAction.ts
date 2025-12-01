@@ -258,14 +258,14 @@ export const getStateAction = async ({
   page = 1,
   limit = 10,
   search,
-  country,
+  country_id,
 }: {
   page: number;
   limit: number;
   search: string;
-  country: string;
+  country_id: string | number;
 }): Promise<any> => {
-  let url = `${API.location.state}?page=${page}&limit=${limit}&country=${country}`;
+  let url = `/api/v1/common/states/${country_id}?page=${page}&limit=${limit}`;
   if (search) {
     url += `&search=${encodeURIComponent(search)}`;
   }
@@ -276,16 +276,14 @@ export const getCityAction = async ({
   page = 1,
   limit = 10,
   search,
-  country,
-  state,
+  state_id,
 }: {
   page: number;
   limit: number;
   search: string;
-  country: string;
-  state: string;
+  state_id: string | number;
 }): Promise<any> => {
-  let url = `${API.location.city}?page=${page}&limit=${limit}&country=${country}&state=${state}`;
+  let url = `/api/v1/common/cities/${state_id}?page=${page}&limit=${limit}`;
   if (search) {
     url += `&search=${encodeURIComponent(search)}`;
   }

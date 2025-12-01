@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -41,11 +41,12 @@ type IInputStateProps = {
     | Record<string, Validate<any, FieldValues>>;
   containerStyle?: StyleProp<ViewStyle>;
   style?: StyleProp<ViewStyle>;
-  country: string | undefined;
+  country_id: string | number | undefined;
   isShowError?: boolean;
 };
 
 export interface IItem {
+  id: string | number;
   name: string;
   state_code: string;
 }
@@ -62,7 +63,7 @@ const InputState: React.FC<IInputStateProps> = ({
   required,
   pattern,
   validate,
-  country,
+  country_id,
   isShowError = true,
 }) => {
   const colors = getColors();
@@ -77,7 +78,6 @@ const InputState: React.FC<IInputStateProps> = ({
     hasNextPage,
     isFetchingNextPage,
     isLoading,
-    refetch,
   } = useInfiniteQuery<
     any,
     Error,
@@ -85,16 +85,16 @@ const InputState: React.FC<IInputStateProps> = ({
     string[],
     number
   >({
-    queryKey: ['getStateAction', searchText, country as string],
+    queryKey: ['getStateAction', searchText, country_id as string],
     queryFn: ({pageParam}) =>
       getStateAction({
         page: pageParam,
         limit: 30,
         search: searchText,
-        country: country as string,
+        country_id: country_id as string | number,
       }),
     initialPageParam: 1,
-    enabled: Boolean(country),
+    enabled: Boolean(country_id),
     getNextPageParam: lastPage => {
       if (lastPage?.data?.hasNext) {
         return lastPage.data.currentPage + 1;
@@ -103,13 +103,8 @@ const InputState: React.FC<IInputStateProps> = ({
     },
   });
 
-
-  useEffect(() => {
-    refetch();
-  }, [refetch, country, searchText]);
-
 const allStates = useMemo(() => {
-  return data?.pages.flatMap(page => page.data || []) || [];
+  return data?.pages.flatMap(page => page?.data?.data || page?.data || []) || [];
 }, [data]);
   const getError = useMemo(() => {
     return error?.[name]?.message?.toString() || '';
@@ -121,8 +116,7 @@ const allStates = useMemo(() => {
   };
 
   const handleState = (onChange: (val: any) => void, item: IItem) => {
-    
-    onChange(item.state_code);
+    onChange(item.name);
     onClose();
   };
 
@@ -147,14 +141,14 @@ const allStates = useMemo(() => {
             <TouchableOpacity
               style={[commonStyles.inputWrapper, style]}
               onPress={() => setShowList(true)}
-              disabled={isLoading || !country}
+              disabled={isLoading}
               activeOpacity={0.7}>
                <View style={styles.view}>
-                {isLoading && country ? (
+                {isLoading && country_id && !value ? (
                   <ActivityIndicator size="small" />
                 ) : value ? (
                   <Text style={commonStyles.valueText} numberOfLines={1}>
-                    {allStates.find(state => state.state_code === value)?.name || value}
+                    {value}
                   </Text>
                 ) : (
                   <Text style={commonStyles.placeholder}>{placeholder}</Text>
@@ -197,7 +191,7 @@ const allStates = useMemo(() => {
                 </View>
                 <FlatList
                   data={allStates}
-                  keyExtractor={item => item.state_code}
+                  keyExtractor={item => String(item.id)}
                   renderItem={({item}) => (
                     <Text
                       style={commonStyles.countryItem}
@@ -218,7 +212,13 @@ const allStates = useMemo(() => {
                       <ActivityIndicator style={{marginVertical: 10}} />
                     ) : null
                   }
-                  ListEmptyComponent={<Text style={commonStyles.noDataText}>No states found</Text>}
+                  ListEmptyComponent={
+                    !country_id ? (
+                      <Text style={commonStyles.noDataText}>Please select a country first</Text>
+                    ) : (
+                      <Text style={commonStyles.noDataText}>No states found</Text>
+                    )
+                  }
                 />
               </View>
             </Modal>

@@ -1,5 +1,5 @@
 import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
-import React, {useState} from 'react';
+import React, {useState, useMemo} from 'react';
 import fonts from '../../assets/fonts/fonts';
 import Input from '../../components/input/input';
 import {useForm} from 'react-hook-form';
@@ -15,8 +15,8 @@ import InputState from '../../components/input/inputState';
 import InputCity from '../../components/input/inputCity';
 import GenderDropdown from '../../components/input/genderDropdown';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
-import {useMutation} from '@tanstack/react-query';
-import {signUp} from '../../utils/apiAction';
+import {useMutation, useInfiniteQuery, InfiniteData, useQuery} from '@tanstack/react-query';
+import {signUp, getCountriesAction, getStateAction} from '../../utils/apiAction';
 import {handleError, handleSettled} from '../../utils/method';
 import {showAlert} from '../../components/cAlert';
 import {showLoader} from '../../components/loader/loader';
@@ -63,7 +63,7 @@ const SignUpScreen: React.FC<LoginProps> = ({route, navigation}) => {
     phone_number: '',
     address: '',
     second_line_address: '',
-    country: 'US',
+    country: 'US', // iso2 code
     state: '',
     city: '',
     pincode: '',
@@ -96,6 +96,71 @@ const SignUpScreen: React.FC<LoginProps> = ({route, navigation}) => {
     typeof value === 'string' ? value.trim().length > 0 : !!value,
   );
   const isCreateAccountDisabled = !accepted || !areAllRequiredFieldsFilled;
+  // Fetch countries to convert iso2 to country_id for state API
+  // Use the same query pattern as InputCountry to share cache
+  const {data: countriesData, isLoading: isLoadingCountries} = useInfiniteQuery<any, Error, InfiniteData<any>, string[], number>({
+    queryKey: ['getCountriesAction', ''],
+    queryFn: ({pageParam}) => getCountriesAction({page: pageParam, limit: 300, search: ''}),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      if (lastPage?.data?.hasNext) {
+        return lastPage.data.currentPage + 1;
+      }
+      return undefined;
+    },
+  });
+
+  const allCountries = useMemo(() => {
+    if (!countriesData?.pages) return [];
+    return countriesData.pages.flatMap((page) => {
+      return page?.data?.data || page?.data || [];
+    });
+  }, [countriesData]);
+
+  // Helper to get country_id from iso2
+  const getCountryIdFromIso2 = (iso2: string | undefined): number | undefined => {
+    if (!iso2 || isLoadingCountries || allCountries.length === 0) return undefined;
+    const country = allCountries.find((c: any) => c.iso2 === iso2);
+    return country?.id;
+  };
+
+  // Get country_id for state lookup
+  const currentCountryId = getCountryIdFromIso2(watch('country'));
+  
+  // Fetch states to convert state name to state_id for city API
+  const {data: statesData} = useInfiniteQuery<any, Error, InfiniteData<any>, string[], number>({
+    queryKey: ['getStateAction', '', currentCountryId?.toString() || ''],
+    queryFn: ({pageParam}) => 
+      getStateAction({
+        page: pageParam,
+        limit: 300,
+        search: '',
+        country_id: currentCountryId as string | number,
+      }),
+    initialPageParam: 1,
+    enabled: Boolean(currentCountryId),
+    getNextPageParam: (lastPage) => {
+      if (lastPage?.data?.hasNext) {
+        return lastPage.data.currentPage + 1;
+      }
+      return undefined;
+    },
+  });
+
+  const allStates = useMemo(() => {
+    if (!statesData?.pages) return [];
+    return statesData.pages.flatMap((page) => {
+      return page?.data?.data || page?.data || [];
+    });
+  }, [statesData]);
+
+  // Helper to get state_id from state name
+  const getStateIdFromName = (stateName: string | undefined): number | undefined => {
+    if (!stateName || allStates.length === 0) return undefined;
+    const state = allStates.find((s: any) => s.name === stateName);
+    return state?.id;
+  };
+
   const {mutate} = useMutation({
     mutationFn: signUp,
     onSuccess: data => {
@@ -203,13 +268,13 @@ const SignUpScreen: React.FC<LoginProps> = ({route, navigation}) => {
           onChangeText={(value: string) => {}}
           onPlaceParsed={info => {
             if (info?.countryCode === 'US') {
-              if (info.stateCode) {
-                setValue('state', info.stateCode, {
+              if (info.stateName) {
+                setValue('state', info.stateName, {
                   shouldValidate: true,
                   shouldDirty: true,
                 });
-              } else if (info.stateName) {
-                setValue('state', info.stateName, {
+              } else if (info.stateCode) {
+                setValue('state', info.stateCode, {
                   shouldValidate: true,
                   shouldDirty: true,
                 });
@@ -235,13 +300,13 @@ const SignUpScreen: React.FC<LoginProps> = ({route, navigation}) => {
                   shouldDirty: true,
                 });
               }
-              if (info?.stateCode) {
-                setValue('state', info.stateCode, {
+              if (info?.stateName) {
+                setValue('state', info.stateName, {
                   shouldValidate: true,
                   shouldDirty: true,
                 });
-              } else if (info?.stateName) {
-                setValue('state', info.stateName, {
+              } else if (info?.stateCode) {
+                setValue('state', info.stateCode, {
                   shouldValidate: true,
                   shouldDirty: true,
                 });
@@ -284,15 +349,13 @@ const SignUpScreen: React.FC<LoginProps> = ({route, navigation}) => {
             placeholder={'Country'}
             error={errors}
             required={{value: true, message: 'Country is required'}}
-            disabled={true}
+            // disabled={true}
           />
           <InputState
             control={control}
             name="state"
             label={'State'}
-            country={
-              watch('country') === 'US' ? 'United States' : getValues('country')
-            }
+            country_id={getCountryIdFromIso2(watch('country'))}
             placeholder={'State'}
             error={errors}
             required={{value: true, message: 'State is required'}}
@@ -302,11 +365,7 @@ const SignUpScreen: React.FC<LoginProps> = ({route, navigation}) => {
             control={control}
             name="city"
             label={'City'}
-            country={
-              watch('country') === 'US' ? 'United States' : getValues('country')
-            }
-            state={watch('state') ? getValues('state') : undefined}
-            stateCode={watch('state') ? getValues('state') : undefined}
+            state_id={getStateIdFromName(watch('state'))}
             placeholder={'City'}
             error={errors}
             required={{value: true, message: 'City is required'}}
@@ -361,6 +420,7 @@ const SignUpScreen: React.FC<LoginProps> = ({route, navigation}) => {
             ) {
               delete payload.second_line_address;
             }
+console.log(payload, "------");
 
             showLoader(true);
             mutate(payload);

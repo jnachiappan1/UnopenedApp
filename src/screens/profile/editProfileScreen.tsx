@@ -1,5 +1,5 @@
 import {Image, ScrollView, StyleSheet, View} from 'react-native';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState, useMemo, useRef} from 'react';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
 import IconsSvg from '../../assets/svg/iconsSvg';
@@ -17,8 +17,19 @@ import InputCountry from '../../components/input/inputCountry';
 import InputState from '../../components/input/inputState';
 import InputCity from '../../components/input/inputCity';
 import GenderDropdown from '../../components/input/genderDropdown';
-import {useMutation, useQuery} from '@tanstack/react-query';
-import {signUp, updateProfile, viewProfile} from '../../utils/apiAction';
+import {
+  useMutation,
+  useQuery,
+  useInfiniteQuery,
+  InfiniteData,
+  useQueryClient,
+} from '@tanstack/react-query';
+import {
+  updateProfile,
+  viewProfile,
+  getCountriesAction,
+  getStateAction,
+} from '../../utils/apiAction';
 import {showLoader} from '../../components/loader/loader';
 import {showAlert} from '../../components/cAlert';
 import {handleError, handleSettled} from '../../utils/method';
@@ -46,9 +57,10 @@ type Inputs = {
 
 const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
 
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isFormChanged, setIsFormChanged] = useState<boolean>(false);
+
   const {data, refetch} = useQuery({
     queryKey: ['getProfile'],
     queryFn: viewProfile,
@@ -79,15 +91,115 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
 
   // Watch the profileImage field for changes
   const watchedProfileImage = watch('profileImage');
+  const watchedCountry = watch('country');
+  const watchedState = watch('state');
 
-  // Add debug logging for watchedProfileImage
+  // Fetch countries to convert iso2 to country_id for state API
+  const {data: countriesData, isLoading: isLoadingCountries} = useInfiniteQuery<
+    any,
+    Error,
+    InfiniteData<any>,
+    string[],
+    number
+  >({
+    queryKey: ['getCountriesAction', ''],
+    queryFn: ({pageParam}) =>
+      getCountriesAction({page: pageParam, limit: 300, search: ''}),
+    initialPageParam: 1,
+    getNextPageParam: lastPage => {
+      if (lastPage?.data?.hasNext) {
+        return lastPage.data.currentPage + 1;
+      }
+      return undefined;
+    },
+  });
+
+  const allCountries = useMemo(() => {
+    if (!countriesData?.pages) return [];
+    return countriesData.pages.flatMap(page => {
+      return page?.data?.data || page?.data || [];
+    });
+  }, [countriesData]);
+
+  // Helper to get country_id from iso2
+  const getCountryIdFromIso2 = (
+    iso2: string | undefined,
+  ): number | undefined => {
+    if (!iso2 || isLoadingCountries || allCountries.length === 0)
+      return undefined;
+    const country = allCountries.find((c: any) => c.iso2 === iso2);
+    return country?.id;
+  };
+
+  // Get country_id for state lookup
+  const currentCountryId = getCountryIdFromIso2(watchedCountry);
+
+  // Fetch states to convert state name to state_id for city API
+  const {data: statesData} = useInfiniteQuery<
+    any,
+    Error,
+    InfiniteData<any>,
+    string[],
+    number
+  >({
+    queryKey: ['getStateAction', '', currentCountryId?.toString() || ''],
+    queryFn: ({pageParam}) =>
+      getStateAction({
+        page: pageParam,
+        limit: 300,
+        search: '',
+        country_id: currentCountryId as string | number,
+      }),
+    initialPageParam: 1,
+    enabled: Boolean(currentCountryId),
+    getNextPageParam: lastPage => {
+      if (lastPage?.data?.hasNext) {
+        return lastPage.data.currentPage + 1;
+      }
+      return undefined;
+    },
+  });
+
+  const allStates = useMemo(() => {
+    if (!statesData?.pages) return [];
+    return statesData.pages.flatMap(page => {
+      return page?.data?.data || page?.data || [];
+    });
+  }, [statesData]);
+
+  // Helper to get state_id from state name
+  const getStateIdFromName = (
+    stateName: string | undefined,
+  ): number | undefined => {
+    if (!stateName || allStates.length === 0) return undefined;
+    const state = allStates.find((s: any) => s.name === stateName);
+    return state?.id;
+  };
+
+  // Track if initial data has been loaded
+  const hasInitialDataLoaded = useRef(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+  // Reset dependent fields when parent selection changes (but not during initial load)
   useEffect(() => {
-  }, [watchedProfileImage]);
+    if (watchedCountry && !isInitialLoad) {
+      setValue('state', '');
+      setValue('city', '');
+    }
+  }, [watchedCountry, setValue, isInitialLoad]);
+
+  useEffect(() => {
+    if (watchedState && !isInitialLoad) {
+      setValue('city', '');
+    }
+  }, [watchedState, setValue, isInitialLoad]);
 
   const {mutate} = useMutation({
     mutationFn: updateProfile,
     onSuccess: data => {
       dispatch(saveUserData(data.data.user));
+      // Invalidate and refetch profile data
+      queryClient.invalidateQueries({queryKey: ['getProfile']});
       showLoader(false);
       showAlert({
         isVisible: true,
@@ -123,13 +235,19 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
         name: formData.profileImage.name || 'photo.jpg',
       });
     }
+
     showLoader(true);
 
     mutate(formDataToSend);
   };
 
+  // Reset form when profile data and countries are loaded
   useEffect(() => {
-    if (data?.data?.user) {
+    if (
+      data?.data?.user &&
+      !isLoadingCountries &&
+      allCountries.length > 0
+    ) {
       const user = data.data.user;
       const fields: Inputs = {
         full_name: user.full_name || '',
@@ -143,9 +261,12 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
         gender: user.gender || '',
         profileImage: user.profile_picture || '',
       };
+
       reset(fields);
+      hasInitialDataLoaded.current = true;
+      setIsInitialLoad(false);
     }
-  }, [data, reset]);
+  }, [data, reset, isLoadingCountries, allCountries.length]);
   const getImageSource = () => {
     if (
       watchedProfileImage &&
@@ -175,7 +296,15 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
     }
     return IMAGE.profileImage;
   };
-
+  useFocusEffect(
+    useCallback(() => {
+      // Reset the flag so form can update with new data
+      hasInitialDataLoaded.current = false;
+      setIsInitialLoad(true);
+      // Refetch profile data when screen comes into focus
+      refetch();
+    }, [refetch]),
+  );
   return (
     <TitleBackHeaderContainer title={'My Profile'} isBack>
       <View style={styles.profileContainer}>
@@ -269,7 +398,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
             control={control}
             name="state"
             label={'State'}
-            country={watch('country') ? getValues('country') : undefined}
+            country_id={getCountryIdFromIso2(watchedCountry)}
             placeholder={'State'}
             error={errors}
             required={{value: true, message: 'State is required'}}
@@ -279,9 +408,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
             control={control}
             name="city"
             label={'City'}
-            country={watch('country') ? getValues('country') : undefined}
-            state={watch('state') ? getValues('state') : undefined}
-            stateCode={watch('state') ? getValues('state') : undefined}
+            state_id={getStateIdFromName(watchedState)}
             placeholder={'City'}
             error={errors}
             required={{value: true, message: 'City is required'}}

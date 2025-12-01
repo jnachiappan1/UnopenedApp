@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -19,7 +19,7 @@ import {
 } from 'react-hook-form';
 import { getColors, IColors } from '../../utils/colors';
 import { InfiniteData, useInfiniteQuery } from '@tanstack/react-query';
-import { getCityAction, getStateAction } from '../../utils/apiAction';
+import { getCityAction } from '../../utils/apiAction';
 import IconsSvg from '../../assets/svg/iconsSvg';
 import Header from './header';
 import commonStyles from '../../utils/common-styles';
@@ -38,9 +38,7 @@ type IInputCityProps = {
     | Record<string, Validate<any, FieldValues>>;
   containerStyle?: any;
   style?: any;
-  country: string | undefined;
-  state: string | undefined;
-  stateCode?: string | undefined;
+  state_id: string | number | undefined;
   isShowError?: boolean;
 };
 
@@ -56,9 +54,7 @@ const InputCity: React.FC<IInputCityProps> = ({
   required,
   pattern,
   validate,
-  country,
-  state,
-  stateCode,
+  state_id,
   isShowError = true,
 }) => {
   const colors = getColors();
@@ -67,52 +63,24 @@ const InputCity: React.FC<IInputCityProps> = ({
   const [showList, setShowList] = useState(false);
   const [searchText, setSearchText] = useState('');
   const styles = getStyles(colors);
-  // Query to get state name from state code
-  const {
-    data: stateData,
-  } = useInfiniteQuery<any, Error, InfiniteData<any>, string[], number>({
-    queryKey: ['getStateAction', '', country as string],
-    queryFn: ({ pageParam }) =>
-      getStateAction({
-        page: pageParam,
-        limit: 100,
-        search: '',
-        country: country as string,
-      }),
-    initialPageParam: 1,
-    enabled: Boolean(country) && Boolean(stateCode),
-    getNextPageParam: lastPage => {
-      if (lastPage?.data?.hasNext) {
-        return lastPage.data.currentPage + 1;
-      }
-      return undefined;
-    },
-  });
-
-  // Get state name from state code
-  const allStates = (stateData?.pages.flatMap(page => page.data || []) || []);
-  const selectedState = allStates.find(state => state.state_code === stateCode);
-  const stateName = selectedState?.name || state;
-
+  
   const {
     data,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
     isLoading,
-    refetch,
   } = useInfiniteQuery<any, Error, InfiniteData<any>, string[], number>({
-    queryKey: ['getCityAction', searchText, country, stateName],
+    queryKey: ['getCityAction', searchText, state_id as string],
     queryFn: ({ pageParam }) =>
       getCityAction({
         page: pageParam,
         limit: 30,
         search: searchText,
-        country: country as string,
-        state: stateName as string,
+        state_id: state_id as string | number,
       }),
     initialPageParam: 1,
-    enabled: Boolean(country) && Boolean(stateName),
+    enabled: Boolean(state_id),
     getNextPageParam: lastPage => {
       if (lastPage?.data?.hasNext) {
         return lastPage.data.currentPage + 1;
@@ -120,17 +88,20 @@ const InputCity: React.FC<IInputCityProps> = ({
       return undefined;
     },
   });
- 
-  useEffect(() => {
-    refetch();
-  }, [refetch, searchText, country, stateName]);
 
-  const allCities = (data?.pages.flatMap(page => page.data || []) || []).map(
-    (city, index) => ({
-      id: index + 1,
-      name: city,
-    })
-  );
+  const allCities = useMemo(() => {
+    const cities = data?.pages.flatMap(page => page?.data?.data || page?.data || []) || [];
+    // If cities are strings, convert to objects. If they're already objects, use them as is.
+    return cities.map((city, index) => {
+      if (typeof city === 'string') {
+        return {
+          id: index + 1,
+          name: city,
+        };
+      }
+      return city;
+    });
+  }, [data]);
 
   const errorMessage =
     error && error[name]?.message ? error[name]?.message.toString() : '';
@@ -155,10 +126,10 @@ const InputCity: React.FC<IInputCityProps> = ({
           <TouchableOpacity
             style={[commonStyles.inputWrapper, style]}
             onPress={() => setShowList(true)}
-            disabled={isLoading || (!country && !stateName)}
+            disabled={isLoading || !state_id}
           >
            <View style={styles.view}>
-              {isLoading && country && stateName ? (
+              {isLoading && state_id && !value ? (
                 <ActivityIndicator size="small" color={colors.primary} />
               ) : value ? (
                 <Text style={commonStyles.valueText}>{value}</Text>

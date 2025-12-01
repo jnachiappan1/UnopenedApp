@@ -1,6 +1,7 @@
 // export const base_url = 'http://45.248.33.161:5019';
 // export const base_url = 'http://54.221.164.94';
-export const base_url = 'http://13.222.176.76';
+// export const base_url = 'http://13.222.176.76';
+export const base_url = 'https://api.unopenedapp.com';
 // export const base_url = 'http://192.168.29.37:5019';
 
 export const image_url = 'https://unopened-storage.s3.us-east-1.amazonaws.com';
@@ -55,9 +56,9 @@ export const API = {
     getScanProduct: `${base_url}/api/v1/product/scan-product?barcode=`,
   },
   location: {
-    country: '/api/v1/helper/countries',
-    state: '/api/v1/helper/states',
-    city: '/api/v1/helper/cities',
+    country: '/api/v1/common/countries',
+    state: '/api/v1/common/states',
+    city: '/api/v1/common/cities',
   },
   readNotification: `${base_url}/api/v1/notification/mark-all-read`,
   readSingleNotification: `${base_url}/api/v1/notification`,

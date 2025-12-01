@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -46,6 +46,8 @@ type IInputCountryProps = {
 };
 
 export interface ICountry {
+  id: string | number;
+  iso2: string;
   currency: string;
   dialCode: string;
   flag: string;
@@ -79,7 +81,6 @@ const InputCountry: React.FC<IInputCountryProps> = ({
     hasNextPage,
     isFetchingNextPage,
     isLoading,
-    refetch,
   } = useInfiniteQuery<any, Error, InfiniteData<any>, string[], number>({
     queryKey: ['getCountriesAction', searchText],
     queryFn: ({ pageParam }) =>
@@ -93,15 +94,10 @@ const InputCountry: React.FC<IInputCountryProps> = ({
     },
   });
 
-  useEffect(() => {
-    refetch();
-  }, [refetch, searchText]);
-
 const allCountries = useMemo(() => {
-  const all = data?.pages.flatMap((page, index) => {
-    return page?.data || [];
+  return data?.pages.flatMap((page) => {
+    return page?.data?.data || page?.data || [];
   }) || [];
-  return all;
 }, [data]);
 
   const getError = useMemo(() => {
@@ -117,7 +113,7 @@ const allCountries = useMemo(() => {
     onChange: (val: any) => void,
     country: ICountry
   ) => {
-    onChange(country?.name);
+    onChange(country?.iso2);
     onClose();
   };
 
@@ -144,7 +140,7 @@ const allCountries = useMemo(() => {
                 <ActivityIndicator size="small" />
               ) : value ? (
                 <Text style={commonStyles.valueText} numberOfLines={1}>
-                  {value}
+                  {allCountries.find(country => country.iso2 === value)?.name || value}
                 </Text>
               ) : (
                 <Text style={commonStyles.placeholder}>{placeholder}</Text>
@@ -185,7 +181,7 @@ const allCountries = useMemo(() => {
 
               <FlatList
                 data={allCountries}
-                keyExtractor={(item) => item.name}
+                keyExtractor={(item) => String(item.id)}
                 renderItem={({ item }) => (
                   <Text
                     style={commonStyles.countryItem}

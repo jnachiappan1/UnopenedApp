@@ -16,6 +16,7 @@ import messaging from '@react-native-firebase/messaging';
 import { showMessages } from './src/utils/notificationHelper';
 import { OS } from './src/utils/utils';
 import { saveFcmToken } from './src/redux/reducers/user/UserReducer';
+import colors from './src/utils/colors';
 
 const queryClient = new QueryClient();
 
@@ -124,5 +125,6 @@ export default function App() {
 const styles = StyleSheet.create({
   commonFlex: {
     flex: 1,
+    backgroundColor: colors.white,
   },
 });
