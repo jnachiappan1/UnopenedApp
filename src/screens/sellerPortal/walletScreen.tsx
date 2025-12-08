@@ -217,6 +217,7 @@ const WalletScreen: React.FC<WalletScreenProps> = ({navigation}) => {
       </TitleBackHeaderContainer>
     );
   }
+console.log("walletData?.data?.wallet?.amount", walletData?.data?.wallet?.amount);
 
   return (
     <TitleBackHeaderContainer

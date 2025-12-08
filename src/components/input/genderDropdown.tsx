@@ -40,6 +40,7 @@ const GenderDropdown = <T extends FieldValues>({
     { label: 'Male', value: 'male' },
     { label: 'Female', value: 'female' },
     { label: 'Other', value: 'other' },
+    { label: 'Prefer not to say', value: 'prefer_not_to_say' },
   ];
 
   const selectedError = error?.[name]?.message;
@@ -81,12 +82,25 @@ const GenderDropdown = <T extends FieldValues>({
           >
             <View style={styles.modalOverlay}>
               <View style={styles.modalContent}>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>Select Gender</Text>
+                  <TouchableOpacity
+                    onPress={() => setIsOpen(false)}
+                    style={styles.cancelButton}
+                  >
+                    {/* <Text style={styles.cancelButtonText}>Cancel</Text> */}
+                    <IconsSvg name="cancelIcon" />
+                  </TouchableOpacity>
+                </View>
                 <FlatList
                   data={genderOptions}
                   keyExtractor={item => item.value}
-                  renderItem={({ item }) => (
+                  renderItem={({ item, index }) => (
                     <TouchableOpacity
-                      style={styles.optionItem}
+                      style={[
+                        styles.optionItem,
+                        index === genderOptions.length - 1 && styles.optionItemLast,
+                      ]}
                       onPress={() => {
                         onChange(item.value);
                         setIsOpen(false);
@@ -150,25 +164,54 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
     backgroundColor: '#fff',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+    // borderTopLeftRadius: 16,
+    // borderTopRightRadius: 16,
     maxHeight: 300,
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
+    // elevation: 5,
+    borderRadius: 16,
+    marginHorizontal: 20,
+    // width:"90%",
+    // shadowColor: '#000',
+    // shadowOffset: { width: 0, height: -2 },
+    // shadowOpacity: 0.25,
+    // shadowRadius: 4,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+  },
+  cancelButton: {
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    color: colors.secondary || '#007AFF',
+    fontWeight: '500',
   },
   optionItem: {
     paddingHorizontal: 20,
     paddingVertical: 15,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
+  },
+  optionItemLast: {
+    borderBottomWidth: 0,
   },
   optionText: {
     fontSize: 16,

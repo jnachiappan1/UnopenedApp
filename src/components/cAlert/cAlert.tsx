@@ -75,6 +75,13 @@ export default class CAlert extends React.Component<any, IState> {
         animationOut={'slideOutDown'}>
         <View style={styles.container}>
           <View style={styles.dialogContainer}>
+            <TouchableOpacity
+              style={styles.cancelIconContainer}
+              onPress={() => {
+                this.setState({isVisible: false});
+              }}>
+              <IconsSvg name="cancelIcon" />
+            </TouchableOpacity>
             <View style={styles.animatedView}>
               <View style={styles.icon}>
                 <IconsSvg name={alertTypeToIcon[this.state.type]} />
@@ -245,4 +252,11 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bold,
   },
   icon: {alignSelf: 'center'},
+  cancelIconContainer: {
+    position: 'absolute',
+    top: 15,
+    right: 15,
+    zIndex: 10,
+    padding: 5,
+  },
 });

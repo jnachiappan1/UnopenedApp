@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   StatusBar,
+  TouchableOpacity,
 } from 'react-native';
 import Modal from 'react-native-modal';
 import Button from '../button/buttons';
@@ -63,6 +64,13 @@ const ContactSupportModal: React.FC<ContactSupportModalProps> = ({
       <View style={styles.modalContainer}>
         <StatusBar barStyle="dark-content" backgroundColor={colors.modalBackGround} />
         <View style={styles.modalContent}>
+          <TouchableOpacity 
+            style={styles.closeButton} 
+            onPress={handleCancel}
+            activeOpacity={0.7}
+          >
+            <IconsSvg name="close" />
+          </TouchableOpacity>
           <IconsSvg name="helpSupportIcon" />
           <Text style={styles.headingStyle}>Contact Support</Text>
           <Text style={styles.descriptionStyle}>
@@ -123,6 +131,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white, 
     borderRadius: 12,
     alignItems: 'center',
+    position: 'relative',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    padding: 4,
+    zIndex: 1,
   },
   headingStyle: {
     fontSize: fontSizes.large,

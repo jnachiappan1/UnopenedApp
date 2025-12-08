@@ -37,6 +37,7 @@ export type IconName =
   | 'checkBox'
   | 'checkBoxSelected'
   | 'cancel'
+  | 'cancelIcon'
   | 'filterIcon'
   | 'salesIcon'
   | 'walletIcon'
@@ -475,6 +476,17 @@ const IconsSvg = (props: IconsSvgProps) => {
           />
         </Svg>
       );
+      case 'cancelIcon':
+        return (
+          <Svg width={30} height={30} viewBox="0 0 20 20" fill="none" {...props}>
+            <Path
+              fillRule="evenodd"
+              clipRule="evenodd"
+              d="M5.19 5.19a.626.626 0 01.885 0l3.931 3.93 3.933-3.93a.626.626 0 11.884.884l-3.932 3.931 3.933 3.933a.626.626 0 01-.885.885l-3.932-3.932-3.932 3.932a.626.626 0 01-.885-.885l3.932-3.932L5.19 6.074a.626.626 0 010-.885z"
+              fill="#21252B"
+            />
+          </Svg>
+        );
     case 'filterIcon':
       return (
         <Svg width={52} height={52} viewBox="0 0 52 52" fill="none" {...props}>

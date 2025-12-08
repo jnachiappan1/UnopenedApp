@@ -9,7 +9,7 @@ import fonts from '../../assets/fonts/fonts';
 import Button from '../../components/button/buttons';
 import Input from '../../components/input/input';
 import {useForm} from 'react-hook-form';
-import { quickAmounts} from '../../utils/static';
+import {quickAmounts} from '../../utils/static';
 import PaymentMethodOption from '../../components/card/paymentMethodOption';
 import {useMutation} from '@tanstack/react-query';
 import {makePayment} from '../../utils/apiAction';
@@ -34,7 +34,6 @@ const AddFundScreen: React.FC<AddFundScreenProps> = ({navigation}) => {
   const {initPaymentSheet, presentPaymentSheet} = useStripe();
   const userData = useSelector((user: IRootState) => user.user.userData);
 
-  
   const {
     control,
     formState: {errors},

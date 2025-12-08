@@ -95,6 +95,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
   const [imageError, setImageError] = useState<string>('');
   const [dropdownData, setDropdownData] = useState<DropDownType[]>([]);
   const [scannedCategoryName, setScannedCategoryName] = useState<string>('');
+  const [hasShownScanError, setHasShownScanError] = useState<boolean>(false);
   const {data: categoryData} = useQuery({
     queryKey: ['getCategoryDetail'],
     queryFn: () => getCategoryDetail(),
@@ -112,10 +113,18 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     enabled: isLogged,
   });
 
-  const {data: scanProductData, isFetching: isScanFetching} = useQuery({
+  const {
+    data: scanProductData,
+    isFetching: isScanFetching,
+    error: scanError,
+    isError: isScanError,
+  } = useQuery({
     queryKey: ['getScanProductDetail', scannedBarcode],
     queryFn: () => getScanProductDetail(scannedBarcode as string),
     enabled: !!scannedBarcode,
+    retry: false,
+    staleTime: 0,
+    gcTime: 0,
   });
 
   const discountPercentage = ProductPriceData?.data?.product_price?.price;
@@ -427,6 +436,45 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
   };
 
   useEffect(() => {
+    // Reset error state when barcode changes
+    if (scannedBarcode) {
+      setHasShownScanError(false);
+    }
+  }, [scannedBarcode]);
+
+  useEffect(() => {
+    // Handle scan errors (timeout, network error, or API error)
+    if (
+      scannedBarcode &&
+      !isScanFetching &&
+      !hasShownScanError &&
+      (isScanError ||
+        !scanProductData?.data?.product ||
+        (scanProductData?.data?.product &&
+          !scanProductData.data.product.title &&
+          !scanProductData.data.product.brand))
+    ) {
+      setHasShownScanError(true);
+      const errorMessage = scanError?.message || '';
+      const errorCode = (scanError as any)?.code || '';
+      const isTimeoutError =
+        errorMessage.toLowerCase().includes('timeout') ||
+        errorCode === 'ECONNABORTED' ||
+        errorMessage.toLowerCase().includes('network');
+
+      showAlert({
+        isVisible: true,
+        type: 'error',
+        title: 'Failed to Get Product Information',
+        description: isTimeoutError
+          ? 'Request timed out. Failed to get information, please scan again or add manually'
+          : 'Failed to get information, please scan again or add manually',
+        doneText: 'Okay',
+        onDonePress: () => {},
+      });
+      return;
+    }
+
     if (scanProductData?.data?.product) {
       const productData = scanProductData.data.product;
       const scannedCategory = productData.category;
@@ -582,6 +630,10 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       }
 
       clearErrors();
+      // Reset error state on successful data fetch
+      if (scanProductData?.data?.product) {
+        setHasShownScanError(false);
+      }
     }
   }, [
     scanProductData,
@@ -591,6 +643,10 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     scannedBarcode,
     discountPercentage,
     ProductPriceChargeData,
+    isScanFetching,
+    isScanError,
+    scanError,
+    hasShownScanError,
   ]);
 
   const handleImageUpload = (selectedImages: MediaObject[]) => {
@@ -933,6 +989,15 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       return scannedBarcode ? 'Scan Again' : 'Scan Now';
     };
 
+    const hasScanError =
+      scannedBarcode &&
+      !isScanFetching &&
+      (isScanError ||
+        !scanProductData?.data?.product ||
+        (scanProductData?.data?.product &&
+          !scanProductData.data.product.title &&
+          !scanProductData.data.product.brand));
+
     return (
       <View style={styles.scanSection}>
         <View style={styles.scanIconContainer}>
@@ -942,6 +1007,8 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
         <Text style={styles.scanSubtitle}>
           {isScanFetching
             ? 'Loading product data...'
+            : hasScanError
+            ? 'Failed to get information, please scan again or add manually'
             : 'Automatically fill product details by\nscanning the barcode.'}
         </Text>
         <WhiteButton
@@ -955,8 +1022,14 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
         />
         {scannedBarcode && (
           <View style={styles.scannedBarcodeContainer}>
-            <Text style={styles.scannedBarcodeText}>
-              Scanned: {scannedBarcode}
+            <Text
+              style={[
+                styles.scannedBarcodeText,
+                hasScanError && styles.scannedBarcodeError,
+              ]}>
+              {hasScanError
+                ? `Scanned: ${scannedBarcode} (Failed to fetch data)`
+                : `Scanned: ${scannedBarcode}`}
             </Text>
           </View>
         )}
@@ -1266,11 +1339,11 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
           <View style={styles.discountSliderContainer}>
             <Text style={styles.discountTitle}>Listing Price Percentage</Text>
             <Text style={styles.discountValue}>{discountPercent}%</Text>
-            <View style={{marginHorizontal: 10, alignSelf:'center'}}>
+            <View style={{marginHorizontal: 10, alignSelf: 'center'}}>
               <MultiSlider
                 values={[discountPercent]}
                 sliderLength={300}
-                trackStyle={{height:3}}
+                trackStyle={{height: 3}}
                 min={sliderMin}
                 max={sliderMax}
                 step={1}
@@ -1282,7 +1355,10 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
                   const newPercent = values[0];
                   calculateAndUpdatePrices(newPercent);
                 }}
-                selectedStyle={{backgroundColor: colors.primary, alignSelf:'center'}}
+                selectedStyle={{
+                  backgroundColor: colors.primary,
+                  alignSelf: 'center',
+                }}
                 unselectedStyle={{backgroundColor: '#ccc'}}
                 markerStyle={{
                   backgroundColor: colors.primary,
@@ -1416,7 +1492,10 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
   );
 
   return (
-    <TitleBackHeaderContainer isBack = {true} title="Add Product" isNormalHeader={false}>
+    <TitleBackHeaderContainer
+      isBack={true}
+      title="Add Product"
+      isNormalHeader={false}>
       <View style={styles.stepIndicator}>
         <View style={styles.stepIndicatorContainer}>
           {currentStep === 0 ? (
@@ -1685,7 +1764,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#4CAF50',
     marginHorizontal: 0,
-    paddingVertical: 16,
+    // paddingVertical: 16,
     shadowColor: '#4CAF50',
     shadowOffset: {
       width: 0,
@@ -1932,6 +2011,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: 'rgba(76, 175, 80, 0.3)',
+  },
+  scannedBarcodeError: {
+    color: '#FF3B30',
+    backgroundColor: 'rgba(255, 59, 48, 0.1)',
+    borderColor: 'rgba(255, 59, 48, 0.3)',
   },
   scannedBarcodeContainer: {
     marginTop: 16,

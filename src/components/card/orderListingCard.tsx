@@ -30,7 +30,7 @@ const OrderListingCard: React.FC<OrderListingCardProps> = ({ item, cardStyle, on
         <View>
           <Text style={styles.cardTitle} numberOfLines={2}>{item?.name}</Text>
           <Text style={styles.cardPosted}>Posted {calculateDaysAgo(item?.createdAt)} Days Ago</Text>
-          <Text style={styles.cardPrice}>${item?.price}</Text>
+          <Text style={styles.cardPrice}>${Number(item?.price || 0).toFixed(2)}</Text>
         </View>
       </View>
       <View style={styles.cardDetails}>

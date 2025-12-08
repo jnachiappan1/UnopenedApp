@@ -19,7 +19,7 @@ import {
   Validate,
   ValidationRule,
 } from 'react-hook-form';
-import { InfiniteData, useInfiniteQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { getColors, IColors } from '../../utils/colors';
 import { getCountriesAction } from '../../utils/apiAction';
 import IconsSvg from '../../assets/svg/iconsSvg';
@@ -75,30 +75,40 @@ const InputCountry: React.FC<IInputCountryProps> = ({
   const [showList, setShowList] = useState(false);
   const [searchText, setSearchText] = useState('');
   const styles = getStyles(colors);
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isLoading,
-  } = useInfiniteQuery<any, Error, InfiniteData<any>, string[], number>({
-    queryKey: ['getCountriesAction', searchText],
-    queryFn: ({ pageParam }) =>
-      getCountriesAction({ page: pageParam, limit: 100, search: searchText }),
-    initialPageParam: 1,
-    getNextPageParam: (lastPage) => {
-      if (lastPage?.data?.hasNext) {
-        return lastPage.data.currentPage + 1;
+  
+  // Fetch all countries once (without search)
+  const { data, isLoading } = useQuery<any, Error>({
+    queryKey: ['getCountriesAction', 'all'],
+    queryFn: async () => {
+      let allCountries: ICountry[] = [];
+      let page = 1;
+      let hasNext = true;
+      
+      while (hasNext) {
+        const response = await getCountriesAction({ page, limit: 100, search: '' });
+        const countries = response?.data?.data || response?.data || [];
+        allCountries = [...allCountries, ...countries];
+        hasNext = response?.data?.hasNext || false;
+        page++;
       }
-      return undefined;
+      
+      return { data: allCountries };
     },
   });
 
-const allCountries = useMemo(() => {
-  return data?.pages.flatMap((page) => {
-    return page?.data?.data || page?.data || [];
-  }) || [];
-}, [data]);
+  // Filter countries on frontend based on searchText
+  const filteredCountries = useMemo(() => {
+    const allCountriesList = data?.data || [];
+    if (!searchText.trim()) {
+      return allCountriesList;
+    }
+    const searchLower = searchText.toLowerCase().trim();
+    return allCountriesList.filter((country: ICountry) =>
+      country.name?.toLowerCase().includes(searchLower) ||
+      country.iso2?.toLowerCase().includes(searchLower) ||
+      country.dialCode?.includes(searchText)
+    );
+  }, [data, searchText]);
 
   const getError = useMemo(() => {
     return error?.[name]?.message?.toString() || '';
@@ -140,7 +150,7 @@ const allCountries = useMemo(() => {
                 <ActivityIndicator size="small" />
               ) : value ? (
                 <Text style={commonStyles.valueText} numberOfLines={1}>
-                  {allCountries.find(country => country.iso2 === value)?.name || value}
+                  {(data?.data || []).find((country: ICountry) => country.iso2 === value)?.name || value}
                 </Text>
               ) : (
                 <Text style={commonStyles.placeholder}>{placeholder}</Text>
@@ -180,7 +190,7 @@ const allCountries = useMemo(() => {
               </View>
 
               <FlatList
-                data={allCountries}
+                data={filteredCountries}
                 keyExtractor={(item) => String(item.id)}
                 renderItem={({ item }) => (
                   <Text
@@ -191,17 +201,6 @@ const allCountries = useMemo(() => {
                 )}
                 contentContainerStyle={commonStyles.flatListContent}
                 keyboardShouldPersistTaps="handled"
-                onEndReached={() => {
-                  if (hasNextPage && !isFetchingNextPage) {
-                    fetchNextPage();
-                  }
-                }}
-                onEndReachedThreshold={0.5}
-                ListFooterComponent={
-                  isFetchingNextPage ? (
-                    <ActivityIndicator style={{ marginVertical: 10 }} />
-                  ) : null
-                }
                 ListEmptyComponent={<Text>No countries found</Text>}
               />
             </View>

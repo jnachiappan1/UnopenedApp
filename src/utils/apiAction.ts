@@ -120,7 +120,6 @@ export const updateProductStatus = async (
   productID: string | number | null | undefined,
   data: globalThis.FormData,
 ) => {
-
   const response = await axiosmultipart.patch(
     API.seller.add_Product + '/' + productID,
     data,
@@ -188,7 +187,6 @@ export const getAllProductList = async (user_id?: number) => {
   }
 };
 
-
 export const getProductPriceDetail = async () => {
   const response = await axios.get(API.seller.getProductPrice);
   return response;
@@ -251,6 +249,7 @@ export const getCountriesAction = async ({
   if (search) {
     url += `&search=${encodeURIComponent(search)}`;
   }
+
   const response = await axios.get<any>(url);
   return response.data;
 };
@@ -337,6 +336,7 @@ export const makePayment = async (
   if (type !== 'add_funds' && productId !== undefined && productId !== null) {
     url += `&product_id=${productId}`;
   }
+
   const response = await axios.post(url, payload);
   return response;
 };
@@ -378,8 +378,12 @@ export const updateNotificationAction = async () => {
   const response = await axios.patch(API.readNotification);
   return response;
 };
-export const readSingleNotificationAction = async (notificationId: number | string) => {
-  const response = await axios.patch(`${API.readSingleNotification}/${notificationId}`);
+export const readSingleNotificationAction = async (
+  notificationId: number | string,
+) => {
+  const response = await axios.patch(
+    `${API.readSingleNotification}/${notificationId}`,
+  );
   return response;
 };
 export const createCashOut = async (payload: PaymentPayloadType) => {

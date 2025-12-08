@@ -165,10 +165,10 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({route, navigation}) => {
         {'Please enter 6 digit code we sent to you on'}
       </Text>
       <Text style={styles.emailText}>{email}</Text>
-      <Text style={styles.emailText}>
+      {/* <Text style={styles.emailText}>
         {'Otp: '}
         {resendOtp ? resendOtp : otp}
-      </Text>
+      </Text> */}
 
       <InputOtp
         control={control}

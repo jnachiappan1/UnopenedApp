@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -17,9 +17,9 @@ import {
   Validate,
   ValidationRule,
 } from 'react-hook-form';
-import { getColors, IColors } from '../../utils/colors';
-import { InfiniteData, useInfiniteQuery } from '@tanstack/react-query';
-import { getCityAction } from '../../utils/apiAction';
+import {getColors, IColors} from '../../utils/colors';
+import {useQuery} from '@tanstack/react-query';
+import {getCityAction} from '../../utils/apiAction';
 import IconsSvg from '../../assets/svg/iconsSvg';
 import Header from './header';
 import commonStyles from '../../utils/common-styles';
@@ -63,45 +63,52 @@ const InputCity: React.FC<IInputCityProps> = ({
   const [showList, setShowList] = useState(false);
   const [searchText, setSearchText] = useState('');
   const styles = getStyles(colors);
-  
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isLoading,
-  } = useInfiniteQuery<any, Error, InfiniteData<any>, string[], number>({
-    queryKey: ['getCityAction', searchText, state_id as string],
-    queryFn: ({ pageParam }) =>
-      getCityAction({
-        page: pageParam,
-        limit: 30,
-        search: searchText,
-        state_id: state_id as string | number,
-      }),
-    initialPageParam: 1,
-    enabled: Boolean(state_id),
-    getNextPageParam: lastPage => {
-      if (lastPage?.data?.hasNext) {
-        return lastPage.data.currentPage + 1;
+
+  const {data, isLoading} = useQuery<any, Error>({
+    queryKey: ['getCityAction', 'all', state_id as string],
+    queryFn: async () => {
+      let allCities: any[] = [];
+      let page = 1;
+      let hasNext = true;
+
+      while (hasNext) {
+        const response = await getCityAction({
+          page,
+          limit: 100,
+          search: '',
+          state_id: state_id as string | number,
+        });
+        const cities = response?.data?.data || response?.data || [];
+        allCities = [...allCities, ...cities];
+        hasNext = response?.data?.hasNext || false;
+        page++;
       }
-      return undefined;
+
+      const processedCities = allCities.map((city, index) => {
+        if (typeof city === 'string') {
+          return {
+            id: index + 1,
+            name: city,
+          };
+        }
+        return city;
+      });
+
+      return {data: processedCities};
     },
+    enabled: Boolean(state_id),
   });
 
-  const allCities = useMemo(() => {
-    const cities = data?.pages.flatMap(page => page?.data?.data || page?.data || []) || [];
-    // If cities are strings, convert to objects. If they're already objects, use them as is.
-    return cities.map((city, index) => {
-      if (typeof city === 'string') {
-        return {
-          id: index + 1,
-          name: city,
-        };
-      }
-      return city;
-    });
-  }, [data]);
+  const filteredCities = useMemo(() => {
+    const allCitiesList = data?.data || [];
+    if (!searchText.trim()) {
+      return allCitiesList;
+    }
+    const searchLower = searchText.toLowerCase().trim();
+    return allCitiesList.filter((city: any) =>
+      city.name?.toLowerCase().includes(searchLower),
+    );
+  }, [data, searchText]);
 
   const errorMessage =
     error && error[name]?.message ? error[name]?.message.toString() : '';
@@ -115,20 +122,17 @@ const InputCity: React.FC<IInputCityProps> = ({
     <Controller
       control={control}
       name={name}
-      rules={{ required, pattern, validate }}
-      render={({ field: { onChange, value } }) => (
+      rules={{required, pattern, validate}}
+      render={({field: {onChange, value}}) => (
         <View style={[commonStyles.mainContainer, containerStyle]}>
           {label && (
-            <Text style={{ color: labelColor || colors.label }}>
-              {label}
-            </Text>
+            <Text style={{color: labelColor || colors.label}}>{label}</Text>
           )}
           <TouchableOpacity
             style={[commonStyles.inputWrapper, style]}
             onPress={() => setShowList(true)}
-            disabled={isLoading || !state_id}
-          >
-           <View style={styles.view}>
+            disabled={isLoading || !state_id}>
+            <View style={styles.view}>
               {isLoading && state_id && !value ? (
                 <ActivityIndicator size="small" color={colors.primary} />
               ) : value ? (
@@ -147,7 +151,10 @@ const InputCity: React.FC<IInputCityProps> = ({
             <Text style={commonStyles.error}>{errorMessage}</Text>
           )}
 
-          <Modal visible={showList} animationType="slide" onRequestClose={onClose}>
+          <Modal
+            visible={showList}
+            animationType="slide"
+            onRequestClose={onClose}>
             <View style={commonStyles.modalContainer}>
               <Header
                 title="Select City"
@@ -167,33 +174,23 @@ const InputCity: React.FC<IInputCityProps> = ({
                 />
               </View>
               <FlatList
-                data={allCities}
+                data={filteredCities}
                 keyExtractor={item => String(item.id)}
-                renderItem={({ item }) => (
+                renderItem={({item}) => (
                   <Text
                     style={commonStyles.countryItem}
                     onPress={() => {
                       onChange(item.name);
                       onClose();
-                    }}
-                  >
+                    }}>
                     {item.name}
                   </Text>
                 )}
                 contentContainerStyle={commonStyles.flatListContent}
                 keyboardShouldPersistTaps="handled"
-                onEndReached={() => {
-                  if (hasNextPage && !isFetchingNextPage) {
-                    fetchNextPage();
-                  }
-                }}
-                onEndReachedThreshold={0.5}
-                ListFooterComponent={
-                  isFetchingNextPage ? (
-                    <ActivityIndicator style={{ marginVertical: 10 }} />
-                  ) : null
+                ListEmptyComponent={
+                  <Text style={commonStyles.noDataText}>No cities found</Text>
                 }
-                ListEmptyComponent={<Text style={commonStyles.noDataText}>No cities found</Text>}
               />
             </View>
           </Modal>
@@ -207,10 +204,10 @@ export default InputCity;
 
 const getStyles = (colors: IColors) =>
   StyleSheet.create({
-   view: {
+    view: {
       width: '90%',
       height: 48,
       paddingHorizontal: 10,
       paddingVertical: 12,
-    }
+    },
   });

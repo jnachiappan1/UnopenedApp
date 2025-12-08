@@ -955,7 +955,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
               </Text>
               <View style={styles.priceContainer}>
                 <Text style={styles.productPrice}>
-                  ${allProductList?.data?.product[0]?.price}
+                  ${allProductList?.data?.product[0]?.price.toFixed(2)}
                 </Text>
                 {discountAmount > 0 && (
                   <Text style={styles.discountText}>
@@ -993,7 +993,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
 
         <View style={styles.productSection}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Billing Address</Text>
+            <Text style={styles.sectionTitle}>Shipping Address</Text>
             <TouchableOpacity onPress={handleChangeAddress}>
               <Text style={styles.changeButton}>Change</Text>
             </TouchableOpacity>
@@ -1127,7 +1127,8 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
                 </View>
                 <View style={styles.shippingOptionPrice}>
                   <Text style={styles.shippingPriceAmount}>
-                    ${selectedShippingRate.rate}
+                    
+                    ${Number(selectedShippingRate.rate || 0).toFixed(2)}
                   </Text>
                   <Text style={styles.shippingPriceCurrency}>USD</Text>
                 </View>
@@ -1595,7 +1596,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
           </View>
           <View style={styles.modalContent}>
             <Text style={styles.modalDescription}>
-              Total Amount: ${totalPrice}
+              Total Amount: ${totalPrice.toFixed(2)}
             </Text>
             <Text style={styles.modalDescription}>
               You will be redirected to Stripe to complete your payment

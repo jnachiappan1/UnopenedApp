@@ -150,6 +150,7 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
     .slice()
     .reverse();
   return (
+    <>
     <TitleBackHeaderContainer title="Product Details" isBack>
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.imageCarouselContainer}>
@@ -197,10 +198,10 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
               {currentProduct?.description}
             </Text>
             <View style={styles.priceContainer}>
-              <Text style={styles.price}>${currentProduct?.price}</Text>
+              <Text style={styles.price}>${Number(currentProduct?.price || 0).toFixed(2)}</Text>
               {currentProduct?.msrp && (
                 <Text style={styles.originalPrice}>
-                  ${currentProduct?.msrp}
+                  ${Number(currentProduct?.msrp || 0).toFixed(2)}
                 </Text>
               )}
               {isLoadingProductPriceData ? (
@@ -275,7 +276,9 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
         </View>
       </ScrollView>
 
-      <View style={styles.buyContainer}>
+      
+    </TitleBackHeaderContainer>
+    <View style={styles.buyContainer}>
         {currentProduct?.product_status === 'active' && (
           <Button
             title="Buy Now"
@@ -291,7 +294,7 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
           />
         )}
       </View>
-    </TitleBackHeaderContainer>
+    </>
   );
 };
 

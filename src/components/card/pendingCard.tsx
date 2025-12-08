@@ -60,7 +60,7 @@ const PendingCard: React.FC<Props> = ({ item }) => {
 
     <View style={styles.rowBetween}>
       <Text style={styles.title} numberOfLines={2}>{title}</Text>
-      <Text style={styles.price}>${price}</Text>
+      <Text style={styles.price}>${Number(price || 0).toFixed(2)}</Text>
     </View>
 
     <View style={styles.dateRow}>

@@ -46,7 +46,7 @@ const SaleCard: React.FC<Props> = ({ item ,onSelect}) => {
         <Text style={styles.subText}>
           Buyer Name: <Text style={styles.textValue}>{item.buyer_user?.full_name}</Text>
         </Text>
-        <Text style={styles.price}>${item.price}</Text>
+        <Text style={styles.price}>${Number(item.price || 0).toFixed(2)}</Text>
       </View>
     </TouchableOpacity>
   );

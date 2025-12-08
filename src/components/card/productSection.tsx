@@ -50,9 +50,12 @@ const ProductSection: React.FC<Props> = ({
         scrollEnabled={false}
         contentContainerStyle={styles.listContent}
         renderItem={(item, isHorizontal = false) => {
-          const imageUri = item.item?.product_image?.[0]?.image
+          const imageUri = item.item?.product_image?.[1]?.image
             ? image_url + item.item?.product_image?.[1]?.image
+            : item.item?.product_image?.[0]?.image
+            ? image_url + item.item?.product_image?.[0]?.image
             : 'https://via.placeholder.com/150';
+
 
           return (
             <>
@@ -82,10 +85,10 @@ const ProductSection: React.FC<Props> = ({
                         <StatusBadge status={item.item?.product_status} />
                       ) : (
                         <View style={styles.priceContainer}>
-                          <Text style={styles.price}>${item.item?.price}</Text>
+                          <Text style={styles.price}>${item.item?.price.toFixed(2)}</Text>
                           {item.item?.msrp && (
                             <Text style={styles.originalPrice}>
-                              ${item.item?.msrp}
+                              ${item.item?.msrp.toFixed(2)}
                             </Text>
                           )}
                         </View>

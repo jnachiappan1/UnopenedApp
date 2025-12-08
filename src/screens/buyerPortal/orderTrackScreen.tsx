@@ -53,7 +53,7 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({
 }) => {
   const productId = route.params;
   const {source} = route.params;
-  
+
   const [isContactSupportModalVisible, setIsContactSupportModalVisible] =
     useState(false);
   const [modalKey, setModalKey] = useState(0);
@@ -64,7 +64,7 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({
     queryKey: ['getProductDetailByID', productId?.productId],
     queryFn: () => getProductDetailByID(productId?.productId),
   });
-
+  
 
   // const addressId = productDetail?.data?.product[0]?.address_id;
 
@@ -93,11 +93,13 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({
   // });
 
   // const trackingUrl = shippingTrackingData?.data?.tracking?.tracking_url;
-  const {data: shippingTrackingData, isLoading: isTrackingLoading}:any = useQuery({
-    queryKey: ['trackShipment', productDetail?.data?.product[0]?.shipment_id],
-    queryFn: () => trackShipment(productDetail?.data?.product[0]?.shipment_id),
-    enabled: !!productDetail?.data?.product[0]?.shipment_id,
-  });
+  const {data: shippingTrackingData, isLoading: isTrackingLoading}: any =
+    useQuery({
+      queryKey: ['trackShipment', productDetail?.data?.product[0]?.shipment_id],
+      queryFn: () =>
+        trackShipment(productDetail?.data?.product[0]?.shipment_id),
+      enabled: !!productDetail?.data?.product[0]?.shipment_id,
+    });
   const {data: purchaseLabelData} = useQuery({
     queryKey: ['purchaseData', productDetail?.data?.product[0]?.shipment_id],
     queryFn: () => labelPurchase(productDetail?.data?.product[0]?.shipment_id),
@@ -426,20 +428,20 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({
       isBack
       title="Track Order"
       onBackPress={() => {
-       
         if (source === 'confirm_your_order') {
-          navigation.navigate(SCREENS.BottomTab, { screen: SCREENS.BHomeScreen });
+          navigation.navigate(SCREENS.BottomTab, {screen: SCREENS.BHomeScreen});
         } else {
           navigation.goBack();
         }
-      }}
-    >
+      }}>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.container}>
           <View style={styles.orderIdRow}>
             <View>
               <Text style={styles.orderIdLabel}>Order ID</Text>
-              <Text style={styles.orderId}>{'ORD#11458'}</Text>
+              <Text style={styles.orderId}>
+                {productDetail?.data?.product[0]?.order_id}
+              </Text>
             </View>
             <View>
               <StatusBadge

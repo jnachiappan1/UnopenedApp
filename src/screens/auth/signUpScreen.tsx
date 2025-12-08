@@ -420,7 +420,6 @@ const SignUpScreen: React.FC<LoginProps> = ({route, navigation}) => {
             ) {
               delete payload.second_line_address;
             }
-console.log(payload, "------");
 
             showLoader(true);
             mutate(payload);

@@ -20,7 +20,7 @@ import {
   ValidationRule,
 } from 'react-hook-form';
 import {getColors, IColors} from '../../utils/colors';
-import {InfiniteData, useInfiniteQuery} from '@tanstack/react-query';
+import {useQuery} from '@tanstack/react-query';
 import { getStateAction } from '../../utils/apiAction';
 import Header from './header';
 import commonStyles from '../../utils/common-styles';
@@ -72,40 +72,45 @@ const InputState: React.FC<IInputStateProps> = ({
   const [showList, setShowList] = useState(false);
   const [searchText, setSearchText] = useState('');
   const styles = getStyles(colors);
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isLoading,
-  } = useInfiniteQuery<
-    any,
-    Error,
-    InfiniteData<any>,
-    string[],
-    number
-  >({
-    queryKey: ['getStateAction', searchText, country_id as string],
-    queryFn: ({pageParam}) =>
-      getStateAction({
-        page: pageParam,
-        limit: 30,
-        search: searchText,
-        country_id: country_id as string | number,
-      }),
-    initialPageParam: 1,
-    enabled: Boolean(country_id),
-    getNextPageParam: lastPage => {
-      if (lastPage?.data?.hasNext) {
-        return lastPage.data.currentPage + 1;
+  
+  // Fetch all states once (without search)
+  const { data, isLoading } = useQuery<any, Error>({
+    queryKey: ['getStateAction', 'all', country_id as string],
+    queryFn: async () => {
+      let allStates: IItem[] = [];
+      let page = 1;
+      let hasNext = true;
+      
+      while (hasNext) {
+        const response = await getStateAction({
+          page,
+          limit: 100,
+          search: '',
+          country_id: country_id as string | number,
+        });
+        const states = response?.data?.data || response?.data || [];
+        allStates = [...allStates, ...states];
+        hasNext = response?.data?.hasNext || false;
+        page++;
       }
-      return undefined;
+      
+      return { data: allStates };
     },
+    enabled: Boolean(country_id),
   });
 
-const allStates = useMemo(() => {
-  return data?.pages.flatMap(page => page?.data?.data || page?.data || []) || [];
-}, [data]);
+  // Filter states on frontend based on searchText
+  const filteredStates = useMemo(() => {
+    const allStatesList = data?.data || [];
+    if (!searchText.trim()) {
+      return allStatesList;
+    }
+    const searchLower = searchText.toLowerCase().trim();
+    return allStatesList.filter((state: IItem) =>
+      state.name?.toLowerCase().includes(searchLower) ||
+      state.state_code?.toLowerCase().includes(searchLower)
+    );
+  }, [data, searchText]);
   const getError = useMemo(() => {
     return error?.[name]?.message?.toString() || '';
   }, [error, name]);
@@ -190,7 +195,7 @@ const allStates = useMemo(() => {
                   />
                 </View>
                 <FlatList
-                  data={allStates}
+                  data={filteredStates}
                   keyExtractor={item => String(item.id)}
                   renderItem={({item}) => (
                     <Text
@@ -201,17 +206,6 @@ const allStates = useMemo(() => {
                   )}
                   contentContainerStyle={commonStyles.flatListContent}
                   keyboardShouldPersistTaps="handled"
-                  onEndReached={() => {
-                    if (hasNextPage && !isFetchingNextPage) {
-                      fetchNextPage();
-                    }
-                  }}
-                  onEndReachedThreshold={0.5}
-                  ListFooterComponent={
-                    isFetchingNextPage ? (
-                      <ActivityIndicator style={{marginVertical: 10}} />
-                    ) : null
-                  }
                   ListEmptyComponent={
                     !country_id ? (
                       <Text style={commonStyles.noDataText}>Please select a country first</Text>

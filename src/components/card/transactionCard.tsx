@@ -269,7 +269,7 @@ const TransactionCard: React.FC<Props> = ({item}) => {
                 </View>
               </View>
               <Text style={styles.breakdownAmount}>
-                ${formatAmount(String(breakdown.walletAmt || 0))}
+                ${Number(formatAmount(String(breakdown.walletAmt || 0))).toFixed(2)}
               </Text>
             </View>
           ) : null}
@@ -292,7 +292,7 @@ const TransactionCard: React.FC<Props> = ({item}) => {
                 </View>
               </View>
               <Text style={styles.breakdownAmount}>
-                ${formatAmount(String(breakdown.externalAmt || 0))}
+                ${Number(formatAmount(String(breakdown.externalAmt || 0))).toFixed(2)}
               </Text>
             </View>
           ) : null}
