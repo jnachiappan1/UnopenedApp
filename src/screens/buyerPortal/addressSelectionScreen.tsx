@@ -89,7 +89,19 @@ const AddressSelectionScreen: React.FC<AddressSelectionScreenProps> = ({
         ]}
         onPress={() => handleAddressSelect(item)}>
         <View style={styles.addressHeader}>
-          <Text style={styles.addressName}>{item.full_name}</Text>
+          <View style={styles.addressHeaderLeft}>
+            <Text style={styles.addressName}>{item.full_name}</Text>
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={() =>
+                navigation.navigate(SCREENS.EditAddressScreen, {
+                  addressId: item.id,
+                  mode: 'edit',
+                })
+              }>
+              <Text style={styles.editButtonText}>Edit</Text>
+            </TouchableOpacity>
+          </View>
           <View style={styles.addressHeaderRight}>
             {isDefaultAddress && (
               <View style={styles.defaultAddressBadge}>
@@ -177,6 +189,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
+  addressHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   addressHeaderRight: {
     alignItems: 'flex-end',
   },
@@ -205,6 +221,19 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.small,
     fontFamily: fonts.medium,
     color: colors.text3,
+  },
+  editButton: {
+    borderWidth: 1,
+    borderColor: colors.primary,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginLeft: 8,
+  },
+  editButtonText: {
+    fontSize: fontSizes.small,
+    fontFamily: fonts.medium,
+    color: colors.primary,
   },
   addressText: {
     fontSize: fontSizes.regular,

@@ -18,7 +18,7 @@ const InfoRow: React.FC<InfoRowProps> = ({ title, subtitle, style,titleStyle,sub
     <View style={[styles.row, style]}>
       <Text style={[styles.title,titleStyle]}>{title}</Text>
       {showColon && <Text style={styles.colon}>{': '}</Text>}
-      <Text style={[styles.subtitle,subtitleStyle]}>{subtitle}</Text>
+      <Text style={[styles.subtitle,subtitleStyle]}>{typeof subtitle === 'number' ? subtitle.toFixed(2) : subtitle}</Text>
     </View>
   );
 };

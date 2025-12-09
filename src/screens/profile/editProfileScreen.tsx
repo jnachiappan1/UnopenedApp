@@ -53,6 +53,7 @@ type Inputs = {
   city?: string;
   state?: string;
   gender?: string;
+  second_line_address?: string;
 };
 
 const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
@@ -65,8 +66,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
     queryKey: ['getProfile'],
     queryFn: viewProfile,
   });
-
-  
 
   const {
     control,
@@ -229,7 +228,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
     formDataToSend.append('city', formData.city);
     formDataToSend.append('pincode', formData.pincode);
     formDataToSend.append('gender', formData.gender);
-
+    formDataToSend.append('second_line_address', formData.second_line_address);
     if (formData.profileImage && typeof formData.profileImage === 'object') {
       formDataToSend.append('profile_picture', {
         uri: formData.profileImage.uri,
@@ -245,11 +244,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
 
   // Reset form when profile data and countries are loaded
   useEffect(() => {
-    if (
-      data?.data?.user &&
-      !isLoadingCountries &&
-      allCountries.length > 0
-    ) {
+    if (data?.data?.user && !isLoadingCountries && allCountries.length > 0) {
       const user = data.data.user;
       const fields: Inputs = {
         full_name: user.full_name || '',
@@ -262,6 +257,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
         pincode: user.pincode || '',
         gender: user.gender || '',
         profileImage: user.profile_picture || '',
+        second_line_address: user.second_line_address || '',
       };
 
       reset(fields);
@@ -386,7 +382,23 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
           maxLength={40}
           inputStyle={styles.inputStyle}
         />
-
+         <Input
+          control={control}
+          name="second_line_address"
+          label={'House No. / Apartment No. (optional)'}
+          inputProps={{
+            placeholder: 'Enter House No. / Apartment No.',
+          }}
+          maxLength={40}
+          // containerStyle={styles.containerStyle}
+        />
+        <GenderDropdown
+          control={control}
+          name="gender"
+          label="Gender"
+          // required={{value: true, message: 'Please select gender'}}
+          // error={errors}
+        />
         <View style={styles.locationContainer}>
           <InputCountry
             control={control}

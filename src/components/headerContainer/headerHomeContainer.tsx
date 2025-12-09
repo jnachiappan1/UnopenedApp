@@ -143,7 +143,7 @@ const HeaderHomeContainer: React.FC<HeaderHomeContainerProps> = props => {
                       ? profileImage
                       : `${image_url}${profileImage}`,
                   }
-                : IMAGE.profileImage
+                : IMAGE.userProfile
             }
             style={styles.icon}
           />
@@ -245,6 +245,8 @@ const getStyles = (colors: IColors) =>
       justifyContent: 'center',
       alignItems: 'center',
       borderRadius: 24,
+      borderWidth: 1,
+      borderColor: colors.primary,
     },
     back: {
       width: 24,

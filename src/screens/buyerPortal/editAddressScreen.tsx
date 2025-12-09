@@ -22,12 +22,10 @@ import {
   useQuery,
 } from '@tanstack/react-query';
 import {
-  addAddress,
   getCountriesAction,
   getStateAction,
-  viewProfile,
   updateAddress,
-  getAddressesByID,
+  getAddressById,
 } from '../../utils/apiAction';
 import {AddressPayloadType} from '../../utils/types';
 import {showLoader} from '../../components/loader/loader';
@@ -53,7 +51,7 @@ interface AddressFormData {
   second_line_address?: string;
 }
 
-const AddAddressScreen: React.FC<AddAddressProps> = ({navigation, route}) => {
+const EditAddressScreen: React.FC<AddAddressProps> = ({navigation, route}) => {
   const routeParams = (route?.params ?? {}) as Partial<{
     addressId: number;
     address_id: number;
@@ -65,6 +63,8 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation, route}) => {
     route?.name === SCREENS.EditAddressScreen || routeParams.mode === 'edit';
   const addressId =
     routeParams.addressId ?? routeParams.address_id ?? routeParams.id;
+  console.log('addressId-=-=-=-', addressId);
+
   const queryClient = useQueryClient();
   const isAutofillingRef = useRef(false);
   const [defaultAddress, setDefaultAddress] = useState<string>('');
@@ -105,22 +105,23 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation, route}) => {
   const watchedCity = watch('city');
   const watchedAddress = watch('address');
 
-  const {data: addressDetailResponse, isLoading: isLoadingAddress} = useQuery({
+  const {
+    data: addressDetailResponse,
+    isLoading: isLoadingAddress,
+    refetch: refetchAddress,
+  } = useQuery({
     queryKey: ['getAddressById', addressId],
-    queryFn: () => getAddressesByID(addressId as number),
-    enabled: Boolean(isEditMode && addressId),
+    queryFn: () => getAddressById(addressId as number),
+    enabled: Boolean(addressId),
   });
 
-  const addressInfo = React.useMemo(() => {
+  const addressInfo = useMemo(() => {
     const res = addressDetailResponse?.data;
-    if (!res) {
-      return null;
-    }
+    if (!res) return null;
 
+    // Normalize possible shapes and pick first item if arrays are returned
     const pickFirst = (value: any) => {
-      if (Array.isArray(value)) {
-        return value[0] ?? null;
-      }
+      if (Array.isArray(value)) return value[0] ?? null;
       return value ?? null;
     };
 
@@ -131,6 +132,16 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation, route}) => {
     return pickFirst(res);
   }, [addressDetailResponse]);
 
+  // Use the id from params first, fall back to the loaded address
+  const resolvedAddressId = useMemo(() => {
+    if (addressId) {
+      return addressId;
+    }
+    return addressInfo?.id;
+  }, [addressId, addressInfo]);
+
+  // Fetch countries to convert iso2 to country_id for state API
+  // Use the same query pattern as InputCountry to share cache
   const {data: countriesData, isLoading: isLoadingCountries} = useInfiniteQuery<
     any,
     Error,
@@ -149,14 +160,11 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation, route}) => {
       return undefined;
     },
   });
-  const {data, refetch} = useQuery({
-    queryKey: ['getProfile'],
-    queryFn: viewProfile,
-  });
+
   useFocusEffect(
     useCallback(() => {
-      refetch();
-    }, [refetch]),
+      refetchAddress();
+    }, [refetchAddress]),
   );
 
   const allCountries = useMemo(() => {
@@ -166,9 +174,11 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation, route}) => {
     });
   }, [countriesData]);
 
+  // Helper function to get country object from calling code
   const getCountryByCallingCode = (
     callingCode: string,
   ): selectedCountryType | null => {
+    // Common country mappings - you can expand this list
     const countryMap: Record<string, selectedCountryType> = {
       '1': {
         callingCode: ['1'],
@@ -213,18 +223,44 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation, route}) => {
 
   // Autofill form with profile data when available
   useEffect(() => {
-    if (data?.data?.user) {
-      const user = data.data.user;
+    if (addressDetailResponse?.data?.user) {
+      const user = addressDetailResponse.data.user;
       const currentFullName = getValues('fullName');
       const currentPhoneNumber = getValues('phone_number');
+      const currentAddress = getValues('address');
+      const currentState = getValues('state');
+      const currentCity = getValues('city');
+      const currentZipCode = getValues('zipCode');
+      const currentCountry = getValues('country');
 
+      // Set flag to indicate we're autofilling
       isAutofillingRef.current = true;
+
+      // Only autofill if fields are empty (to avoid overwriting user input)
       if (!currentFullName && user.full_name) {
         setValue('fullName', user.full_name);
       }
 
       if (!currentPhoneNumber && user.phone_number) {
         setValue('phone_number', user.phone_number);
+      }
+
+      if (!currentAddress && user.address) {
+        setValue('address', user.address);
+        setDefaultAddress(user.address);
+      }
+
+      if (!currentZipCode && user.pincode) {
+        setValue('zipCode', user.pincode);
+      }
+
+      // Set country FIRST - this is important for state/city dropdowns
+      if (!currentCountry && user.country) {
+        setValue('country', user.country);
+      }
+
+      if (user.second_line_address) {
+        setValue('second_line_address', user.second_line_address);
       }
 
       if (user.country_code) {
@@ -256,14 +292,12 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation, route}) => {
         }
       }
 
-      // Reset flag after autofill is complete
       setTimeout(() => {
         isAutofillingRef.current = false;
       }, 1000);
     }
-  }, [data, setValue, getValues, setPhoneCountry]);
+  }, [addressDetailResponse, setValue, getValues, setPhoneCountry]);
 
-  // Prefill form when editing an address
   useEffect(() => {
     if (!isEditMode || !addressInfo) {
       return;
@@ -295,7 +329,6 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation, route}) => {
     }, 500);
   }, [addressInfo, isEditMode, setValue, setPhoneCountry]);
 
-  // Helper to get country_id from iso2
   const getCountryIdFromIso2 = (
     iso2: string | undefined,
   ): number | undefined => {
@@ -305,10 +338,8 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation, route}) => {
     return country?.id;
   };
 
-  // Get country_id for state lookup
   const currentCountryId = getCountryIdFromIso2(watchedCountry);
 
-  // Fetch states to convert state name to state_id for city API
   const {data: statesData} = useInfiniteQuery<
     any,
     Error,
@@ -341,39 +372,6 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation, route}) => {
     });
   }, [statesData]);
 
-  // Set state after country_id is available and states are loaded
-  // useEffect(() => {
-  //   if (
-  //     data?.data?.user &&
-  //     !isLoadingCountries &&
-  //     allCountries.length > 0 &&
-  //     allStates.length > 0
-  //   ) {
-  //     const user = data.data.user;
-  //     const currentState = getValues('state');
-  //     const currentCountry = getValues('country');
-
-  //     // Only proceed if country is set and matches user's country
-  //     if (currentCountry && user.country === currentCountry) {
-  //       const countryId = getCountryIdFromIso2(currentCountry);
-
-  //       // Set state once country_id is available and states are loaded
-  //       if (!currentState && user.state && countryId) {
-  //         setValue('state', user.state);
-  //       }
-  //     }
-  //   }
-  // }, [
-  //   data,
-  //   watchedCountry,
-  //   isLoadingCountries,
-  //   allCountries,
-  //   allStates,
-  //   setValue,
-  //   getValues,
-  // ]);
-
-  // Helper to get state_id from state name
   const getStateIdFromName = (
     stateName: string | undefined,
   ): number | undefined => {
@@ -382,27 +380,7 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation, route}) => {
     return state?.id;
   };
 
-  // Set city after state_id is available and cities are loaded
-  // useEffect(() => {
-  //   if (data?.data?.user && allStates.length > 0) {
-  //     const user = data.data.user;
-  //     const currentCity = getValues('city');
-  //     const currentState = getValues('state');
-
-  //     // Only proceed if state is set and matches user's state
-  //     if (currentState && user.state === currentState) {
-  //       const stateId = getStateIdFromName(currentState);
-
-  //       // Set city once state_id is available
-  //       if (!currentCity && user.city && stateId) {
-  //         setValue('city', user.city);
-  //       }
-  //     }
-  //   }
-  // }, [data, watchedCity, allStates, setValue, getValues]);
-
   useEffect(() => {
-    // Don't clear state/city if we're autofilling from profile
     if (watchedCountry && !isAutofillingRef.current) {
       setValue('state', '');
       setValue('city', '');
@@ -414,15 +392,20 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation, route}) => {
   }, [watchedCity]);
 
   const {mutate} = useMutation({
-    mutationFn: addAddress,
+    mutationFn: (payload: AddressPayloadType) => {
+      if (!resolvedAddressId) {
+        throw new Error('Address id is required for update');
+      }
+      return updateAddress(resolvedAddressId, payload);
+    },
     onSuccess: data => {
       showLoader(false);
       queryClient.invalidateQueries({queryKey: ['getAddresses']});
       showAlert({
         isVisible: true,
         type: 'success',
-        title: 'Address Added',
-        description: 'Your address has been added successfully.',
+        title: 'Address Updated',
+        description: 'Your address has been updated successfully.',
         doneText: 'Okay',
         onDonePress: () => {
           navigation.goBack();
@@ -435,7 +418,7 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation, route}) => {
         isVisible: true,
         type: 'error',
         title: 'Error',
-        description: 'Failed to add address. Please try again.',
+        description: 'Failed to update address. Please try again.',
         doneText: 'Okay',
       });
     },
@@ -459,6 +442,7 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation, route}) => {
       data.second_line_address && data.second_line_address.trim() !== ''
         ? {...basePayload, second_line_address: data.second_line_address.trim()}
         : {...basePayload};
+    console.log('payload-=-=-=-', payload);
 
     mutate(payload);
   };
@@ -467,9 +451,9 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation, route}) => {
     setPhoneCountry(item);
     setValue('country_code', '+' + item.callingCode[0]);
   };
-  const formTitle = isEditMode ? 'Edit Address' : 'Add New Address';
-  const primaryButtonLabel = isEditMode ? 'Update Address' : 'Save Address';
-  const isSubmittingDisabled = isEditMode && isLoadingAddress;
+  const formTitle = 'Edit Address';
+  const primaryButtonLabel = 'Update Address';
+  const isSubmittingDisabled = isLoadingAddress;
   return (
     <TitleBackHeaderContainer title={formTitle} isBack>
       <KeyboardAwareScrollView
@@ -629,7 +613,7 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation, route}) => {
   );
 };
 
-export default AddAddressScreen;
+export default EditAddressScreen;
 
 const styles = StyleSheet.create({
   container: {

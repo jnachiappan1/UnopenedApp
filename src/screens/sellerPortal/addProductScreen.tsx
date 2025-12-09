@@ -134,6 +134,11 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
   const sliderMin = ProductPriceData?.data?.product_price?.price;
   const sliderMax = 90;
 
+  const hasScanFailure =
+    scannedBarcode &&
+    !isScanFetching &&
+    (isScanError || !scanProductData?.data?.product);
+
   useEffect(() => {
     if (typeof discountPercentage === 'number') {
       const clampedValue = Math.max(
@@ -444,16 +449,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
 
   useEffect(() => {
     // Handle scan errors (timeout, network error, or API error)
-    if (
-      scannedBarcode &&
-      !isScanFetching &&
-      !hasShownScanError &&
-      (isScanError ||
-        !scanProductData?.data?.product ||
-        (scanProductData?.data?.product &&
-          !scanProductData.data.product.title &&
-          !scanProductData.data.product.brand))
-    ) {
+    if (!hasShownScanError && hasScanFailure) {
       setHasShownScanError(true);
       const errorMessage = scanError?.message || '';
       const errorCode = (scanError as any)?.code || '';
@@ -638,10 +634,12 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
   }, [
     scanProductData,
     dropdownData,
+    hasScanFailure,
     setValue,
     clearErrors,
     scannedBarcode,
     discountPercentage,
+    discountPercent,
     ProductPriceChargeData,
     isScanFetching,
     isScanError,
@@ -989,14 +987,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       return scannedBarcode ? 'Scan Again' : 'Scan Now';
     };
 
-    const hasScanError =
-      scannedBarcode &&
-      !isScanFetching &&
-      (isScanError ||
-        !scanProductData?.data?.product ||
-        (scanProductData?.data?.product &&
-          !scanProductData.data.product.title &&
-          !scanProductData.data.product.brand));
+    const hasScanError = hasScanFailure;
 
     return (
       <View style={styles.scanSection}>

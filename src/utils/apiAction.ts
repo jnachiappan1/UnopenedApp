@@ -305,11 +305,20 @@ export const addAddress = async (payload: AddressPayloadType) => {
   return response;
 };
 
+export const updateAddress = async (
+  addressId: number,
+  payload: AddressPayloadType,
+) => {
+  
+  const response = await axios.patch(`${API.buyer.addAddress}/${addressId}`, payload);
+  return response;
+};
+
 export const getAddresses = async () => {
   const response = await axios.get(API.buyer.getAddresses);
   return response;
 };
-export const getAddressesByID = async (addressID: number) => {
+export const getAddressesByID = async (addressID: number | string) => {
   const response = await axios.get(API.buyer.getAddresses + '/' + addressID);
   return response;
 };
@@ -395,5 +404,10 @@ export const labelPurchase = async (shipmentId: any) => {
   const response = await axios.get(
     `${API.buyer.trackShipment}/${shipmentId}/purchase`,
   );
+  return response;
+};
+
+export const getAddressById = async (addressId:   any) => {
+  const response = await axios.get(`${API.buyer.addressById}${addressId}`);
   return response;
 };

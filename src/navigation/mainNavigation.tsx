@@ -33,6 +33,7 @@ import OrderTrackScreen from '../screens/buyerPortal/orderTrackScreen';
 import BProductDetailScreen from '../screens/buyerPortal/bProductDetailScreen';
 import ConfirmYourOrderScreen from '../screens/buyerPortal/confirmYourOrderScreen';
 import AddAddressScreen from '../screens/buyerPortal/addAddressScreen';
+import EditAddressScreen from '../screens/buyerPortal/editAddressScreen';
 import { useDispatch, useSelector } from 'react-redux';
 import { IRootState } from '../redux/store';
 import AddProductScreen from '../screens/sellerPortal/addProductScreen';
@@ -132,6 +133,7 @@ const MainNavigation: React.FC = () => {
         name={SCREENS.AddAddressScreen}
         component={AddAddressScreen}
       />
+    
       <Stack.Screen
         name={SCREENS.AddressSelectionScreen}
         component={AddressSelectionScreen}
@@ -151,6 +153,7 @@ const MainNavigation: React.FC = () => {
       <Stack.Screen name={SCREENS.NotificationScreen} component={NotificationScreen} />
       <Stack.Screen name={SCREENS.FullScreen} component={FullScreen} />
       <Stack.Screen name={SCREENS.SellerAgreementScreen} component={SellerAgreementScreen} />
+      <Stack.Screen name={SCREENS.EditAddressScreen} component={EditAddressScreen} />
     </Stack.Navigator>
     // </View>
   );
@@ -188,6 +191,7 @@ export enum SCREENS {
   BProductDetailScreen = 'BProductDetailScreen',
   ConfirmYourOrderScreen = 'ConfirmYourOrderScreen',
   AddAddressScreen = 'AddAddressScreen',
+  EditAddressScreen = 'EditAddressScreen',
   AddressSelectionScreen = 'AddressSelectionScreen',
   BarcodeScanner = 'BarcodeScanner',
   AddBankDetailsScreen = 'AddBankDetailsScreen',
@@ -247,7 +251,18 @@ export type RootStackParamList = {
   [SCREENS.ConfirmYourOrderScreen]:{
     productId:  string | number | null | undefined
   };
-  [SCREENS.AddAddressScreen]: undefined;
+  [SCREENS.AddAddressScreen]:
+    | {
+        addressId?: number;
+        mode?: 'add' | 'edit';
+      }
+    | undefined;
+  [SCREENS.EditAddressScreen]:
+    | {
+        addressId?: number;
+        mode?: 'add' | 'edit';
+      }
+    | undefined;
   [SCREENS.AddressSelectionScreen]: {
     onAddressSelect: (address: any) => void;
     selectedAddressId?: number | null;

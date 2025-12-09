@@ -8,6 +8,7 @@ const IMAGE = {
   mediumBox: require('./mediumBox.png'),
   largeBox: require('./largeBox.png'),
   xlBox: require('./xlBox.png'),
+  userProfile: require('./userProfile.png'),
 
 
 };

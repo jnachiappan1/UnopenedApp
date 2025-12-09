@@ -151,7 +151,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({navigation}) => {
               />
             ) : (
               <Image
-                source={IMAGE.profileImage}
+                source={IMAGE.userProfile}
                 style={styles.profileImage}
                 resizeMode="cover"
               />

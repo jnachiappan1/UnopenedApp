@@ -223,11 +223,15 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
     }
   };
 
-  const {data: allProductList} = useQuery({
+  const {data: allProductList, refetch: refetchProductDetail} = useQuery({
     queryKey: ['getProductDetailByID', productId],
     queryFn: () => getProductDetailByID(productId),
   });
-
+useFocusEffect(
+  useCallback(() => {
+    refetchProductDetail();
+  }, [refetchProductDetail]),
+);
   const {data: walletData, isLoading: isWalletLoading} = useQuery({
     queryKey: ['getWalletDetail'],
     queryFn: () => getWalletDetail(),
@@ -452,8 +456,8 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
               try {
                 showLoader(true);
                 const hybridPaymentPayload = {
-                  amount: remainingAmount.toString(), // Stripe amount (discounted)
-                  wallet_amount: walletAmount.toString(), // Wallet amount
+                  amount: remainingAmount.toString(), 
+                  wallet_amount: walletAmount.toString(), 
                   rate_amount: selectedShippingRate
                     ? selectedShippingRate.rate.toString()
                     : '0',
@@ -521,11 +525,11 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
                     });
                   } else {
                     showLoader(false);
-                    // Apply coupon after successful hybrid payment
+                  
                     try {
                       await applyCouponAfterPayment();
                     } catch (error) {
-                      // Continue with payment success even if coupon application fails
+                    
                     }
                     setModalVisible(true);
                   }
@@ -799,7 +803,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
   };
 
   const getSubtotal = (): number => {
-    const productPrice = getSafeNumber(allProductList?.data?.product[0]?.price);
+    const productPrice = getSafeNumber(allProductList?.data?.product[0]?.price?.toFixed(2));
     const shippingCost = selectedShippingRate
       ? getSafeNumber(selectedShippingRate.rate)
       : 0;

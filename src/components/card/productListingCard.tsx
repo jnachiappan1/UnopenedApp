@@ -51,7 +51,7 @@ const ProductListingCard: React.FC<ProductListingCardProps> = ({
           <Text style={styles.cardPosted} numberOfLines={2}>
             Posted {calculateDaysAgo(item?.createdAt)} Days Ago
           </Text>
-          <Text style={styles.cardPrice}>${item?.price}</Text>
+          <Text style={styles.cardPrice}>${item?.price?.toFixed(2)}</Text>
         </View>
       </View>
       <View style={styles.cardDetails}>
