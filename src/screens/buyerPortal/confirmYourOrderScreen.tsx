@@ -63,6 +63,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
   const [isStripeModalVisible, setStripeModalVisible] = useState(false);
   const [discountAmount, setDiscountAmount] = useState<number>(0);
 
+
   const {
     control,
     formState: {errors},
@@ -227,17 +228,18 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
     queryKey: ['getProductDetailByID', productId],
     queryFn: () => getProductDetailByID(productId),
   });
-useFocusEffect(
-  useCallback(() => {
-    refetchProductDetail();
-  }, [refetchProductDetail]),
-);
-  const {data: walletData, isLoading: isWalletLoading} = useQuery({
+
+  const {data: walletData, isLoading: isWalletLoading, refetch: refetchWalletDetail} = useQuery({
     queryKey: ['getWalletDetail'],
     queryFn: () => getWalletDetail(),
     enabled: !!userData,
   });
-
+  useFocusEffect(
+    useCallback(() => {
+      refetchProductDetail();
+      refetchWalletDetail();
+    }, [refetchProductDetail, refetchWalletDetail]),
+  );
   const {data: addressesData} = useQuery({
     queryKey: ['getAddresses'],
     queryFn: getAddresses,
@@ -580,6 +582,7 @@ useFocusEffect(
           rate_id: selectedShippingRate ? selectedShippingRate.id : '',
           shipmentId: shippingID,
         };
+console.log("stripePaymentPayload---", stripePaymentPayload);
 
         handleStripePayment(stripePaymentPayload);
       } else {
@@ -788,6 +791,8 @@ useFocusEffect(
 
   const getCurrentAddressId = () => {
     const currentAddress = getCurrentAddress();
+    console.log("iiiiddddd---", currentAddress?.id);
+    
     if (currentAddress?.id) {
       return currentAddress.id;
     }
@@ -1630,6 +1635,7 @@ useFocusEffect(
                   rate_id: selectedShippingRate ? selectedShippingRate.id : '',
                   shipmentId: shippingID,
                 };
+       
 
                 handleStripePayment(paymentPayload);
               }}>

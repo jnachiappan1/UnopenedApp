@@ -292,7 +292,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
         : `${image_url}${data.data.user.profile_picture}`;
       return {uri: imageUrl};
     }
-    return IMAGE.profileImage;
+    return IMAGE.userProfile;
   };
   useFocusEffect(
     useCallback(() => {
@@ -392,13 +392,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
           maxLength={40}
           // containerStyle={styles.containerStyle}
         />
-        <GenderDropdown
-          control={control}
-          name="gender"
-          label="Gender"
-          // required={{value: true, message: 'Please select gender'}}
-          // error={errors}
-        />
+        
         <View style={styles.locationContainer}>
           <InputCountry
             control={control}
@@ -440,6 +434,13 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
             maxLength={40}
             inputStyle={styles.inputStyle}
           />
+          <GenderDropdown
+          control={control}
+          name="gender"
+          label="Gender"
+          // required={{value: true, message: 'Please select gender'}}
+          // error={errors}
+        />
         </View>
       </View>
       <Button

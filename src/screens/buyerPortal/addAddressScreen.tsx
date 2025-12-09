@@ -410,7 +410,6 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation, route}) => {
   }, [watchedCountry, setValue]);
 
   useEffect(() => {
-    console.log('City value changed to:', watchedCity);
   }, [watchedCity]);
 
   const {mutate} = useMutation({

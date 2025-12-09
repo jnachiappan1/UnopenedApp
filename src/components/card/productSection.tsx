@@ -85,10 +85,11 @@ const ProductSection: React.FC<Props> = ({
                         <StatusBadge status={item.item?.product_status} />
                       ) : (
                         <View style={styles.priceContainer}>
-                          <Text style={styles.price}>${item.item?.price.toFixed(2)}</Text>
+                          <Text style={styles.price} numberOfLines={1}>${item.item?.price.toFixed(2)}</Text>
                           {item.item?.msrp && (
-                            <Text style={styles.originalPrice}>
+                            <Text style={styles.originalPrice} numberOfLines={1}>
                               ${item.item?.msrp.toFixed(2)}
+                             
                             </Text>
                           )}
                         </View>
@@ -191,8 +192,11 @@ const styles = StyleSheet.create({
   priceContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    width: '100%',
+
   },
   price: {
+    width: '50%',
     color: colors.black,
     fontSize: 16,
     fontFamily: fonts.bold,
@@ -203,5 +207,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: fonts.bold,
     textDecorationLine: 'line-through',
+    width: '50%',
+   
   },
 });

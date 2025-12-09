@@ -63,7 +63,6 @@ const EditAddressScreen: React.FC<AddAddressProps> = ({navigation, route}) => {
     route?.name === SCREENS.EditAddressScreen || routeParams.mode === 'edit';
   const addressId =
     routeParams.addressId ?? routeParams.address_id ?? routeParams.id;
-  console.log('addressId-=-=-=-', addressId);
 
   const queryClient = useQueryClient();
   const isAutofillingRef = useRef(false);
@@ -81,7 +80,7 @@ const EditAddressScreen: React.FC<AddAddressProps> = ({navigation, route}) => {
   const {
     control,
     handleSubmit,
-    formState: {errors},
+    formState: {errors, dirtyFields},
     watch,
     setValue,
     getValues,
@@ -305,18 +304,47 @@ const EditAddressScreen: React.FC<AddAddressProps> = ({navigation, route}) => {
 
     isAutofillingRef.current = true;
 
-    setValue('fullName', addressInfo.full_name || '');
-    setValue('phone_number', addressInfo.phone_number || '');
-    setValue('address', addressInfo.address || '');
-    setDefaultAddress(addressInfo.address || '');
-    setValue('country', addressInfo.country || '');
-    setValue('state', addressInfo.state || '');
-    setValue('city', addressInfo.city || '');
-    setValue('zipCode', addressInfo.pincode || '');
-    setValue('second_line_address', addressInfo.second_line_address || '');
+    setValue('fullName', addressInfo.full_name || '', {
+      shouldValidate: false,
+      shouldDirty: false,
+    });
+    setValue('phone_number', addressInfo.phone_number || '', {
+      shouldValidate: false,
+      shouldDirty: false,
+    });
+    const addressValue = addressInfo.address || '';
+    setValue('address', addressValue, {
+      shouldValidate: false,
+      shouldDirty: false,
+      shouldTouch: false,
+    });
+    setDefaultAddress(addressValue);
+    setValue('country', addressInfo.country || '', {
+      shouldValidate: false,
+      shouldDirty: false,
+    });
+    setValue('state', addressInfo.state || '', {
+      shouldValidate: false,
+      shouldDirty: false,
+    });
+    setValue('city', addressInfo.city || '', {
+      shouldValidate: false,
+      shouldDirty: false,
+    });
+    setValue('zipCode', addressInfo.pincode || '', {
+      shouldValidate: false,
+      shouldDirty: false,
+    });
+    setValue('second_line_address', addressInfo.second_line_address || '', {
+      shouldValidate: false,
+      shouldDirty: false,
+    });
 
     if (addressInfo.country_code) {
-      setValue('country_code', addressInfo.country_code);
+      setValue('country_code', addressInfo.country_code, {
+        shouldValidate: false,
+        shouldDirty: false,
+      });
       const callingCode = addressInfo.country_code.replace('+', '');
       const country = getCountryByCallingCode(callingCode);
       if (country) {
@@ -388,7 +416,6 @@ const EditAddressScreen: React.FC<AddAddressProps> = ({navigation, route}) => {
   }, [watchedCountry, setValue]);
 
   useEffect(() => {
-    console.log('City value changed to:', watchedCity);
   }, [watchedCity]);
 
   const {mutate} = useMutation({
@@ -401,6 +428,7 @@ const EditAddressScreen: React.FC<AddAddressProps> = ({navigation, route}) => {
     onSuccess: data => {
       showLoader(false);
       queryClient.invalidateQueries({queryKey: ['getAddresses']});
+      queryClient.invalidateQueries({queryKey: ['getAddressById', resolvedAddressId]});
       showAlert({
         isVisible: true,
         type: 'success',
@@ -425,7 +453,7 @@ const EditAddressScreen: React.FC<AddAddressProps> = ({navigation, route}) => {
   });
 
   const onSubmit = (data: AddressFormData) => {
-    // showLoader(true);
+    showLoader(true);
 
     const basePayload = {
       full_name: data.fullName,
@@ -442,7 +470,6 @@ const EditAddressScreen: React.FC<AddAddressProps> = ({navigation, route}) => {
       data.second_line_address && data.second_line_address.trim() !== ''
         ? {...basePayload, second_line_address: data.second_line_address.trim()}
         : {...basePayload};
-    console.log('payload-=-=-=-', payload);
 
     mutate(payload);
   };
@@ -494,17 +521,19 @@ const EditAddressScreen: React.FC<AddAddressProps> = ({navigation, route}) => {
           control={control}
           name="address"
           label={'Address'}
-          locationName={defaultAddress || watchedAddress}
+          locationName={watchedAddress || defaultAddress || ''}
           inputProps={{
             placeholder: 'Enter Address',
           }}
-          required={{
-            value: true,
-            message: 'Please enter your address',
-          }}
           error={errors}
           editable={true}
-          onChangeText={(value: string) => {}}
+          onChangeText={(value: string) => {
+            setValue('address', value, {
+              shouldValidate: false,
+              shouldDirty: true,
+            });
+            setDefaultAddress(value);
+          }}
           onPlaceParsed={info => {
             if (info?.countryCode) {
               setValue('country', info.countryCode, {

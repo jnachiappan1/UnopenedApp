@@ -587,8 +587,13 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
 
         const handleRemoteImage = async (url: string) => {
           try {
+            // Convert HTTP to HTTPS to comply with iOS App Transport Security
+            const secureUrl = url.startsWith('http://') 
+              ? url.replace('http://', 'https://')
+              : url;
+            
             const scannedImage: MediaObject = {
-              uri: url,
+              uri: secureUrl,
               name: 'scanned_product_image.jpg',
               type: 'image/jpeg',
             };
@@ -598,8 +603,13 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             clearErrors('productImages');
             setImageError('');
           } catch (error) {
+            // Convert HTTP to HTTPS to comply with iOS App Transport Security
+            const secureUrl = url.startsWith('http://') 
+              ? url.replace('http://', 'https://')
+              : url;
+            
             const scannedImage: MediaObject = {
-              uri: url,
+              uri: secureUrl,
               name: 'scanned_product_image.jpg',
               type: 'image/jpeg',
             };
@@ -803,8 +813,13 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     formData.append('set_price', discountPercent);
 
     uploadedImages.forEach((media, index) => {
+      let secureUri = media.uri;
+      if (media.uri.startsWith('http://')) {
+        secureUri = media.uri.replace('http://', 'https://');
+      }
+      
       formData.append('images', {
-        uri: media.uri,
+        uri: secureUri,
         name: media.name || `image_${index}.jpg`,
         type: media.type || 'image/jpeg',
       });
@@ -849,6 +864,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       return;
     }
     const apiFormData = prepareFormDataForAPI(data);
+console.log("apiFormData---", apiFormData);
 
     showLoader(true);
     mutate(apiFormData);
@@ -1219,6 +1235,21 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
                 style={styles.imagesPreviewScroll}
                 contentContainerStyle={styles.imagesPreviewContent}>
                 {uploadedImages.map((mediaObj, index) => {
+                  console.log('mediaObj---', mediaObj.uri);
+                  // Check if URI is a local file path
+                  const isLocalFile = mediaObj?.uri?.startsWith('file://') ||
+                    mediaObj?.uri?.startsWith('content://') ||
+                    mediaObj?.uri?.startsWith('ph://') ||
+                    mediaObj?.uri?.startsWith('assets-library://') ||
+                    mediaObj?.uri?.startsWith('/');
+                  
+                  const finalUri = isLocalFile
+                    ? mediaObj.uri // Use local file path as-is
+                    : mediaObj?.uri?.startsWith('http:')
+                    ? mediaObj.uri.replace('http:', 'https:')
+                    : mediaObj.uri.startsWith('http')
+                    ? mediaObj.uri
+                    : image_url + mediaObj.uri;
                   return (
                     <View key={index} style={styles.previewImageContainer}>
                       {isVideo(mediaObj) ? (
@@ -1233,11 +1264,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
                         </View>
                       ) : (
                         <Image
-                          source={{
-                            uri: mediaObj.uri.startsWith('http')
-                              ? mediaObj.uri
-                              : image_url + mediaObj.uri,
-                          }}
+                          source={{uri: finalUri}}
                           style={styles.previewImage}
                           resizeMode="cover"
                           onError={error => {}}
