@@ -22,7 +22,7 @@ console.log("title---", title);
     if (isNaN(numericValue)) return titleStr; // Return original if not a valid number
     
     // Format to 2 decimal places and add $ sign
-    return `$${numericValue.toFixed(1)}`;
+    return `${numericValue.toFixed(1)}`;
   };
 
   const formattedTitle = formatTitle(title);
