@@ -103,6 +103,7 @@ const EditAddressScreen: React.FC<AddAddressProps> = ({navigation, route}) => {
   const watchedCountry = watch('country');
   const watchedCity = watch('city');
   const watchedAddress = watch('address');
+console.log("watchedAddress---", watchedAddress);
 
   const {
     data: addressDetailResponse,
@@ -521,7 +522,7 @@ const EditAddressScreen: React.FC<AddAddressProps> = ({navigation, route}) => {
           control={control}
           name="address"
           label={'Address'}
-          locationName={watchedAddress || defaultAddress || ''}
+          locationName={watchedAddress ? watchedAddress : defaultAddress ? defaultAddress : addressInfo?.address ? addressInfo?.address : ''}
           inputProps={{
             placeholder: 'Enter Address',
           }}
