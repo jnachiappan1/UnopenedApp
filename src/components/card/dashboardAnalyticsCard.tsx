@@ -13,24 +13,20 @@ interface DashboardAnalyticsCardProps {
 }
 
 const DashboardAnalyticsCard: React.FC<DashboardAnalyticsCardProps> = ({ title, subtitle, icon }) => {
-console.log("title---", title);
  
-  // Format title to always show 2 decimal places
   const formatTitle = (titleStr: string): string => {
-    // Extract numeric value (remove $ and any other non-numeric characters except decimal point)
     const numericValue = parseFloat(titleStr.replace(/[^0-9.-]/g, ''));
     if (isNaN(numericValue)) return titleStr; // Return original if not a valid number
-    
-    // Format to 2 decimal places and add $ sign
     return `${numericValue.toFixed(1)}`;
   };
 
   const formattedTitle = formatTitle(title);
+  const displayTitle = subtitle === 'Wallet Balance' ? `$${formattedTitle}` : formattedTitle;
 
   return (
     <View style={styles.card}>
       <View style={styles.left}>
-        <Text style={styles.title}>{formattedTitle}</Text>
+        <Text style={styles.title}>{displayTitle}</Text>
         <Text style={styles.subtitle}>{subtitle}</Text>
       </View>
       <View style={styles.iconWrapper}>
