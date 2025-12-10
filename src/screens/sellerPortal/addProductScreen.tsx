@@ -32,7 +32,7 @@ import {
   getScanProductDetail,
 } from '../../utils/apiAction';
 import {showAlert} from '../../components/cAlert';
-import {fontSizes} from '../../utils/utils';
+import {fontSizes, OS} from '../../utils/utils';
 import {IRootState} from '../../redux/store';
 import {useSelector} from 'react-redux';
 import {
@@ -588,10 +588,10 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
         const handleRemoteImage = async (url: string) => {
           try {
             // Convert HTTP to HTTPS to comply with iOS App Transport Security
-            const secureUrl = url.startsWith('http://') 
+            const secureUrl = url.startsWith('http://')
               ? url.replace('http://', 'https://')
               : url;
-            
+
             const scannedImage: MediaObject = {
               uri: secureUrl,
               name: 'scanned_product_image.jpg',
@@ -604,10 +604,10 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             setImageError('');
           } catch (error) {
             // Convert HTTP to HTTPS to comply with iOS App Transport Security
-            const secureUrl = url.startsWith('http://') 
+            const secureUrl = url.startsWith('http://')
               ? url.replace('http://', 'https://')
               : url;
-            
+
             const scannedImage: MediaObject = {
               uri: secureUrl,
               name: 'scanned_product_image.jpg',
@@ -817,7 +817,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       if (media.uri.startsWith('http://')) {
         secureUri = media.uri.replace('http://', 'https://');
       }
-      
+
       formData.append('images', {
         uri: secureUri,
         name: media.name || `image_${index}.jpg`,
@@ -864,7 +864,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       return;
     }
     const apiFormData = prepareFormDataForAPI(data);
-console.log("apiFormData---", apiFormData);
+    console.log('apiFormData---', apiFormData);
 
     showLoader(true);
     mutate(apiFormData);
@@ -1235,14 +1235,14 @@ console.log("apiFormData---", apiFormData);
                 style={styles.imagesPreviewScroll}
                 contentContainerStyle={styles.imagesPreviewContent}>
                 {uploadedImages.map((mediaObj, index) => {
-                  console.log('mediaObj---', mediaObj.uri);
                   // Check if URI is a local file path
-                  const isLocalFile = mediaObj?.uri?.startsWith('file://') ||
+                  const isLocalFile =
+                    mediaObj?.uri?.startsWith('file://') ||
                     mediaObj?.uri?.startsWith('content://') ||
                     mediaObj?.uri?.startsWith('ph://') ||
                     mediaObj?.uri?.startsWith('assets-library://') ||
                     mediaObj?.uri?.startsWith('/');
-                  
+
                   const finalUri = isLocalFile
                     ? mediaObj.uri // Use local file path as-is
                     : mediaObj?.uri?.startsWith('http:')
@@ -1360,7 +1360,7 @@ console.log("apiFormData---", apiFormData);
             <View style={{marginHorizontal: 10, alignSelf: 'center'}}>
               <MultiSlider
                 values={[discountPercent]}
-                sliderLength={300}
+                sliderLength={OS === 'ios' ? 280 : 300}
                 trackStyle={{height: 3}}
                 min={sliderMin}
                 max={sliderMax}

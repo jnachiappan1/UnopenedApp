@@ -71,8 +71,7 @@ const LoginScreen: React.FC<LoginProps> = ({route, navigation}) => {
       onBackPress={() => navigation.goBack()}>
       <KeyboardAwareScrollView
         showsVerticalScrollIndicator={true}
-        contentContainerStyle={styles.content}
-      >
+        contentContainerStyle={styles.content}>
         <IconsSvg name="box" />
         <Text style={styles.title}>Get Started now</Text>
         <Text style={styles.subtitle}>

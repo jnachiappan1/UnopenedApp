@@ -9,9 +9,9 @@
 /* Begin PBXBuildFile section */
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		274E94AA086F0DC982740014 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
-		5D8D20182E603E0F00484CC3 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5D8D20172E603E0F00484CC3 /* GoogleService-Info.plist */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		E2B230692EE955BA00A6F531 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = E2B230682EE955BA00A6F531 /* GoogleService-Info.plist */; };
 		FF84ECD7C8D96A5647775E53 /* Pods_Unopened_Mobile.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1387F9685B0FDA24D4E75179 /* Pods_Unopened_Mobile.framework */; };
 /* End PBXBuildFile section */
 
@@ -23,10 +23,10 @@
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = Unopened_Mobile/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		2E42C0A49105B48EEB91B020 /* Pods-Unopened_Mobile.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Unopened_Mobile.debug.xcconfig"; path = "Target Support Files/Pods-Unopened_Mobile/Pods-Unopened_Mobile.debug.xcconfig"; sourceTree = "<group>"; };
 		5D8D20162E603D9800484CC3 /* Unopened_Mobile.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = Unopened_Mobile.entitlements; path = Unopened_Mobile/Unopened_Mobile.entitlements; sourceTree = "<group>"; };
-		5D8D20172E603E0F00484CC3 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = Unopened_Mobile/AppDelegate.swift; sourceTree = "<group>"; };
 		77CDF0DF8947886572C2D9F5 /* Pods-Unopened_Mobile.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Unopened_Mobile.release.xcconfig"; path = "Target Support Files/Pods-Unopened_Mobile/Pods-Unopened_Mobile.release.xcconfig"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = Unopened_Mobile/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		E2B230682EE955BA00A6F531 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -74,12 +74,12 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
+				E2B230682EE955BA00A6F531 /* GoogleService-Info.plist */,
 				13B07FAE1A68108700A75B9A /* Unopened_Mobile */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				BBD78D7AC51CEA395F1C20DB /* Pods */,
-				5D8D20172E603E0F00484CC3 /* GoogleService-Info.plist */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -165,7 +165,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
-				5D8D20182E603E0F00484CC3 /* GoogleService-Info.plist in Resources */,
+				E2B230692EE955BA00A6F531 /* GoogleService-Info.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				274E94AA086F0DC982740014 /* PrivacyInfo.xcprivacy in Resources */,
 			);
@@ -282,7 +282,7 @@
 				CODE_SIGN_ENTITLEMENTS = Unopened_Mobile/Unopened_Mobile.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 13;
+				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_TEAM = 848YS6ZHJH;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Unopened_Mobile/Info.plist;
@@ -318,7 +318,7 @@
 				CODE_SIGN_ENTITLEMENTS = Unopened_Mobile/Unopened_Mobile.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 13;
+				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_TEAM = 848YS6ZHJH;
 				INFOPLIST_FILE = Unopened_Mobile/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
