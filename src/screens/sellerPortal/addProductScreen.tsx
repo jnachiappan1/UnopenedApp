@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {
   StyleSheet,
   Text,
@@ -96,6 +96,8 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
   const [dropdownData, setDropdownData] = useState<DropDownType[]>([]);
   const [scannedCategoryName, setScannedCategoryName] = useState<string>('');
   const [hasShownScanError, setHasShownScanError] = useState<boolean>(false);
+  const [isMsrpManuallyEdited, setIsMsrpManuallyEdited] = useState<boolean>(false);
+  const lastProcessedScanRef = useRef<string | null>(null);
   const {data: categoryData} = useQuery({
     queryKey: ['getCategoryDetail'],
     queryFn: () => getCategoryDetail(),
@@ -444,6 +446,8 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     // Reset error state when barcode changes
     if (scannedBarcode) {
       setHasShownScanError(false);
+      setIsMsrpManuallyEdited(false); // Reset flag when new scan happens
+      lastProcessedScanRef.current = null; // Reset ref to allow processing new scan
     }
   }, [scannedBarcode]);
 
@@ -473,79 +477,75 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
 
     if (scanProductData?.data?.product) {
       const productData = scanProductData.data.product;
-      const scannedCategory = productData.category;
+      // Check if we've already processed this scan data to prevent infinite loops
+      const productId = productData.ean || 
+                       productData.upc || 
+                       scannedBarcode || 
+                       '';
+      
+      const isNewScan = lastProcessedScanRef.current !== productId;
+      
+      if (isNewScan) {
+        lastProcessedScanRef.current = productId;
+        
+        // Only set form fields on a new scan
+        const scannedCategory = productData.category;
+        setScannedCategoryName(scannedCategory || '');
 
-      setScannedCategoryName(scannedCategory || '');
-
-      if (
-        scannedCategory &&
-        scannedCategory.toLowerCase().includes('food') &&
-        scannedCategory.toLowerCase().includes('tobacco')
-      ) {
-        setValue('category', '');
-        setScannedCategoryName('');
-        setError('category', {
-          type: 'manual',
-          message: 'Category is required',
-        });
-      } else if (scannedCategory && dropdownData.length > 0) {
-        const primaryCategory =
-          scannedCategory.split('>')[0]?.trim() || scannedCategory;
-
-        const matchedCategory = dropdownData.find(cat => {
-          const catNameLower = cat.name.toLowerCase();
-          const primaryCategoryLower = primaryCategory.toLowerCase();
-
-          return (
-            catNameLower === primaryCategoryLower ||
-            catNameLower.includes(primaryCategoryLower) ||
-            primaryCategoryLower.includes(catNameLower)
-          );
-        });
-
-        if (matchedCategory) {
-          setValue('category', matchedCategory);
-          clearErrors('category');
-        } else {
-          // If no category match found, set error to show validation message
+        if (
+          scannedCategory &&
+          scannedCategory.toLowerCase().includes('food') &&
+          scannedCategory.toLowerCase().includes('tobacco')
+        ) {
+          setValue('category', '');
+          setScannedCategoryName('');
           setError('category', {
             type: 'manual',
             message: 'Category is required',
           });
+        } else if (scannedCategory && dropdownData.length > 0) {
+          const primaryCategory =
+            scannedCategory.split('>')[0]?.trim() || scannedCategory;
+
+          const matchedCategory = dropdownData.find(cat => {
+            const catNameLower = cat.name.toLowerCase();
+            const primaryCategoryLower = primaryCategory.toLowerCase();
+
+            return (
+              catNameLower === primaryCategoryLower ||
+              catNameLower.includes(primaryCategoryLower) ||
+              primaryCategoryLower.includes(catNameLower)
+            );
+          });
+
+          if (matchedCategory) {
+            setValue('category', matchedCategory);
+            clearErrors('category');
+          } else {
+            // If no category match found, set error to show validation message
+            setError('category', {
+              type: 'manual',
+              message: 'Category is required',
+            });
+          }
         }
-      }
 
-      setValue('brandName', productData.brand || '');
-      setValue('productName', productData.title || '');
-      setValue(
-        'barcode',
-        productData.ean || productData.upc || scannedBarcode || '',
-      );
+        setValue('brandName', productData.brand || '');
+        setValue('productName', productData.title || '');
+        setValue(
+          'barcode',
+          productData.ean || productData.upc || scannedBarcode || '',
+        );
 
-      const msrpValue = calculateMSRP(productData);
-      setValue('msrp', msrpValue > 0 ? msrpValue.toString() : '');
-
-      if (msrpValue && typeof discountPercent === 'number') {
-        const {amountToPay} = calculateDiscount(msrpValue, discountPercent);
-        setValue('price', amountToPay.toFixed(2));
-        if (ProductPriceChargeData?.data?.product_price?.price_charge) {
-          const platformFeePercentage =
-            ProductPriceChargeData.data.product_price.price_charge;
-          const priceAmount = parseFloat(amountToPay.toFixed(2));
-          const platformFee = (priceAmount * platformFeePercentage) / 100;
-          setValue('platform_fee', platformFee.toFixed(2));
-          const sellerFinalPrice = priceAmount - platformFee;
-          setValue('seller_final_price', sellerFinalPrice.toFixed(2));
+        const msrpValue = calculateMSRP(productData);
+        // Only set MSRP if it hasn't been manually edited by the user
+        if (!isMsrpManuallyEdited) {
+          setValue('msrp', msrpValue > 0 ? msrpValue.toString() : '');
         }
-      } else {
-        setValue('price', '');
-        setValue('platform_fee', '');
-        setValue('seller_final_price', '');
-      }
 
-      setValue('description', productData.description || '');
+        setValue('description', productData.description || '');
 
-      if (productData.dimension) {
+        if (productData.dimension) {
         const cleanDimension = productData.dimension
           .replace(/\s*inches?/i, '')
           .trim();
@@ -635,7 +635,25 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
         }
       }
 
-      clearErrors();
+        clearErrors();
+      }
+
+      // Always recalculate prices when discountPercent or MSRP changes (works for both new scans and existing)
+      const currentMsrp = parseFloat(getValues('msrp') || '0');
+      if (currentMsrp > 0 && typeof discountPercent === 'number') {
+        const {amountToPay} = calculateDiscount(currentMsrp, discountPercent);
+        setValue('price', amountToPay.toFixed(2));
+        if (ProductPriceChargeData?.data?.product_price?.price_charge) {
+          const platformFeePercentage =
+            ProductPriceChargeData.data.product_price.price_charge;
+          const priceAmount = parseFloat(amountToPay.toFixed(2));
+          const platformFee = (priceAmount * platformFeePercentage) / 100;
+          setValue('platform_fee', platformFee.toFixed(2));
+          const sellerFinalPrice = priceAmount - platformFee;
+          setValue('seller_final_price', sellerFinalPrice.toFixed(2));
+        }
+      }
+
       // Reset error state on successful data fetch
       if (scanProductData?.data?.product) {
         setHasShownScanError(false);
@@ -1327,6 +1345,8 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             inputStyle={styles.inputStyle}
             containerStyle={styles.emailContainer}
             onValueChange={text => {
+              // Mark MSRP as manually edited when user changes it
+              setIsMsrpManuallyEdited(true);
               const msrpValue = parseFloat(text);
               if (!isNaN(msrpValue) && typeof discountPercent === 'number') {
                 const {amountToPay} = calculateDiscount(
