@@ -51,6 +51,6 @@ const getStyles = () =>
       fontSize: 16,
       // color:colors.white,
       textAlign: 'center',
-      lineHeight: 24,
+      // lineHeight: 24,
     },
   });

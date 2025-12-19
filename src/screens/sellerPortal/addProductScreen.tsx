@@ -134,7 +134,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
   const [discountPercent, setDiscountPercent] = useState<number>(0);
 
   const sliderMin = ProductPriceData?.data?.product_price?.price;
-  const sliderMax = 90;
+  const sliderMax = OS === 'ios' ? 90.1 : 90;
 
   const hasScanFailure =
     scannedBarcode &&

@@ -7,10 +7,11 @@ import {
   StyleSheet,
   Text,
   View,
+  ScrollView,
 } from 'react-native';
-import React, {useRef, useState} from 'react';
+import React, {useRef, useState, useEffect} from 'react';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
-import {fontSizes, width} from '../../utils/utils';
+import {fontSizes, width, OS} from '../../utils/utils';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
 import colors from '../../utils/colors';
@@ -18,17 +19,25 @@ import StatusBadge from '../../components/card/statusBadge';
 import fonts from '../../assets/fonts/fonts';
 import InfoRow from '../../components/card/infoRow';
 import Button from '../../components/button/buttons';
+import WhiteButton from '../../components/button/whiteButton';
 import {useMutation, useQuery} from '@tanstack/react-query';
 import {
   getSellerProductByID,
   updateProductStatus,
+  getProductPriceDetail,
+  getProductPriceChargeDetail,
 } from '../../utils/apiAction';
 import moment from 'moment';
-import {handleError, handleSettled} from '../../utils/method';
+import {handleError, handleSettled, calculateDiscount} from '../../utils/method';
 import {showAlert} from '../../components/cAlert';
 import {image_url, base_url} from '../../utils/api';
 import {showLoader} from '../../components/loader/loader';
 import VideoPlayer from '../../components/videoPlayer/videoPlayer';
+import MultiSlider from '@ptomasroos/react-native-multi-slider';
+import {useForm} from 'react-hook-form';
+import Input from '../../components/input/input';
+import {IRootState} from '../../redux/store';
+import {useSelector} from 'react-redux';
 
 type ProductDetailScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -43,6 +52,13 @@ interface ProductImage {
   updatedAt: string;
 }
 
+type FormData = {
+  msrp: string;
+  price: string;
+  platform_fee: string;
+  seller_final_price: string;
+};
+
 const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
   navigation,
   route,
@@ -50,12 +66,89 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
   const {productId} = route.params;
   const flatListRef = useRef<FlatList<ProductImage>>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isEditPriceMode, setIsEditPriceMode] = useState(false);
+  const [discountPercent, setDiscountPercent] = useState<number>(0);
+
+  const userData = useSelector((user: IRootState) => user.user.userData);
+  const isLogged = userData ? true : false;
+
+  const {data: ProductPriceData} = useQuery({
+    queryKey: ['getProductPriceDetail'],
+    queryFn: () => getProductPriceDetail(),
+    enabled: isLogged && isEditPriceMode,
+  });
+
+  const {data: ProductPriceChargeData} = useQuery({
+    queryKey: ['getProductPriceChargeDetail'],
+    queryFn: () => getProductPriceChargeDetail(),
+    enabled: isLogged && isEditPriceMode,
+  });
+
+  const sliderMin = ProductPriceData?.data?.product_price?.price || 0;
+  const sliderMax = OS === 'ios' ? 90.1 : 90;
+
+  const {
+    control,
+    setValue,
+    getValues,
+    handleSubmit,
+    formState: {errors},
+  } = useForm<FormData>({
+    mode: 'onChange',
+    defaultValues: {
+      msrp: '',
+      price: '',
+      platform_fee: '',
+      seller_final_price: '',
+    },
+  });
 
   const {data: productDetail, refetch: refetchProductDetail} = useQuery({
     queryKey: ['getSellerProductByID'],
     queryFn: () => getSellerProductByID(productId),
   });
-  const {mutate} = useMutation({
+
+  // Initialize form values when product detail is loaded and entering edit mode
+  useEffect(() => {
+    if (isEditPriceMode && productDetail?.data?.product?.[0]) {
+      const product = productDetail.data.product[0];
+      const msrp = parseFloat(product.msrp || '0');
+      const price = parseFloat(product.price || '0');
+      
+      setValue('msrp', msrp.toString());
+      setValue('price', price.toString());
+      
+      // Calculate discount percentage from MSRP and price
+      if (msrp > 0 && price > 0) {
+        const calculatedPercent = (price / msrp) * 100;
+        const clampedPercent = Math.max(
+          sliderMin,
+          Math.min(90, calculatedPercent), // Clamp to 90% max
+        );
+        setDiscountPercent(clampedPercent);
+      } else if (typeof sliderMin === 'number') {
+        setDiscountPercent(sliderMin);
+      }
+
+      // Calculate platform fee and seller final price
+      if (ProductPriceChargeData?.data?.product_price?.price_charge) {
+        const platformFeePercentage =
+          ProductPriceChargeData.data.product_price.price_charge;
+        const platformFee = (price * platformFeePercentage) / 100;
+        setValue('platform_fee', platformFee.toFixed(2));
+        const sellerFinalPrice = price - platformFee;
+        setValue('seller_final_price', sellerFinalPrice.toFixed(2));
+      }
+    }
+  }, [
+    isEditPriceMode,
+    productDetail,
+    setValue,
+    sliderMin,
+    ProductPriceChargeData,
+  ]);
+
+  const {mutate: withdrawMutate} = useMutation({
     mutationFn: (data: globalThis.FormData) =>
       updateProductStatus(productId, data),
     onSuccess: data => {
@@ -67,6 +160,27 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
         description: 'Product withdraw successfully',
         doneText: 'Okay',
         onDonePress: () => navigation.goBack(),
+      });
+    },
+    onError: handleError,
+    onSettled: handleSettled,
+  });
+
+  const {mutate: updatePriceMutate} = useMutation({
+    mutationFn: (data: globalThis.FormData) =>
+      updateProductStatus(productId, data),
+    onSuccess: data => {
+      showLoader(false);
+      showAlert({
+        isVisible: true,
+        type: 'success',
+        title: 'Product',
+        description: 'Product price updated successfully',
+        doneText: 'Okay',
+        onDonePress: () => {
+          setIsEditPriceMode(false);
+          refetchProductDetail();
+        },
       });
     },
     onError: handleError,
@@ -85,10 +199,41 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
         formData.append('product_status', 'withdrawn');
 
         showLoader(true);
-        mutate(formData);
+        withdrawMutate(formData);
       },
       onDeletePress: () => {},
     });
+  };
+
+  const calculateAndUpdatePrices = (newPercent: number) => {
+    // Clamp the value to maximum 90%
+    const clampedPercent = Math.min(90, Math.max(sliderMin, newPercent));
+    setDiscountPercent(clampedPercent);
+    const msrpStr = getValues('msrp');
+    const msrpNum = parseFloat(msrpStr as unknown as string);
+    if (!isNaN(msrpNum) && msrpNum > 0) {
+      const {amountToPay} = calculateDiscount(msrpNum, clampedPercent);
+      setValue('price', amountToPay.toFixed(2));
+      if (ProductPriceChargeData?.data?.product_price?.price_charge) {
+        const platformFeePercentage =
+          ProductPriceChargeData.data.product_price.price_charge;
+        const priceAmount = parseFloat(amountToPay.toFixed(2));
+        const platformFee = (priceAmount * platformFeePercentage) / 100;
+        setValue('platform_fee', platformFee.toFixed(2));
+        const sellerFinalPrice = priceAmount - platformFee;
+        setValue('seller_final_price', sellerFinalPrice.toFixed(2));
+      }
+    }
+  };
+
+  const handleEditPriceSubmit = async (data: FormData) => {
+    const formData = new FormData();
+    formData.append('msrp', data.msrp);
+    formData.append('price', data.price);
+    formData.append('set_price', discountPercent.toString());
+
+    showLoader(true);
+    updatePriceMutate(formData);
   };
   const handleMomentumEnd = (
     event: NativeSyntheticEvent<NativeScrollEvent>,
@@ -125,6 +270,169 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
     );
     return sorted;
   }, [productDetail]);
+
+  const renderStep2 = () => (
+    <ScrollView
+      showsVerticalScrollIndicator={false}
+      style={styles.stepContainer}
+      contentContainerStyle={styles.stepContentContainer}
+      nestedScrollEnabled>
+      <View style={styles.detailsSection}>
+        <Text style={styles.sectionTitle}>Edit Pricing Information</Text>
+        <View style={styles.formFieldsContainer}>
+          <Input
+            control={control}
+            name="msrp"
+            label="MSRP *"
+            required={{value: true, message: 'MSRP is required'}}
+            error={errors}
+            keyboardType="numeric"
+            inputProps={{
+              placeholder: 'Enter MSRP',
+            }}
+            maxLength={40}
+            inputStyle={styles.inputStyle}
+            disabled={true}
+            containerStyle={styles.emailContainer}
+            onValueChange={text => {
+              const msrpValue = parseFloat(text);
+              if (!isNaN(msrpValue) && typeof discountPercent === 'number') {
+                const {amountToPay} = calculateDiscount(
+                  msrpValue,
+                  discountPercent,
+                );
+                setValue('price', amountToPay.toFixed(2));
+
+                if (ProductPriceChargeData?.data?.product_price?.price_charge) {
+                  const platformFeePercentage =
+                    ProductPriceChargeData.data.product_price.price_charge;
+                  const priceAmount = parseFloat(amountToPay.toFixed(2));
+
+                  const platformFee =
+                    (priceAmount * platformFeePercentage) / 100;
+                  setValue('platform_fee', platformFee.toFixed(2));
+
+                  const sellerFinalPrice = priceAmount - platformFee;
+                  setValue('seller_final_price', sellerFinalPrice.toFixed(2));
+                }
+              } else {
+                setValue('price', '');
+                setValue('platform_fee', '');
+                setValue('seller_final_price', '');
+              }
+            }}
+          />
+          <View style={styles.discountSliderContainer}>
+            <Text style={styles.discountTitle}>Listing Price Percentage</Text>
+            <Text style={styles.discountValue}>{discountPercent?.toFixed(2)}%</Text>
+            <View style={{marginHorizontal: 10, alignSelf: 'center'}}>
+              <MultiSlider
+                values={[discountPercent]}
+                sliderLength={OS === 'ios' ? 280 : 300}
+                trackStyle={{height: 3}}
+                min={sliderMin}
+                max={sliderMax}
+                step={1}
+                onValuesChange={values => {
+                  const newPercent = values[0];
+                  calculateAndUpdatePrices(newPercent);
+                }}
+                onValuesChangeFinish={values => {
+                  const newPercent = values[0];
+                  calculateAndUpdatePrices(newPercent);
+                }}
+                selectedStyle={{
+                  backgroundColor: colors.primary,
+                  alignSelf: 'center',
+                }}
+                unselectedStyle={{backgroundColor: '#ccc'}}
+                markerStyle={{
+                  backgroundColor: colors.primary,
+                  height: 20,
+                  width: 20,
+                }}
+              />
+            </View>
+          </View>
+          <Input
+            control={control}
+            name="price"
+            label={'Unopen Price *'}
+            containerStyle={styles.emailContainer}
+            inputProps={{
+              placeholder: 'Enter Unopen Price',
+              editable: false,
+            }}
+            required={{value: true, message: 'Unopen price is required'}}
+            error={errors}
+            maxLength={40}
+            keyboardType={'numeric'}
+            inputStyle={styles.inputStyle2}
+            disabled
+            textStyle
+          />
+          <Input
+            control={control}
+            name="platform_fee"
+            label={'Platform Fees *'}
+            containerStyle={styles.emailContainer}
+            inputProps={{
+              placeholder: 'Enter Platform Fees',
+              editable: false,
+            }}
+            required={{value: true, message: 'Platform fees is required'}}
+            error={errors}
+            maxLength={40}
+            keyboardType={'numeric'}
+            inputStyle={styles.inputStyle2}
+            disabled
+            textStyle
+          />
+          <Input
+            control={control}
+            name="seller_final_price"
+            label={'Seller Final Amount *'}
+            containerStyle={styles.emailContainer}
+            inputProps={{
+              placeholder: 'Enter Seller Final Amount',
+              editable: false,
+            }}
+            required={{value: true, message: 'Seller final amount is required'}}
+            error={errors}
+            maxLength={40}
+            keyboardType={'numeric'}
+            inputStyle={styles.inputStyle2}
+            disabled
+            textStyle
+          />
+        </View>
+      </View>
+      <View style={styles.step2Buttons}>
+        <WhiteButton
+          title="Cancel"
+          style={styles.previousStepButton}
+          textStyle={styles.cancelButtonText}
+          onPress={() => setIsEditPriceMode(false)}
+        />
+        <Button
+          title="Update Price"
+          style={styles.submitReviewButton}
+          onPress={handleSubmit(handleEditPriceSubmit)}
+        />
+      </View>
+    </ScrollView>
+  );
+
+  if (isEditPriceMode) {
+    return (
+      <TitleBackHeaderContainer 
+        isBack 
+        title="Edit Price"
+        onBackPress={() => setIsEditPriceMode(false)}>
+        {renderStep2()}
+      </TitleBackHeaderContainer>
+    );
+  }
 
   return (
     <TitleBackHeaderContainer isBack title="Product Details">
@@ -235,11 +543,19 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
       {!['sold', 'withdrawn', 'rejected'].includes(
         productDetail?.data?.product?.[0]?.product_status,
       ) && (
-        <Button
-          title={'Withdraw'}
-          style={styles.withdrawButton}
-          onPress={Submit}
-        />
+        <View style={styles.buttonContainer}>
+          <Button
+            title={'Withdraw'}
+            style={styles.withdrawButton}
+            onPress={Submit}
+          />
+          <WhiteButton
+            title={'Edit Price'}
+            style={styles.editPriceButton}
+            textStyle={styles.cancelButtonText}
+            onPress={() => setIsEditPriceMode(true)}
+          />
+        </View>
       )}
     </TitleBackHeaderContainer>
   );
@@ -312,10 +628,139 @@ const styles = StyleSheet.create({
     fontFamily: fonts.medium,
     color: colors.label,
   },
-  withdrawButton: {
-    backgroundColor: colors.primary,
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginTop: 20,
     marginBottom: 20,
+    paddingHorizontal: 12,
+    gap: 12,
+  },
+  editPriceButton: {
+    flex: 1,
+    height: 54,
+    backgroundColor: 'transparent',
+    borderRadius: 28,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: 0,
+    shadowColor: colors.primary,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  withdrawButton: {
+    flex: 1,
+    height: 54,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: 0,
+    shadowColor: colors.primary,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  stepContainer: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
+  stepContentContainer: {
+    flexGrow: 1,
+    paddingBottom: 30,
+  },
+  detailsSection: {
+    padding: 20,
+    backgroundColor: 'transparent',
+    borderRadius: 16,
+  },
+  sectionTitle: {
+    fontSize: fontSizes.large,
+    color: colors.primaryBlack,
+    fontFamily: fonts.bold,
+    marginBottom: 8,
+  },
+  formFieldsContainer: {
+    marginTop: 24,
+  },
+  emailContainer: {
+    marginTop: 24,
+  },
+  inputStyle: {
+    width: '100%',
+  },
+  inputStyle2: {
+    width: '100%',
+    backgroundColor: colors.primary,
+  },
+  discountSliderContainer: {
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  discountTitle: {
+    fontSize: fontSizes.medium,
+    fontFamily: fonts.medium,
+    color: colors.primaryBlack,
+    marginBottom: 8,
+  },
+  discountValue: {
+    fontSize: fontSizes.small,
+    fontFamily: fonts.medium,
+    color: colors.black,
+    marginBottom: 12,
+  },
+  step2Buttons: {
+    paddingHorizontal: 20,
+    paddingBottom: 30,
+    paddingTop: 20,
+    flexDirection: 'row',
+    gap: 12,
+  },
+  previousStepButton: {
+    flex: 1,
+    height: 54,
+    backgroundColor: 'transparent',
+    borderRadius: 28,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: 0,
+    shadowColor: colors.primary,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  submitReviewButton: {
+    flex: 1,
+    height: 54,
+    borderRadius: 28,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+    marginHorizontal: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: colors.primary,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  cancelButtonText: {
+    color: colors.primary,
   },
   flatListContent: {
     paddingHorizontal: 16,

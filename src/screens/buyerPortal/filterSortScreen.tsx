@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
   clearButton: {
     alignSelf: 'center',
     marginTop: 'auto',
-    bottom: "22%",
+    bottom: "23%",
     marginHorizontal: 10,
   },
   clearText: {
@@ -361,8 +361,8 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 20,
-    paddingVertical: 20,
-    marginBottom: 150,
+    // paddingVertical: 20,
+    marginBottom: 160,
   },
   categoryItem: {
     paddingVertical: 10,
@@ -385,7 +385,7 @@ const styles = StyleSheet.create({
   applyButton: {
     backgroundColor: colors.primary,
     marginHorizontal: 20,
-    marginVertical: 10,
+    marginVertical: 20,
     paddingVertical: 12,
     borderRadius: 24,
     alignItems: 'center',
