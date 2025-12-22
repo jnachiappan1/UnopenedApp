@@ -8,6 +8,8 @@ import {
   Text,
   View,
   ScrollView,
+  TouchableOpacity,
+  StatusBar,
 } from 'react-native';
 import React, {useRef, useState, useEffect} from 'react';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
@@ -42,6 +44,8 @@ import {useForm} from 'react-hook-form';
 import Input from '../../components/input/input';
 import {IRootState} from '../../redux/store';
 import {useSelector} from 'react-redux';
+import Modal from 'react-native-modal';
+import IconsSvg from '../../assets/svg/iconsSvg';
 
 type ProductDetailScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -72,6 +76,7 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isEditPriceMode, setIsEditPriceMode] = useState(false);
   const [discountPercent, setDiscountPercent] = useState<number>(0);
+  const [isMsrpInfoModalVisible, setIsMsrpInfoModalVisible] = useState(false);
 
   const userData = useSelector((user: IRootState) => user.user.userData);
   const isLogged = userData ? true : false;
@@ -286,48 +291,59 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
       <View style={styles.detailsSection}>
         <Text style={styles.sectionTitle}>Edit Pricing Information</Text>
         <View style={styles.formFieldsContainer}>
-          <Input
-            control={control}
-            name="msrp"
-            label="MSRP *"
-            required={{value: true, message: 'MSRP is required'}}
-            error={errors}
-            keyboardType="numeric"
-            inputProps={{
-              placeholder: 'Enter MSRP',
-            }}
-            maxLength={40}
-            inputStyle={styles.inputStyle}
-            disabled={true}
-            containerStyle={styles.emailContainer}
-            onValueChange={text => {
-              const msrpValue = parseFloat(text);
-              if (!isNaN(msrpValue) && typeof discountPercent === 'number') {
-                const {amountToPay} = calculateDiscount(
-                  msrpValue,
-                  discountPercent,
-                );
-                setValue('price', amountToPay.toFixed(2));
+          <View style={styles.msrpContainer}>
+            <Input
+              control={control}
+              name="msrp"
+              label="MSRP *"
+              required={{value: true, message: 'MSRP is required'}}
+              error={errors}
+              keyboardType="numeric"
+              inputProps={{
+                placeholder: 'Enter MSRP',
+              }}
+              maxLength={40}
+              inputStyle={styles.inputStyle}
+              inputBgColor="#E5E5E5"
+              disabled={true}
+              containerStyle={styles.emailContainer}
+              onValueChange={text => {
+                const msrpValue = parseFloat(text);
+                if (!isNaN(msrpValue) && typeof discountPercent === 'number') {
+                  const {amountToPay} = calculateDiscount(
+                    msrpValue,
+                    discountPercent,
+                  );
+                  setValue('price', amountToPay.toFixed(2));
 
-                if (ProductPriceChargeData?.data?.product_price?.price_charge) {
-                  const platformFeePercentage =
-                    ProductPriceChargeData.data.product_price.price_charge;
-                  const priceAmount = parseFloat(amountToPay.toFixed(2));
+                  if (ProductPriceChargeData?.data?.product_price?.price_charge) {
+                    const platformFeePercentage =
+                      ProductPriceChargeData.data.product_price.price_charge;
+                    const priceAmount = parseFloat(amountToPay.toFixed(2));
 
-                  const platformFee =
-                    (priceAmount * platformFeePercentage) / 100;
-                  setValue('platform_fee', platformFee.toFixed(2));
+                    const platformFee =
+                      (priceAmount * platformFeePercentage) / 100;
+                    setValue('platform_fee', platformFee.toFixed(2));
 
-                  const sellerFinalPrice = priceAmount - platformFee;
-                  setValue('seller_final_price', sellerFinalPrice.toFixed(2));
+                    const sellerFinalPrice = priceAmount - platformFee;
+                    setValue('seller_final_price', sellerFinalPrice.toFixed(2));
+                  }
+                } else {
+                  setValue('price', '');
+                  setValue('platform_fee', '');
+                  setValue('seller_final_price', '');
                 }
-              } else {
-                setValue('price', '');
-                setValue('platform_fee', '');
-                setValue('seller_final_price', '');
-              }
-            }}
-          />
+              }}
+            />
+            <TouchableOpacity
+              style={styles.infoIconContainer}
+              onPress={() => setIsMsrpInfoModalVisible(true)}
+              activeOpacity={0.7}>
+              <View style={styles.infoIconCircle}>
+                <Text style={styles.infoIconText}>i</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
           <View style={styles.discountSliderContainer}>
             <Text style={styles.discountTitle}>Listing Price Percentage</Text>
             <Text style={styles.discountValue}>
@@ -428,6 +444,34 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
           onPress={handleSubmit(handleEditPriceSubmit)}
         />
       </View>
+      <Modal
+        isVisible={isMsrpInfoModalVisible}
+        backdropOpacity={0.3}
+        animationIn={'slideInUp'}
+        animationOut={'slideOutDown'}
+        style={styles.modalStyle}
+        onBackdropPress={() => setIsMsrpInfoModalVisible(false)}>
+        <View style={styles.modalContainer}>
+          <StatusBar barStyle="dark-content" backgroundColor={colors.modalBackGround} />
+          <View style={styles.modalContent}>
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setIsMsrpInfoModalVisible(false)}>
+              <IconsSvg name="cancelIcon" />
+            </TouchableOpacity>
+            {/* <IconsSvg name="helpSupportIcon" /> */}
+            <Text style={styles.modalTitle}>MSRP Information</Text>
+            <Text style={styles.modalDescription}>
+              MSRP is uneditable. If you want to change MSRP withdraw the product and add again.
+            </Text>
+            <Button
+              title="Okay"
+              style={styles.modalButton}
+              onPress={() => setIsMsrpInfoModalVisible(false)}
+            />
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 
@@ -702,6 +746,7 @@ const styles = StyleSheet.create({
   },
   inputStyle: {
     width: '100%',
+    paddingRight: 50,
   },
   inputStyle2: {
     width: '100%',
@@ -843,5 +888,76 @@ const styles = StyleSheet.create({
   videoPlayerContainer: {
     width: '100%',
     height: '100%',
+  },
+  msrpContainer: {
+    position: 'relative',
+  },
+  infoIconContainer: {
+    position: 'absolute',
+    right: 16,
+    top: 60,
+    zIndex: 10,
+    padding: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  infoIconCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  infoIconText: {
+    fontSize: 14,
+    fontFamily: fonts.bold,
+    color: colors.white,
+    fontWeight: 'bold',
+  },
+  modalStyle: {
+    margin: 0,
+    justifyContent: 'center',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalContent: {
+    width: '80%',
+    padding: 20,
+    backgroundColor: colors.white,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  modalCloseButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    padding: 8,
+    zIndex: 1,
+  },
+  modalTitle: {
+    fontSize: fontSizes.large,
+    fontFamily: fonts.bold,
+    color: colors.primaryBlack,
+    marginTop: 16,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  modalDescription: {
+    fontSize: fontSizes.regular,
+    fontFamily: fonts.medium,
+    color: colors.text3,
+    marginBottom: 24,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  modalButton: {
+    width: '100%',
+    height: 45,
+    borderRadius: 120,
   },
 });
