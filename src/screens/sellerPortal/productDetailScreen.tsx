@@ -28,7 +28,11 @@ import {
   getProductPriceChargeDetail,
 } from '../../utils/apiAction';
 import moment from 'moment';
-import {handleError, handleSettled, calculateDiscount} from '../../utils/method';
+import {
+  handleError,
+  handleSettled,
+  calculateDiscount,
+} from '../../utils/method';
 import {showAlert} from '../../components/cAlert';
 import {image_url, base_url} from '../../utils/api';
 import {showLoader} from '../../components/loader/loader';
@@ -114,10 +118,10 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
       const product = productDetail.data.product[0];
       const msrp = parseFloat(product.msrp || '0');
       const price = parseFloat(product.price || '0');
-      
+
       setValue('msrp', msrp.toString());
       setValue('price', price.toString());
-      
+
       // Calculate discount percentage from MSRP and price
       if (msrp > 0 && price > 0) {
         const calculatedPercent = (price / msrp) * 100;
@@ -231,6 +235,8 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
     formData.append('msrp', data.msrp);
     formData.append('price', data.price);
     formData.append('set_price', discountPercent.toString());
+    formData.append('platform_fee', data.platform_fee);
+    formData.append('seller_final_price', data.seller_final_price);
 
     showLoader(true);
     updatePriceMutate(formData);
@@ -324,7 +330,9 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
           />
           <View style={styles.discountSliderContainer}>
             <Text style={styles.discountTitle}>Listing Price Percentage</Text>
-            <Text style={styles.discountValue}>{discountPercent?.toFixed(2)}%</Text>
+            <Text style={styles.discountValue}>
+              {discountPercent?.toFixed(2)}%
+            </Text>
             <View style={{marginHorizontal: 10, alignSelf: 'center'}}>
               <MultiSlider
                 values={[discountPercent]}
@@ -425,8 +433,8 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
 
   if (isEditPriceMode) {
     return (
-      <TitleBackHeaderContainer 
-        isBack 
+      <TitleBackHeaderContainer
+        isBack
         title="Edit Price"
         onBackPress={() => setIsEditPriceMode(false)}>
         {renderStep2()}
@@ -483,7 +491,6 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
           </View>
         )}
 
-    
         <StatusBadge
           status={productDetail?.data?.product[0]?.product_status}
           statusStyle={styles.statusStyle}
@@ -538,7 +545,6 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
           )}
           showColon
         />
-        
       </View>
       {!['sold', 'withdrawn', 'rejected'].includes(
         productDetail?.data?.product?.[0]?.product_status,
@@ -833,8 +839,7 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontFamily: fonts.bold,
   },
-  videoTouchArea: {
-  },
+  videoTouchArea: {},
   videoPlayerContainer: {
     width: '100%',
     height: '100%',
