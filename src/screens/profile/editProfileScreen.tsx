@@ -67,6 +67,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
     queryFn: viewProfile,
   });
 
+
   const {
     control,
     handleSubmit,
@@ -238,6 +239,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
     }
 
     showLoader(true);
+console.log("formDataToSend", formDataToSend);
 
     mutate(formDataToSend);
   };
@@ -246,18 +248,19 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
   useEffect(() => {
     if (data?.data?.user && !isLoadingCountries && allCountries.length > 0) {
       const user = data.data.user;
+      const address = user.address || {};
       const fields: Inputs = {
         full_name: user.full_name || '',
         email: user.email || '',
         phone_number: user.phone_number || '',
-        address: user.address || '',
-        country: user.country || '',
-        state: user.state || '',
-        city: user.city || '',
-        pincode: user.pincode || '',
+        address: address.address || '',
+        country: address.country || '',
+        state: address.state || '',
+        city: address.city || '',
+        pincode: address.pincode || '',
         gender: user.gender || '',
         profileImage: user.profile_picture || '',
-        second_line_address: user.second_line_address || '',
+        second_line_address: address.second_line_address || '',
       };
 
       reset(fields);

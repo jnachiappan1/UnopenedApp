@@ -103,7 +103,6 @@ const EditAddressScreen: React.FC<AddAddressProps> = ({navigation, route}) => {
   const watchedCountry = watch('country');
   const watchedCity = watch('city');
   const watchedAddress = watch('address');
-console.log("watchedAddress---", watchedAddress);
 
   const {
     data: addressDetailResponse,
@@ -416,8 +415,7 @@ console.log("watchedAddress---", watchedAddress);
     }
   }, [watchedCountry, setValue]);
 
-  useEffect(() => {
-  }, [watchedCity]);
+  useEffect(() => {}, [watchedCity]);
 
   const {mutate} = useMutation({
     mutationFn: (payload: AddressPayloadType) => {
@@ -429,7 +427,9 @@ console.log("watchedAddress---", watchedAddress);
     onSuccess: data => {
       showLoader(false);
       queryClient.invalidateQueries({queryKey: ['getAddresses']});
-      queryClient.invalidateQueries({queryKey: ['getAddressById', resolvedAddressId]});
+      queryClient.invalidateQueries({
+        queryKey: ['getAddressById', resolvedAddressId],
+      });
       showAlert({
         isVisible: true,
         type: 'success',
@@ -522,7 +522,15 @@ console.log("watchedAddress---", watchedAddress);
           control={control}
           name="address"
           label={'Address'}
-          locationName={watchedAddress ? watchedAddress : defaultAddress ? defaultAddress : addressInfo?.address ? addressInfo?.address : ''}
+          locationName={
+            watchedAddress
+              ? watchedAddress
+              : defaultAddress
+              ? defaultAddress
+              : addressInfo?.address
+              ? addressInfo?.address
+              : ''
+          }
           inputProps={{
             placeholder: 'Enter Address',
           }}

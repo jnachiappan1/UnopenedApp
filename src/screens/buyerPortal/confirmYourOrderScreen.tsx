@@ -64,6 +64,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
   const [discountAmount, setDiscountAmount] = useState<number>(0);
 
 
+
   const {
     control,
     formState: {errors},
@@ -582,7 +583,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
           rate_id: selectedShippingRate ? selectedShippingRate.id : '',
           shipmentId: shippingID,
         };
-console.log("stripePaymentPayload---", stripePaymentPayload);
+
 
         handleStripePayment(stripePaymentPayload);
       } else {

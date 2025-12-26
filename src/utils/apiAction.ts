@@ -309,8 +309,10 @@ export const updateAddress = async (
   addressId: number,
   payload: AddressPayloadType,
 ) => {
-  
-  const response = await axios.patch(`${API.buyer.addAddress}/${addressId}`, payload);
+  const response = await axios.patch(
+    `${API.buyer.addAddress}/${addressId}`,
+    payload,
+  );
   return response;
 };
 
@@ -407,7 +409,7 @@ export const labelPurchase = async (shipmentId: any) => {
   return response;
 };
 
-export const getAddressById = async (addressId:   any) => {
+export const getAddressById = async (addressId: any) => {
   const response = await axios.get(`${API.buyer.addressById}${addressId}`);
   return response;
 };

@@ -422,6 +422,8 @@ const SignUpScreen: React.FC<LoginProps> = ({route, navigation}) => {
             }
 
             showLoader(true);
+            console.log("payload", payload);
+            
             mutate(payload);
           })}
         />

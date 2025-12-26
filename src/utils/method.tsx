@@ -102,6 +102,8 @@ export const capitalizeFirstLetterSentence = (text: string) => {
   return text ? text.charAt(0).toUpperCase() + text.slice(1) : text;
 };
 export const handleError = (error: errorMsg) => {
+  console.log("error", error);
+  
   showLoader(false);
   showAlert({
     isVisible: true,
