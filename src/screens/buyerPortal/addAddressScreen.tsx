@@ -251,7 +251,6 @@ const AddAddressScreen: React.FC<AddAddressProps> = ({navigation, route}) => {
               });
             }
           } catch (error) {
-            console.log('Error parsing phone number:', error);
           }
         }
       }

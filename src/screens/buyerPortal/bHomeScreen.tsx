@@ -158,7 +158,6 @@ const BHomeScreen: React.FC<LoginProps> = ({route, navigation}) => {
     staleTime: 0,
     refetchOnMount: true,
   });
-console.log("-=--=---productList", productList);
 
   const hasActiveFilters = () => {
     return (

@@ -882,8 +882,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       return;
     }
     const apiFormData = prepareFormDataForAPI(data);
-    console.log('apiFormData---', apiFormData);
-
     showLoader(true);
     mutate(apiFormData);
   };

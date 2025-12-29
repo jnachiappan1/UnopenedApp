@@ -128,9 +128,7 @@ const SearchLocationInput: React.FC<InputPropsStyle> = props => {
               if (autoCompleteRef.current) {
                 try {
                   autoCompleteRef.current.setAddressText(nextValue);
-                } catch (error) {
-                  console.log('Error setting address text:', error);
-                }
+                } catch (error) {}
               }
               const timer = setTimeout(() => setIsExternalUpdate(false), 200);
               return () => clearTimeout(timer);
@@ -230,16 +228,6 @@ const SearchLocationInput: React.FC<InputPropsStyle> = props => {
                               }
                             }
 
-                            console.log('City parsing debug:', {
-                              localityComp: localityComp?.long_name,
-                              cityName,
-                              addressParts: data?.description?.split(','),
-                              allComponents: comps.map(c => ({
-                                types: c.types,
-                                long_name: c.long_name,
-                              })),
-                            });
-
                             const parsed = {
                               countryCode: countryComp?.short_name,
                               countryName: countryComp?.long_name,
@@ -311,9 +299,7 @@ const SearchLocationInput: React.FC<InputPropsStyle> = props => {
                               }
                             } catch (error) {}
                           }, 500);
-                        } catch (error) {
-                          console.log('Error in onChangeText:', error);
-                        }
+                        } catch (error) {}
                       },
                       ...(inputProps || {}),
                     }}

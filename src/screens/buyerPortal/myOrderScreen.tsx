@@ -29,9 +29,6 @@ const MyOrderScreen: React.FC<MyOrderScreenProps> = ({navigation}) => {
       queryFn: () => getMyOrderList(),
       enabled: !!userData,
     });
-console.log("sellerOwnProductList---", sellerOwnProductList);
-
-  // Use useFocusEffect to refetch data when screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
       if (userData) {

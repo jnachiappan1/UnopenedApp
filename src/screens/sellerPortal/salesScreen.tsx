@@ -1,19 +1,19 @@
-import React, { useCallback } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
-import { FlashList } from '@shopify/flash-list';
-import { useSelector } from 'react-redux';
-import { useQuery } from '@tanstack/react-query';
+import React, {useCallback} from 'react';
+import {StyleSheet, Text, View} from 'react-native';
+import {useFocusEffect} from '@react-navigation/native';
+import {FlashList} from '@shopify/flash-list';
+import {useSelector} from 'react-redux';
+import {useQuery} from '@tanstack/react-query';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
 import SaleCard from '../../components/card/saleCard';
-import { getSalesProductList } from '../../utils/apiAction';
-import { ProductData } from '../../utils/types';
-import { IRootState } from '../../redux/store';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
-import { showLoader } from '../../components/loader/loader';
+import {getSalesProductList} from '../../utils/apiAction';
+import {ProductData} from '../../utils/types';
+import {IRootState} from '../../redux/store';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
+import {showLoader} from '../../components/loader/loader';
 import colors from '../../utils/colors';
-import { fontSizes } from '../../utils/utils';
+import {fontSizes} from '../../utils/utils';
 import fonts from '../../assets/fonts/fonts';
 
 type SalesScreenProps = NativeStackScreenProps<
@@ -21,18 +21,15 @@ type SalesScreenProps = NativeStackScreenProps<
   SCREENS.SalesScreen
 >;
 
-const SalesScreen: React.FC<SalesScreenProps> = ({ navigation }) => {
+const SalesScreen: React.FC<SalesScreenProps> = ({navigation}) => {
   const userData = useSelector((state: IRootState) => state.user.userData);
 
-  const {
-    data: sellerOwnProductList,
-    refetch: refetchSalesProductList,
-  } = useQuery({
-    queryKey: ['getSalesProductList'],
-    queryFn: () => getSalesProductList(),
-    enabled: !!userData,
-  });
-console.log("sellerOwnProductList", sellerOwnProductList);
+  const {data: sellerOwnProductList, refetch: refetchSalesProductList} =
+    useQuery({
+      queryKey: ['getSalesProductList'],
+      queryFn: () => getSalesProductList(),
+      enabled: !!userData,
+    });
 
   useFocusEffect(
     useCallback(() => {
@@ -50,7 +47,7 @@ console.log("sellerOwnProductList", sellerOwnProductList);
       if (userData) {
         fetchData();
       }
-    }, [userData, refetchSalesProductList])
+    }, [userData, refetchSalesProductList]),
   );
 
   const products = sellerOwnProductList?.data?.product || [];
@@ -68,7 +65,7 @@ console.log("sellerOwnProductList", sellerOwnProductList);
     <TitleBackHeaderContainer title="Sales Activity">
       <FlashList
         data={products as ProductData[]}
-        renderItem={({ item }) => (
+        renderItem={({item}) => (
           <SaleCard
             item={item}
             onSelect={() =>
@@ -79,8 +76,8 @@ console.log("sellerOwnProductList", sellerOwnProductList);
           />
         )}
         estimatedItemSize={150}
-        contentContainerStyle={{ padding: 16 }}
-        keyExtractor={(item) => item.id.toString()}
+        contentContainerStyle={{padding: 16}}
+        keyExtractor={item => item.id.toString()}
         ListEmptyComponent={<EmptyStateMessage />}
       />
     </TitleBackHeaderContainer>

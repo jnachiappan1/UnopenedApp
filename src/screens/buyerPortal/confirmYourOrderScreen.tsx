@@ -63,8 +63,6 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
   const [isStripeModalVisible, setStripeModalVisible] = useState(false);
   const [discountAmount, setDiscountAmount] = useState<number>(0);
 
-
-
   const {
     control,
     formState: {errors},
@@ -230,7 +228,11 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
     queryFn: () => getProductDetailByID(productId),
   });
 
-  const {data: walletData, isLoading: isWalletLoading, refetch: refetchWalletDetail} = useQuery({
+  const {
+    data: walletData,
+    isLoading: isWalletLoading,
+    refetch: refetchWalletDetail,
+  } = useQuery({
     queryKey: ['getWalletDetail'],
     queryFn: () => getWalletDetail(),
     enabled: !!userData,
@@ -459,8 +461,8 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
               try {
                 showLoader(true);
                 const hybridPaymentPayload = {
-                  amount: remainingAmount.toString(), 
-                  wallet_amount: walletAmount.toString(), 
+                  amount: remainingAmount.toString(),
+                  wallet_amount: walletAmount.toString(),
                   rate_amount: selectedShippingRate
                     ? selectedShippingRate.rate.toString()
                     : '0',
@@ -528,12 +530,10 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
                     });
                   } else {
                     showLoader(false);
-                  
+
                     try {
                       await applyCouponAfterPayment();
-                    } catch (error) {
-                    
-                    }
+                    } catch (error) {}
                     setModalVisible(true);
                   }
                 } else {
@@ -583,7 +583,6 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
           rate_id: selectedShippingRate ? selectedShippingRate.id : '',
           shipmentId: shippingID,
         };
-
 
         handleStripePayment(stripePaymentPayload);
       } else {
@@ -792,8 +791,7 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
 
   const getCurrentAddressId = () => {
     const currentAddress = getCurrentAddress();
-    console.log("iiiiddddd---", currentAddress?.id);
-    
+
     if (currentAddress?.id) {
       return currentAddress.id;
     }
@@ -809,7 +807,9 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
   };
 
   const getSubtotal = (): number => {
-    const productPrice = getSafeNumber(allProductList?.data?.product[0]?.price?.toFixed(2));
+    const productPrice = getSafeNumber(
+      allProductList?.data?.product[0]?.price?.toFixed(2),
+    );
     const shippingCost = selectedShippingRate
       ? getSafeNumber(selectedShippingRate.rate)
       : 0;
@@ -1137,7 +1137,6 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
                 </View>
                 <View style={styles.shippingOptionPrice}>
                   <Text style={styles.shippingPriceAmount}>
-                    
                     ${Number(selectedShippingRate.rate || 0).toFixed(2)}
                   </Text>
                   <Text style={styles.shippingPriceCurrency}>USD</Text>
@@ -1636,7 +1635,6 @@ const ConfirmYourOrderScreen: React.FC<LoginProps> = ({navigation, route}) => {
                   rate_id: selectedShippingRate ? selectedShippingRate.id : '',
                   shipmentId: shippingID,
                 };
-       
 
                 handleStripePayment(paymentPayload);
               }}>

@@ -67,7 +67,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
     queryFn: viewProfile,
   });
 
-
   const {
     control,
     handleSubmit,
@@ -239,7 +238,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
     }
 
     showLoader(true);
-console.log("formDataToSend", formDataToSend);
 
     mutate(formDataToSend);
   };
@@ -385,7 +383,7 @@ console.log("formDataToSend", formDataToSend);
           maxLength={40}
           inputStyle={styles.inputStyle}
         />
-         <Input
+        <Input
           control={control}
           name="second_line_address"
           label={'House No. / Apartment No. (optional)'}
@@ -395,7 +393,7 @@ console.log("formDataToSend", formDataToSend);
           maxLength={40}
           // containerStyle={styles.containerStyle}
         />
-        
+
         <View style={styles.locationContainer}>
           <InputCountry
             control={control}
@@ -438,12 +436,12 @@ console.log("formDataToSend", formDataToSend);
             inputStyle={styles.inputStyle}
           />
           <GenderDropdown
-          control={control}
-          name="gender"
-          label="Gender"
-          // required={{value: true, message: 'Please select gender'}}
-          // error={errors}
-        />
+            control={control}
+            name="gender"
+            label="Gender"
+            // required={{value: true, message: 'Please select gender'}}
+            // error={errors}
+          />
         </View>
       </View>
       <Button

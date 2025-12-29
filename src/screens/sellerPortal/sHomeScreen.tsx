@@ -69,7 +69,6 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({navigation, route}) => {
     queryFn: viewProfile,
   });
   const fcmToken = useSelector((state: IRootState) => state.user.fcmToken); 
-  console.log("fcmToken---", fcmToken);
   useEffect(() => {
     if (!userData) {
       queryClient.removeQueries({queryKey: ['getSellerDashboardCount']});

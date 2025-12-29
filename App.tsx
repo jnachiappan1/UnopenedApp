@@ -60,20 +60,9 @@ React.useEffect(() => {
       setPublishKey(data?.data?.publishKey || '');
     }
   }, [data, error, token]);
-  // React.useEffect(() => {
-  //   messaging().setBackgroundMessageHandler(async (remoteMessage) => {
-  //     showMessages(remoteMessage,true,true);
-  //   });
-  //   const unsubscribeOnMessage = messaging().onMessage(
-  //     async (remoteMessage) => {
-  //       showMessages(remoteMessage,true,true);
-  //     }
-  //   );
-  //   return () => unsubscribeOnMessage();
-  // }, []);
+ 
   React.useEffect(() => {
     messaging().setBackgroundMessageHandler(async remoteMessage => {
-      console.log('Message handled in the background!', remoteMessage);
     });
     const unsubscribeOnMessage = messaging().onMessage(async remoteMessage => {
       showMessages(remoteMessage);
