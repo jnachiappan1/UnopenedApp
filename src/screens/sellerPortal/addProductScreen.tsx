@@ -8,7 +8,6 @@ import {
   ScrollView,
   Image,
 } from 'react-native';
-import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import IMAGE from '../../assets/images';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
@@ -23,9 +22,8 @@ import fonts from '../../assets/fonts/fonts';
 import ImageUpload from '../../components/input/ImageUpload';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
 import ProductImageUpload from '../../components/model/productImageUpload';
-import {useMutation, useQuery} from '@tanstack/react-query';
+import {useQuery} from '@tanstack/react-query';
 import {
-  addProduct,
   getCategoryDetail,
   getProductPriceChargeDetail,
   getProductPriceDetail,
@@ -35,12 +33,7 @@ import {showAlert} from '../../components/cAlert';
 import {fontSizes, OS} from '../../utils/utils';
 import {IRootState} from '../../redux/store';
 import {useSelector} from 'react-redux';
-import {
-  calculateDiscount,
-  handleError,
-  handleSettled,
-} from '../../utils/method';
-import {showLoader} from '../../components/loader/loader';
+import {calculateDiscount} from '../../utils/method';
 import {image_url} from '../../utils/api';
 import commonStyles from '../../utils/common-styles';
 
@@ -83,9 +76,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
 }) => {
   const {scannedBarcode} = route.params || {};
   const [uploadedImages, setUploadedImages] = useState<MediaObject[]>([]);
-  const [isNavigatingToPreview, setIsNavigatingToPreview] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
-  const [isAgreed, setIsAgreed] = useState(false);
   const [selectedPackageTier, setSelectedPackageTier] = useState<string>('');
   const [packageTierError, setPackageTierError] = useState<string>('');
 
@@ -96,7 +86,8 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
   const [dropdownData, setDropdownData] = useState<DropDownType[]>([]);
   const [scannedCategoryName, setScannedCategoryName] = useState<string>('');
   const [hasShownScanError, setHasShownScanError] = useState<boolean>(false);
-  const [isMsrpManuallyEdited, setIsMsrpManuallyEdited] = useState<boolean>(false);
+  const [isMsrpManuallyEdited, setIsMsrpManuallyEdited] =
+    useState<boolean>(false);
   const lastProcessedScanRef = useRef<string | null>(null);
   const {data: categoryData} = useQuery({
     queryKey: ['getCategoryDetail'],
@@ -401,58 +392,15 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     return () => subscription.unsubscribe();
   }, [watch, ProductPriceChargeData, setValue]);
 
-  const watchedFields = watch([
-    'brandName',
-    'productName',
-    'barcode',
-    'category',
-    'package_dimension_length',
-    'package_dimension_width',
-    'package_dimension_height',
-    'description',
-  ]);
-
-  const isStep1Complete = () => {
-    const [
-      brandName,
-      productName,
-      barcode,
-      category,
-      length,
-      width,
-      height,
-      description,
-    ] = watchedFields;
-
-    const allFieldsFilled =
-      brandName?.trim() &&
-      productName?.trim() &&
-      barcode?.trim() &&
-      category &&
-      length?.trim() &&
-      width?.trim() &&
-      height?.trim() &&
-      description?.trim();
-
-    const hasVideo = uploadedImages.some(media => isVideo(media));
-    const hasValidImages = hasVideo && uploadedImages.length >= 2;
-
-    const isPackageTierSelected = selectedPackageTier !== '';
-
-    return allFieldsFilled && hasValidImages && isPackageTierSelected;
-  };
-
   useEffect(() => {
-    // Reset error state when barcode changes
     if (scannedBarcode) {
       setHasShownScanError(false);
-      setIsMsrpManuallyEdited(false); // Reset flag when new scan happens
-      lastProcessedScanRef.current = null; // Reset ref to allow processing new scan
+      setIsMsrpManuallyEdited(false);
+      lastProcessedScanRef.current = null;
     }
   }, [scannedBarcode]);
 
   useEffect(() => {
-    // Handle scan errors (timeout, network error, or API error)
     if (!hasShownScanError && hasScanFailure) {
       setHasShownScanError(true);
       const errorMessage = scanError?.message || '';
@@ -477,18 +425,13 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
 
     if (scanProductData?.data?.product) {
       const productData = scanProductData.data.product;
-      // Check if we've already processed this scan data to prevent infinite loops
-      const productId = productData.ean || 
-                       productData.upc || 
-                       scannedBarcode || 
-                       '';
-      
+      const productId =
+        productData.ean || productData.upc || scannedBarcode || '';
+
       const isNewScan = lastProcessedScanRef.current !== productId;
-      
+
       if (isNewScan) {
         lastProcessedScanRef.current = productId;
-        
-        // Only set form fields on a new scan
         const scannedCategory = productData.category;
         setScannedCategoryName(scannedCategory || '');
 
@@ -522,7 +465,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             setValue('category', matchedCategory);
             clearErrors('category');
           } else {
-            // If no category match found, set error to show validation message
             setError('category', {
               type: 'manual',
               message: 'Category is required',
@@ -538,7 +480,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
         );
 
         const msrpValue = calculateMSRP(productData);
-        // Only set MSRP if it hasn't been manually edited by the user
         if (!isMsrpManuallyEdited) {
           setValue('msrp', msrpValue > 0 ? msrpValue.toString() : '');
         }
@@ -546,70 +487,78 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
         setValue('description', productData.description || '');
 
         if (productData.dimension) {
-        const cleanDimension = productData.dimension
-          .replace(/\s*inches?/i, '')
-          .trim();
-        const dimensionParts = cleanDimension
-          .split(/[xX]/)
-          .map((part: string) => part.trim());
+          const cleanDimension = productData.dimension
+            .replace(/\s*inches?/i, '')
+            .trim();
+          const dimensionParts = cleanDimension
+            .split(/[xX]/)
+            .map((part: string) => part.trim());
 
-        if (dimensionParts.length >= 3) {
-          setValue('package_dimension_length', dimensionParts[0] || '');
-          setValue('package_dimension_width', dimensionParts[1] || '');
-          setValue('package_dimension_height', dimensionParts[2] || '');
-        } else if (dimensionParts.length === 1) {
-          setValue('package_dimension_length', dimensionParts[0] || '');
-          setValue('package_dimension_width', '');
-          setValue('package_dimension_height', '');
+          if (dimensionParts.length >= 3) {
+            setValue('package_dimension_length', dimensionParts[0] || '');
+            setValue('package_dimension_width', dimensionParts[1] || '');
+            setValue('package_dimension_height', dimensionParts[2] || '');
+          } else if (dimensionParts.length === 1) {
+            setValue('package_dimension_length', dimensionParts[0] || '');
+            setValue('package_dimension_width', '');
+            setValue('package_dimension_height', '');
+          } else {
+            setValue('package_dimension_length', '');
+            setValue('package_dimension_width', '');
+            setValue('package_dimension_height', '');
+          }
         } else {
           setValue('package_dimension_length', '');
           setValue('package_dimension_width', '');
           setValue('package_dimension_height', '');
         }
-      } else {
-        setValue('package_dimension_length', '');
-        setValue('package_dimension_width', '');
-        setValue('package_dimension_height', '');
-      }
 
-      // setValue(
-      //   'weight',
-      //   productData.weight ? productData.weight.toString() : '',
-      // );
+        if (productData.images && productData.images.length > 0) {
+          setUploadedImages([]);
+          setValue('productImages', []);
 
-      if (productData.images && productData.images.length > 0) {
-        setUploadedImages([]);
-        setValue('productImages', []);
+          const firstImageUrl = productData.images[0]
+            ? productData.images[0]
+            : productData.images;
 
-        const firstImageUrl = productData.images[0]
-          ? productData.images[0]
-          : productData.images;
+          const handleRemoteImage = async (url: string) => {
+            try {
+              const secureUrl = url.startsWith('http://')
+                ? url.replace('http://', 'https://')
+                : url;
 
-        const handleRemoteImage = async (url: string) => {
-          try {
-            // Convert HTTP to HTTPS to comply with iOS App Transport Security
-            const secureUrl = url.startsWith('http://')
-              ? url.replace('http://', 'https://')
-              : url;
+              const scannedImage: MediaObject = {
+                uri: secureUrl,
+                name: 'scanned_product_image.jpg',
+                type: 'image/jpeg',
+              };
 
+              setUploadedImages([scannedImage]);
+              setValue('productImages', [scannedImage]);
+              clearErrors('productImages');
+              setImageError('');
+            } catch (error) {
+              const secureUrl = url.startsWith('http://')
+                ? url.replace('http://', 'https://')
+                : url;
+
+              const scannedImage: MediaObject = {
+                uri: secureUrl,
+                name: 'scanned_product_image.jpg',
+                type: 'image/jpeg',
+              };
+              setUploadedImages([scannedImage]);
+              setValue('productImages', [scannedImage]);
+              clearErrors('productImages');
+              setImageError('');
+            }
+          };
+
+          if (firstImageUrl.startsWith('http')) {
+            handleRemoteImage(firstImageUrl);
+          } else {
             const scannedImage: MediaObject = {
-              uri: secureUrl,
-              name: 'scanned_product_image.jpg',
-              type: 'image/jpeg',
-            };
-
-            setUploadedImages([scannedImage]);
-            setValue('productImages', [scannedImage]);
-            clearErrors('productImages');
-            setImageError('');
-          } catch (error) {
-            // Convert HTTP to HTTPS to comply with iOS App Transport Security
-            const secureUrl = url.startsWith('http://')
-              ? url.replace('http://', 'https://')
-              : url;
-
-            const scannedImage: MediaObject = {
-              uri: secureUrl,
+              uri: firstImageUrl,
               name: 'scanned_product_image.jpg',
               type: 'image/jpeg',
             };
@@ -618,27 +567,11 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             clearErrors('productImages');
             setImageError('');
           }
-        };
-
-        if (firstImageUrl.startsWith('http')) {
-          handleRemoteImage(firstImageUrl);
-        } else {
-          const scannedImage: MediaObject = {
-            uri: firstImageUrl,
-            name: 'scanned_product_image.jpg',
-            type: 'image/jpeg',
-          };
-          setUploadedImages([scannedImage]);
-          setValue('productImages', [scannedImage]);
-          clearErrors('productImages');
-          setImageError('');
         }
-      }
 
         clearErrors();
       }
 
-      // Always recalculate prices when discountPercent or MSRP changes (works for both new scans and existing)
       const currentMsrp = parseFloat(getValues('msrp') || '0');
       if (currentMsrp > 0 && typeof discountPercent === 'number') {
         const {amountToPay} = calculateDiscount(currentMsrp, discountPercent);
@@ -654,7 +587,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
         }
       }
 
-      // Reset error state on successful data fetch
       if (scanProductData?.data?.product) {
         setHasShownScanError(false);
       }
@@ -755,137 +687,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     return true;
   };
 
-  const validateAllFields = async () => {
-    const isFormValid = await trigger();
-    const isImagesValid = validateImages();
-    const isPackageTierSelected = selectedPackageTier !== '';
-
-    if (!isPackageTierSelected) {
-      setPackageTierError('Please select a product size');
-    } else {
-      setPackageTierError('');
-    }
-
-    return isFormValid && isImagesValid && isPackageTierSelected;
-  };
-
-  const handlePreviewAndConfirm = async (productInput: FormData) => {
-    const isValid = await validateAllFields();
-    if (!isValid) {
-      Alert.alert(
-        'Validation Error',
-        'Please fill all required fields and upload a 360° view video plus at least 1 product image.',
-      );
-      return;
-    }
-    setIsNavigatingToPreview(true);
-    const formDataForAPI = prepareFormDataForAPI(productInput);
-    const categoryValue =
-      typeof productInput.category === 'object' &&
-      productInput.category !== null
-        ? productInput.category.name
-        : typeof productInput.category === 'string'
-        ? productInput.category
-        : '';
-
-    const previewProductData = {
-      name: productInput.productName,
-      brand: productInput.brandName,
-      barcode: productInput.barcode,
-      category: categoryValue,
-      msrp: `$${productInput.msrp}`,
-      listingPrice: `$${productInput.price}`,
-      description: productInput.description || 'No description provided',
-      images:
-        uploadedImages.length > 0
-          ? uploadedImages.map(img => img.uri)
-          : [
-              'https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?w=400&h=300&fit=crop',
-            ],
-      sku: 'SKU-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
-    };
-    navigation.navigate(SCREENS.PreviewConfirmScreen, {
-      productData: previewProductData,
-      formData: formDataForAPI,
-    });
-
-    setIsNavigatingToPreview(false);
-  };
-
-  const prepareFormDataForAPI = (data: FormData) => {
-    const formData = new FormData();
-    formData.append('brand', data.brandName);
-    formData.append('name', data.productName);
-    formData.append('barcode', data.barcode);
-    const categoryId =
-      typeof data.category === 'object' && data.category !== null
-        ? data.category.id
-        : '';
-    formData.append('category_id', categoryId);
-    formData.append('msrp', data.msrp);
-    formData.append('dimension', selectedPackageTier);
-    formData.append('price', data.price);
-    formData.append('platform_fee', data.platform_fee);
-    formData.append('seller_final_price', data.seller_final_price);
-    formData.append('description', data.description);
-    formData.append('set_price', discountPercent);
-
-    uploadedImages.forEach((media, index) => {
-      let secureUri = media.uri;
-      if (media.uri.startsWith('http://')) {
-        secureUri = media.uri.replace('http://', 'https://');
-      }
-
-      formData.append('images', {
-        uri: secureUri,
-        name: media.name || `image_${index}.jpg`,
-        type: media.type || 'image/jpeg',
-      });
-    });
-
-    return formData;
-  };
-
-  const {mutate} = useMutation({
-    mutationFn: (data: globalThis.FormData) => addProduct(data),
-    onSuccess: data => {
-      showLoader(false);
-      showAlert({
-        isVisible: true,
-        type: 'success',
-        title: 'Product',
-        description:
-          "Product added successfully and it's under review. You will be notified once approved.",
-        doneText: 'Okay',
-        onDonePress: () => {
-          reset();
-          setUploadedImages([]);
-          setImageError('');
-          setScannedCategoryName('');
-          setSelectedPackageTier('');
-          setPackageTierError('');
-          navigation.navigate(SCREENS.BottomTab);
-        },
-      });
-    },
-    onError: handleError,
-    onSettled: handleSettled,
-  });
-
-  const Submit = async (data: FormData) => {
-    const isValid = await validateAllFields();
-    if (!isValid) {
-      Alert.alert(
-        'Validation Error',
-        'Please fill all required fields and upload a 360° view video plus at least 1 product image.',
-      );
-      return;
-    }
-    const apiFormData = prepareFormDataForAPI(data);
-    showLoader(true);
-    mutate(apiFormData);
-  };
-
   const handleUploadPress = () => {
     setIsModalVisible(true);
   };
@@ -976,7 +777,26 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     }
 
     if (isStep1Valid && isImagesValid && isPackageTierSelected) {
-      setCurrentStep(1);
+      const formValues = getValues();
+      navigation.navigate(SCREENS.PricingStepScreen, {
+        formValues: {
+          brandName: formValues.brandName,
+          productName: formValues.productName,
+          barcode: formValues.barcode,
+          category: formValues.category,
+          msrp: formValues.msrp,
+          price: formValues.price,
+          platform_fee: formValues.platform_fee,
+          seller_final_price: formValues.seller_final_price,
+          package_dimension_length: formValues.package_dimension_length,
+          package_dimension_width: formValues.package_dimension_width,
+          package_dimension_height: formValues.package_dimension_height,
+          description: formValues.description,
+        },
+        uploadedImages: uploadedImages,
+        selectedPackageTier: selectedPackageTier,
+        initialDiscountPercent: discountPercent,
+      });
     } else {
       const currentCategory = getValues('category');
       if (!currentCategory) {
@@ -984,29 +804,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
           type: 'manual',
           message: 'Category is required',
         });
-      }
-    }
-  };
-
-  const goToPreviousStep = () => {
-    setCurrentStep(0);
-  };
-
-  const calculateAndUpdatePrices = (newPercent: number) => {
-    setDiscountPercent(newPercent);
-    const msrpStr = getValues('msrp');
-    const msrpNum = parseFloat(msrpStr as unknown as string);
-    if (!isNaN(msrpNum) && msrpNum > 0) {
-      const {amountToPay} = calculateDiscount(msrpNum, newPercent);
-      setValue('price', amountToPay.toFixed(2));
-      if (ProductPriceChargeData?.data?.product_price?.price_charge) {
-        const platformFeePercentage =
-          ProductPriceChargeData.data.product_price.price_charge;
-        const priceAmount = parseFloat(amountToPay.toFixed(2));
-        const platformFee = (priceAmount * platformFeePercentage) / 100;
-        setValue('platform_fee', platformFee.toFixed(2));
-        const sellerFinalPrice = priceAmount - platformFee;
-        setValue('seller_final_price', sellerFinalPrice.toFixed(2));
       }
     }
   };
@@ -1125,7 +922,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
             required={{value: true, message: 'Category is required'}}
             error={errors}
             onChangeValue={selectedItem => {
-              // Category selected - clear error immediately
               setValue('category', selectedItem);
               clearErrors('category');
             }}
@@ -1251,7 +1047,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
                 style={styles.imagesPreviewScroll}
                 contentContainerStyle={styles.imagesPreviewContent}>
                 {uploadedImages.map((mediaObj, index) => {
-                  // Check if URI is a local file path
                   const isLocalFile =
                     mediaObj?.uri?.startsWith('file://') ||
                     mediaObj?.uri?.startsWith('content://') ||
@@ -1260,7 +1055,7 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
                     mediaObj?.uri?.startsWith('/');
 
                   const finalUri = isLocalFile
-                    ? mediaObj.uri // Use local file path as-is
+                    ? mediaObj.uri
                     : mediaObj?.uri?.startsWith('http:')
                     ? mediaObj.uri.replace('http:', 'https:')
                     : mediaObj.uri.startsWith('http')
@@ -1320,213 +1115,6 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
     </ScrollView>
   );
 
-  const renderStep2 = () => (
-    <ScrollView
-      showsVerticalScrollIndicator={false}
-      style={styles.stepContainer}
-      contentContainerStyle={styles.stepContentContainer}
-      nestedScrollEnabled>
-      <View style={styles.detailsSection}>
-        <Text style={styles.sectionTitle}>Pricing Information</Text>
-        <View style={styles.formFieldsContainer}>
-          <Input
-            control={control}
-            name="msrp"
-            label="MSRP *"
-            required={{value: true, message: 'MSRP is required'}}
-            error={errors}
-            keyboardType="numeric"
-            inputProps={{
-              placeholder: 'Enter MSRP',
-            }}
-            maxLength={40}
-            inputStyle={styles.inputStyle}
-            containerStyle={styles.emailContainer}
-            onValueChange={text => {
-              // Mark MSRP as manually edited when user changes it
-              setIsMsrpManuallyEdited(true);
-              const msrpValue = parseFloat(text);
-              if (!isNaN(msrpValue) && typeof discountPercent === 'number') {
-                const {amountToPay} = calculateDiscount(
-                  msrpValue,
-                  discountPercent,
-                );
-                setValue('price', amountToPay.toFixed(2));
-
-                if (ProductPriceChargeData?.data?.product_price?.price_charge) {
-                  const platformFeePercentage =
-                    ProductPriceChargeData.data.product_price.price_charge;
-                  const priceAmount = parseFloat(amountToPay.toFixed(2));
-
-                  const platformFee =
-                    (priceAmount * platformFeePercentage) / 100;
-                  setValue('platform_fee', platformFee.toFixed(2));
-
-                  const sellerFinalPrice = priceAmount - platformFee;
-                  setValue('seller_final_price', sellerFinalPrice.toFixed(2));
-                }
-              } else {
-                setValue('price', '');
-                setValue('platform_fee', '');
-                setValue('seller_final_price', '');
-              }
-            }}
-          />
-          <View style={styles.discountSliderContainer}>
-            <Text style={styles.discountTitle}>Listing Price Percentage</Text>
-            <Text style={styles.discountValue}>{discountPercent}%</Text>
-            <View style={{marginHorizontal: 10, alignSelf: 'center'}}>
-              <MultiSlider
-                values={[discountPercent]}
-                sliderLength={OS === 'ios' ? 280 : 300}
-                trackStyle={{height: 3}}
-                min={sliderMin}
-                max={sliderMax}
-                step={1}
-                onValuesChange={values => {
-                  const newPercent = values[0];
-                  calculateAndUpdatePrices(newPercent);
-                }}
-                onValuesChangeFinish={values => {
-                  const newPercent = values[0];
-                  calculateAndUpdatePrices(newPercent);
-                }}
-                selectedStyle={{
-                  backgroundColor: colors.primary,
-                  alignSelf: 'center',
-                }}
-                unselectedStyle={{backgroundColor: '#ccc'}}
-                markerStyle={{
-                  backgroundColor: colors.primary,
-                  height: 20,
-                  width: 20,
-                }}
-              />
-            </View>
-          </View>
-          <Input
-            control={control}
-            name="price"
-            label={'Unopen Price *'}
-            containerStyle={styles.emailContainer}
-            inputProps={{
-              placeholder: 'Enter Unopen Price',
-              editable: false,
-            }}
-            required={{value: true, message: 'Unopen price is required'}}
-            error={errors}
-            maxLength={40}
-            keyboardType={'numeric'}
-            inputStyle={styles.inputStyle2}
-            disabled
-            textStyle
-          />
-          <Input
-            control={control}
-            name="platform_fee"
-            label={'Platform Fees *'}
-            containerStyle={styles.emailContainer}
-            inputProps={{
-              placeholder: 'Enter Platform Fees',
-              editable: false,
-            }}
-            required={{value: true, message: 'Platform fees is required'}}
-            error={errors}
-            maxLength={40}
-            keyboardType={'numeric'}
-            inputStyle={styles.inputStyle2}
-            disabled
-            textStyle
-          />
-          <Input
-            control={control}
-            name="seller_final_price"
-            label={'Seller Final Amount *'}
-            containerStyle={styles.emailContainer}
-            inputProps={{
-              placeholder: 'Enter Seller Final Amount',
-              editable: false,
-            }}
-            required={{value: true, message: 'Seller final amount is required'}}
-            error={errors}
-            maxLength={40}
-            keyboardType={'numeric'}
-            inputStyle={styles.inputStyle2}
-            disabled
-            textStyle
-          />
-        </View>
-
-        <View style={styles.confirmationContainer}>
-          <Text style={styles.confirmationTitle}>
-            Before you publish, please confirm:
-          </Text>
-          <View style={styles.confirmationList}>
-            <View style={styles.confirmationItemRow}>
-              <Text style={styles.bulletDot}>{'\u2022'}</Text>
-              <Text style={styles.confirmationText}>
-                I confirm that this item is factory sealed and accurately
-                described. The media I uploaded is original and contemporaneous,
-                depicting this specific item.
-              </Text>
-            </View>
-            <View style={styles.confirmationItemRow}>
-              <Text style={styles.bulletDot}>{'\u2022'}</Text>
-              <Text style={styles.confirmationText}>
-                I will ship within 49 hours using the provided USPS label.
-              </Text>
-            </View>
-            <View style={styles.confirmationItemRow}>
-              <Text style={styles.bulletDot}>{'\u2022'}</Text>
-              <Text style={styles.confirmationText}>
-                I understand my payout occurs 48 hours after delivery if no
-                dispute is filed, and that misrepresentation or non-compliance
-                may result in withheld or reversed payouts, listing removal, and
-                account action.
-              </Text>
-            </View>
-          </View>
-
-          <TouchableOpacity
-            activeOpacity={0.8}
-            style={styles.checkboxRow}
-            onPress={() => setIsAgreed(prev => !prev)}>
-            <IconsSvg
-              name={isAgreed ? 'checkBoxSelected' : 'checkBox'}
-              width={24}
-              height={24}
-              style={styles.checkboxIcon}
-            />
-            <Text style={styles.checkboxLabel}>
-              I agree and confirm all statements above are true.
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-      <View style={styles.step2Buttons}>
-        <WhiteButton
-          title="Previous Step"
-          style={styles.previousStepButton}
-          onPress={goToPreviousStep}
-        />
-        <View style={styles.step2ActionButtons}>
-          <WhiteButton
-            title="Preview & Confirm"
-            style={styles.submitButton}
-            onPress={handleSubmit(handlePreviewAndConfirm)}
-            disabled={!isAgreed}
-          />
-          <Button
-            title="Submit For Review"
-            style={styles.submitReviewButton}
-            onPress={handleSubmit(Submit)}
-            disabled={!isAgreed}
-          />
-        </View>
-      </View>
-    </ScrollView>
-  );
-
   return (
     <TitleBackHeaderContainer
       isBack={true}
@@ -1534,40 +1122,17 @@ const AddProductScreen: React.FC<AddProductScreenProps> = ({
       isNormalHeader={false}>
       <View style={styles.stepIndicator}>
         <View style={styles.stepIndicatorContainer}>
-          {currentStep === 0 ? (
-            <View style={[styles.stepDot, styles.stepDotActive]} />
-          ) : (
-            <View style={styles.stepDotComplete}>
-              <Text style={styles.stepCheckIcon}>✓</Text>
-            </View>
-          )}
-          <Text
-            style={[
-              styles.stepText,
-              currentStep === 0 && styles.stepTextActive,
-            ]}>
-            Step 1
-          </Text>
+          <View style={[styles.stepDot, styles.stepDotActive]} />
+          <Text style={[styles.stepText, styles.stepTextActive]}>Step 1</Text>
         </View>
         <View style={styles.stepIndicatorLine} />
         <View style={styles.stepIndicatorContainer}>
-          <View
-            style={[styles.stepDot, currentStep === 1 && styles.stepDotActive]}
-          />
-          <Text
-            style={[
-              styles.stepText,
-              currentStep === 1 && styles.stepTextActive,
-            ]}>
-            Step 2
-          </Text>
+          <View style={styles.stepDot} />
+          <Text style={styles.stepText}>Step 2</Text>
         </View>
       </View>
 
-      <View style={styles.pagerContainer}>
-        {currentStep === 0 && renderStep1()}
-        {currentStep === 1 && renderStep2()}
-      </View>
+      <View style={styles.pagerContainer}>{renderStep1()}</View>
 
       <ProductImageUpload
         isVisible={isModalVisible}
@@ -1826,7 +1391,6 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    // elevation: 2,
   },
   submitButton: {
     backgroundColor: 'transparent',

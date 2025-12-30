@@ -38,6 +38,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { IRootState } from '../redux/store';
 import AddProductScreen from '../screens/sellerPortal/addProductScreen';
 import UnifiedBarcodeScanner from '../screens/sellerPortal/unifiedBarcodeScanner';
+import PricingStepScreen, {PricingStepParams} from '../screens/sellerPortal/pricingStepScreen';
 import AddressSelectionScreen from '../screens/buyerPortal/addressSelectionScreen';
 // S/B Home screens are provided via BottomTab; do not register in Stack to avoid duplicate mounts
 import { getFCMToken } from '../utils/notificationHelper';
@@ -143,6 +144,10 @@ const MainNavigation: React.FC = () => {
         component={UnifiedBarcodeScanner}
       />
       <Stack.Screen
+        name={SCREENS.PricingStepScreen}
+        component={PricingStepScreen}
+      />
+      <Stack.Screen
         name={SCREENS.AddBankDetailsScreen}
         component={AddBankDetailsScreen}
       />
@@ -194,6 +199,7 @@ export enum SCREENS {
   EditAddressScreen = 'EditAddressScreen',
   AddressSelectionScreen = 'AddressSelectionScreen',
   BarcodeScanner = 'BarcodeScanner',
+  PricingStepScreen = 'PricingStepScreen',
   AddBankDetailsScreen = 'AddBankDetailsScreen',
   ChangeBankDetailsScreen = 'ChangeBankDetailsScreen',
   NotificationScreen = 'NotificationScreen',
@@ -268,6 +274,7 @@ export type RootStackParamList = {
     selectedAddressId?: number | null;
   };
   [SCREENS.BarcodeScanner]: undefined;
+  [SCREENS.PricingStepScreen]: PricingStepParams;
   [SCREENS.AddBankDetailsScreen]: undefined;
   [SCREENS.ChangeBankDetailsScreen]: undefined;
   [SCREENS.NotificationScreen]: undefined;
