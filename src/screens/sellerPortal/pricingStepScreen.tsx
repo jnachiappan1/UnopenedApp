@@ -19,12 +19,20 @@ import colors from '../../utils/colors';
 import fonts from '../../assets/fonts/fonts';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
 import {useMutation, useQuery} from '@tanstack/react-query';
-import {addProduct, getProductPriceChargeDetail, getProductPriceDetail} from '../../utils/apiAction';
+import {
+  addProduct,
+  getProductPriceChargeDetail,
+  getProductPriceDetail,
+} from '../../utils/apiAction';
 import {showAlert} from '../../components/cAlert';
 import {fontSizes, OS} from '../../utils/utils';
 import {IRootState} from '../../redux/store';
 import {useSelector} from 'react-redux';
-import {calculateDiscount, handleError, handleSettled} from '../../utils/method';
+import {
+  calculateDiscount,
+  handleError,
+  handleSettled,
+} from '../../utils/method';
 import {showLoader} from '../../components/loader/loader';
 
 type MediaObject = {
@@ -84,11 +92,16 @@ const PricingStepScreen: React.FC<PricingStepScreenProps> = ({
   route,
   navigation,
 }) => {
-  const {formValues, uploadedImages, selectedPackageTier, initialDiscountPercent} =
-    route.params;
+  const {
+    formValues,
+    uploadedImages,
+    selectedPackageTier,
+    initialDiscountPercent,
+  } = route.params;
 
   const [isAgreed, setIsAgreed] = useState(false);
-  const [isMsrpManuallyEdited, setIsMsrpManuallyEdited] = useState<boolean>(false);
+  const [isMsrpManuallyEdited, setIsMsrpManuallyEdited] =
+    useState<boolean>(false);
 
   const userData = useSelector((user: IRootState) => user.user.userData);
   const isLogged = userData ? true : false;
@@ -172,6 +185,7 @@ const PricingStepScreen: React.FC<PricingStepScreenProps> = ({
     setDiscountPercent(newPercent);
     const msrpStr = getValues('msrp');
     const msrpNum = parseFloat(msrpStr as unknown as string);
+
     if (!isNaN(msrpNum) && msrpNum > 0) {
       const {amountToPay} = calculateDiscount(msrpNum, newPercent);
       setValue('price', amountToPay.toFixed(2));
@@ -372,14 +386,19 @@ const PricingStepScreen: React.FC<PricingStepScreenProps> = ({
                 onValueChange={text => {
                   setIsMsrpManuallyEdited(true);
                   const msrpValue = parseFloat(text);
-                  if (!isNaN(msrpValue) && typeof discountPercent === 'number') {
+                  if (
+                    !isNaN(msrpValue) &&
+                    typeof discountPercent === 'number'
+                  ) {
                     const {amountToPay} = calculateDiscount(
                       msrpValue,
                       discountPercent,
                     );
                     setValue('price', amountToPay.toFixed(2));
 
-                    if (ProductPriceChargeData?.data?.product_price?.price_charge) {
+                    if (
+                      ProductPriceChargeData?.data?.product_price?.price_charge
+                    ) {
                       const platformFeePercentage =
                         ProductPriceChargeData.data.product_price.price_charge;
                       const priceAmount = parseFloat(amountToPay.toFixed(2));
@@ -389,7 +408,10 @@ const PricingStepScreen: React.FC<PricingStepScreenProps> = ({
                       setValue('platform_fee', platformFee.toFixed(2));
 
                       const sellerFinalPrice = priceAmount - platformFee;
-                      setValue('seller_final_price', sellerFinalPrice.toFixed(2));
+                      setValue(
+                        'seller_final_price',
+                        sellerFinalPrice.toFixed(2),
+                      );
                     }
                   } else {
                     setValue('price', '');
@@ -399,7 +421,9 @@ const PricingStepScreen: React.FC<PricingStepScreenProps> = ({
                 }}
               />
               <View style={styles.discountSliderContainer}>
-                <Text style={styles.discountTitle}>Listing Price Percentage</Text>
+                <Text style={styles.discountTitle}>
+                  Listing Price Percentage
+                </Text>
                 <Text style={styles.discountValue}>{discountPercent}%</Text>
                 <View style={{marginHorizontal: 10, alignSelf: 'center'}}>
                   <MultiSlider
@@ -473,7 +497,10 @@ const PricingStepScreen: React.FC<PricingStepScreenProps> = ({
                   placeholder: 'Enter Seller Final Amount',
                   editable: false,
                 }}
-                required={{value: true, message: 'Seller final amount is required'}}
+                required={{
+                  value: true,
+                  message: 'Seller final amount is required',
+                }}
                 error={errors}
                 maxLength={40}
                 keyboardType={'numeric'}
@@ -492,8 +519,8 @@ const PricingStepScreen: React.FC<PricingStepScreenProps> = ({
                   <Text style={styles.bulletDot}>{'\u2022'}</Text>
                   <Text style={styles.confirmationText}>
                     I confirm that this item is factory sealed and accurately
-                    described. The media I uploaded is original and contemporaneous,
-                    depicting this specific item.
+                    described. The media I uploaded is original and
+                    contemporaneous, depicting this specific item.
                   </Text>
                 </View>
                 <View style={styles.confirmationItemRow}>
@@ -506,9 +533,9 @@ const PricingStepScreen: React.FC<PricingStepScreenProps> = ({
                   <Text style={styles.bulletDot}>{'\u2022'}</Text>
                   <Text style={styles.confirmationText}>
                     I understand my payout occurs 48 hours after delivery if no
-                    dispute is filed, and that misrepresentation or non-compliance
-                    may result in withheld or reversed payouts, listing removal, and
-                    account action.
+                    dispute is filed, and that misrepresentation or
+                    non-compliance may result in withheld or reversed payouts,
+                    listing removal, and account action.
                   </Text>
                 </View>
               </View>
@@ -535,20 +562,21 @@ const PricingStepScreen: React.FC<PricingStepScreenProps> = ({
               style={styles.previousStepButton}
               onPress={goToPreviousStep}
             />
-            <View style={styles.step2ActionButtons}>
-              <WhiteButton
-                title="Preview & Confirm"
-                style={styles.submitButton}
-                onPress={handleSubmit(handlePreviewAndConfirm)}
-                disabled={!isAgreed}
-              />
-              <Button
-                title="Submit For Review"
-                style={styles.submitReviewButton}
-                onPress={handleSubmit(Submit)}
-                disabled={!isAgreed}
-              />
-            </View>
+          </View>
+          <View style={styles.step2ActionButtons}>
+            <WhiteButton
+              title="Preview & Confirm"
+              style={styles.submitButton}
+              onPress={handleSubmit(handlePreviewAndConfirm)}
+              disabled={!isAgreed}
+              textStyle={{color: isAgreed ? colors.primary : colors.darkGray}}
+            />
+            <Button
+              title="Submit For Review"
+              style={styles.submitReviewButton}
+              onPress={handleSubmit(Submit)}
+              disabled={!isAgreed}
+            />
           </View>
         </ScrollView>
       </View>
@@ -729,13 +757,10 @@ const styles = StyleSheet.create({
   },
   step2Buttons: {
     paddingHorizontal: 20,
-    paddingBottom: 30,
-    paddingTop: 20,
   },
   step2ActionButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 24,
+    width: '100%',
+    marginTop: 10,
   },
   previousStepButton: {
     backgroundColor: 'transparent',
@@ -745,7 +770,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginHorizontal: 0,
-    marginBottom: 20,
     paddingVertical: 16,
     shadowColor: '#4CAF50',
     shadowOffset: {
@@ -762,8 +786,7 @@ const styles = StyleSheet.create({
     borderColor: '#4CAF50',
     justifyContent: 'center',
     alignItems: 'center',
-    marginHorizontal: 0,
-    marginEnd: 10,
+    marginHorizontal: 20,
     paddingVertical: 16,
     shadowColor: '#4CAF50',
     shadowOffset: {
@@ -777,7 +800,7 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     borderWidth: 1.5,
     borderColor: '#4CAF50',
-    marginHorizontal: 0,
+    marginHorizontal: 20,
     paddingVertical: 16,
     shadowColor: '#4CAF50',
     shadowOffset: {
@@ -786,6 +809,6 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.1,
     shadowRadius: 4,
+    marginTop: 10,
   },
 });
-

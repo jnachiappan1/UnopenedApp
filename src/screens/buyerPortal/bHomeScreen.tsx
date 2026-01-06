@@ -404,25 +404,19 @@ const BHomeScreen: React.FC<LoginProps> = ({route, navigation}) => {
             </TouchableOpacity>
           </View>
 
-          <FlatList
-            data={oneLatestItem}
-            renderItem={({item}) => (
-              <View style={{paddingHorizontal: 10}}>
-                <OrderListingCard
-                  item={item}
-                  cardStyle={{marginBottom: 0}}
-                  onSelect={() =>
-                    navigation.navigate(SCREENS.OrderTrackScreen, {
-                      productId: item?.id,
-                    })
-                  }
-                />
-              </View>
-            )}
-            keyExtractor={(item, index) => `${item?.id ?? index}`}
-            contentContainerStyle={styles.list}
-            showsVerticalScrollIndicator={false}
-          />
+          {oneLatestItem.map((item, index) => (
+            <View key={item?.id ?? index} style={{paddingHorizontal: 10}}>
+              <OrderListingCard
+                item={item}
+                cardStyle={{marginBottom: 0}}
+                onSelect={() =>
+                  navigation.navigate(SCREENS.OrderTrackScreen, {
+                    productId: item?.id,
+                  })
+                }
+              />
+            </View>
+          ))}
         </>
       )}
 
@@ -514,9 +508,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
-  },
-  list: {
-    paddingBottom: 50,
   },
   sectionHeader: {
     flexDirection: 'row',

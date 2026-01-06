@@ -1,4 +1,4 @@
-import {Image, ScrollView, StyleSheet, View} from 'react-native';
+import {Image, StyleSheet, View} from 'react-native';
 import React, {useCallback, useEffect, useState, useMemo, useRef} from 'react';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
@@ -8,7 +8,7 @@ import Input from '../../components/input/input';
 import {useForm} from 'react-hook-form';
 import fonts from '../../assets/fonts/fonts';
 import colors from '../../utils/colors';
-import {emailPattern, fontSizes, width} from '../../utils/utils'; // Add image_url import
+import {emailPattern, fontSizes} from '../../utils/utils';
 import ProfileImageUpload from '../../components/model/profileImageUpload';
 import {useFocusEffect} from '@react-navigation/native';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
@@ -91,16 +91,13 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
     },
   });
 
-  // Watch the profileImage field for changes
   const watchedProfileImage = watch('profileImage');
   const watchedCountry = watch('country');
   const watchedState = watch('state');
   const watchedAddress = watch('address');
-  
-  // Store initial address for LocationInput display
+
   const [defaultAddress, setDefaultAddress] = useState<string>('');
 
-  // Fetch countries to convert iso2 to country_id for state API
   const {data: countriesData, isLoading: isLoadingCountries} = useInfiniteQuery<
     any,
     Error,
@@ -127,7 +124,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
     });
   }, [countriesData]);
 
-  // Helper to get country_id from iso2
   const getCountryIdFromIso2 = (
     iso2: string | undefined,
   ): number | undefined => {
@@ -137,10 +133,8 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
     return country?.id;
   };
 
-  // Get country_id for state lookup
   const currentCountryId = getCountryIdFromIso2(watchedCountry);
 
-  // Fetch states to convert state name to state_id for city API
   const {data: statesData} = useInfiniteQuery<
     any,
     Error,
@@ -173,7 +167,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
     });
   }, [statesData]);
 
-  // Helper to get state_id from state name
   const getStateIdFromName = (
     stateName: string | undefined,
   ): number | undefined => {
@@ -182,31 +175,52 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
     return state?.id;
   };
 
-  // Track if initial data has been loaded
   const hasInitialDataLoaded = useRef(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
-  // Track if values are being set from location autocomplete
   const isAutofillingRef = useRef(false);
 
-  // Reset dependent fields when parent selection changes (but not during initial load or autofill)
+  const prevCountryRef = useRef<string | undefined>(undefined);
+  const prevStateRef = useRef<string | undefined>(undefined);
+
   useEffect(() => {
-    if (watchedCountry && !isInitialLoad && !isAutofillingRef.current) {
+    if (prevCountryRef.current === watchedCountry) {
+      return;
+    }
+
+    const prevCountry = prevCountryRef.current;
+    prevCountryRef.current = watchedCountry;
+
+    if (prevCountry === undefined) {
+      return;
+    }
+
+    if (!isAutofillingRef.current) {
       setValue('state', '');
       setValue('city', '');
     }
-  }, [watchedCountry, setValue, isInitialLoad]);
+  }, [watchedCountry, setValue]);
 
   useEffect(() => {
-    if (watchedState && !isInitialLoad && !isAutofillingRef.current) {
+    if (prevStateRef.current === watchedState) {
+      return;
+    }
+
+    const prevState = prevStateRef.current;
+    prevStateRef.current = watchedState;
+
+    if (prevState === undefined) {
+      return;
+    }
+
+    if (!isAutofillingRef.current) {
       setValue('city', '');
     }
-  }, [watchedState, setValue, isInitialLoad]);
+  }, [watchedState, setValue]);
 
   const {mutate} = useMutation({
     mutationFn: updateProfile,
     onSuccess: data => {
       dispatch(saveUserData(data.data.user));
-      // Invalidate and refetch profile data
       queryClient.invalidateQueries({queryKey: ['getProfile']});
       showLoader(false);
       showAlert({
@@ -249,13 +263,12 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
     mutate(formDataToSend);
   };
 
-  // Reset form when profile data and countries are loaded
   useEffect(() => {
     if (data?.data?.user && !isLoadingCountries && allCountries.length > 0) {
       const user = data.data.user;
       const address = user.address || {};
-      console.log("address", address);
-      
+      console.log('address', address);
+
       const fields: Inputs = {
         full_name: user.full_name || '',
         email: user.email || '',
@@ -270,7 +283,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
         second_line_address: address.second_line_address || '',
       };
 
-      // Set defaultAddress BEFORE reset for LocationInput to display correctly
       setDefaultAddress(address.address || '');
       reset(fields);
       hasInitialDataLoaded.current = true;
@@ -308,10 +320,10 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
   };
   useFocusEffect(
     useCallback(() => {
-      // Reset the flag so form can update with new data
       hasInitialDataLoaded.current = false;
       setIsInitialLoad(true);
-      // Refetch profile data when screen comes into focus
+      prevCountryRef.current = undefined;
+      prevStateRef.current = undefined;
       refetch();
     }, [refetch]),
   );
@@ -387,8 +399,15 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
             control={control}
             name="address"
             label={'Address'}
-            locationName={watchedAddress || defaultAddress || data?.data?.user?.address?.address || ''}
-            defaultValues={defaultAddress || data?.data?.user?.address?.address || ''}
+            locationName={
+              watchedAddress ||
+              defaultAddress ||
+              data?.data?.user?.address?.address ||
+              ''
+            }
+            defaultValues={
+              defaultAddress || data?.data?.user?.address?.address || ''
+            }
             inputProps={{
               placeholder: 'Enter Address',
             }}
@@ -399,10 +418,8 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
               setDefaultAddress(value);
             }}
             onPlaceParsed={info => {
-              // Prevent useEffect from clearing values
               isAutofillingRef.current = true;
 
-              // Always set country
               if (info?.countryCode) {
                 setValue('country', info.countryCode, {
                   shouldValidate: true,
@@ -410,7 +427,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
                 });
               }
 
-              // Set state
               if (info?.stateName) {
                 setValue('state', info.stateName, {
                   shouldValidate: true,
@@ -423,7 +439,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
                 });
               }
 
-              // Set city
               if (info?.city) {
                 setValue('city', info.city, {
                   shouldValidate: true,
@@ -433,7 +448,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
                 setValue('city', '', {shouldValidate: true, shouldDirty: true});
               }
 
-              // Set pincode
               if (info?.postalCode) {
                 setValue('pincode', info.postalCode, {
                   shouldValidate: true,
@@ -441,14 +455,12 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
                 });
               }
 
-              // Reset the flag after a delay
               setTimeout(() => {
                 isAutofillingRef.current = false;
               }, 500);
             }}
             toggleShowCurrentOnly={undefined}
           />
-          
         </View>
         <Input
           control={control}
@@ -505,12 +517,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
             containerStyle={{marginTop: 20}}
           />
           <View style={{marginTop: 20}}>
-          <GenderDropdown
-            control={control}
-            name="gender"
-            label="Gender"
-            
-          />
+            <GenderDropdown control={control} name="gender" label="Gender" />
           </View>
         </View>
       </View>

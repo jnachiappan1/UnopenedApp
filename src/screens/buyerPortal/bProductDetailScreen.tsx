@@ -61,7 +61,6 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
     queryKey: ['getProductAddress', productId],
     queryFn: () => getProductAddressById(productId),
   });
-  console.log('addData', addData);
 
   const {data: ProductPriceData, isLoading: isLoadingProductPriceData} =
     useQuery({
@@ -118,10 +117,21 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
     const user = addData?.data?.product?.[0]?.product_user;
     if (!user) return 'Ships from';
 
-    const address = user?.address;
+    const addressList = user?.address_user;
+    if (
+      !addressList ||
+      !Array.isArray(addressList) ||
+      addressList.length === 0
+    ) {
+      return 'Ships from';
+    }
 
-    const parts = [address].filter(Boolean);
-    return parts.length ? `Ships from ${parts.join(', ')}` : 'Ships from';
+    // Get the default address or the first one
+    const address =
+      addressList.find((addr: any) => addr.is_default_address) ||
+      addressList[0];
+
+    return address?.address ? `Ships from ${address.address}` : 'Ships from';
   }, [addData]);
 
   if (!isLoading && !allProductList?.data?.product?.[0]) {

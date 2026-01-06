@@ -335,10 +335,11 @@ const getFlatStyles = (colors: IColors) =>
       width: '100%',
       height: BAR_HEIGHT + 35,
       alignItems: 'center',
+      
     },
     backgroundImage: {
       position: 'absolute',
-      bottom: 0,
+      bottom: OS === 'android' ? 0 : -10,
       width: SCREEN_WIDTH,
       height: BAR_HEIGHT + 20,
       zIndex: 0,
