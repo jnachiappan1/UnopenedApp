@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 // In App.js in a new project
 import React from 'react';
-import { View } from 'react-native';
+import {View} from 'react-native';
 // import BottomTabNav from './bottomTabNav';
 import {
   createStackNavigator,
   CardStyleInterpolators,
 } from '@react-navigation/stack';
-import { useContainer } from '../components/hooks/useContainer';
+import {useContainer} from '../components/hooks/useContainer';
 import VerifyOTP from '../screens/auth/verifyOTP';
 import LoginScreen from '../screens/auth/loginScreen';
 import SignUpScreen from '../screens/auth/signUpScreen';
@@ -27,22 +27,30 @@ import ChangePasswordScreen from '../screens/profile/changePasswordScreen';
 import ProfileLoginScreen from '../screens/profile/profileLoginScreen';
 import ProfileVerifyScreen from '../screens/profile/profileVerifyScreen';
 import PreviewConfirmScreen from '../screens/sellerPortal/previewConfirmScreen';
-import { OrderData, Product, ProductCategory, ProductData, ProductDetail } from '../utils/types';
+import {
+  OrderData,
+  Product,
+  ProductCategory,
+  ProductData,
+  ProductDetail,
+} from '../utils/types';
 import FilterSortScreen from '../screens/buyerPortal/filterSortScreen';
 import OrderTrackScreen from '../screens/buyerPortal/orderTrackScreen';
 import BProductDetailScreen from '../screens/buyerPortal/bProductDetailScreen';
 import ConfirmYourOrderScreen from '../screens/buyerPortal/confirmYourOrderScreen';
 import AddAddressScreen from '../screens/buyerPortal/addAddressScreen';
 import EditAddressScreen from '../screens/buyerPortal/editAddressScreen';
-import { useDispatch, useSelector } from 'react-redux';
-import { IRootState } from '../redux/store';
+import {useDispatch, useSelector} from 'react-redux';
+import {IRootState} from '../redux/store';
 import AddProductScreen from '../screens/sellerPortal/addProductScreen';
 import UnifiedBarcodeScanner from '../screens/sellerPortal/unifiedBarcodeScanner';
-import PricingStepScreen, {PricingStepParams} from '../screens/sellerPortal/pricingStepScreen';
+import PricingStepScreen, {
+  PricingStepParams,
+} from '../screens/sellerPortal/pricingStepScreen';
 import AddressSelectionScreen from '../screens/buyerPortal/addressSelectionScreen';
 // S/B Home screens are provided via BottomTab; do not register in Stack to avoid duplicate mounts
-import { getFCMToken } from '../utils/notificationHelper';
-import { saveFcmToken } from '../redux/reducers/user/UserReducer';
+import {getFCMToken} from '../utils/notificationHelper';
+import {saveFcmToken} from '../redux/reducers/user/UserReducer';
 import AddBankDetailsScreen from '../screens/wallet/addBankDetailsScreen';
 import ChangeBankDetailsScreen from '../screens/wallet/changeBankDetailsScreen';
 import NotificationScreen from '../screens/notification/notificationScreen';
@@ -57,7 +65,7 @@ const MainNavigation: React.FC = () => {
   const userData = useSelector((user: IRootState) => user.user.userData);
 
   const renderFirstScreen =
-  userData != null ? SCREENS.BottomTab : SCREENS.BottomTab;
+    userData != null ? SCREENS.BottomTab : SCREENS.BottomTab;
   //   let planOwnerData = useSelector(
   //     (type: IRootState) => type.user.planOwnerData,
   //   );
@@ -68,7 +76,7 @@ const MainNavigation: React.FC = () => {
   //     planOwnerData || memberData || providerData
   //       ? SCREENS.BottomTab
   //       : SCREENS.SelectUserType;
-  
+
   React.useEffect(() => {
     checkToken();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -80,7 +88,7 @@ const MainNavigation: React.FC = () => {
   return (
     // <View style={container}>
     <Stack.Navigator
-    initialRouteName={renderFirstScreen}
+      initialRouteName={renderFirstScreen}
       screenOptions={{
         headerShown: false,
         cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
@@ -102,14 +110,38 @@ const MainNavigation: React.FC = () => {
       <Stack.Screen name={SCREENS.BrowseScreen} component={BrowseScreen} />
       <Stack.Screen name={SCREENS.MyOrderScreen} component={MyOrderScreen} />
       <Stack.Screen name={SCREENS.ProfileScreen} component={ProfileScreen} />
-      <Stack.Screen name={SCREENS.HelpSupportScreen} component={HelpSupportScreen} />
-      <Stack.Screen name={SCREENS.PrivacyPolicyScreen} component={PrivacyPolicyScreen} />
-      <Stack.Screen name={SCREENS.TermsConditionsScreen} component={TermsConditionsScreen} />
-      <Stack.Screen name={SCREENS.EditProfileScreen} component={EditProfileScreen} />
-      <Stack.Screen name={SCREENS.ChangePasswordScreen} component={ChangePasswordScreen} />
-      <Stack.Screen name={SCREENS.ProfileLoginScreen} component={ProfileLoginScreen} />
-      <Stack.Screen name={SCREENS.ProfileVerifyScreen} component={ProfileVerifyScreen} />
-      <Stack.Screen name={SCREENS.AddProductScreen} component={AddProductScreen} />
+      <Stack.Screen
+        name={SCREENS.HelpSupportScreen}
+        component={HelpSupportScreen}
+      />
+      <Stack.Screen
+        name={SCREENS.PrivacyPolicyScreen}
+        component={PrivacyPolicyScreen}
+      />
+      <Stack.Screen
+        name={SCREENS.TermsConditionsScreen}
+        component={TermsConditionsScreen}
+      />
+      <Stack.Screen
+        name={SCREENS.EditProfileScreen}
+        component={EditProfileScreen}
+      />
+      <Stack.Screen
+        name={SCREENS.ChangePasswordScreen}
+        component={ChangePasswordScreen}
+      />
+      <Stack.Screen
+        name={SCREENS.ProfileLoginScreen}
+        component={ProfileLoginScreen}
+      />
+      <Stack.Screen
+        name={SCREENS.ProfileVerifyScreen}
+        component={ProfileVerifyScreen}
+      />
+      <Stack.Screen
+        name={SCREENS.AddProductScreen}
+        component={AddProductScreen}
+      />
       <Stack.Screen
         name={SCREENS.PreviewConfirmScreen}
         component={PreviewConfirmScreen}
@@ -134,7 +166,7 @@ const MainNavigation: React.FC = () => {
         name={SCREENS.AddAddressScreen}
         component={AddAddressScreen}
       />
-    
+
       <Stack.Screen
         name={SCREENS.AddressSelectionScreen}
         component={AddressSelectionScreen}
@@ -155,10 +187,19 @@ const MainNavigation: React.FC = () => {
         name={SCREENS.ChangeBankDetailsScreen}
         component={ChangeBankDetailsScreen}
       />
-      <Stack.Screen name={SCREENS.NotificationScreen} component={NotificationScreen} />
+      <Stack.Screen
+        name={SCREENS.NotificationScreen}
+        component={NotificationScreen}
+      />
       <Stack.Screen name={SCREENS.FullScreen} component={FullScreen} />
-      <Stack.Screen name={SCREENS.SellerAgreementScreen} component={SellerAgreementScreen} />
-      <Stack.Screen name={SCREENS.EditAddressScreen} component={EditAddressScreen} />
+      <Stack.Screen
+        name={SCREENS.SellerAgreementScreen}
+        component={SellerAgreementScreen}
+      />
+      <Stack.Screen
+        name={SCREENS.EditAddressScreen}
+        component={EditAddressScreen}
+      />
     </Stack.Navigator>
     // </View>
   );
@@ -204,17 +245,21 @@ export enum SCREENS {
   ChangeBankDetailsScreen = 'ChangeBankDetailsScreen',
   NotificationScreen = 'NotificationScreen',
   FullScreen = 'FullScreen',
-  SellerAgreementScreen = 'SellerAgreementScreen'
+  SellerAgreementScreen = 'SellerAgreementScreen',
 }
 
 export type RootStackParamList = {
   [SCREENS.LoginScreen]: undefined;
-  [SCREENS.VerifyOTP]: { otp: string, email?: string | null | undefined ,type?: string | null | undefined};
+  [SCREENS.VerifyOTP]: {
+    otp: string;
+    email?: string | null | undefined;
+    type?: string | null | undefined;
+  };
   [SCREENS.SignUpScreen]: undefined;
-  [SCREENS.BottomTab]: { screen?: SCREENS; params?: any } | undefined;
-  [SCREENS.SHomeScreen]: { openSellerAgreement?: boolean } | undefined;
+  [SCREENS.BottomTab]: {screen?: SCREENS; params?: any} | undefined;
+  [SCREENS.SHomeScreen]: {openSellerAgreement?: boolean} | undefined;
   [SCREENS.BHomeScreen]: undefined;
-  [SCREENS.AddProductScreen]:{ scannedBarcode?: string };
+  [SCREENS.AddProductScreen]: {scannedBarcode?: string};
   [SCREENS.ProductListScreen]: undefined;
   [SCREENS.SalesScreen]: undefined;
   [SCREENS.WalletScreen]: undefined;
@@ -228,11 +273,15 @@ export type RootStackParamList = {
   [SCREENS.ProfileScreen]: undefined;
   [SCREENS.HelpSupportScreen]: undefined;
   [SCREENS.PrivacyPolicyScreen]: undefined;
-  [SCREENS.TermsConditionsScreen]: { type?: string | null | undefined};
+  [SCREENS.TermsConditionsScreen]: {type?: string | null | undefined};
   [SCREENS.EditProfileScreen]: undefined;
   [SCREENS.ChangePasswordScreen]: undefined;
   [SCREENS.ProfileLoginScreen]: undefined;
-  [SCREENS.ProfileVerifyScreen]:{ otp: string, email?: string | null | undefined ,type?: string | null | undefined};
+  [SCREENS.ProfileVerifyScreen]: {
+    otp: string;
+    email?: string | null | undefined;
+    type?: string | null | undefined;
+  };
   [SCREENS.PreviewConfirmScreen]: {
     productData: ProductDetail;
     formData: FormData;
@@ -240,22 +289,22 @@ export type RootStackParamList = {
   [SCREENS.FilterSortScreen]: {
     onApplyFilters: (
       selectedCategories: ProductCategory[],
-      selectedSort: { id: string; name: string } | null, 
-      selectedPriceRange: { min: number; max: number } | null
+      selectedSort: {id: string; name: string} | null,
+      selectedPriceRange: {min: number; max: number} | null,
     ) => void;
     initialFilters: ProductCategory[];
-    initialSort: { id: string; name: string } | null;
-    initialPriceRange: { min: number; max: number } | null;
+    initialSort: {id: string; name: string} | null;
+    initialPriceRange: {min: number; max: number} | null;
   };
   [SCREENS.OrderTrackScreen]: {
-    productId:  string | number | null | undefined
-    source ?: string | null | undefined
+    productId: string | number | null | undefined;
+    source?: string | null | undefined;
   };
   [SCREENS.BProductDetailScreen]: {
-    productId:  string | number | null | undefined
+    productId: string | number | null | undefined;
   };
-  [SCREENS.ConfirmYourOrderScreen]:{
-    productId:  string | number | null | undefined
+  [SCREENS.ConfirmYourOrderScreen]: {
+    productId: string | number | null | undefined;
   };
   [SCREENS.AddAddressScreen]:
     | {
@@ -278,6 +327,6 @@ export type RootStackParamList = {
   [SCREENS.AddBankDetailsScreen]: undefined;
   [SCREENS.ChangeBankDetailsScreen]: undefined;
   [SCREENS.NotificationScreen]: undefined;
-  [SCREENS.FullScreen]: { url: any; time: any };
-  [SCREENS.SellerAgreementScreen]: { type?: string | null | undefined};
+  [SCREENS.FullScreen]: {url: any; time: any};
+  [SCREENS.SellerAgreementScreen]: {type?: string | null | undefined};
 };

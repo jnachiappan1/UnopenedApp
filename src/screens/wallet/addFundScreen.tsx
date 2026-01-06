@@ -194,6 +194,7 @@ const AddFundScreen: React.FC<AddFundScreenProps> = ({navigation}) => {
           error={errors}
           maxLength={40}
           inputStyle={styles.inputStyle}
+          keyboardType={'numeric'}
         />
 
         <View style={styles.quickAmountsContainer}>

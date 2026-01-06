@@ -202,6 +202,7 @@ export const getSalesProductList = async () => {
 export const getProductDetailByID = async (
   productID?: string | number | null | undefined,
 ) => {
+  
   const response = await axios.get(API.buyer.getProductList + '/' + productID);
   return response;
 };

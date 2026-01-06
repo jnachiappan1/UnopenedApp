@@ -64,11 +64,10 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({navigation, route}) => {
   const userData = useSelector((user: IRootState) => user.user.userData);
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const {data, refetch} = useQuery({
+  const {data} = useQuery({
     queryKey: ['getProfile'],
     queryFn: viewProfile,
   });
-  const fcmToken = useSelector((state: IRootState) => state.user.fcmToken); 
   useEffect(() => {
     if (!userData) {
       queryClient.removeQueries({queryKey: ['getSellerDashboardCount']});
@@ -78,7 +77,6 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({navigation, route}) => {
   const {
     data: dashboardCountData,
     refetch: refetchDashboardCountData,
-    error: dashboardError,
     isError: isDashboardError,
     isFetching: isDashboardFetching,
   } = useQuery({
@@ -115,7 +113,6 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({navigation, route}) => {
         const result = await getSellerOwnProductList();
         return result;
       } catch (error) {
-        console.error('Product API error:', error);
         return {
           data: {
             product: [],

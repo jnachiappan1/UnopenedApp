@@ -61,16 +61,14 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
     queryKey: ['getProductAddress', productId],
     queryFn: () => getProductAddressById(productId),
   });
+  console.log('addData', addData);
 
-  const {
-    data: ProductPriceData,
-    refetch: refetchProductPriceData,
-    isLoading: isLoadingProductPriceData,
-  } = useQuery({
-    queryKey: ['getProductPriceDetail'],
-    queryFn: () => getProductPriceDetail(),
-    enabled: isLogged,
-  });
+  const {data: ProductPriceData, isLoading: isLoadingProductPriceData} =
+    useQuery({
+      queryKey: ['getProductPriceDetail'],
+      queryFn: () => getProductPriceDetail(),
+      enabled: isLogged,
+    });
 
   const flatListRef = useRef<FlatList<ProductImage>>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -151,134 +149,138 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
     .reverse();
   return (
     <>
-    <TitleBackHeaderContainer title="Product Details" isBack>
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        <View style={styles.imageCarouselContainer}>
-          <FlatList
-            ref={flatListRef}
-            data={mediaList}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            keyExtractor={item => item.id.toString()}
-            onMomentumScrollEnd={handleImageScroll}
-            snapToAlignment="center"
-            decelerationRate="fast"
-            renderItem={({item}) => (
-              <View style={styles.imageSlide}>
-                {isVideo(item) ? (
-                  <VideoPlayer
-                    source={item.image}
-                    style={styles.productImage}
-                  />
+      <TitleBackHeaderContainer title="Product Details" isBack>
+        <ScrollView
+          style={styles.container}
+          showsVerticalScrollIndicator={false}>
+          <View style={styles.imageCarouselContainer}>
+            <FlatList
+              ref={flatListRef}
+              data={mediaList}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              keyExtractor={item => item.id.toString()}
+              onMomentumScrollEnd={handleImageScroll}
+              snapToAlignment="center"
+              decelerationRate="fast"
+              renderItem={({item}) => (
+                <View style={styles.imageSlide}>
+                  {isVideo(item) ? (
+                    <VideoPlayer
+                      source={item.image}
+                      style={styles.productImage}
+                    />
+                  ) : (
+                    <Image
+                      source={{uri: image_url + item.image}}
+                      style={[styles.productImage]}
+                      resizeMode="contain"
+                    />
+                  )}
+                </View>
+              )}
+            />
+            <View style={styles.dotsContainer}>
+              {productImages.map((_: ProductImage, index: number) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.dot,
+                    currentImageIndex === index && styles.activeDot,
+                  ]}
+                />
+              ))}
+            </View>
+            <View style={styles.productInfoInside}>
+              <Text style={styles.productName}>{currentProduct?.name}</Text>
+              <Text style={styles.productDescription}>
+                {currentProduct?.description}
+              </Text>
+              <View style={styles.priceContainer}>
+                <Text style={styles.price}>
+                  ${Number(currentProduct?.price || 0).toFixed(2)}
+                </Text>
+                {currentProduct?.msrp && (
+                  <Text style={styles.originalPrice}>
+                    ${Number(currentProduct?.msrp || 0).toFixed(2)}
+                  </Text>
+                )}
+                {isLoadingProductPriceData ? (
+                  <View style={styles.discountContainer}>
+                    <Text style={styles.stockText}>Loading...</Text>
+                  </View>
                 ) : (
-                  <Image
-                    source={{uri: image_url + item.image}}
-                    style={[styles.productImage]}
-                    resizeMode="contain"
-                  />
+                  ProductPriceData?.data?.product_price?.price && (
+                    <View style={styles.discountContainer}>
+                      <Text style={styles.stockText}>
+                        {100 - addData?.data?.product[0]?.set_price}% off
+                      </Text>
+                    </View>
+                  )
                 )}
               </View>
-            )}
-          />
-          <View style={styles.dotsContainer}>
-            {productImages.map((_: ProductImage, index: number) => (
-              <View
-                key={index}
-                style={[
-                  styles.dot,
-                  currentImageIndex === index && styles.activeDot,
-                ]}
-              />
-            ))}
-          </View>
-          <View style={styles.productInfoInside}>
-            <Text style={styles.productName}>{currentProduct?.name}</Text>
-            <Text style={styles.productDescription}>
-              {currentProduct?.description}
-            </Text>
-            <View style={styles.priceContainer}>
-              <Text style={styles.price}>${Number(currentProduct?.price || 0).toFixed(2)}</Text>
-              {currentProduct?.msrp && (
-                <Text style={styles.originalPrice}>
-                  ${Number(currentProduct?.msrp || 0).toFixed(2)}
-                </Text>
-              )}
-              {isLoadingProductPriceData ? (
-                <View style={styles.discountContainer}>
-                  <Text style={styles.stockText}>Loading...</Text>
-                </View>
-              ) : (
-                ProductPriceData?.data?.product_price?.price && (
-                  <View style={styles.discountContainer}>
-                    <Text style={styles.stockText}>
-                      {100 - addData?.data?.product[0]?.set_price}% off
-                    </Text>
-                  </View>
-                )
-              )}
             </View>
           </View>
-        </View>
 
-        <View style={styles.productInfo}>
-          <Text style={styles.specTitle}>Specifications</Text>
-          <InfoRow
-            title="Brand"
-            showColon
-            subtitle={currentProduct?.brand}
-            style={styles.mainContainerStyle}
-            subtitleStyle={styles.subtitleStyle}
-          />
-          <InfoRow
-            title="Product Category"
-            showColon
-            subtitle={currentProduct?.product_category?.name}
-            style={styles.mainContainerStyle}
-            subtitleStyle={styles.subtitleStyle}
-          />
-        </View>
-        {userData !== null && (
           <View style={styles.productInfo}>
-            <StatusBadge
-              status={
-                currentProduct?.product_status === 'active'
-                  ? 'In_Stock'
-                  : currentProduct?.product_status
-              }
+            <Text style={styles.specTitle}>Specifications</Text>
+            <InfoRow
+              title="Brand"
+              showColon
+              subtitle={currentProduct?.brand}
+              style={styles.mainContainerStyle}
+              subtitleStyle={styles.subtitleStyle}
             />
+            <InfoRow
+              title="Product Category"
+              showColon
+              subtitle={currentProduct?.product_category?.name}
+              style={styles.mainContainerStyle}
+              subtitleStyle={styles.subtitleStyle}
+            />
+          </View>
+          {userData !== null && (
+            <View style={styles.productInfo}>
+              <StatusBadge
+                status={
+                  currentProduct?.product_status === 'active'
+                    ? 'In_Stock'
+                    : currentProduct?.product_status
+                }
+              />
 
-            <View style={styles.deliveryInfo}>
-              <View style={styles.deliveryRow}>
-                <View style={styles.deliveryIcon}>
-                  <IconsSvg name="deliverBox" />
-                </View>
-                <View style={styles.deliveryDetails}>
-                  <Text style={styles.deliveryTitle}>{deliveryTitleText}</Text>
+              <View style={styles.deliveryInfo}>
+                <View style={styles.deliveryRow}>
+                  <View style={styles.deliveryIcon}>
+                    <IconsSvg name="deliverBox" />
+                  </View>
+                  <View style={styles.deliveryDetails}>
+                    <Text style={styles.deliveryTitle}>
+                      {deliveryTitleText}
+                    </Text>
+                  </View>
                 </View>
               </View>
             </View>
-          </View>
-        )}
+          )}
 
-        <View style={styles.productInfo}>
-          <View style={styles.trustContainer}>
-            <View style={styles.trustBadge}>
-              <IconsSvg name="securePayment" />
-              <Text style={styles.trustText}>Secure Payment</Text>
-            </View>
-            <View style={styles.verticalLine} />
-            <View style={styles.trustBadge}>
-              <IconsSvg name="percentIcon" />
-              <Text style={styles.trustText}>100% new</Text>
+          <View style={styles.productInfo}>
+            <View style={styles.trustContainer}>
+              <View style={styles.trustBadge}>
+                <IconsSvg name="securePayment" />
+                <Text style={styles.trustText}>Secure Payment</Text>
+              </View>
+              <View style={styles.verticalLine} />
+              <View style={styles.trustBadge}>
+                <IconsSvg name="percentIcon" />
+                <Text style={styles.trustText}>100% new</Text>
+              </View>
             </View>
           </View>
-        </View>
-      </ScrollView>
-
-      
-    </TitleBackHeaderContainer>
-    <View style={styles.buyContainer}>
+        </ScrollView>
+      </TitleBackHeaderContainer>
+      <View style={styles.buyContainer}>
         {currentProduct?.product_status === 'active' && (
           <Button
             title="Buy Now"

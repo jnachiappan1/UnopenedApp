@@ -26,7 +26,6 @@ import {IRootState} from '../../redux/store';
 import {useSelector} from 'react-redux';
 import {calculateDiscount, handleError, handleSettled} from '../../utils/method';
 import {showLoader} from '../../components/loader/loader';
-import {image_url} from '../../utils/api';
 
 type MediaObject = {
   uri: string;

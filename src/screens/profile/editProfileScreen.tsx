@@ -17,6 +17,7 @@ import InputCountry from '../../components/input/inputCountry';
 import InputState from '../../components/input/inputState';
 import InputCity from '../../components/input/inputCity';
 import GenderDropdown from '../../components/input/genderDropdown';
+import LocationInput from '../../components/input/locationInput';
 import {
   useMutation,
   useQuery,
@@ -94,6 +95,10 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
   const watchedProfileImage = watch('profileImage');
   const watchedCountry = watch('country');
   const watchedState = watch('state');
+  const watchedAddress = watch('address');
+  
+  // Store initial address for LocationInput display
+  const [defaultAddress, setDefaultAddress] = useState<string>('');
 
   // Fetch countries to convert iso2 to country_id for state API
   const {data: countriesData, isLoading: isLoadingCountries} = useInfiniteQuery<
@@ -180,17 +185,19 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
   // Track if initial data has been loaded
   const hasInitialDataLoaded = useRef(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  // Track if values are being set from location autocomplete
+  const isAutofillingRef = useRef(false);
 
-  // Reset dependent fields when parent selection changes (but not during initial load)
+  // Reset dependent fields when parent selection changes (but not during initial load or autofill)
   useEffect(() => {
-    if (watchedCountry && !isInitialLoad) {
+    if (watchedCountry && !isInitialLoad && !isAutofillingRef.current) {
       setValue('state', '');
       setValue('city', '');
     }
   }, [watchedCountry, setValue, isInitialLoad]);
 
   useEffect(() => {
-    if (watchedState && !isInitialLoad) {
+    if (watchedState && !isInitialLoad && !isAutofillingRef.current) {
       setValue('city', '');
     }
   }, [watchedState, setValue, isInitialLoad]);
@@ -247,6 +254,8 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
     if (data?.data?.user && !isLoadingCountries && allCountries.length > 0) {
       const user = data.data.user;
       const address = user.address || {};
+      console.log("address", address);
+      
       const fields: Inputs = {
         full_name: user.full_name || '',
         email: user.email || '',
@@ -261,6 +270,8 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
         second_line_address: address.second_line_address || '',
       };
 
+      // Set defaultAddress BEFORE reset for LocationInput to display correctly
+      setDefaultAddress(address.address || '');
       reset(fields);
       hasInitialDataLoaded.current = true;
       setIsInitialLoad(false);
@@ -370,19 +381,75 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
           inputStyle={styles.inputStyle}
           disabled
         />
-        <Input
-          control={control}
-          name="address"
-          label={'Address	'}
-          containerStyle={styles.emailContainer}
-          inputProps={{
-            placeholder: 'Enter Address',
-          }}
-          required={{value: true, message: 'Please enter your address'}}
-          error={errors}
-          maxLength={40}
-          inputStyle={styles.inputStyle}
-        />
+        <View style={styles.locationInputContainer}>
+          <LocationInput
+            key={data?.data?.user?.address?.address || 'address-input'}
+            control={control}
+            name="address"
+            label={'Address'}
+            locationName={watchedAddress || defaultAddress || data?.data?.user?.address?.address || ''}
+            defaultValues={defaultAddress || data?.data?.user?.address?.address || ''}
+            inputProps={{
+              placeholder: 'Enter Address',
+            }}
+            required={{value: true, message: 'Please enter your address'}}
+            error={errors}
+            editable={true}
+            onChangeText={(value: string) => {
+              setDefaultAddress(value);
+            }}
+            onPlaceParsed={info => {
+              // Prevent useEffect from clearing values
+              isAutofillingRef.current = true;
+
+              // Always set country
+              if (info?.countryCode) {
+                setValue('country', info.countryCode, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                });
+              }
+
+              // Set state
+              if (info?.stateName) {
+                setValue('state', info.stateName, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                });
+              } else if (info?.stateCode) {
+                setValue('state', info.stateCode, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                });
+              }
+
+              // Set city
+              if (info?.city) {
+                setValue('city', info.city, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                });
+              } else {
+                setValue('city', '', {shouldValidate: true, shouldDirty: true});
+              }
+
+              // Set pincode
+              if (info?.postalCode) {
+                setValue('pincode', info.postalCode, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                });
+              }
+
+              // Reset the flag after a delay
+              setTimeout(() => {
+                isAutofillingRef.current = false;
+              }, 500);
+            }}
+            toggleShowCurrentOnly={undefined}
+          />
+          
+        </View>
         <Input
           control={control}
           name="second_line_address"
@@ -391,7 +458,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
             placeholder: 'Enter House No. / Apartment No.',
           }}
           maxLength={40}
-          // containerStyle={styles.containerStyle}
+          containerStyle={{marginTop: 20}}
         />
 
         <View style={styles.locationContainer}>
@@ -411,6 +478,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
             placeholder={'State'}
             error={errors}
             required={{value: true, message: 'State is required'}}
+            containerStyle={{marginTop: 20}}
           />
 
           <InputCity
@@ -421,12 +489,12 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
             placeholder={'City'}
             error={errors}
             required={{value: true, message: 'City is required'}}
+            containerStyle={{marginTop: 20}}
           />
           <Input
             control={control}
             name="pincode"
             label={'Pincode	'}
-            // containerStyle={styles.emailContainer}
             inputProps={{
               placeholder: 'Enter Pincode',
             }}
@@ -434,14 +502,16 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
             error={errors}
             maxLength={40}
             inputStyle={styles.inputStyle}
+            containerStyle={{marginTop: 20}}
           />
+          <View style={{marginTop: 20}}>
           <GenderDropdown
             control={control}
             name="gender"
             label="Gender"
-            // required={{value: true, message: 'Please select gender'}}
-            // error={errors}
+            
           />
+          </View>
         </View>
       </View>
       <Button
@@ -470,6 +540,7 @@ const styles = StyleSheet.create({
   imageContainer: {
     paddingHorizontal: 16,
     borderRadius: 12,
+    zIndex: 1,
   },
   profileImage: {
     width: 100,
@@ -512,5 +583,10 @@ const styles = StyleSheet.create({
   },
   emailContainer: {
     marginTop: 20,
+  },
+  locationInputContainer: {
+    marginTop: 20,
+    zIndex: 10,
+    position: 'relative',
   },
 });

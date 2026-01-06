@@ -14,20 +14,24 @@ interface DashboardAnalyticsCardProps {
 
 const DashboardAnalyticsCard: React.FC<DashboardAnalyticsCardProps> = ({ title, subtitle, icon }) => {
  
+  const isAmount = subtitle === 'Wallet Balance';
+  const hasDecimal = subtitle === 'Wallet Balance' ;
+
   const formatTitle = (titleStr: string): string => {
     const numericValue = parseFloat(titleStr.replace(/[^0-9.-]/g, ''));
-    if (isNaN(numericValue)) return titleStr; // Return original if not a valid number
-    return `${numericValue.toFixed(1)}`;
+    if (isNaN(numericValue)) return titleStr; 
+    return hasDecimal ? numericValue.toFixed(2) : String(Math.round(numericValue));
   };
 
   const formattedTitle = formatTitle(title);
-  const displayTitle = subtitle === 'Wallet Balance' ? `$${formattedTitle}` : formattedTitle;
+  const displayTitle = isAmount ? `$${formattedTitle}` : formattedTitle;
+  const isSingleDigit = displayTitle.length === 1;
 
   return (
     <View style={styles.card}>
-      <View style={styles.left}>
-        <Text style={styles.title}>{displayTitle}</Text>
-        <Text style={styles.subtitle}>{subtitle}</Text>
+      <View style={[styles.left, isSingleDigit && styles.centered]}>
+        <Text style={[styles.title, isSingleDigit && styles.centeredText]}>{displayTitle}</Text>
+        <Text style={[styles.subtitle, isSingleDigit && styles.centeredText]}>{subtitle}</Text>
       </View>
       <View style={styles.iconWrapper}>
         <IconsSvg name={icon} />
@@ -69,5 +73,12 @@ const styles = StyleSheet.create({
   },
   iconWrapper: {
     alignSelf: 'flex-start',
+  },
+  centered: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  centeredText: {
+    textAlign: 'center',
   },
 });
