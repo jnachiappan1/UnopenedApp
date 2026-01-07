@@ -214,3 +214,8 @@ android/app/build/intermediates/cxx/Debug/332z4y1s/obj/x86/libreactnative.so
 android/app/build/intermediates/cxx/Debug/332z4y1s/obj/x86_64/libreactnative.so
 android/app/build/outputs/apk/debug/app-debug.apk
 dup
+# Android build outputs
+*.apk
+*.aab
+android/app/build/
+android/app/release/
