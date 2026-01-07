@@ -31,7 +31,6 @@ type LoginProps = NativeStackScreenProps<
 const BHomeScreen: React.FC<LoginProps> = ({route, navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
   const userData = useSelector((user: IRootState) => user.user.userData);
-  const fcmToken = useSelector((user: IRootState) => user.user.fcmToken);
   
   const isLogged = userData ? true : false;
   const [categories, setCategories] = useState<ProductCategory[]>([]);
