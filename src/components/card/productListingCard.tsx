@@ -1,5 +1,5 @@
 // components/DashboardCard.tsx
-import React from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   StyleProp,
   ViewStyle,
   TextStyle,
+  ActivityIndicator,
 } from 'react-native';
 import {fontSizes} from '../../utils/utils';
 import {ProductData} from '../../utils/types';
@@ -32,18 +33,40 @@ const ProductListingCard: React.FC<ProductListingCardProps> = ({
   nameStyle,
   onSelect,
 }) => {
+  const [imageLoading, setImageLoading] = useState(true);
+
   const handleCardPress = () => {
     onSelect?.(item);
   };
 
+  const getProductImage = () => {
+    if (!item?.product_image || item.product_image.length === 0) return null;
+    const imageFile = item.product_image.find(img => {
+      const imagePath = img?.image?.toLowerCase() || '';
+      return (
+        !imagePath.endsWith('.mp4') &&
+        !imagePath.endsWith('.mov') &&
+        !imagePath.endsWith('.avi') &&
+        !imagePath.endsWith('.webm')
+      );
+    });
+    return imageFile?.image || null;
+  };
+
+  const productImagePath = getProductImage();
+
   return (
     <View style={[styles.cardContainer, cardStyle]}>
       <View style={styles.productDetailView}>
-        <Image
-          source={{uri: image_url + item?.product_image[1]?.image}}
-          style={styles.cardImage}
-          resizeMode="cover"
-        />
+        <View style={styles.imageContainer}>
+          <Image
+            source={{
+              uri: productImagePath ? image_url + productImagePath : undefined,
+            }}
+            style={styles.cardImage}
+            resizeMode="cover"
+          />
+        </View>
         <View style={{width: '68%'}}>
           <Text style={[styles.cardTitle, nameStyle]} numberOfLines={2}>
             {item?.name}
@@ -82,12 +105,28 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     shadowOffset: {width: 0, height: 2},
   },
+  imageContainer: {
+    width: 91,
+    height: 86,
+    marginRight: 12,
+    position: 'relative',
+  },
   cardImage: {
     width: 91,
     height: 86,
     borderRadius: 8,
-    marginRight: 12,
     borderWidth: 0.2,
+  },
+  loaderContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5F7F2',
+    borderRadius: 8,
   },
   cardDetails: {
     flex: 1,

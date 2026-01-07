@@ -323,7 +323,6 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({navigation, route}) => {
     try {
       const response = await getLegalcontent('seller_agreement');
 
-      // Validate the response content before setting it
       if (
         response?.data?.legalContent?.content &&
         typeof response.data.legalContent.content === 'string' &&
@@ -331,7 +330,6 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({navigation, route}) => {
       ) {
         setTermsContent(response.data.legalContent.content);
       } else {
-        console.warn('Invalid or empty terms content received:', response);
         setTermsContent(
           '<p>Terms & Conditions content is not available at the moment.</p>',
         );
@@ -353,7 +351,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({navigation, route}) => {
       setAcceptLoading(false);
       setTermsModalVisible(false);
       setTermsChecked(false);
-      setTermsModalManuallyClosed(false); 
+      setTermsModalManuallyClosed(false);
 
       showAlert({
         isVisible: true,
@@ -382,7 +380,6 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({navigation, route}) => {
       showLoader(true);
       mutate(formDataToSend);
     } catch (error) {
-      console.error('Error accepting terms:', error);
       setAcceptLoading(false);
       showLoader(false);
     }
@@ -396,7 +393,6 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({navigation, route}) => {
       const statusToFilter = getStatusForTab(selectedTab);
       return products.filter(item => item?.product_status === statusToFilter);
     } catch (error) {
-      console.error('Error filtering data:', error);
       return [];
     }
   }, [selectedTab, products, getStatusForTab]);
@@ -415,7 +411,6 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({navigation, route}) => {
       };
       return counts;
     } catch (error) {
-      console.error('Error calculating tab counts:', error);
       return {
         All: 0,
         Active: 0,

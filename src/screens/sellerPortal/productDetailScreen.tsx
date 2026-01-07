@@ -10,6 +10,8 @@ import {
   ScrollView,
   TouchableOpacity,
   StatusBar,
+  Modal as RNModal,
+  SafeAreaView,
 } from 'react-native';
 import React, {useRef, useState, useEffect} from 'react';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
@@ -77,6 +79,7 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
   const [isEditPriceMode, setIsEditPriceMode] = useState(false);
   const [discountPercent, setDiscountPercent] = useState<number>(0);
   const [isMsrpInfoModalVisible, setIsMsrpInfoModalVisible] = useState(false);
+  const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
 
   const userData = useSelector((user: IRootState) => user.user.userData);
   const isLogged = userData ? true : false;
@@ -316,7 +319,9 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
                   );
                   setValue('price', amountToPay.toFixed(2));
 
-                  if (ProductPriceChargeData?.data?.product_price?.price_charge) {
+                  if (
+                    ProductPriceChargeData?.data?.product_price?.price_charge
+                  ) {
                     const platformFeePercentage =
                       ProductPriceChargeData.data.product_price.price_charge;
                     const priceAmount = parseFloat(amountToPay.toFixed(2));
@@ -452,7 +457,10 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
         style={styles.modalStyle}
         onBackdropPress={() => setIsMsrpInfoModalVisible(false)}>
         <View style={styles.modalContainer}>
-          <StatusBar barStyle="dark-content" backgroundColor={colors.modalBackGround} />
+          <StatusBar
+            barStyle="dark-content"
+            backgroundColor={colors.modalBackGround}
+          />
           <View style={styles.modalContent}>
             <TouchableOpacity
               style={styles.modalCloseButton}
@@ -462,7 +470,8 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
             {/* <IconsSvg name="helpSupportIcon" /> */}
             <Text style={styles.modalTitle}>MSRP Information</Text>
             <Text style={styles.modalDescription}>
-              MSRP is uneditable. If you want to change MSRP withdraw the product and add again.
+              MSRP is uneditable. If you want to change MSRP withdraw the
+              product and add again.
             </Text>
             <Button
               title="Okay"
@@ -487,127 +496,156 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
   }
 
   return (
-    <TitleBackHeaderContainer isBack title="Product Details">
-      <View style={styles.imageDetailContainer}>
-        <FlatList<ProductImage>
-          ref={flatListRef}
-          data={mediaList}
-          horizontal
-          pagingEnabled
-          decelerationRate="fast"
-          snapToInterval={width - 32}
-          snapToAlignment="start"
-          disableIntervalMomentum
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={item => item.id.toString()}
-          onMomentumScrollEnd={handleMomentumEnd}
-          getItemLayout={(_, index) => ({
-            length: width - 32,
-            offset: (width - 32) * index,
-            index,
-          })}
-          renderItem={({item}) => (
-            <View style={styles.mediaContainer}>
-              {isVideo(item) ? (
-                <VideoPlayer
-                  source={item.image}
-                  style={styles.videoPlayerContainer}
-                />
-              ) : (
-                <Image
-                  source={{uri: image_url + item.image}}
-                  style={[styles.productImage]}
-                  resizeMode="contain"
-                />
-              )}
+    <>
+      <TitleBackHeaderContainer isBack title="Product Details">
+        <View style={styles.imageDetailContainer}>
+          <FlatList<ProductImage>
+            ref={flatListRef}
+            data={mediaList}
+            horizontal
+            pagingEnabled
+            decelerationRate="fast"
+            snapToInterval={width - 32}
+            snapToAlignment="start"
+            disableIntervalMomentum
+            showsHorizontalScrollIndicator={false}
+            keyExtractor={item => item.id.toString()}
+            onMomentumScrollEnd={handleMomentumEnd}
+            getItemLayout={(_, index) => ({
+              length: width - 32,
+              offset: (width - 32) * index,
+              index,
+            })}
+            renderItem={({item}) => (
+              <View style={styles.mediaContainer}>
+                {isVideo(item) ? (
+                  <VideoPlayer
+                    source={item.image}
+                    style={styles.videoPlayerContainer}
+                  />
+                ) : (
+                  <TouchableOpacity
+                    activeOpacity={0.9}
+                    onPress={() => setFullScreenImage(image_url + item.image)}>
+                    <Image
+                      source={{uri: image_url + item.image}}
+                      style={[styles.productImage]}
+                      resizeMode="contain"
+                    />
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
+          />
+
+          {mediaList && mediaList.length > 0 && (
+            <View style={styles.mediaIndicator}>
+              <Text style={styles.mediaIndicatorText}>
+                {currentIndex + 1} of {mediaList.length}
+                {isVideo(mediaList[currentIndex]) && (
+                  <Text style={styles.videoIndicator}> • Video</Text>
+                )}
+              </Text>
             </View>
           )}
-        />
 
-        {mediaList && mediaList.length > 0 && (
-          <View style={styles.mediaIndicator}>
-            <Text style={styles.mediaIndicatorText}>
-              {currentIndex + 1} of {mediaList.length}
-              {isVideo(mediaList[currentIndex]) && (
-                <Text style={styles.videoIndicator}> • Video</Text>
-              )}
-            </Text>
-          </View>
-        )}
-
-        <StatusBadge
-          status={productDetail?.data?.product[0]?.product_status}
-          statusStyle={styles.statusStyle}
-        />
-        <Text style={styles.titleStyle}>
-          {productDetail?.data?.product[0]?.name}
-        </Text>
-        <Text style={styles.descriptionStyle}>
-          {productDetail?.data?.product[0]?.description}
-        </Text>
-        <InfoRow
-          title="Brand"
-          subtitle={productDetail?.data?.product[0]?.brand}
-          subtitleStyle={styles.subtitleStyle}
-        />
-        <InfoRow
-          title="Category"
-          subtitle={productDetail?.data?.product[0]?.product_category?.name}
-          subtitleStyle={styles.subtitleStyle}
-        />
-        <InfoRow
-          title="SKU / Barcode"
-          subtitle={productDetail?.data?.product[0]?.barcode}
-          subtitleStyle={styles.subtitleStyle}
-        />
-        <InfoRow
-          title="MRSP"
-          subtitle={productDetail?.data?.product[0]?.msrp}
-          subtitleStyle={styles.mrspStyle}
-        />
-        <InfoRow
-          title="Listing Price"
-          subtitle={productDetail?.data?.product[0]?.price}
-          subtitleStyle={styles.mrspStyle}
-        />
-      </View>
-      <View style={styles.imageDetailContainer}>
-        <Text style={styles.headingStyle}>Listing Details</Text>
-        <InfoRow
-          title="Created On"
-          style={styles.containerStyle}
-          subtitle={moment(productDetail?.data?.product[0]?.createdAt).format(
-            'DD MMMM YYYY',
-          )}
-          showColon
-        />
-        <InfoRow
-          title="Last Updated"
-          style={styles.containerStyle}
-          subtitle={moment(productDetail?.data?.product[0]?.updatedAt).format(
-            'DD MMMM YYYY',
-          )}
-          showColon
-        />
-      </View>
-      {!['sold', 'withdrawn', 'rejected'].includes(
-        productDetail?.data?.product?.[0]?.product_status,
-      ) && (
-        <View style={styles.buttonContainer}>
-          <Button
-            title={'Withdraw'}
-            style={styles.withdrawButton}
-            onPress={Submit}
+          <StatusBadge
+            status={productDetail?.data?.product[0]?.product_status}
+            statusStyle={styles.statusStyle}
           />
-          <WhiteButton
-            title={'Edit Price'}
-            style={styles.editPriceButton}
-            textStyle={styles.cancelButtonText}
-            onPress={() => setIsEditPriceMode(true)}
+          <Text style={styles.titleStyle}>
+            {productDetail?.data?.product[0]?.name}
+          </Text>
+          <Text style={styles.descriptionStyle}>
+            {productDetail?.data?.product[0]?.description}
+          </Text>
+          <InfoRow
+            title="Brand"
+            subtitle={productDetail?.data?.product[0]?.brand}
+            subtitleStyle={styles.subtitleStyle}
+          />
+          <InfoRow
+            title="Category"
+            subtitle={productDetail?.data?.product[0]?.product_category?.name}
+            subtitleStyle={styles.subtitleStyle}
+          />
+          <InfoRow
+            title="SKU / Barcode"
+            subtitle={productDetail?.data?.product[0]?.barcode}
+            subtitleStyle={styles.subtitleStyle}
+          />
+          <InfoRow
+            title="MRSP"
+            subtitle={productDetail?.data?.product[0]?.msrp}
+            subtitleStyle={styles.mrspStyle}
+          />
+          <InfoRow
+            title="Listing Price"
+            subtitle={productDetail?.data?.product[0]?.price}
+            subtitleStyle={styles.mrspStyle}
           />
         </View>
-      )}
-    </TitleBackHeaderContainer>
+        <View style={styles.imageDetailContainer}>
+          <Text style={styles.headingStyle}>Listing Details</Text>
+          <InfoRow
+            title="Created On"
+            style={styles.containerStyle}
+            subtitle={moment(productDetail?.data?.product[0]?.createdAt).format(
+              'DD MMMM YYYY',
+            )}
+            showColon
+          />
+          <InfoRow
+            title="Last Updated"
+            style={styles.containerStyle}
+            subtitle={moment(productDetail?.data?.product[0]?.updatedAt).format(
+              'DD MMMM YYYY',
+            )}
+            showColon
+          />
+        </View>
+        {!['sold', 'withdrawn', 'rejected'].includes(
+          productDetail?.data?.product?.[0]?.product_status,
+        ) && (
+          <View style={styles.buttonContainer}>
+            <Button
+              title={'Withdraw'}
+              style={styles.withdrawButton}
+              onPress={Submit}
+            />
+            <WhiteButton
+              title={'Edit Price'}
+              style={styles.editPriceButton}
+              textStyle={styles.cancelButtonText}
+              onPress={() => setIsEditPriceMode(true)}
+            />
+          </View>
+        )}
+      </TitleBackHeaderContainer>
+
+      <RNModal
+        visible={fullScreenImage !== null}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setFullScreenImage(null)}>
+        <SafeAreaView style={styles.fullScreenContainer}>
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={() => setFullScreenImage(null)}>
+            <View style={styles.closeIconContainer}>
+              <IconsSvg name="cancelIcon" />
+            </View>
+          </TouchableOpacity>
+          {fullScreenImage && (
+            <Image
+              source={{uri: fullScreenImage}}
+              style={styles.fullScreenImage}
+              resizeMode="contain"
+            />
+          )}
+        </SafeAreaView>
+      </RNModal>
+    </>
   );
 };
 
@@ -959,5 +997,29 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 45,
     borderRadius: 120,
+  },
+  fullScreenContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fullScreenImage: {
+    width: width,
+    height: '80%',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 10,
+  },
+  closeIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.white,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

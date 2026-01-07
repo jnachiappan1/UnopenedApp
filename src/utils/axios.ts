@@ -1,9 +1,9 @@
 import axios from 'axios';
-import { base_url } from './api';
-import { store } from '../redux/store';
-import { showAlert } from '../components/cAlert';
-import { saveUserData, setAuthToken } from '../redux/reducers/user/UserReducer';
-import { SCREENS } from '../navigation/mainNavigation';
+import {base_url} from './api';
+import {store} from '../redux/store';
+import {showAlert} from '../components/cAlert';
+import {saveUserData, setAuthToken} from '../redux/reducers/user/UserReducer';
+import {SCREENS} from '../navigation/mainNavigation';
 import * as RootNavigation from '../../RootNavigation';
 
 const instance = axios.create({
@@ -38,7 +38,11 @@ instance.interceptors.request.use(
 
 instance.interceptors.response.use(
   async response => {
-    if (response.data?.statusCode === 200 || response?.status === 200 || response?.status === 201) {
+    if (
+      response.data?.statusCode === 200 ||
+      response?.status === 200 ||
+      response?.status === 201
+    ) {
       return Promise.resolve(response.data);
     } else {
       return Promise.reject(response.data);
@@ -61,9 +65,11 @@ instance.interceptors.response.use(
             isVisible: true,
             type: 'error',
             title: 'Unauthorized',
-            description: error?.response?.data?.message || 'Your session has expired. Please log in again.',
+            description:
+              error?.response?.data?.message ||
+              'Your session has expired. Please log in again.',
             doneText: 'OK',
-          })
+          });
           // errorMessage(error?.response?.data?.message);
         }, 750);
         store.dispatch(setAuthToken(null));

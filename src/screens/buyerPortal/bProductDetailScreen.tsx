@@ -130,7 +130,6 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
       return 'Ships from';
     }
 
-    // Get the default address or the first one
     const address =
       addressList.find((addr: any) => addr.is_default_address) ||
       addressList[0];
