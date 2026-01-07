@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -9,20 +9,20 @@ import {
   Dimensions,
 } from 'react-native';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
 import fonts from '../../assets/fonts/fonts';
 import colors from '../../utils/colors';
 import Button from '../../components/button/buttons';
-import { height, OS, width } from '../../utils/utils';
+import {height, OS, width} from '../../utils/utils';
 import IconsSvg from '../../assets/svg/iconsSvg';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
-import { getCategoryDetail } from '../../utils/apiAction';
-import { useQuery } from '@tanstack/react-query';
-import { useSelector } from 'react-redux';
-import { IRootState } from '../../redux/store';
-import { ProductCategory } from '../../utils/types';
-import { sortByList } from '../../utils/static';
+import {getCategoryDetail} from '../../utils/apiAction';
+import {useQuery} from '@tanstack/react-query';
+import {useSelector} from 'react-redux';
+import {IRootState} from '../../redux/store';
+import {ProductCategory} from '../../utils/types';
+import {sortByList} from '../../utils/static';
 
 type FilterSortScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -65,18 +65,20 @@ const FilterSortScreen: React.FC<FilterSortScreenProps> = ({
   } = route.params || {};
   const userData = useSelector((user: IRootState) => user.user.userData);
   const isLogged = userData ? true : false;
-  const [selectedCategories, setSelectedCategories] = useState<ProductCategory[]>(initialFilters);
-  const { data: categoryData, refetch: refetchcategoryDetail } = useQuery({
+  const [selectedCategories, setSelectedCategories] =
+    useState<ProductCategory[]>(initialFilters);
+  const {data: categoryData, refetch: refetchcategoryDetail} = useQuery({
     queryKey: ['getCategoryDetail'],
     queryFn: () => getCategoryDetail(),
     // enabled: isLogged,
   });
-  const activeCategories: ProductCategory[] = categoryData?.data?.category
-    ?.filter((category: any) => category.status === 'active')
-    ?.map((category: any) => ({
-      id: category.id,
-      name: category.name,
-    })) ?? [];
+  const activeCategories: ProductCategory[] =
+    categoryData?.data?.category
+      ?.filter((category: any) => category.status === 'active')
+      ?.map((category: any) => ({
+        id: category.id,
+        name: category.name,
+      })) ?? [];
 
   const [selectedSort, setSelectedSort] = useState<Sort | null>(() => {
     if (initialSort) {
@@ -85,19 +87,22 @@ const FilterSortScreen: React.FC<FilterSortScreenProps> = ({
     return null;
   });
 
-  const [activeTab, setActiveTab] = useState<'Category' | 'Sort By' | 'Price'>('Category');
+  const [activeTab, setActiveTab] = useState<'Category' | 'Sort By' | 'Price'>(
+    'Category',
+  );
 
   // Handle price range with proper type conversion
-  const [selectedPriceRange, setSelectedPriceRange] = useState<PriceRange | null>(() => {
-    if (initialPriceRange) {
-      return {
-        label: `$${initialPriceRange.min} - $${initialPriceRange.max}`,
-        min: initialPriceRange.min,
-        max: initialPriceRange.max
-      };
-    }
-    return null;
-  });
+  const [selectedPriceRange, setSelectedPriceRange] =
+    useState<PriceRange | null>(() => {
+      if (initialPriceRange) {
+        return {
+          label: `$${initialPriceRange.min} - $${initialPriceRange.max}`,
+          min: initialPriceRange.min,
+          max: initialPriceRange.max,
+        };
+      }
+      return null;
+    });
 
   const [minPrice, setMinPrice] = useState<number>(() => {
     return initialPriceRange?.min || 0;
@@ -108,18 +113,18 @@ const FilterSortScreen: React.FC<FilterSortScreenProps> = ({
   });
 
   const priceRanges: PriceRange[] = [
-    { label: 'All Prices', min: 0, max: 10000 },
-    { label: 'Up to $10', min: 0, max: 10 },
-    { label: '$20 - $40', min: 20, max: 40 },
-    { label: '$40 - $60', min: 40, max: 60 },
-    { label: '$60 - $80', min: 60, max: 80 },
-    { label: '$60 - $100', min: 60, max: 100 },
-    { label: '$100 - $150', min: 100, max: 150 },
-    { label: '$150 - $200', min: 150, max: 200 },
-    { label: '$200 - $300', min: 200, max: 300 },
-    { label: '$300 - $500', min: 300, max: 500 },
+    {label: 'All Prices', min: 0, max: 10000},
+    {label: 'Up to $10', min: 0, max: 10},
+    {label: '$20 - $40', min: 20, max: 40},
+    {label: '$40 - $60', min: 40, max: 60},
+    {label: '$60 - $80', min: 60, max: 80},
+    {label: '$60 - $100', min: 60, max: 100},
+    {label: '$100 - $150', min: 100, max: 150},
+    {label: '$150 - $200', min: 150, max: 200},
+    {label: '$200 - $300', min: 200, max: 300},
+    {label: '$300 - $500', min: 300, max: 500},
   ];
-  
+
   const toggleCategory = (category: ProductCategory) => {
     const exists = selectedCategories.find(c => c.id === category.id);
     if (exists) {
@@ -128,17 +133,17 @@ const FilterSortScreen: React.FC<FilterSortScreenProps> = ({
       setSelectedCategories(prev => [...prev, category]);
     }
   };
-  
+
   const toggleSort = (sortOption: Sort) => {
     setSelectedSort(prev => (prev?.id === sortOption.id ? null : sortOption));
   };
-  
+
   const selectPriceRange = (range: PriceRange) => {
     setSelectedPriceRange(range);
     setMinPrice(range.min);
     setMaxPrice(range.max);
   };
-  
+
   const clearFilters = () => {
     setSelectedCategories([]);
     setSelectedSort(null);
@@ -146,23 +151,23 @@ const FilterSortScreen: React.FC<FilterSortScreenProps> = ({
     setMinPrice(0);
     setMaxPrice(1000);
   };
-  
+
   const applyFilters = () => {
     if (onApplyFilters) {
-      const priceRangeToSend = selectedPriceRange ?
-        { min: minPrice, max: maxPrice } :
-        null;
-      
+      const priceRangeToSend = selectedPriceRange
+        ? {min: minPrice, max: maxPrice}
+        : null;
+
       // Pass the full sort object, not just the id
       onApplyFilters(
         selectedCategories,
         selectedSort, // Pass the full object
-        priceRangeToSend
+        priceRangeToSend,
       );
     }
     navigation.goBack();
   };
-  
+
   const renderPriceSlider = () => {
     return (
       <View style={styles.sliderContainer}>
@@ -170,7 +175,7 @@ const FilterSortScreen: React.FC<FilterSortScreenProps> = ({
         <Text style={styles.priceRange}>
           ${minPrice} - ${maxPrice}
         </Text>
-        <View style={{ marginHorizontal: 10 }}>
+        <View style={{marginHorizontal: 10}}>
           <MultiSlider
             values={[minPrice, maxPrice]}
             sliderLength={200}
@@ -180,7 +185,7 @@ const FilterSortScreen: React.FC<FilterSortScreenProps> = ({
               setSelectedPriceRange({
                 label: `$${values[0]} - $${values[1]}`,
                 min: values[0],
-                max: values[1]
+                max: values[1],
               });
             }}
             min={0}
@@ -190,7 +195,7 @@ const FilterSortScreen: React.FC<FilterSortScreenProps> = ({
               backgroundColor: colors.primary,
             }}
             unselectedStyle={{
-              backgroundColor: "#ccc",
+              backgroundColor: '#ccc',
             }}
             markerStyle={{
               backgroundColor: colors.primary,
@@ -212,7 +217,7 @@ const FilterSortScreen: React.FC<FilterSortScreenProps> = ({
             style={[
               styles.priceButton,
               selectedPriceRange?.label === range.label &&
-              styles.selectedPriceButton,
+                styles.selectedPriceButton,
               range.label === 'All Prices' && styles.allPricesButton,
             ]}
             onPress={() => selectPriceRange(range)}>
@@ -220,7 +225,7 @@ const FilterSortScreen: React.FC<FilterSortScreenProps> = ({
               style={[
                 styles.priceButtonText,
                 selectedPriceRange?.label === range.label &&
-                styles.selectedPriceButtonText,
+                  styles.selectedPriceButtonText,
                 range.label === 'All Prices' && styles.allPricesButtonText,
               ]}>
               {range.label}
@@ -232,13 +237,18 @@ const FilterSortScreen: React.FC<FilterSortScreenProps> = ({
   };
 
   return (
-    <TitleBackHeaderContainer title="Filter & Sort" isBack isNormalHeader={false}>
+    <TitleBackHeaderContainer
+      title="Filter & Sort"
+      isBack
+      isNormalHeader={false}>
       <View style={styles.body}>
         <View style={styles.sidebar}>
           {['Category', 'Sort By', 'Price'].map(tab => (
             <TouchableOpacity
               key={tab}
-              onPress={() => setActiveTab(tab as 'Category' | 'Sort By' | 'Price')}>
+              onPress={() =>
+                setActiveTab(tab as 'Category' | 'Sort By' | 'Price')
+              }>
               <Text
                 style={[
                   styles.sidebarText,
@@ -259,8 +269,7 @@ const FilterSortScreen: React.FC<FilterSortScreenProps> = ({
                 <TouchableOpacity
                   key={category.id}
                   style={styles.categoryItem}
-                  onPress={() => toggleCategory(category)}
-                >
+                  onPress={() => toggleCategory(category)}>
                   <View style={styles.checkboxContainer}>
                     <IconsSvg
                       name={
@@ -301,7 +310,6 @@ const FilterSortScreen: React.FC<FilterSortScreenProps> = ({
             )}
           </ScrollView>
 
-          {/* Apply Button at the Bottom */}
           <Button
             style={styles.applyButton}
             title="Apply"
@@ -345,7 +353,7 @@ const styles = StyleSheet.create({
   clearButton: {
     alignSelf: 'center',
     marginTop: 'auto',
-    bottom: "23%",
+    bottom: '23%',
     marginHorizontal: 10,
   },
   clearText: {
@@ -361,7 +369,6 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 20,
-    // paddingVertical: 20,
     marginBottom: 160,
   },
   categoryItem: {
@@ -390,7 +397,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    bottom: "20%",
+    bottom: '21%',
   },
   priceContainer: {
     paddingTop: 10,

@@ -8,6 +8,9 @@ import {
   FlatList,
   NativeSyntheticEvent,
   NativeScrollEvent,
+  Modal,
+  TouchableOpacity,
+  SafeAreaView,
 } from 'react-native';
 import React, {useState, useRef} from 'react';
 import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
@@ -71,6 +74,7 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
 
   const flatListRef = useRef<FlatList<ProductImage>>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
 
   const handleImageScroll = (
     event: NativeSyntheticEvent<NativeScrollEvent>,
@@ -182,11 +186,17 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
                       style={styles.productImage}
                     />
                   ) : (
-                    <Image
-                      source={{uri: image_url + item.image}}
-                      style={[styles.productImage]}
-                      resizeMode="contain"
-                    />
+                    <TouchableOpacity
+                      activeOpacity={0.9}
+                      onPress={() =>
+                        setFullScreenImage(image_url + item.image)
+                      }>
+                      <Image
+                        source={{uri: image_url + item.image}}
+                        style={[styles.productImage]}
+                        resizeMode="contain"
+                      />
+                    </TouchableOpacity>
                   )}
                 </View>
               )}
@@ -306,6 +316,29 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
           />
         )}
       </View>
+
+      <Modal
+        visible={fullScreenImage !== null}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setFullScreenImage(null)}>
+        <SafeAreaView style={styles.fullScreenContainer}>
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={() => setFullScreenImage(null)}>
+            <View style={styles.closeIconContainer}>
+              <IconsSvg name="cancelIcon" />
+            </View>
+          </TouchableOpacity>
+          {fullScreenImage && (
+            <Image
+              source={{uri: fullScreenImage}}
+              style={styles.fullScreenImage}
+              resizeMode="contain"
+            />
+          )}
+        </SafeAreaView>
+      </Modal>
     </>
   );
 };
@@ -491,5 +524,34 @@ const styles = StyleSheet.create({
   videoPlayerContainer: {
     width: '100%',
     height: '100%',
+  },
+  fullScreenContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fullScreenImage: {
+    width: width,
+    height: '80%',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 10,
+  },
+  closeIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeIcon: {
+    color: colors.white,
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });

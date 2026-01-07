@@ -42,9 +42,9 @@ const ProductListingCard: React.FC<ProductListingCardProps> = ({
         <Image
           source={{uri: image_url + item?.product_image[1]?.image}}
           style={styles.cardImage}
-          resizeMode='cover'
+          resizeMode="cover"
         />
-        <View style={{width: '70%'}}>
+        <View style={{width: '68%'}}>
           <Text style={[styles.cardTitle, nameStyle]} numberOfLines={2}>
             {item?.name}
           </Text>
@@ -101,6 +101,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bold,
     color: '#1F1F1F',
     paddingVertical: 2,
+    maxWidth: '100%',
   },
   cardPrice: {
     fontSize: fontSizes.medium,

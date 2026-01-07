@@ -48,17 +48,20 @@ const IconBackHeaderContainer: React.FC<IconBackHeaderContainerProps> = ({
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.primary }}>
       <StatusBar backgroundColor={colors.primary} barStyle="light-content" />
       <View style={[styles.headerRowContainer, headerRowContainerStyle]}>
-        {isBack && (
+        {isBack ? (
           <TouchableOpacity
             style={styles.back}
             onPress={onBackPress}>
             <IconsSvg name="backArrow" />
           </TouchableOpacity>
+        ) : (
+          <View style={styles.back} />
         )}
         <View style={styles.titleContainer}>
           <IconsSvg name="packageIcon" />
           <Text style={styles.title}>{title}</Text>
         </View>
+        <View style={styles.back} />
       </View>
 
       <View style={[styles.childrenView, containerStyle]}>
@@ -100,10 +103,11 @@ const styles = StyleSheet.create({
   },
   titleContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignSelf: 'center',
     flex: 1,
     justifyContent: 'center',
-    marginRight: 50,
+    alignItems: 'center',
+    // marginRight: 50,
   },
   title: {
     fontSize: fontSizes.large,

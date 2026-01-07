@@ -30,7 +30,7 @@ android {
         versionCode 1
         versionName "1.0"
     }
-
+   
     signingConfigs {
         debug {
             storeFile file('debug.keystore')
@@ -38,23 +38,21 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+         release {
+            storeFile file('release.keystore')
+            storePassword 'unopened@123'
+            keyAlias 'unopenedAppKey'
+            keyPassword 'unopened@123'
+        }
     }
 
-    // compileOptions {
-    //     sourceCompatibility JavaVersion.VERSION_17
-    //     targetCompatibility JavaVersion.VERSION_17
-    // }
-
-    // kotlinOptions {
-    //     jvmTarget = "17"
-    // }
 
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
         }
         release {
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
