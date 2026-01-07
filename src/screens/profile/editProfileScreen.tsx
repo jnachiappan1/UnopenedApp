@@ -267,7 +267,6 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
     if (data?.data?.user && !isLoadingCountries && allCountries.length > 0) {
       const user = data.data.user;
       const address = user.address || {};
-      console.log('address', address);
 
       const fields: Inputs = {
         full_name: user.full_name || '',
