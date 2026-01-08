@@ -1,5 +1,5 @@
 import {StyleSheet, FlatList, View, Text, TouchableOpacity} from 'react-native';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import HeaderHomeContainer from '../../components/headerContainer/headerHomeContainer';
 import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
@@ -30,8 +30,9 @@ type LoginProps = NativeStackScreenProps<
 
 const BHomeScreen: React.FC<LoginProps> = ({route, navigation}) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
   const userData = useSelector((user: IRootState) => user.user.userData);
-  
+
   const isLogged = userData ? true : false;
   const [categories, setCategories] = useState<ProductCategory[]>([]);
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
@@ -234,6 +235,18 @@ const BHomeScreen: React.FC<LoginProps> = ({route, navigation}) => {
     }
   };
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        refetchProductList(),
+        refetchsellerOwnProductList(),
+      ]);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetchProductList, refetchsellerOwnProductList]);
+
   useEffect(() => {
     triggerApiCall();
   }, [
@@ -343,31 +356,33 @@ const BHomeScreen: React.FC<LoginProps> = ({route, navigation}) => {
   };
   const displayProducts = (productList?.data?.product || []).filter(
     (item: ProductData) =>
-      item.product_status === 'active' || item.product_status === 'sold',
+      item?.product_status === 'active' || item?.product_status === 'sold',
   );
   const allProducts = (allProductList?.data?.product || []).filter(
     (item: ProductData) =>
-      item.product_status === 'active' || item.product_status === 'sold',
+      item.product_status === 'active' || item?.product_status === 'sold',
   );
   const soldProducts = (allProductList?.data?.product || []).filter(
-    (item: ProductData) => item.product_status === 'sold',
+    (item: ProductData) => item?.product_status === 'sold',
   );
   const showEmptyState =
     !isLoading &&
     !isFetching &&
-    (!displayProducts || displayProducts.length === 0);
+    (!displayProducts || displayProducts?.length === 0);
   const showRecentlyListed =
-    !hasActiveFilters() && allProducts && allProducts.length > 0;
+    !hasActiveFilters() && allProducts && allProducts?.length > 0;
 
   const shouldShowMyPurchase =
-    isLogged && oneLatestItem && oneLatestItem.length > 0;
+    isLogged && oneLatestItem && oneLatestItem?.length > 0;
   return (
     <HeaderHomeContainer
       title={'Welcome,'}
       userName={`Hello ${userData?.full_name ?? 'Guest'}`}
       isHome
       profileImage={userData?.profile_picture}
-      onSearchPress={() => {}}>
+      onSearchPress={() => {}}
+      refreshing={refreshing}
+      onRefresh={onRefresh}>
       {!shouldShowMyPurchase ? (
         <FlatList
           data={bannerData}
@@ -405,7 +420,7 @@ const BHomeScreen: React.FC<LoginProps> = ({route, navigation}) => {
             </TouchableOpacity>
           </View>
 
-          {oneLatestItem.map((item, index) => (
+          {oneLatestItem?.map((item, index) => (
             <View key={item?.id ?? index} style={{paddingHorizontal: 10}}>
               <OrderListingCard
                 item={item}

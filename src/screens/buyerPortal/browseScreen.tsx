@@ -401,7 +401,7 @@ const BrowseScreen: React.FC<BrowseScreenProps> = ({navigation}) => {
               />
             </View>
           )}
-          
+
           <ProductSection
             title="Popular Products"
             products={getFilteredProducts()}

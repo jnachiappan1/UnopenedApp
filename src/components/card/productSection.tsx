@@ -33,6 +33,7 @@ const ProductSection: React.FC<Props> = ({
       onPress(product);
     }
   };
+
   return (
     <View style={styles.container}>
       <View style={styles.sectionHeader}>
@@ -55,7 +56,6 @@ const ProductSection: React.FC<Props> = ({
             : item.item?.product_image?.[0]?.image
             ? image_url + item.item?.product_image?.[0]?.image
             : 'https://via.placeholder.com/150';
-
 
           return (
             <>
@@ -85,11 +85,14 @@ const ProductSection: React.FC<Props> = ({
                         <StatusBadge status={item.item?.product_status} />
                       ) : (
                         <View style={styles.priceContainer}>
-                          <Text style={styles.price} numberOfLines={1}>${item.item?.price.toFixed(2)}</Text>
+                          <Text style={styles.price} numberOfLines={1}>
+                            ${item.item?.price.toFixed(2)}
+                          </Text>
                           {item.item?.msrp && (
-                            <Text style={styles.originalPrice} numberOfLines={1}>
+                            <Text
+                              style={styles.originalPrice}
+                              numberOfLines={1}>
                               ${item.item?.msrp.toFixed(2)}
-                             
                             </Text>
                           )}
                         </View>
@@ -193,7 +196,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',
-
   },
   price: {
     width: '50%',
@@ -208,6 +210,5 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bold,
     textDecorationLine: 'line-through',
     width: '50%',
-   
   },
 });
