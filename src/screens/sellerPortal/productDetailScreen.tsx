@@ -130,12 +130,11 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
       setValue('msrp', msrp.toString());
       setValue('price', price.toString());
 
-      // Calculate discount percentage from MSRP and price
       if (msrp > 0 && price > 0) {
         const calculatedPercent = (price / msrp) * 100;
         const clampedPercent = Math.max(
           sliderMin,
-          Math.min(90, calculatedPercent), // Clamp to 90% max
+          Math.min(90, calculatedPercent),
         );
         setDiscountPercent(clampedPercent);
       } else if (typeof sliderMin === 'number') {
@@ -467,7 +466,7 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
               onPress={() => setIsMsrpInfoModalVisible(false)}>
               <IconsSvg name="cancelIcon" />
             </TouchableOpacity>
-            {/* <IconsSvg name="helpSupportIcon" /> */}
+
             <Text style={styles.modalTitle}>MSRP Information</Text>
             <Text style={styles.modalDescription}>
               MSRP is uneditable. If you want to change MSRP withdraw the

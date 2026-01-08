@@ -201,7 +201,7 @@ const BProductDetailScreen: React.FC<LoginProps> = ({route, navigation}) => {
               )}
             />
             <View style={styles.dotsContainer}>
-              {productImages.map((_: ProductImage, index: number) => (
+              {productImages?.map((_: ProductImage, index: number) => (
                 <View
                   key={index}
                   style={[
