@@ -120,7 +120,7 @@ const SellerTabBar: React.FC<BottomTabBarProps> = ({
           }}
           style={styles.fab}>
           <View style={styles.fabInner}>
-            {/* <IconsSvg name="addProductIcon" color={c.white} /> */}
+            <IconsSvg name="addProductIcon" color={c.white} />
           </View>
         </TouchableOpacity>
         <Text style={styles.fabLabel}>Add Product</Text>

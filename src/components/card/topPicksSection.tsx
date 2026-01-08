@@ -37,13 +37,11 @@ interface ProductCardProps {
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({item, onSelect}) => {
-  const [isLoading, setIsLoading] = useState(true);
 
   const productImage =
     item?.product_image?.find(
       (img: {image: string}) => !img.image?.toLowerCase().endsWith('.mp4'),
     )?.image || item?.product_image?.[0]?.image;
-  console.log('productImage', image_url + productImage);
 
   return (
     <TouchableOpacity

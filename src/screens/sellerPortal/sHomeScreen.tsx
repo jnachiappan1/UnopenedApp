@@ -1,4 +1,4 @@
-import {FlatList, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import React, {useState, useCallback, useEffect, useRef} from 'react';
 import HeaderHomeContainer from '../../components/headerContainer/headerHomeContainer';
 import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
@@ -498,19 +498,17 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({navigation, route}) => {
       onRefresh={handleRefresh}
       onSearchPress={() => {}}
       profileImage={userData?.profile_picture}>
-      <FlatList
-        data={dashboardAnalyticsData}
-        keyExtractor={item => item.key}
-        numColumns={2}
-        contentContainerStyle={styles.container}
-        renderItem={({item}) => (
-          <DashboardAnalyticsCard
-            title={item.title}
-            subtitle={item.subtitle}
-            icon={item.icon}
-          />
-        )}
-      />
+      <View style={[styles.container, styles.dashboardGrid]}>
+        {dashboardAnalyticsData.map(item => (
+          <View key={item.key} style={styles.dashboardCardWrapper}>
+            <DashboardAnalyticsCard
+              title={item.title}
+              subtitle={item.subtitle}
+              icon={item.icon}
+            />
+          </View>
+        ))}
+      </View>
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>My Listing</Text>
@@ -520,24 +518,24 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({navigation, route}) => {
             View All
           </Text>
         </View>
-        <FlatList
-          data={['All', 'Active', 'Sold', 'In Review', 'Withdrawn']}
+        <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          renderItem={renderTab}
-          keyExtractor={item => item}
           style={styles.tabs}
-        />
+          contentContainerStyle={styles.tabsContent}>
+          {['All', 'Active', 'Sold', 'In Review', 'Withdrawn'].map(item =>
+            renderTab({item}),
+          )}
+        </ScrollView>
         {userData ? (
           filteredData.length > 0 ? (
-            <FlatList
-              data={filteredData.slice(0, 5)}
-              renderItem={renderProductItem}
-              keyExtractor={item =>
-                item?.id?.toString() || Math.random().toString()
-              }
-              contentContainerStyle={styles.list}
-            />
+            <View style={styles.list}>
+              {filteredData.slice(0, 5).map(item => (
+                <View key={item?.id?.toString() || Math.random().toString()}>
+                  {renderProductItem({item})}
+                </View>
+              ))}
+            </View>
           ) : (
             <EmptyStateMessage selectedTab={selectedTab} />
           )
@@ -560,12 +558,13 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({navigation, route}) => {
           </Text>
         </View>
         {userData && products.length > 0 ? (
-          <FlatList
-            data={products.slice(0, 5)}
+          <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            renderItem={({item}) => (
+            contentContainerStyle={styles.contentContainerStyle}>
+            {products.slice(0, 5).map(item => (
               <ProductListingCard
+                key={item?.id?.toString() || Math.random().toString()}
                 item={item}
                 nameStyle={{width: 180}}
                 cardStyle={{marginHorizontal: 5, width: 320}}
@@ -579,12 +578,8 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({navigation, route}) => {
                   }
                 }}
               />
-            )}
-            keyExtractor={item =>
-              item?.id?.toString() || Math.random().toString()
-            }
-            contentContainerStyle={styles.contentContainerStyle}
-          />
+            ))}
+          </ScrollView>
         ) : userData ? (
           <View style={styles.emptyStateContainer}>
             <Text style={styles.emptyStateTitle}>No Recent Products</Text>
@@ -630,6 +625,16 @@ export default SHomeScreen;
 const styles = StyleSheet.create({
   container: {
     marginTop: 10,
+  },
+  dashboardGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  dashboardCardWrapper: {
+    width: '50%',
+  },
+  tabsContent: {
+    flexDirection: 'row',
   },
   header: {
     flexDirection: 'row',
