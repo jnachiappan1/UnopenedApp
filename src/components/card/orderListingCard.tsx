@@ -17,14 +17,20 @@ interface OrderListingCardProps {
 }
 
 const OrderListingCard: React.FC<OrderListingCardProps> = ({ item, cardStyle, onSelect }) => {
+  console.log("----", item);
+  
   const handleCardPress = () => {
     onSelect?.(item);
   };
+  const productImage =
+    item?.product_image?.find(
+      (img: {image: string}) => !img.image?.toLowerCase().endsWith('.mp4'),
+    )?.image || item?.product_image?.[0]?.image;
   return (
     <View style={[styles.cardContainer, cardStyle]}>
       <View style={styles.productDetailView}>
         <Image
-          source={{ uri: image_url + item?.product_image?.[1]?.image }}
+          source={{ uri: image_url + productImage }}
           style={styles.cardImage}
         />
         <View>

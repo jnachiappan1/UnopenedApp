@@ -13,12 +13,13 @@ import {useQuery} from '@tanstack/react-query';
 import {useSelector} from 'react-redux';
 import {IRootState} from '../../redux/store';
 import {useFocusEffect} from '@react-navigation/native';
+import {ContactSupportModal} from '../../components/model';
 
 type MyOrderScreenProps = NativeStackScreenProps<
   RootStackParamList,
   SCREENS.MyOrderScreen
 >;
-const ALLOWED_TABS = ['Pre Transit', 'In Transit', 'Delivered', 'Cancelled'];
+const ALLOWED_TABS = ['Pre Transit', 'In Transit', 'Delivered'];
 
 const MyOrderScreen: React.FC<MyOrderScreenProps> = ({navigation}) => {
   const [selectedTab, setSelectedTab] = useState('All');
@@ -47,8 +48,8 @@ const MyOrderScreen: React.FC<MyOrderScreenProps> = ({navigation}) => {
       case 'delivered':
         return 'Delivered';
       case 'cancelled':
-      case 'canceled':
-        return 'Cancelled';
+      // case 'canceled':
+      //   return 'Cancelled';
       default:
         return 'Unknown';
     }

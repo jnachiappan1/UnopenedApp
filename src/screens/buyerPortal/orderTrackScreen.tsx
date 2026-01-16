@@ -64,7 +64,6 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({
     queryKey: ['getProductDetailByID', productId?.productId],
     queryFn: () => getProductDetailByID(productId?.productId),
   });
-  
 
   // const addressId = productDetail?.data?.product[0]?.address_id;
 
@@ -105,6 +104,7 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({
     queryFn: () => labelPurchase(productDetail?.data?.product[0]?.shipment_id),
     enabled: !!productDetail?.data?.product[0]?.shipment_id,
   });
+
 
   const trackingUrl = shippingTrackingData?.tracking?.tracking_url;
 
@@ -423,6 +423,7 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({
     );
   };
 
+
   return (
     <TitleBackHeaderContainer
       isBack
@@ -467,18 +468,20 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({
                 <Text style={styles.titleStyle}>
                   {productDetail?.data?.product[0]?.name}
                 </Text>
-                <Text style={styles.descriptionStyle}>
-                  Delivered On:{' '}
-                  {shippingTrackingData?.data?.tracking?.actual_delivery
-                    ? new Date(
-                        shippingTrackingData.data.tracking.actual_delivery,
+                {shippingTrackingData?.tracking?.actual_delivery && (
+                  <Text style={styles.descriptionStyle}>
+                    Delivered On:{' '}
+                    {shippingTrackingData?.tracking?.actual_delivery &&
+                      new Date(
+                        shippingTrackingData?.tracking.actual_delivery,
                       ).toLocaleDateString('en-US', {
                         day: 'numeric',
                         month: 'short',
                         year: 'numeric',
-                      })
-                    : '15 Jun, 2025'}
-                </Text>
+                      })}
+                  </Text>
+                )}
+
                 <Text style={[styles.mrspStyle]}>
                   ${productDetail?.data?.product[0]?.price}
                 </Text>

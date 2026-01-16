@@ -238,10 +238,7 @@ const BHomeScreen: React.FC<LoginProps> = ({route, navigation}) => {
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await Promise.all([
-        refetchProductList(),
-        refetchsellerOwnProductList(),
-      ]);
+      await Promise.all([refetchProductList(), refetchsellerOwnProductList()]);
     } finally {
       setRefreshing(false);
     }

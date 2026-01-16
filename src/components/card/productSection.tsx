@@ -51,12 +51,16 @@ const ProductSection: React.FC<Props> = ({
         scrollEnabled={false}
         contentContainerStyle={styles.listContent}
         renderItem={(item, isHorizontal = false) => {
-          const imageUri = item.item?.product_image?.[1]?.image
-            ? image_url + item.item?.product_image?.[1]?.image
-            : item.item?.product_image?.[0]?.image
-            ? image_url + item.item?.product_image?.[0]?.image
-            : 'https://via.placeholder.com/150';
-
+          // const imageUri = item.item?.product_image?.[1]?.image
+          //   ? image_url + item.item?.product_image?.[1]?.image
+          //   : item.item?.product_image?.[0]?.image
+          //   ? image_url + item.item?.product_image?.[0]?.image
+          //   : 'https://via.placeholder.com/150';
+          const productImage =
+            item?.item?.product_image?.find(
+              (img: {image: string}) =>
+                !img.image?.toLowerCase().endsWith('.mp4'),
+            )?.image || item?.item?.product_image?.[0]?.image;
           return (
             <>
               {item?.item?.product_status !== 'sold' && (
@@ -68,7 +72,7 @@ const ProductSection: React.FC<Props> = ({
                     ]}
                     onPress={() => handlePress(item.item)}>
                     <Image
-                      source={{uri: imageUri}}
+                      source={{uri: image_url + productImage}}
                       style={[
                         styles.productImage,
                         isHorizontal && styles.horizontalImage,

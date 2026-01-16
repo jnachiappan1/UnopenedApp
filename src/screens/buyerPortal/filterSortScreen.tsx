@@ -178,7 +178,7 @@ const FilterSortScreen: React.FC<FilterSortScreenProps> = ({
         <View style={{marginHorizontal: 10}}>
           <MultiSlider
             values={[minPrice, maxPrice]}
-            sliderLength={200}
+            sliderLength={180}
             onValuesChange={values => {
               setMinPrice(values[0]);
               setMaxPrice(values[1]);

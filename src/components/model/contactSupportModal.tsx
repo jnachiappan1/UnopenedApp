@@ -5,6 +5,10 @@ import {
   StyleSheet,
   StatusBar,
   TouchableOpacity,
+  TouchableWithoutFeedback,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import Modal from 'react-native-modal';
 import Button from '../button/buttons';
@@ -61,7 +65,12 @@ const ContactSupportModal: React.FC<ContactSupportModalProps> = ({
       animationOut={'slideOutDown'}
       style={styles.modelStyle}
     >
-      <View style={styles.modalContainer}>
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.keyboardAvoidingView}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.modalContainer}>
         <StatusBar barStyle="dark-content" backgroundColor={colors.modalBackGround} />
         <View style={styles.modalContent}>
           <TouchableOpacity 
@@ -109,7 +118,9 @@ const ContactSupportModal: React.FC<ContactSupportModalProps> = ({
             />
           </View>
         </View>
-      </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </Modal>
   );
 };
@@ -118,6 +129,9 @@ const styles = StyleSheet.create({
   modelStyle: {
     margin: 0,
     justifyContent: 'center',
+  },
+  keyboardAvoidingView: {
+    flex: 1,
   },
   modalContainer: {
     flex: 1,
@@ -179,7 +193,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     borderRadius: 120,
     height: 45,
-    flex: 1,
     borderColor: '#E0E0E0',
     borderWidth: 1,
   },
@@ -187,17 +200,18 @@ const styles = StyleSheet.create({
     color: '#4C4C4C',
     fontFamily: fonts.regular,
     fontSize: fontSizes.medium,
+    lineHeight: 20,
   },
   confirmBtn: {
     backgroundColor: colors.primary,
     borderRadius: 120,
     height: 45,
-    flex: 1,
   },
   confirmTextBtn: {
     color: colors.white,
     fontFamily: fonts.regular,
     fontSize: fontSizes.medium,
+    lineHeight: 20,
   },
 });
 
