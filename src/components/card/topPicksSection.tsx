@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -11,11 +11,11 @@ import {
 } from 'react-native';
 import colors from '../../utils/colors';
 import fonts from '../../assets/fonts/fonts';
-import {image_url} from '../../utils/api';
-import {ProductData} from '../../utils/types';
+import { image_url } from '../../utils/api';
+import { ProductData } from '../../utils/types';
 import StatusBadge from './statusBadge';
 
-const {width} = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 interface Product {
   id: number;
@@ -36,11 +36,11 @@ interface ProductCardProps {
   onSelect?: (item: ProductData) => void;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({item, onSelect}) => {
+const ProductCard: React.FC<ProductCardProps> = ({ item, onSelect }) => {
 
   const productImage =
     item?.product_image?.find(
-      (img: {image: string}) => !img.image?.toLowerCase().endsWith('.mp4'),
+      (img: { image: string }) => !img.image?.toLowerCase().endsWith('.mp4'),
     )?.image || item?.product_image?.[0]?.image;
 
   return (
@@ -49,7 +49,7 @@ const ProductCard: React.FC<ProductCardProps> = ({item, onSelect}) => {
       onPress={() => onSelect?.(item)}>
       <View style={styles.imageContainer}>
         <Image
-          source={{uri: image_url + productImage}}
+          source={{ uri: image_url + productImage }}
           style={styles.topPickImage}
         />
       </View>
@@ -72,11 +72,11 @@ const TopPicksSection: React.FC<Props> = ({
       {/* Header */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>{title}</Text>
-        {onViewAll && (
+        {/* {onViewAll && (
           <TouchableOpacity onPress={onViewAll}>
             <Text style={styles.viewAllText}>View All</Text>
           </TouchableOpacity>
-        )}
+        )} */}
       </View>
 
       <FlatList
@@ -85,8 +85,8 @@ const TopPicksSection: React.FC<Props> = ({
         showsHorizontalScrollIndicator={false}
         keyExtractor={item => item.id.toString()}
         contentContainerStyle={styles.listContent}
-        ItemSeparatorComponent={() => <View style={{width: 10}} />}
-        renderItem={({item}) => <ProductCard item={item} onSelect={onSelect} />}
+        ItemSeparatorComponent={() => <View style={{ width: 10 }} />}
+        renderItem={({ item }) => <ProductCard item={item} onSelect={onSelect} />}
       />
     </View>
   );

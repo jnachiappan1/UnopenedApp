@@ -10,8 +10,8 @@ import {
 } from 'react-native';
 import colors from '../../utils/colors';
 import fonts from '../../assets/fonts/fonts';
-import {image_url} from '../../utils/api';
-import {ProductData} from '../../utils/types';
+import { image_url } from '../../utils/api';
+import { ProductData } from '../../utils/types';
 import StatusBadge from './statusBadge';
 
 interface Props {
@@ -34,6 +34,10 @@ const ProductSection: React.FC<Props> = ({
     }
   };
 
+  const availableProducts = (products || []).filter(
+    item => item?.product_status !== 'sold',
+  );
+
   return (
     <View style={styles.container}>
       <View style={styles.sectionHeader}>
@@ -44,71 +48,60 @@ const ProductSection: React.FC<Props> = ({
           </TouchableOpacity>
         )}
       </View>
-      <FlatList
-        data={products}
-        keyExtractor={item => item.id.toString()}
-        numColumns={2}
-        scrollEnabled={false}
-        contentContainerStyle={styles.listContent}
-        renderItem={(item, isHorizontal = false) => {
-          // const imageUri = item.item?.product_image?.[1]?.image
-          //   ? image_url + item.item?.product_image?.[1]?.image
-          //   : item.item?.product_image?.[0]?.image
-          //   ? image_url + item.item?.product_image?.[0]?.image
-          //   : 'https://via.placeholder.com/150';
-          const productImage =
-            item?.item?.product_image?.find(
-              (img: {image: string}) =>
-                !img.image?.toLowerCase().endsWith('.mp4'),
-            )?.image || item?.item?.product_image?.[0]?.image;
-          return (
-            <>
-              {item?.item?.product_status !== 'sold' && (
-                <View style={styles.productWrapper}>
-                  <TouchableOpacity
-                    style={[
-                      styles.productCard,
-                      isHorizontal && styles.horizontalCard,
-                    ]}
-                    onPress={() => handlePress(item.item)}>
-                    <Image
-                      source={{uri: image_url + productImage}}
-                      style={[
-                        styles.productImage,
-                        isHorizontal && styles.horizontalImage,
-                      ]}
-                    />
-                    <View style={styles.productInfo}>
-                      <Text style={styles.productName} numberOfLines={1}>
-                        {item.item?.name}
-                      </Text>
-                      <Text style={styles.productDescription} numberOfLines={1}>
-                        {item.item?.description}
-                      </Text>
-                      {item?.item?.product_status === 'sold' ? (
-                        <StatusBadge status={item.item?.product_status} />
-                      ) : (
-                        <View style={styles.priceContainer}>
-                          <Text style={styles.price} numberOfLines={1}>
-                            ${item.item?.price.toFixed(2)}
+      {availableProducts.length === 0 ? (
+        <View style={styles.noProductContainer}>
+          <Text style={styles.noProductText}>Product not available</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={availableProducts}
+          keyExtractor={item => item.id.toString()}
+          numColumns={2}
+          scrollEnabled={false}
+          contentContainerStyle={styles.listContent}
+          renderItem={({ item }) => {
+            const productImage =
+              item?.product_image?.find(
+                (img: { image: string }) =>
+                  !img.image?.toLowerCase().endsWith('.mp4'),
+              )?.image || item?.product_image?.[0]?.image;
+            return (
+              <View style={styles.productWrapper}>
+                <TouchableOpacity
+                  style={styles.productCard}
+                  onPress={() => handlePress(item)}>
+                  <Image
+                    source={{ uri: image_url + productImage }}
+                    style={styles.productImage}
+                  />
+                  <View style={styles.productInfo}>
+                    <Text style={styles.productName} numberOfLines={1}>
+                      {item?.name}
+                    </Text>
+                    <Text style={styles.productDescription} numberOfLines={1}>
+                      {item?.description}
+                    </Text>
+                    {item?.product_status === 'sold' ? (
+                      <StatusBadge status={item.product_status} />
+                    ) : (
+                      <View style={styles.priceContainer}>
+                        <Text style={styles.price} numberOfLines={1}>
+                          ${item?.price.toFixed(2)}
+                        </Text>
+                        {item?.msrp && (
+                          <Text style={styles.originalPrice} numberOfLines={1}>
+                            ${item?.msrp.toFixed(2)}
                           </Text>
-                          {item.item?.msrp && (
-                            <Text
-                              style={styles.originalPrice}
-                              numberOfLines={1}>
-                              ${item.item?.msrp.toFixed(2)}
-                            </Text>
-                          )}
-                        </View>
-                      )}
-                    </View>
-                  </TouchableOpacity>
-                </View>
-              )}
-            </>
-          );
-        }}
-      />
+                        )}
+                      </View>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              </View>
+            );
+          }}
+        />
+      )}
     </View>
   );
 };
@@ -214,5 +207,15 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bold,
     textDecorationLine: 'line-through',
     width: '50%',
+  },
+  noProductContainer: {
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  noProductText: {
+    fontSize: 16,
+    fontFamily: fonts.medium,
+    color: '#666666',
   },
 });

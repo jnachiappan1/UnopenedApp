@@ -1,6 +1,7 @@
 export const base_url = 'https://api.unopenedapp.com';
 // export const base_url = 'http://192.168.29.33:5019';
 
+
 export const image_url = 'https://unopened-storage.s3.us-east-1.amazonaws.com';
 export const google_api_key = 'AIzaSyDgYwd7eBxFOYR4rg6WN2jKlf9rYyopqgw';
 

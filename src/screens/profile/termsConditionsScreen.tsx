@@ -7,8 +7,9 @@ import { showLoader } from '../../components/loader/loader';
 import RenderHTML from 'react-native-render-html';
 import { getLegalcontent } from '../../utils/apiAction';
 import colors from '../../utils/colors';
-import { fontSizes } from '../../utils/utils';
+import { fontSizes, OS } from '../../utils/utils';
 import fonts from '../../assets/fonts/fonts';
+import { useWindowDimensions } from 'react-native';
 
 type TermsConditionsScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -32,20 +33,26 @@ const TermsConditionsScreen: React.FC<TermsConditionsScreenProps> = ({ navigatio
       console.error('Error fetching terms and conditions:', error);
     }
   };
+  const { width } = useWindowDimensions();
   const renderHTMLMemoized = useMemo(
     () => (
       <RenderHTML
         source={{ html: privacyPolicy }}
-        contentWidth={300}
+        contentWidth={width}
         tagsStyles={{
           p: styles.contentText,
-          h1: styles.contentText,
-          h3: styles.contentText,
+          h1: styles.headerText,
+          h2: styles.headerText,
+          h3: styles.headerText,
+          h4: styles.headerText,
           ul: styles.contentText,
+          li: styles.contentText,
+          strong: { fontFamily: fonts.bold },
+          b: { fontFamily: fonts.bold },
         }}
       />
     ),
-    [privacyPolicy],
+    [privacyPolicy, width],
   );
   return (
     <TitleBackHeaderContainer isBack title={type === 'terms_and_conditions'
@@ -72,5 +79,15 @@ const styles = StyleSheet.create({
     color: colors.label,
     fontFamily: fonts.regular,
     marginHorizontal: 20,
+    marginBottom: 10,
+    lineHeight: 22,
+  },
+  headerText: {
+    fontSize: fontSizes.large,
+    color: colors.primaryBlack,
+    fontFamily: fonts.bold,
+    marginHorizontal: 20,
+    marginTop: 15,
+    marginBottom: 8,
   },
 });
