@@ -1,9 +1,9 @@
 import axios from 'axios';
-import {base_url} from './api';
-import {store} from '../redux/store';
-import {showAlert} from '../components/cAlert';
-import {saveUserData, setAuthToken} from '../redux/reducers/user/UserReducer';
-import {SCREENS} from '../navigation/mainNavigation';
+import { base_url } from './api';
+import { store } from '../redux/store';
+import { showAlert } from '../components/cAlert';
+import { saveUserData, setAuthToken } from '../redux/reducers/user/UserReducer';
+import { SCREENS } from '../navigation/mainNavigation';
 import * as RootNavigation from '../../RootNavigation';
 
 const instance = axios.create({

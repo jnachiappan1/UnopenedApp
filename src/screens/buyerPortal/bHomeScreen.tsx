@@ -1,23 +1,23 @@
-import {StyleSheet, FlatList, View, Text, TouchableOpacity} from 'react-native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import { StyleSheet, FlatList, View, Text, TouchableOpacity } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import HeaderHomeContainer from '../../components/headerContainer/headerHomeContainer';
-import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {bannerData} from '../../utils/static';
+import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { bannerData } from '../../utils/static';
 import BannerItem from '../../components/card/bannerItem';
 import SearchBar from '../../components/card/searchBar';
 import CategoryList from '../../components/card/categoryList';
 import ProductSection from '../../components/card/productSection';
-import {ProductCategory, ProductData} from '../../utils/types';
+import { ProductCategory, ProductData } from '../../utils/types';
 import {
   getAllProductList,
   getCategoryDetail,
   getMyOrderList,
   getProductList,
 } from '../../utils/apiAction';
-import {IRootState} from '../../redux/store';
-import {useSelector} from 'react-redux';
-import {useQuery} from '@tanstack/react-query';
+import { IRootState } from '../../redux/store';
+import { useSelector } from 'react-redux';
+import { useQuery } from '@tanstack/react-query';
 import TopPicksSection from '../../components/card/topPicksSection';
 import OrderListingCard from '../../components/card/orderListingCard';
 import fonts from '../../assets/fonts/fonts';
@@ -28,7 +28,7 @@ type LoginProps = NativeStackScreenProps<
   SCREENS.BHomeScreen
 >;
 
-const BHomeScreen: React.FC<LoginProps> = ({route, navigation}) => {
+const BHomeScreen: React.FC<LoginProps> = ({ route, navigation }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const userData = useSelector((user: IRootState) => user.user.userData);
@@ -61,7 +61,7 @@ const BHomeScreen: React.FC<LoginProps> = ({route, navigation}) => {
       params.search = '';
     }
     if (selectedSort?.id) {
-      const sortMapping: {[key: string]: string} = {
+      const sortMapping: { [key: string]: string } = {
         price_low_to_high: 'price_low_to_high',
         price_high_to_low: 'price_high_to_low',
         newest_first: 'newest_first',
@@ -93,18 +93,18 @@ const BHomeScreen: React.FC<LoginProps> = ({route, navigation}) => {
     return params;
   };
 
-  const {data: categoryData} = useQuery({
+  const { data: categoryData } = useQuery({
     queryKey: ['getCategoryDetail'],
     queryFn: () => getCategoryDetail(),
     enabled: isLogged,
   });
 
-  const {data: allProductList} = useQuery({
+  const { data: allProductList } = useQuery({
     queryKey: ['getAllProductList', userData?.id],
     queryFn: () => getAllProductList(userData?.id),
   });
 
-  const {data: sellerOwnProductList, refetch: refetchsellerOwnProductList} =
+  const { data: sellerOwnProductList, refetch: refetchsellerOwnProductList } =
     useQuery({
       queryKey: ['getMyOrderList', userData?.id],
       queryFn: () => getMyOrderList(),
@@ -115,20 +115,20 @@ const BHomeScreen: React.FC<LoginProps> = ({route, navigation}) => {
     });
   const sellerOwnProductData =
     isLogged &&
-    Array.isArray(sellerOwnProductList?.data?.product) &&
-    sellerOwnProductList.data.product.every(
-      (item: any) => item && typeof item === 'object' && 'id' in item,
-    )
+      Array.isArray(sellerOwnProductList?.data?.product) &&
+      sellerOwnProductList.data.product.every(
+        (item: any) => item && typeof item === 'object' && 'id' in item,
+      )
       ? (sellerOwnProductList.data.product as ProductData[])
       : [];
 
   const latestData =
     sellerOwnProductData.length > 0
       ? sellerOwnProductData.sort(
-          (a, b) =>
-            new Date(b.updatedAt || b.createdAt).getTime() -
-            new Date(a.updatedAt || a.createdAt).getTime(),
-        )
+        (a, b) =>
+          new Date(b.updatedAt || b.createdAt).getTime() -
+          new Date(a.updatedAt || a.createdAt).getTime(),
+      )
       : [];
 
   const oneLatestItem = latestData.slice(0, 1);
@@ -254,7 +254,7 @@ const BHomeScreen: React.FC<LoginProps> = ({route, navigation}) => {
     selectedCategoryIds,
   ]);
 
-  useEffect(() => {}, [
+  useEffect(() => { }, [
     isLogged,
     userData,
     selectedCategoryIds,
@@ -269,8 +269,8 @@ const BHomeScreen: React.FC<LoginProps> = ({route, navigation}) => {
   const handleFilterPress = () => {
     const onApplyFilters = (
       filterCategories: ProductCategory[],
-      filterSort: {id: string; name: string} | null,
-      filterPriceRange: {min: number; max: number} | null,
+      filterSort: { id: string; name: string } | null,
+      filterPriceRange: { min: number; max: number } | null,
     ) => {
       setSelectedCategoryIds([]);
       setSelectedCategoryId(null);
@@ -377,19 +377,19 @@ const BHomeScreen: React.FC<LoginProps> = ({route, navigation}) => {
       userName={`Hello ${userData?.full_name ?? 'Guest'}`}
       isHome
       profileImage={userData?.profile_picture}
-      onSearchPress={() => {}}
+      onSearchPress={() => { }}
       refreshing={refreshing}
       onRefresh={onRefresh}>
       {!shouldShowMyPurchase ? (
         <FlatList
           data={bannerData}
           keyExtractor={item => item.id}
-          renderItem={({item}) => <BannerItem item={item} />}
+          renderItem={({ item }) => <BannerItem item={item} />}
           horizontal
           showsHorizontalScrollIndicator={false}
         />
       ) : (
-        <View style={{height: 10}} />
+        <View style={{ height: 10 }} />
       )}
 
       <SearchBar
@@ -418,10 +418,10 @@ const BHomeScreen: React.FC<LoginProps> = ({route, navigation}) => {
           </View>
 
           {oneLatestItem?.map((item, index) => (
-            <View key={item?.id ?? index} style={{paddingHorizontal: 10}}>
+            <View key={item?.id ?? index} style={{ paddingHorizontal: 10 }}>
               <OrderListingCard
                 item={item}
-                cardStyle={{marginBottom: 0}}
+                cardStyle={{ marginBottom: 0 }}
                 onSelect={() =>
                   navigation.navigate(SCREENS.OrderTrackScreen, {
                     productId: item?.id,
@@ -468,7 +468,7 @@ const BHomeScreen: React.FC<LoginProps> = ({route, navigation}) => {
             <TopPicksSection
               title="Sold Product"
               products={soldProducts}
-              onViewAll={() => {}}
+              onViewAll={() => { }}
               onSelect={item =>
                 navigation.navigate(SCREENS.BProductDetailScreen, {
                   productId: item?.id,
@@ -479,7 +479,7 @@ const BHomeScreen: React.FC<LoginProps> = ({route, navigation}) => {
         </>
       )}
 
-      <View style={{height: 110}} />
+      <View style={{ height: 110 }} />
     </HeaderHomeContainer>
   );
 };

@@ -25,7 +25,7 @@ export interface IUser {
   createdAt: string | null | undefined;
   updatedAt: string | null | undefined;
 }
-export type errorMsg = {message: ''; status: 'error'};
+export type errorMsg = { message: ''; status: 'error' };
 export interface IUserState {
   userData: IUser | null | any;
   token: string | null;
@@ -118,7 +118,7 @@ export interface OrderData {
   title: string;
   price: number;
   order_Id: string;
-  delivered_On:string;
+  delivered_On: string;
   image: string;
   status: string;
 }
@@ -235,4 +235,23 @@ export interface CouponsItem {
   createdAt: string;
   updatedAt: string;
   is_available: boolean;
+}
+
+export interface IAppVersion {
+  id: number;
+  platform: 'ios' | 'android';
+  current_version: string;
+  minimum_version: string;
+  force_update: boolean;
+  store_url: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface IResponse<T = any> {
+  status: string;
+  message: string;
+  data: T;
+  statusCode?: number;
 }

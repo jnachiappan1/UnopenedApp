@@ -1,23 +1,23 @@
-import {Alert, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-import React, {useState} from 'react';
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState } from 'react';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
-import {fontSizes} from '../../utils/utils';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
+import { fontSizes } from '../../utils/utils';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
 import colors from '../../utils/colors';
 import fonts from '../../assets/fonts/fonts';
 import Button from '../../components/button/buttons';
 import Input from '../../components/input/input';
-import {useForm} from 'react-hook-form';
-import {quickAmounts} from '../../utils/static';
+import { useForm } from 'react-hook-form';
+import { quickAmounts } from '../../utils/static';
 import PaymentMethodOption from '../../components/card/paymentMethodOption';
-import {useMutation} from '@tanstack/react-query';
-import {makePayment} from '../../utils/apiAction';
-import {useStripe} from '@stripe/stripe-react-native';
-import {useSelector} from 'react-redux';
-import {IRootState} from '../../redux/store';
-import {showLoader} from '../../components/loader/loader';
-import {showAlert} from '../../components/cAlert';
+import { useMutation } from '@tanstack/react-query';
+import { makePayment } from '../../utils/apiAction';
+import { useStripe } from '@stripe/stripe-react-native';
+import { useSelector } from 'react-redux';
+import { IRootState } from '../../redux/store';
+import { showLoader } from '../../components/loader/loader';
+import { showAlert } from '../../components/cAlert';
 
 type AddFundScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -27,16 +27,16 @@ type Inputs = {
   amount: string;
 };
 
-const AddFundScreen: React.FC<AddFundScreenProps> = ({navigation}) => {
+const AddFundScreen: React.FC<AddFundScreenProps> = ({ navigation }) => {
   const [selectedPayment, setSelectedPayment] = useState<string | null>(
     'stripe',
   );
-  const {initPaymentSheet, presentPaymentSheet} = useStripe();
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const userData = useSelector((user: IRootState) => user.user.userData);
 
   const {
     control,
-    formState: {errors},
+    formState: { errors },
     handleSubmit,
     setValue,
     watch,
@@ -48,9 +48,9 @@ const AddFundScreen: React.FC<AddFundScreenProps> = ({navigation}) => {
     setValue('amount', value.toString());
   };
 
-  const {mutate: addFundsMutation} = useMutation({
-    mutationFn: (data: {amount: string}) =>
-      makePayment('add_funds', {amount: data.amount}),
+  const { mutate: addFundsMutation } = useMutation({
+    mutationFn: (data: { amount: string }) =>
+      makePayment('add_funds', { amount: data.amount }),
     onSuccess: (data: any) => {
       handleStripePayment(data);
     },
@@ -78,7 +78,7 @@ const AddFundScreen: React.FC<AddFundScreenProps> = ({navigation}) => {
         return;
       }
 
-      const {clientSecret, ephemeralKey, customer, paymentIntentId} =
+      const { clientSecret, ephemeralKey, customer, paymentIntentId } =
         paymentResponse.data;
 
       if (!clientSecret || !ephemeralKey || !customer) {
@@ -93,7 +93,7 @@ const AddFundScreen: React.FC<AddFundScreenProps> = ({navigation}) => {
         return;
       }
 
-      const {error} = await initPaymentSheet({
+      const { error } = await initPaymentSheet({
         merchantDisplayName: 'Unopened Mobile',
         customerId: customer,
         customerEphemeralKeySecret: ephemeralKey,
@@ -116,7 +116,7 @@ const AddFundScreen: React.FC<AddFundScreenProps> = ({navigation}) => {
         return;
       }
 
-      const {error: presentError} = await presentPaymentSheet();
+      const { error: presentError } = await presentPaymentSheet();
 
       if (presentError) {
         showLoader(false);
@@ -164,7 +164,7 @@ const AddFundScreen: React.FC<AddFundScreenProps> = ({navigation}) => {
 
     if (selectedPayment === 'stripe') {
       showLoader(true);
-      addFundsMutation({amount: data.amount});
+      addFundsMutation({ amount: data.amount });
     } else {
       Alert.alert('Payment method not implemented yet.');
     }
@@ -190,7 +190,7 @@ const AddFundScreen: React.FC<AddFundScreenProps> = ({navigation}) => {
             placeholder: 'Enter Amount',
             keyboardType: 'numeric',
           }}
-          required={{value: true, message: 'Please enter amount'}}
+          required={{ value: true, message: 'Please enter amount' }}
           error={errors}
           maxLength={40}
           inputStyle={styles.inputStyle}
@@ -272,17 +272,17 @@ const styles = StyleSheet.create({
   },
   quickAmountsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    flexWrap: 'wrap',
     paddingHorizontal: 10,
     marginTop: 10,
   },
   quickBtn: {
     backgroundColor: '#E6ECDE',
     borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingHorizontal: 15,
+    paddingVertical: 8,
     marginRight: 10,
-    marginVertical: 10,
+    marginBottom: 10,
   },
   quickText: {
     fontSize: 14,

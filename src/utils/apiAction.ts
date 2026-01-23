@@ -1,4 +1,4 @@
-import {API} from './api';
+import { API } from './api';
 import axios from './axios';
 import axiosmultipart from './axiosmultipart';
 import {
@@ -10,6 +10,7 @@ import {
   ContactSupportType,
   AddressPayloadType,
   PaymentPayloadType,
+  IResponse,
 } from './types';
 
 //Plan Owner Auth API Action
@@ -75,7 +76,7 @@ export const getBankAccount = async () => {
   return response;
 };
 
-export const cashOut = async (data: {amount: string}) => {
+export const cashOut = async (data: { amount: string }) => {
   const response = await axios.post(API.buyer.cashOut, data);
   return response;
 };
@@ -163,9 +164,8 @@ export const getProductList = async ({
       queryParts.push(`user_id=${encodeURIComponent(user_id.toString())}`);
     }
     const queryString = queryParts.join('&');
-    const url = `${API.seller.getProductList}${
-      queryString ? `?${queryString}` : ''
-    }`;
+    const url = `${API.seller.getProductList}${queryString ? `?${queryString}` : ''
+      }`;
     const response = await axios.get(url);
     return response;
   } catch (error) {
@@ -182,7 +182,6 @@ export const getAllProductList = async (user_id?: number) => {
     const response = await axios.get(url);
     return response;
   } catch (error) {
-    console.error('Error fetching product list:', error);
     throw error;
   }
 };
@@ -202,7 +201,7 @@ export const getSalesProductList = async () => {
 export const getProductDetailByID = async (
   productID?: string | number | null | undefined,
 ) => {
-  
+
   const response = await axios.get(API.buyer.getProductList + '/' + productID);
   return response;
 };
@@ -224,7 +223,7 @@ export const validateCoupon = async (data: {
 };
 export const soldProduct = async (
   productId: string | number | null | undefined,
-  payload?: {address_id: number},
+  payload?: { address_id: number },
 ) => {
   const response = await axios.patch(
     `${API.seller.soldProduct}${productId}`,
@@ -414,3 +413,8 @@ export const getAddressById = async (addressId: any) => {
   const response = await axios.get(`${API.buyer.addressById}${addressId}`);
   return response;
 };
+export const apiVersion = async (): Promise<IResponse> => {
+  const response = await axios.get(API.apiVersion);
+  return response as unknown as IResponse;
+};
+

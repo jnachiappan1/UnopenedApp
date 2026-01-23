@@ -9,6 +9,7 @@ import { Provider as StoreProvider, useDispatch, useSelector } from 'react-redux
 import { IRootState, store } from './src/redux/store';
 import MainNavigation from './src/navigation/mainNavigation';
 import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query';
+import ForceUpdateChecker from './src/components/version/ForceUpdateChecker';
 import { LogBox } from 'react-native';
 import { StripeProvider } from '@stripe/stripe-react-native';
 import { getPublishKeyAction } from './src/utils/apiAction';
@@ -32,35 +33,35 @@ function AppContent() {
     queryFn: getPublishKeyAction,
     enabled: !!token,
   });
-// const checkToken = async () => {
-//   const fcmToken = await messaging().getToken();
-//   if (fcmToken) {
-//     dispatch(saveFcmToken(fcmToken));
-//   }
-//   if (OS === "ios") {
-//     messaging().onTokenRefresh((fcmToken) => {});
+  // const checkToken = async () => {
+  //   const fcmToken = await messaging().getToken();
+  //   if (fcmToken) {
+  //     dispatch(saveFcmToken(fcmToken));
+  //   }
+  //   if (OS === "ios") {
+  //     messaging().onTokenRefresh((fcmToken) => {});
 
-//   }
-// };
-const checkToken = async () => {
-  const fcmToken = await messaging().getToken();
+  //   }
+  // };
+  const checkToken = async () => {
+    const fcmToken = await messaging().getToken();
 
-  if (fcmToken) {
-  }
-  if (OS === 'ios') {
-    messaging().onTokenRefresh(() => {});
-  }
-};
-React.useEffect(() => {
-  checkToken();
-}, []);
+    if (fcmToken) {
+    }
+    if (OS === 'ios') {
+      messaging().onTokenRefresh(() => { });
+    }
+  };
+  React.useEffect(() => {
+    checkToken();
+  }, []);
 
   React.useEffect(() => {
     if (token) {
       setPublishKey(data?.data?.publishKey || '');
     }
   }, [data, error, token]);
- 
+
   React.useEffect(() => {
     messaging().setBackgroundMessageHandler(async remoteMessage => {
     });
@@ -102,6 +103,7 @@ export default function App() {
         <StoreProvider store={store}>
           <QueryClientProvider client={queryClient}>
             <AppContent />
+            <ForceUpdateChecker />
             <Loader />
             <CAlert />
           </QueryClientProvider>

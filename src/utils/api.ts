@@ -1,9 +1,12 @@
-export const base_url = 'https://api.unopenedapp.com';
-// export const base_url = 'http://192.168.29.33:5019';
+// export const base_url = 'https://api.unopenedapp.com';
+export const base_url = 'http://192.168.29.33:5019';
 
 
 export const image_url = 'https://unopened-storage.s3.us-east-1.amazonaws.com';
 export const google_api_key = 'AIzaSyDgYwd7eBxFOYR4rg6WN2jKlf9rYyopqgw';
+
+export const iOSCurrentVersion = '1.0.0';
+export const AndroidCurrentVersion = '1.0.0';
 
 export const API = {
   buyer: {
@@ -61,4 +64,5 @@ export const API = {
   },
   readNotification: `${base_url}/api/v1/notification/mark-all-read`,
   readSingleNotification: `${base_url}/api/v1/notification`,
+  apiVersion: `${base_url}/api/v1/app-version`,
 };

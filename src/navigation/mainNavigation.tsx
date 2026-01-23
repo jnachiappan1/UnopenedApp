@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 // In App.js in a new project
 import React from 'react';
-import {View} from 'react-native';
+import { View } from 'react-native';
 // import BottomTabNav from './bottomTabNav';
 import {
   createStackNavigator,
   CardStyleInterpolators,
 } from '@react-navigation/stack';
-import {useContainer} from '../components/hooks/useContainer';
+import { useContainer } from '../components/hooks/useContainer';
 import VerifyOTP from '../screens/auth/verifyOTP';
 import LoginScreen from '../screens/auth/loginScreen';
 import SignUpScreen from '../screens/auth/signUpScreen';
@@ -40,8 +40,8 @@ import BProductDetailScreen from '../screens/buyerPortal/bProductDetailScreen';
 import ConfirmYourOrderScreen from '../screens/buyerPortal/confirmYourOrderScreen';
 import AddAddressScreen from '../screens/buyerPortal/addAddressScreen';
 import EditAddressScreen from '../screens/buyerPortal/editAddressScreen';
-import {useDispatch, useSelector} from 'react-redux';
-import {IRootState} from '../redux/store';
+import { useDispatch, useSelector } from 'react-redux';
+import { IRootState } from '../redux/store';
 import AddProductScreen from '../screens/sellerPortal/addProductScreen';
 import UnifiedBarcodeScanner from '../screens/sellerPortal/unifiedBarcodeScanner';
 import PricingStepScreen, {
@@ -49,13 +49,14 @@ import PricingStepScreen, {
 } from '../screens/sellerPortal/pricingStepScreen';
 import AddressSelectionScreen from '../screens/buyerPortal/addressSelectionScreen';
 // S/B Home screens are provided via BottomTab; do not register in Stack to avoid duplicate mounts
-import {getFCMToken} from '../utils/notificationHelper';
-import {saveFcmToken} from '../redux/reducers/user/UserReducer';
+import { getFCMToken } from '../utils/notificationHelper';
+import { saveFcmToken } from '../redux/reducers/user/UserReducer';
 import AddBankDetailsScreen from '../screens/wallet/addBankDetailsScreen';
 import ChangeBankDetailsScreen from '../screens/wallet/changeBankDetailsScreen';
 import NotificationScreen from '../screens/notification/notificationScreen';
 import FullScreen from '../screens/sellerPortal/FullScreen';
 import SellerAgreementScreen from '../screens/profile/sellerAgreementScreen';
+import { apiVersion } from '../utils/apiAction';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -81,6 +82,7 @@ const MainNavigation: React.FC = () => {
     checkToken();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
   const checkToken = async () => {
     const fcmToken = await getFCMToken();
     dispatch(saveFcmToken(fcmToken));
@@ -256,10 +258,10 @@ export type RootStackParamList = {
     type?: string | null | undefined;
   };
   [SCREENS.SignUpScreen]: undefined;
-  [SCREENS.BottomTab]: {screen?: SCREENS; params?: any} | undefined;
-  [SCREENS.SHomeScreen]: {openSellerAgreement?: boolean} | undefined;
+  [SCREENS.BottomTab]: { screen?: SCREENS; params?: any } | undefined;
+  [SCREENS.SHomeScreen]: { openSellerAgreement?: boolean } | undefined;
   [SCREENS.BHomeScreen]: undefined;
-  [SCREENS.AddProductScreen]: {scannedBarcode?: string};
+  [SCREENS.AddProductScreen]: { scannedBarcode?: string };
   [SCREENS.ProductListScreen]: undefined;
   [SCREENS.SalesScreen]: undefined;
   [SCREENS.WalletScreen]: undefined;
@@ -273,7 +275,7 @@ export type RootStackParamList = {
   [SCREENS.ProfileScreen]: undefined;
   [SCREENS.HelpSupportScreen]: undefined;
   [SCREENS.PrivacyPolicyScreen]: undefined;
-  [SCREENS.TermsConditionsScreen]: {type?: string | null | undefined};
+  [SCREENS.TermsConditionsScreen]: { type?: string | null | undefined };
   [SCREENS.EditProfileScreen]: undefined;
   [SCREENS.ChangePasswordScreen]: undefined;
   [SCREENS.ProfileLoginScreen]: undefined;
@@ -289,12 +291,12 @@ export type RootStackParamList = {
   [SCREENS.FilterSortScreen]: {
     onApplyFilters: (
       selectedCategories: ProductCategory[],
-      selectedSort: {id: string; name: string} | null,
-      selectedPriceRange: {min: number; max: number} | null,
+      selectedSort: { id: string; name: string } | null,
+      selectedPriceRange: { min: number; max: number } | null,
     ) => void;
     initialFilters: ProductCategory[];
-    initialSort: {id: string; name: string} | null;
-    initialPriceRange: {min: number; max: number} | null;
+    initialSort: { id: string; name: string } | null;
+    initialPriceRange: { min: number; max: number } | null;
   };
   [SCREENS.OrderTrackScreen]: {
     productId: string | number | null | undefined;
@@ -307,17 +309,17 @@ export type RootStackParamList = {
     productId: string | number | null | undefined;
   };
   [SCREENS.AddAddressScreen]:
-    | {
-        addressId?: number;
-        mode?: 'add' | 'edit';
-      }
-    | undefined;
+  | {
+    addressId?: number;
+    mode?: 'add' | 'edit';
+  }
+  | undefined;
   [SCREENS.EditAddressScreen]:
-    | {
-        addressId?: number;
-        mode?: 'add' | 'edit';
-      }
-    | undefined;
+  | {
+    addressId?: number;
+    mode?: 'add' | 'edit';
+  }
+  | undefined;
   [SCREENS.AddressSelectionScreen]: {
     onAddressSelect: (address: any) => void;
     selectedAddressId?: number | null;
@@ -327,6 +329,6 @@ export type RootStackParamList = {
   [SCREENS.AddBankDetailsScreen]: undefined;
   [SCREENS.ChangeBankDetailsScreen]: undefined;
   [SCREENS.NotificationScreen]: undefined;
-  [SCREENS.FullScreen]: {url: any; time: any};
-  [SCREENS.SellerAgreementScreen]: {type?: string | null | undefined};
+  [SCREENS.FullScreen]: { url: any; time: any };
+  [SCREENS.SellerAgreementScreen]: { type?: string | null | undefined };
 };

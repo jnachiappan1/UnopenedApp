@@ -6,12 +6,14 @@ import {
   View,
   ScrollView,
   Linking,
+  BackHandler,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, { useState, useCallback } from 'react';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
-import {fontSizes} from '../../utils/utils';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
+import { fontSizes } from '../../utils/utils';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useFocusEffect } from '@react-navigation/native';
+import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
 import colors from '../../utils/colors';
 import StatusBadge from '../../components/card/statusBadge';
 import fonts from '../../assets/fonts/fonts';
@@ -23,15 +25,15 @@ import {
   createShipping,
   labelPurchase,
 } from '../../utils/apiAction';
-import {useMutation, useQuery} from '@tanstack/react-query';
-import {image_url} from '../../utils/api';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { image_url } from '../../utils/api';
 import ContactSupportModal from '../../components/model/contactSupportModal';
-import {useSelector} from 'react-redux';
-import {IRootState} from '../../redux/store';
-import {ContactSupportType} from '../../utils/types';
-import {showLoader} from '../../components/loader/loader';
-import {showAlert} from '../../components/cAlert';
-import {handleError, handleSettled} from '../../utils/method';
+import { useSelector } from 'react-redux';
+import { IRootState } from '../../redux/store';
+import { ContactSupportType } from '../../utils/types';
+import { showLoader } from '../../components/loader/loader';
+import { showAlert } from '../../components/cAlert';
+import { handleError, handleSettled } from '../../utils/method';
 
 // Add interface for tracking step data
 interface TrackingStep {
@@ -52,7 +54,7 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({
   route,
 }) => {
   const productId = route.params;
-  const {source} = route.params;
+  const { source } = route.params;
 
   const [isContactSupportModalVisible, setIsContactSupportModalVisible] =
     useState(false);
@@ -60,7 +62,28 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({
   const [shipmentId, setShipmentId] = useState<string | null>(null);
   const userData = useSelector((state: IRootState) => state.user.userData);
 
-  const {data: productDetail, refetch: refetchAllProduct} = useQuery({
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        if (source === 'confirm_your_order') {
+          navigation.navigate(SCREENS.BottomTab, {
+            screen: SCREENS.BHomeScreen,
+          });
+          return true;
+        }
+        return false;
+      };
+
+      const backHandler = BackHandler.addEventListener(
+        'hardwareBackPress',
+        onBackPress,
+      );
+
+      return () => backHandler.remove();
+    }, [navigation, source]),
+  );
+
+  const { data: productDetail, refetch: refetchAllProduct } = useQuery({
     queryKey: ['getProductDetailByID', productId?.productId],
     queryFn: () => getProductDetailByID(productId?.productId),
   });
@@ -92,14 +115,14 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({
   // });
 
   // const trackingUrl = shippingTrackingData?.data?.tracking?.tracking_url;
-  const {data: shippingTrackingData, isLoading: isTrackingLoading}: any =
+  const { data: shippingTrackingData, isLoading: isTrackingLoading }: any =
     useQuery({
       queryKey: ['trackShipment', productDetail?.data?.product[0]?.shipment_id],
       queryFn: () =>
         trackShipment(productDetail?.data?.product[0]?.shipment_id),
       enabled: !!productDetail?.data?.product[0]?.shipment_id,
     });
-  const {data: purchaseLabelData} = useQuery({
+  const { data: purchaseLabelData } = useQuery({
     queryKey: ['purchaseData', productDetail?.data?.product[0]?.shipment_id],
     queryFn: () => labelPurchase(productDetail?.data?.product[0]?.shipment_id),
     enabled: !!productDetail?.data?.product[0]?.shipment_id,
@@ -267,12 +290,12 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({
           subtitle: 'Package will be delivered',
           date: shippingTrackingData?.tracking?.estimated_delivery
             ? new Date(
-                shippingTrackingData.tracking.estimated_delivery,
-              ).toLocaleDateString('en-US', {
-                day: 'numeric',
-                month: 'short',
-                year: 'numeric',
-              })
+              shippingTrackingData.tracking.estimated_delivery,
+            ).toLocaleDateString('en-US', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+            })
             : 'Expected soon',
           isCompleted: false,
         });
@@ -296,8 +319,8 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({
         subtitle: 'Shipping label generated, sent to seller',
         date:
           status === 'in_transit' ||
-          status === 'out_for_delivery' ||
-          status === 'delivered'
+            status === 'out_for_delivery' ||
+            status === 'delivered'
             ? 'Pending'
             : 'Pending',
         isCompleted:
@@ -329,10 +352,10 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({
   // Use shipping tracking status if available, otherwise use product status
   const trackingSteps = generateTrackingSteps(
     shippingTrackingData?.tracking?.status ||
-      productDetail?.data?.product[0]?.status,
+    productDetail?.data?.product[0]?.status,
   );
 
-  const {mutate} = useMutation({
+  const { mutate } = useMutation({
     mutationFn: contactUs,
     onSuccess: data => {
       showLoader(false);
@@ -430,7 +453,7 @@ const OrderTrackScreen: React.FC<OrderTrackScreenProps> = ({
       title="Track Order"
       onBackPress={() => {
         if (source === 'confirm_your_order') {
-          navigation.navigate(SCREENS.BottomTab, {screen: SCREENS.BHomeScreen});
+          navigation.navigate(SCREENS.BottomTab, { screen: SCREENS.BHomeScreen });
         } else {
           navigation.goBack();
         }
