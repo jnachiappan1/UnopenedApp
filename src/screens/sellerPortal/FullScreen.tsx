@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -10,10 +10,10 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 import Video from 'react-native-video';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Slider from '@react-native-community/slider';
 import Orientation from 'react-native-orientation-locker';
-import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
+import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
 import colors from '../../utils/colors';
 import IconsSvg from '../../assets/svg/iconsSvg';
 
@@ -22,8 +22,8 @@ type ScreenProps = NativeStackScreenProps<
   SCREENS.FullScreen
 >;
 
-const FullScreen: React.FC<ScreenProps> = ({navigation, route}) => {
-  const {url, time} = route.params;
+const FullScreen: React.FC<ScreenProps> = ({ navigation, route }) => {
+  const { url, time } = route.params;
 
   const [paused, setPaused] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -39,7 +39,7 @@ const FullScreen: React.FC<ScreenProps> = ({navigation, route}) => {
   const screenWidth = Math.max(screenData.width, screenData.height);
   const screenHeight = Math.min(screenData.width, screenData.height);
 
-  const handleLoad = (data: {duration: number}) => {
+  const handleLoad = (data: { duration: number }) => {
     setDuration(data.duration);
     setLoading(false);
 
@@ -83,9 +83,8 @@ const FullScreen: React.FC<ScreenProps> = ({navigation, route}) => {
     const mins = Math.floor((time % 3600) / 60);
     const secs = Math.floor(time % 60);
     if (hrs > 0) {
-      return `${hrs}:${mins < 10 ? '0' : ''}${mins}:${
-        secs < 10 ? '0' : ''
-      }${secs}`;
+      return `${hrs}:${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''
+        }${secs}`;
     } else {
       return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
     }
@@ -95,7 +94,7 @@ const FullScreen: React.FC<ScreenProps> = ({navigation, route}) => {
     Orientation.lockToLandscape();
 
     return () => {
-      Orientation.unlockAllOrientations();
+      Orientation.lockToPortrait();
     };
   }, []);
 
@@ -126,7 +125,7 @@ const FullScreen: React.FC<ScreenProps> = ({navigation, route}) => {
             onBuffer={() => {
               setLoading(false);
             }}
-            onError={data => {}}
+            onError={data => { }}
           />
           {loading && (
             <View style={styles.controls}>
@@ -275,7 +274,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     textShadowColor: 'rgba(0, 0, 0, 0.8)',
-    textShadowOffset: {width: 1, height: 1},
+    textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
   },
   progressBar: {
@@ -293,7 +292,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     textShadowColor: 'rgba(0, 0, 0, 0.8)',
-    textShadowOffset: {width: 1, height: 1},
+    textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
     minWidth: 80,
   },

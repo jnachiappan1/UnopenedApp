@@ -1,16 +1,16 @@
-import {Image, StyleSheet, View} from 'react-native';
-import React, {useCallback, useEffect, useState, useMemo, useRef} from 'react';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
+import { Image, StyleSheet, View } from 'react-native';
+import React, { useCallback, useEffect, useState, useMemo, useRef } from 'react';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
 import IconsSvg from '../../assets/svg/iconsSvg';
 import IMAGE from '../../assets/images';
 import Input from '../../components/input/input';
-import {useForm} from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import fonts from '../../assets/fonts/fonts';
 import colors from '../../utils/colors';
-import {emailPattern, fontSizes} from '../../utils/utils';
+import { emailPattern, fontSizes } from '../../utils/utils';
 import ProfileImageUpload from '../../components/model/profileImageUpload';
-import {useFocusEffect} from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
 import TitleBackHeaderContainer from '../../components/headerContainer/titleBackHeaderContainer';
 import Button from '../../components/button/buttons';
 import InputCountry from '../../components/input/inputCountry';
@@ -31,12 +31,12 @@ import {
   getCountriesAction,
   getStateAction,
 } from '../../utils/apiAction';
-import {showLoader} from '../../components/loader/loader';
-import {showAlert} from '../../components/cAlert';
-import {handleError, handleSettled} from '../../utils/method';
-import {saveUserData} from '../../redux/reducers/user/UserReducer';
-import {useDispatch} from 'react-redux';
-import {image_url} from '../../utils/api';
+import { showLoader } from '../../components/loader/loader';
+import { showAlert } from '../../components/cAlert';
+import { handleError, handleSettled } from '../../utils/method';
+import { saveUserData } from '../../redux/reducers/user/UserReducer';
+import { useDispatch } from 'react-redux';
+import { image_url } from '../../utils/api';
 
 type EditProfileScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -49,7 +49,7 @@ type Inputs = {
   email?: string;
   address?: string;
   phone_number?: string;
-  profileImage?: string | {uri: string; name: string; type: string};
+  profileImage?: string | { uri: string; name: string; type: string };
   country?: string;
   city?: string;
   state?: string;
@@ -57,13 +57,13 @@ type Inputs = {
   second_line_address?: string;
 };
 
-const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
+const EditProfileScreen: React.FC<EditProfileScreenProps> = ({ navigation }) => {
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
 
   const [isModalVisible, setIsModalVisible] = useState(false);
 
-  const {data, refetch} = useQuery({
+  const { data, refetch } = useQuery({
     queryKey: ['getProfile'],
     queryFn: viewProfile,
   });
@@ -75,7 +75,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
     watch,
     reset,
     getValues,
-    formState: {errors, isDirty},
+    formState: { errors, isDirty },
   } = useForm<Inputs>({
     defaultValues: {
       full_name: '',
@@ -98,7 +98,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
 
   const [defaultAddress, setDefaultAddress] = useState<string>('');
 
-  const {data: countriesData, isLoading: isLoadingCountries} = useInfiniteQuery<
+  const { data: countriesData, isLoading: isLoadingCountries } = useInfiniteQuery<
     any,
     Error,
     InfiniteData<any>,
@@ -106,8 +106,8 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
     number
   >({
     queryKey: ['getCountriesAction', ''],
-    queryFn: ({pageParam}) =>
-      getCountriesAction({page: pageParam, limit: 300, search: ''}),
+    queryFn: ({ pageParam }) =>
+      getCountriesAction({ page: pageParam, limit: 300, search: '' }),
     initialPageParam: 1,
     getNextPageParam: lastPage => {
       if (lastPage?.data?.hasNext) {
@@ -135,7 +135,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
 
   const currentCountryId = getCountryIdFromIso2(watchedCountry);
 
-  const {data: statesData} = useInfiniteQuery<
+  const { data: statesData } = useInfiniteQuery<
     any,
     Error,
     InfiniteData<any>,
@@ -143,7 +143,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
     number
   >({
     queryKey: ['getStateAction', '', currentCountryId?.toString() || ''],
-    queryFn: ({pageParam}) =>
+    queryFn: ({ pageParam }) =>
       getStateAction({
         page: pageParam,
         limit: 300,
@@ -217,11 +217,11 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
     }
   }, [watchedState, setValue]);
 
-  const {mutate} = useMutation({
+  const { mutate } = useMutation({
     mutationFn: updateProfile,
     onSuccess: data => {
       dispatch(saveUserData(data.data.user));
-      queryClient.invalidateQueries({queryKey: ['getProfile']});
+      queryClient.invalidateQueries({ queryKey: ['getProfile'] });
       showLoader(false);
       showAlert({
         isVisible: true,
@@ -294,7 +294,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
       typeof watchedProfileImage === 'object' &&
       watchedProfileImage.uri
     ) {
-      return {uri: watchedProfileImage.uri};
+      return { uri: watchedProfileImage.uri };
     }
     if (
       watchedProfileImage &&
@@ -304,7 +304,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
       const imageUrl = watchedProfileImage.startsWith('http')
         ? watchedProfileImage
         : `${image_url}${watchedProfileImage}`;
-      return {uri: imageUrl};
+      return { uri: imageUrl };
     }
     if (
       data?.data?.user?.profile_picture &&
@@ -313,7 +313,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
       const imageUrl = data.data.user.profile_picture.startsWith('http')
         ? data.data.user.profile_picture
         : `${image_url}${data.data.user.profile_picture}`;
-      return {uri: imageUrl};
+      return { uri: imageUrl };
     }
     return IMAGE.userProfile;
   };
@@ -350,7 +350,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
           inputProps={{
             placeholder: 'Enter Name',
           }}
-          required={{value: true, message: 'Please enter your name'}}
+          required={{ value: true, message: 'Please enter your name' }}
           error={errors}
           maxLength={40}
           inputStyle={styles.inputStyle}
@@ -381,7 +381,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
           inputProps={{
             placeholder: 'Enter Email Address Here',
           }}
-          required={{value: true, message: 'Email address required'}}
+          required={{ value: true, message: 'Email address required' }}
           pattern={{
             value: emailPattern,
             message: 'Invalid email format',
@@ -410,7 +410,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
             inputProps={{
               placeholder: 'Enter Address',
             }}
-            required={{value: true, message: 'Please enter your address'}}
+            required={{ value: true, message: 'Please enter your address' }}
             error={errors}
             editable={true}
             onChangeText={(value: string) => {
@@ -444,7 +444,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
                   shouldDirty: true,
                 });
               } else {
-                setValue('city', '', {shouldValidate: true, shouldDirty: true});
+                setValue('city', '', { shouldValidate: true, shouldDirty: true });
               }
 
               if (info?.postalCode) {
@@ -469,7 +469,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
             placeholder: 'Enter House No. / Apartment No.',
           }}
           maxLength={40}
-          containerStyle={{marginTop: 20}}
+          containerStyle={{ marginTop: 20 }}
         />
 
         <View style={styles.locationContainer}>
@@ -479,7 +479,7 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
             label={'Country'}
             placeholder={'Country'}
             error={errors}
-            required={{value: true, message: 'Country is required'}}
+            required={{ value: true, message: 'Country is required' }}
           />
           <InputState
             control={control}
@@ -488,8 +488,8 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
             country_id={getCountryIdFromIso2(watchedCountry)}
             placeholder={'State'}
             error={errors}
-            required={{value: true, message: 'State is required'}}
-            containerStyle={{marginTop: 20}}
+            required={{ value: true, message: 'State is required' }}
+            containerStyle={{ marginTop: 20 }}
           />
 
           <InputCity
@@ -499,8 +499,8 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
             state_id={getStateIdFromName(watchedState)}
             placeholder={'City'}
             error={errors}
-            required={{value: true, message: 'City is required'}}
-            containerStyle={{marginTop: 20}}
+            required={{ value: true, message: 'City is required' }}
+            containerStyle={{ marginTop: 20 }}
           />
           <Input
             control={control}
@@ -509,13 +509,13 @@ const EditProfileScreen: React.FC<EditProfileScreenProps> = ({navigation}) => {
             inputProps={{
               placeholder: 'Enter Pincode',
             }}
-            required={{value: true, message: 'Please enter your pincode'}}
+            required={{ value: true, message: 'Please enter your pincode' }}
             error={errors}
             maxLength={40}
             inputStyle={styles.inputStyle}
-            containerStyle={{marginTop: 20}}
+            containerStyle={{ marginTop: 20 }}
           />
-          <View style={{marginTop: 20}}>
+          <View style={{ marginTop: 20 }}>
             <GenderDropdown control={control} name="gender" label="Gender" />
           </View>
         </View>

@@ -1,6 +1,6 @@
-import {Platform} from 'react-native';
-import {iOSCurrentVersion, AndroidCurrentVersion} from './api';
-import {IAppVersion} from './types';
+import { Platform } from 'react-native';
+import { iOSCurrentVersion, AndroidCurrentVersion } from './api';
+import { IAppVersion } from './types';
 
 /**
  * Compare two version strings
@@ -11,6 +11,7 @@ import {IAppVersion} from './types';
 export const compareVersions = (version1: string, version2: string): number => {
   const v1parts = version1.split('.').map(Number);
   const v2parts = version2.split('.').map(Number);
+  console.log(v1parts, v2parts, "[][][][][[][");
 
   // Pad arrays to same length
   const maxLength = Math.max(v1parts.length, v2parts.length);

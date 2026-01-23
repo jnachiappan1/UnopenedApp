@@ -85,9 +85,12 @@ function AppContent() {
   );
 }
 
+import Orientation from 'react-native-orientation-locker';
+
 // Outer app for providers that don't need Redux access
 export default function App() {
   React.useEffect(() => {
+    Orientation.lockToPortrait();
     setTimeout(() => {
       SplashScreen.hide();
     }, 1000);
