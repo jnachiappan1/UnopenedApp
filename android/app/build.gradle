@@ -27,7 +27,7 @@ android {
         applicationId "com.unopened_mobile"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
+        versionCode 6
         versionName "1.0.0"
     }
    
@@ -82,7 +82,7 @@ subprojects {
 }
 dependencies {
     implementation("com.facebook.react:react-android")
-    implementation 'com.google.firebase:firebase-analytics:17.3.0'
+    // implementation 'com.google.firebase:firebase-analytics:17.3.0'
     implementation project(':react-native-push-notification')
     implementation 'com.stripe:stripe-android:20.18.0'
     // if (project.ext.react.enableHermes.toBoolean()) {

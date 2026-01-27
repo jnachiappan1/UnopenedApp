@@ -1,11 +1,11 @@
-// export const base_url = 'https://api.unopenedapp.com';
-export const base_url = 'http://192.168.29.33:5019';
+export const base_url = 'https://api.unopenedapp.com';
+// export const base_url = 'http://192.168.29.33:5019';
 
 
 export const image_url = 'https://unopened-storage.s3.us-east-1.amazonaws.com';
 export const google_api_key = 'AIzaSyDgYwd7eBxFOYR4rg6WN2jKlf9rYyopqgw';
 
-export const iOSCurrentVersion = '1.0.2';
+export const iOSCurrentVersion = '1.0.0';
 export const AndroidCurrentVersion = '1.0.0';
 
 export const API = {

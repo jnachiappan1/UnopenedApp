@@ -64,7 +64,7 @@ const ForceUpdateChecker: React.FC = () => {
 
           const requiresUpdate = isForceUpdateRequired(appVersion);
 
-          console.log('Force Update Required:', requiresUpdate);
+
 
           if (requiresUpdate) {
             setShowModal(true);

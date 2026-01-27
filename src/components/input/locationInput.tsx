@@ -1,5 +1,5 @@
-import React, {useEffect, useRef, useState, useMemo} from 'react';
-import {View, Text, StyleSheet, StyleProp, ViewStyle} from 'react-native';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
+import { View, Text, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import {
   Controller,
   Control,
@@ -9,12 +9,12 @@ import {
   FieldErrors,
 } from 'react-hook-form';
 import fonts from '../../assets/fonts/fonts';
-import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
-import colors, {getColors} from '../../utils/colors';
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import colors, { getColors } from '../../utils/colors';
 import commonStyles from '../../utils/common-styles';
-import {capitalizeFirstLetter} from '../../utils/method';
-import {google_api_key} from '../../utils/api';
-import {fontSizes} from '../../utils/utils';
+import { capitalizeFirstLetter } from '../../utils/method';
+import { google_api_key } from '../../utils/api';
+import { fontSizes } from '../../utils/utils';
 
 type InputPropsStyle = {
   control: Control<any>;
@@ -26,9 +26,9 @@ type InputPropsStyle = {
   rightLabelColor?: string;
   pattern?: ValidationRule<RegExp> | undefined;
   validate?:
-    | Validate<any, FieldValues>
-    | Record<string, Validate<any, FieldValues>>
-    | undefined;
+  | Validate<any, FieldValues>
+  | Record<string, Validate<any, FieldValues>>
+  | undefined;
   error?: FieldErrors<FieldValues>;
   required?: string | ValidationRule<boolean> | undefined;
   inputProps?: any;
@@ -46,7 +46,7 @@ type InputPropsStyle = {
   toggleShowCurrentOnly?: any;
   productError?: string | any;
   defaultValues?: string;
-  biasLocation?: {latitude: number; longitude: number} | undefined;
+  biasLocation?: { latitude: number; longitude: number } | undefined;
   onPlaceParsed?: (info: {
     countryCode?: string;
     countryName?: string;
@@ -79,9 +79,9 @@ const SearchLocationInput: React.FC<InputPropsStyle> = props => {
   } = props;
   const err =
     error &&
-    Object.keys(error).length !== 0 &&
-    error[name] &&
-    error[name]?.message
+      Object.keys(error).length !== 0 &&
+      error[name] &&
+      error[name]?.message
       ? error[name]?.message?.toString()
       : '';
   const productErr = productError?.message || '';
@@ -112,7 +112,7 @@ const SearchLocationInput: React.FC<InputPropsStyle> = props => {
           pattern: pattern,
           validate: validate,
         }}
-        render={({field: {onChange, value, onBlur}}) => {
+        render={({ field: { onChange, value, onBlur } }) => {
           // eslint-disable-next-line react-hooks/rules-of-hooks
           useEffect(() => {
             const nextValue =
@@ -128,7 +128,7 @@ const SearchLocationInput: React.FC<InputPropsStyle> = props => {
               if (autoCompleteRef.current) {
                 try {
                   autoCompleteRef.current.setAddressText(nextValue);
-                } catch (error) {}
+                } catch (error) { }
               }
               const timer = setTimeout(() => setIsExternalUpdate(false), 200);
               return () => clearTimeout(timer);
@@ -150,7 +150,7 @@ const SearchLocationInput: React.FC<InputPropsStyle> = props => {
               if (autoCompleteRef.current) {
                 try {
                   autoCompleteRef.current.setAddressText(defaultText);
-                } catch (error) {}
+                } catch (error) { }
               }
               const timer = setTimeout(() => setIsExternalUpdate(false), 200);
               return () => clearTimeout(timer);
@@ -158,7 +158,7 @@ const SearchLocationInput: React.FC<InputPropsStyle> = props => {
           }, [props.defaultValues]);
 
           useEffect(() => {
-            return () => {};
+            return () => { };
           }, []);
 
           return (
@@ -219,7 +219,7 @@ const SearchLocationInput: React.FC<InputPropsStyle> = props => {
                                 if (
                                   potentialCity &&
                                   !potentialCity.match(/^\d+$/) &&
-                                  !potentialCity.match(/^[A-Z]{2}$/) && // Not a state code
+                                  !potentialCity.match(/^[A-Z]{2}$/) &&
                                   potentialCity.length > 2
                                 ) {
                                   cityName = potentialCity;
@@ -242,18 +242,19 @@ const SearchLocationInput: React.FC<InputPropsStyle> = props => {
                           }
                         } else {
                         }
-                      } catch (error) {}
+                      } catch (error) { }
                     }}
                     query={{
                       key: google_api_key || '',
                       sessiontoken: sessionTokenRef.current || '',
                       language: 'en',
                       types: 'geocode|establishment',
+                      components: 'country:us',
                       ...(biasLocation
                         ? {
-                            location: `${biasLocation.latitude},${biasLocation.longitude}`,
-                            radius: 15000,
-                          }
+                          location: `${biasLocation.latitude},${biasLocation.longitude}`,
+                          radius: 15000,
+                        }
                         : {}),
                     }}
                     fetchDetails={true}
@@ -269,7 +270,7 @@ const SearchLocationInput: React.FC<InputPropsStyle> = props => {
                       maxLength: maxLength,
                       editable: editable,
                       placeholderTextColor: colors.placeholder,
-                      style: [styles.input, {paddingStart: 16}],
+                      style: [styles.input, { paddingStart: 16 }],
                       onFocus: () => {
                         setIsFocused(true);
                       },
@@ -297,9 +298,9 @@ const SearchLocationInput: React.FC<InputPropsStyle> = props => {
                                 onChange(text);
                                 onChangeText(text);
                               }
-                            } catch (error) {}
+                            } catch (error) { }
                           }, 500);
-                        } catch (error) {}
+                        } catch (error) { }
                       },
                       ...(inputProps || {}),
                     }}

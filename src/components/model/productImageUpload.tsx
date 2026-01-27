@@ -1,8 +1,8 @@
 import React from 'react';
-import {StyleSheet, Text, TouchableOpacity, View, Alert} from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, Alert } from 'react-native';
 import Modal from 'react-native-modal';
 import fonts from '../../assets/fonts/fonts';
-import {fontSizes} from '../../utils/utils';
+import { fontSizes } from '../../utils/utils';
 import colors from '../../utils/colors';
 import ImagePicker, {
   Image as ImageType,
@@ -28,8 +28,8 @@ const maxVideoSize = 50 * 1024 * 1024; // 50MB for videos
 const minImages = 2;
 
 const ProductImageUpload = ({
-  isVisible, 
-  setIsVisible, 
+  isVisible,
+  setIsVisible,
   onImageSelected,
   selectedImages = []
 }: IInputProps) => {
@@ -90,7 +90,7 @@ const ProductImageUpload = ({
         const isVideo = item.mime && item.mime.includes('video');
         const maxSize = isVideo ? maxVideoSize : maxImageSize;
         const mediaType = isVideo ? 'video' : 'image';
-        
+
         if (item.size && item.size > maxSize) {
           Alert.alert('Warning', `${mediaType} exceeds ${isVideo ? '50MB' : '5MB'} size limit and will be skipped.`);
           return false;
@@ -105,15 +105,15 @@ const ProductImageUpload = ({
 
       // Convert to MediaObject format
       const newMediaObjects = validMedia.map((item, index) => convertToMediaObject(item, index));
-      
+
       // Combine with existing media
       const allMedia = [...selectedImages, ...newMediaObjects];
-      
+
       // Remove duplicates based on URI
-      const uniqueMedia = allMedia.filter((item, index, self) => 
+      const uniqueMedia = allMedia.filter((item, index, self) =>
         index === self.findIndex(t => t.uri === item.uri)
       );
-      
+
       onImageSelected(uniqueMedia);
       setIsVisible(false);
     } catch (error) {
@@ -140,11 +140,11 @@ const ProductImageUpload = ({
       };
 
       const media = await ImagePicker.openPicker(option);
-      
+
       // Handle both single media and multiple media
       const mediaArray = Array.isArray(media) ? media : [media];
       await handleImageSelection(mediaArray);
-      
+
     } catch (error: any) {
       if (error.code !== 'E_PICKER_CANCELLED') {
         console.error('Gallery error:', error);
@@ -180,7 +180,7 @@ const ProductImageUpload = ({
           }
         ]
       );
-      
+
     } catch (error: any) {
       if (error.code !== 'E_PICKER_CANCELLED') {
         console.error('Camera error:', error);
@@ -200,7 +200,7 @@ const ProductImageUpload = ({
 
       const media = await ImagePicker.openCamera(option);
       await handleImageSelection([media]);
-      
+
     } catch (error: any) {
       if (error.code !== 'E_PICKER_CANCELLED') {
         console.error('Photo camera error:', error);
@@ -217,7 +217,7 @@ const ProductImageUpload = ({
 
       const media = await ImagePicker.openCamera(option);
       await handleImageSelection([media]);
-      
+
     } catch (error: any) {
       if (error.code !== 'E_PICKER_CANCELLED') {
         console.error('Video camera error:', error);
@@ -232,8 +232,8 @@ const ProductImageUpload = ({
       'Are you sure you want to clear all selected images/videos?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Clear', 
+        {
+          text: 'Clear',
           style: 'destructive',
           onPress: () => {
             onImageSelected([]);
@@ -254,7 +254,7 @@ const ProductImageUpload = ({
       animationIn={'slideInUp'}
       animationOut={'slideOutDown'}
       style={styles.modalStyle}>
-      
+
       <View style={styles.btnContainer}>
         {/* Header */}
         <View style={styles.header}>
