@@ -42,7 +42,7 @@
       </activity>
       <meta-data
       android:name="com.google.android.geo.API_KEY"
-      android:value="AIzaSyB-Ll0w3bnlVAVLAOpX_jM9A2la3eLKh88" />
+      android:value="AIzaSyB-AIzaSyDgYwd7eBxFOYR4rg6WN2jKlf9rYyopqgw" />
        <meta-data  android:name="com.dieam.reactnativepushnotification.notification_foreground"
                     android:value="true"/>
         <!-- Change the resource name to your App's accent color - or any other color you want -->
