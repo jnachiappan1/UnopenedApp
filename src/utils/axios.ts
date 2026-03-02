@@ -14,7 +14,6 @@ instance.interceptors.request.use(
   function (config: any) {
     const storeState = store.getState();
     const accessToken = storeState?.user?.token || null;
-    // console.log('accessToken',accessToken);
 
     if (accessToken) {
       config.headers = {

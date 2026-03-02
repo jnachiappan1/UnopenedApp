@@ -17,7 +17,6 @@ interface OrderListingCardProps {
 }
 
 const OrderListingCard: React.FC<OrderListingCardProps> = ({ item, cardStyle, onSelect }) => {
-  console.log("----", item);
   
   const handleCardPress = () => {
     onSelect?.(item);
