@@ -1,17 +1,17 @@
-import {ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-import React, {useState, useCallback, useEffect, useRef} from 'react';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import HeaderHomeContainer from '../../components/headerContainer/headerHomeContainer';
-import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import DashboardAnalyticsCard from '../../components/card/dashboardAnalyticsCard';
-import {IconName} from '../../assets/svg/iconsSvg';
+import { IconName } from '../../assets/svg/iconsSvg';
 import ProductListingCard from '../../components/card/productListingCard';
-import {fontSizes} from '../../utils/utils';
+import { fontSizes } from '../../utils/utils';
 import colors from '../../utils/colors';
 import fonts from '../../assets/fonts/fonts';
-import {IRootState} from '../../redux/store';
-import {useDispatch, useSelector} from 'react-redux';
-import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
+import { IRootState } from '../../redux/store';
+import { useDispatch, useSelector } from 'react-redux';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   getLegalcontent,
   getSellerDashboardCount,
@@ -19,16 +19,16 @@ import {
   updateProfile,
   viewProfile,
 } from '../../utils/apiAction';
-import {ProductData} from '../../utils/types';
-import {useFocusEffect} from '@react-navigation/native';
+import { ProductData } from '../../utils/types';
+import { useFocusEffect } from '@react-navigation/native';
 import TermsModal from '../../components/model/termsModal';
-import {showLoader} from '../../components/loader/loader';
+import { showLoader } from '../../components/loader/loader';
 import {
   saveUserData,
   saveUserType,
 } from '../../redux/reducers/user/UserReducer';
-import {showAlert} from '../../components/cAlert';
-import {handleError, handleSettled} from '../../utils/method';
+import { showAlert } from '../../components/cAlert';
+import { handleError, handleSettled } from '../../utils/method';
 
 type PHomeScreenProps = NativeStackScreenProps<
   RootStackParamList,
@@ -50,7 +50,7 @@ const defaultCounts = {
   wallet_balance: 0,
 };
 
-const SHomeScreen: React.FC<PHomeScreenProps> = ({navigation, route}) => {
+const SHomeScreen: React.FC<PHomeScreenProps> = ({ navigation, route }) => {
   const [selectedTab, setSelectedTab] = useState('All');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [termsModalVisible, setTermsModalVisible] = useState(false);
@@ -64,14 +64,14 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({navigation, route}) => {
   const userData = useSelector((user: IRootState) => user.user.userData);
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const {data} = useQuery({
+  const { data } = useQuery({
     queryKey: ['getProfile'],
     queryFn: viewProfile,
   });
   useEffect(() => {
     if (!userData) {
-      queryClient.removeQueries({queryKey: ['getSellerDashboardCount']});
-      queryClient.removeQueries({queryKey: ['getSellerOwnProductList']});
+      queryClient.removeQueries({ queryKey: ['getSellerDashboardCount'] });
+      queryClient.removeQueries({ queryKey: ['getSellerOwnProductList'] });
     }
   }, [userData, queryClient]);
   const {
@@ -186,7 +186,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({navigation, route}) => {
   }, [sellerOwnProductList, userData]);
 
   const EmptyStateMessage = React.memo(
-    ({selectedTab}: {selectedTab: string}) => {
+    ({ selectedTab }: { selectedTab: string }) => {
       const getEmptyMessage = () => {
         switch (selectedTab) {
           case 'Active':
@@ -342,11 +342,11 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({navigation, route}) => {
     }
     setTermsLoading(false);
   };
-  const {mutate} = useMutation({
+  const { mutate } = useMutation({
     mutationFn: updateProfile,
     onSuccess: data => {
       dispatch(saveUserData(data.data.user));
-      queryClient.invalidateQueries({queryKey: ['getProfile']});
+      queryClient.invalidateQueries({ queryKey: ['getProfile'] });
       showLoader(false);
       setAcceptLoading(false);
       setTermsModalVisible(false);
@@ -359,7 +359,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({navigation, route}) => {
         title: 'Seller Agreement Accepted',
         description: 'You have successfully accepted the Seller Agreement.',
         doneText: 'Okay',
-        onDonePress: () => {},
+        onDonePress: () => { },
       });
     },
     onError: error => {
@@ -398,7 +398,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({navigation, route}) => {
   }, [selectedTab, products, getStatusForTab]);
   const getTabCounts = React.useCallback(() => {
     try {
-      const counts: {[key: string]: number} = {
+      const counts: { [key: string]: number } = {
         All: products.length,
         Active: products.filter(item => item?.product_status === 'active')
           .length,
@@ -424,12 +424,12 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({navigation, route}) => {
   const filteredData = filterData();
 
   const renderProductItem = React.useCallback(
-    ({item}: {item: ProductData}) => {
+    ({ item }: { item: ProductData }) => {
       try {
         return (
           <ProductListingCard
             item={item}
-            nameStyle={{width: 240}}
+            nameStyle={{ width: 240 }}
             onSelect={selectedItem => {
               try {
                 navigation.navigate(SCREENS.ProductDetailScreen, {
@@ -450,7 +450,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({navigation, route}) => {
   );
 
   const renderTab = React.useCallback(
-    ({item}: {item: string}) => {
+    ({ item }: { item: string }) => {
       try {
         return (
           <TouchableOpacity
@@ -496,7 +496,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({navigation, route}) => {
       isHome
       refreshing={isRefreshing || isAnyApiFetching}
       onRefresh={handleRefresh}
-      onSearchPress={() => {}}
+      onSearchPress={() => { }}
       profileImage={userData?.profile_picture}>
       <View style={[styles.container, styles.dashboardGrid]}>
         {dashboardAnalyticsData.map(item => (
@@ -524,7 +524,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({navigation, route}) => {
           style={styles.tabs}
           contentContainerStyle={styles.tabsContent}>
           {['All', 'Active', 'Sold', 'In Review', 'Withdrawn'].map(item =>
-            renderTab({item}),
+            renderTab({ item }),
           )}
         </ScrollView>
         {userData ? (
@@ -532,7 +532,7 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({navigation, route}) => {
             <View style={styles.list}>
               {filteredData.slice(0, 5).map(item => (
                 <View key={item?.id?.toString() || Math.random().toString()}>
-                  {renderProductItem({item})}
+                  {renderProductItem({ item })}
                 </View>
               ))}
             </View>
@@ -566,8 +566,8 @@ const SHomeScreen: React.FC<PHomeScreenProps> = ({navigation, route}) => {
               <ProductListingCard
                 key={item?.id?.toString() || Math.random().toString()}
                 item={item}
-                nameStyle={{width: 180}}
-                cardStyle={{marginHorizontal: 5, width: 320}}
+                nameStyle={{ width: 180 }}
+                cardStyle={{ marginHorizontal: 5, width: 320 }}
                 onSelect={selectedItem => {
                   try {
                     navigation.navigate(SCREENS.ProductDetailScreen, {

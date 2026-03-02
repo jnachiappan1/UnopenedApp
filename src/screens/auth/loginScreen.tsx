@@ -1,24 +1,24 @@
-import {View, Text, TouchableOpacity, StyleSheet, Keyboard} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Keyboard } from 'react-native';
 import React from 'react';
 import fonts from '../../assets/fonts/fonts';
 import Input from '../../components/input/input';
-import {useForm} from 'react-hook-form';
-import {capitalizeFirstLetter, emailPattern, OS} from '../../utils/utils';
+import { useForm } from 'react-hook-form';
+import { capitalizeFirstLetter, emailPattern, OS } from '../../utils/utils';
 import ImageBackgroundHeader from '../../components/headerContainer/imageBackgroundHeader';
 import IconsSvg from '../../assets/svg/iconsSvg';
 import colors from '../../utils/colors';
 import Button from '../../components/button/buttons';
 import WhiteButton from '../../components/button/whiteButton';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
-import {useDispatch, useSelector} from 'react-redux';
-import {useContainer} from '../../components/hooks/useContainer';
-import {showLoader} from '../../components/loader/loader';
-import {showAlert} from '../../components/cAlert';
-import {useMutation} from '@tanstack/react-query';
-import {signInApi} from '../../utils/apiAction';
-import {handleError, handleSettled} from '../../utils/method';
-import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
+import { useDispatch, useSelector } from 'react-redux';
+import { useContainer } from '../../components/hooks/useContainer';
+import { showLoader } from '../../components/loader/loader';
+import { showAlert } from '../../components/cAlert';
+import { useMutation } from '@tanstack/react-query';
+import { signInApi } from '../../utils/apiAction';
+import { handleError, handleSettled } from '../../utils/method';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 type LoginProps = NativeStackScreenProps<
   RootStackParamList,
@@ -28,15 +28,15 @@ type Inputs = {
   email: string;
 };
 
-const LoginScreen: React.FC<LoginProps> = ({route, navigation}) => {
+const LoginScreen: React.FC<LoginProps> = ({ route, navigation }) => {
   const container = useContainer();
 
   const {
     control,
-    formState: {errors},
+    formState: { errors },
     handleSubmit,
   } = useForm<any>();
-  const {mutate} = useMutation({
+  const { mutate } = useMutation({
     mutationFn: (data: Inputs) => signInApi('otp', data),
     onSuccess: async (data: any) => {
       showLoader(false);
@@ -75,7 +75,7 @@ const LoginScreen: React.FC<LoginProps> = ({route, navigation}) => {
         <IconsSvg name="box" />
         <Text style={styles.title}>Get Started now</Text>
         <Text style={styles.subtitle}>
-          Create an account or log in to{'\n'}explore about our app
+          Create an account or login to{'\n'}explore about our app
         </Text>
         <View style={styles.inputContainer}>
           <Input
@@ -86,7 +86,7 @@ const LoginScreen: React.FC<LoginProps> = ({route, navigation}) => {
             inputProps={{
               placeholder: 'Enter Email Address Here',
             }}
-            required={{value: true, message: 'Email address required'}}
+            required={{ value: true, message: 'Email address required' }}
             pattern={{
               value: emailPattern,
               message: 'Invalid email format',
@@ -94,7 +94,7 @@ const LoginScreen: React.FC<LoginProps> = ({route, navigation}) => {
             error={errors}
             keyboardType="email-address"
             maxLength={40}
-            inputStyle={{height: 53, borderRadius: 160}}
+            inputStyle={{ height: 53, borderRadius: 160 }}
           />
         </View>
 
@@ -191,5 +191,5 @@ const styles = StyleSheet.create({
     color: colors.secondary,
     fontFamily: fonts.bold,
   },
-  emailContainer: {marginTop: 20},
+  emailContainer: { marginTop: 20 },
 });

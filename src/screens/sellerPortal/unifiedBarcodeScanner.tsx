@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -12,17 +12,17 @@ import {
   AppState,
   BackHandler,
 } from 'react-native';
-import {Camera, CameraType} from 'react-native-camera-kit';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {RootStackParamList, SCREENS} from '../../navigation/mainNavigation';
-import {showAlert} from '../../components/cAlert/cAlert';
+import { Camera, CameraType } from 'react-native-camera-kit';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList, SCREENS } from '../../navigation/mainNavigation';
+import { showAlert } from '../../components/cAlert/cAlert';
 
 type UnifiedBarcodeScannerProps = NativeStackScreenProps<
   RootStackParamList,
   SCREENS.BarcodeScanner
 >;
 
-const {width} = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 const SCANNER_SIZE = width * 0.7;
 
 const UnifiedBarcodeScanner: React.FC<UnifiedBarcodeScannerProps> = ({
@@ -151,9 +151,9 @@ const UnifiedBarcodeScanner: React.FC<UnifiedBarcodeScannerProps> = ({
 
   const handleBarcodeScan = useCallback(
     async (event: {
-      nativeEvent: {codeStringValue: string; codeFormat?: string};
+      nativeEvent: { codeStringValue: string; codeFormat?: string };
     }) => {
-      const {codeStringValue: code, codeFormat} = event.nativeEvent;
+      const { codeStringValue: code, codeFormat } = event.nativeEvent;
 
       if (!code || !isScanning || isProcessing || isCleaningUp) return;
 
@@ -173,9 +173,8 @@ const UnifiedBarcodeScanner: React.FC<UnifiedBarcodeScannerProps> = ({
         isVisible: true,
         type: 'success',
         title: 'Barcode Scanned Successfully!',
-        description: `Code: ${code}\nType: ${
-          codeFormat ?? 'unknown'
-        }\n\nTake your time to adjust the camera position for the next scan.`,
+        description: `Code: ${code}\nType: ${codeFormat ?? 'unknown'
+          }\n\nTake your time to adjust the camera position for the next scan.`,
         deleteText: 'Scan Again',
         doneText: 'Use This Code',
         onDeletePress: () => {
@@ -200,21 +199,7 @@ const UnifiedBarcodeScanner: React.FC<UnifiedBarcodeScannerProps> = ({
     [isScanning, isProcessing, isCleaningUp, lastScanTime, navigation],
   );
 
-  // const goBack = useCallback(() => {
-  //   if (isCleaningUp) return;
 
-  //   try {
-  //     setIsCleaningUp(true);
-  //     setIsScanning(false);
-
-  //     setTimeout(() => {
-  //       navigation.goBack();
-  //     }, 100);
-  //   } catch (error) {
-  //     console.error('Error during goBack cleanup:', error);
-  //     navigation.goBack();
-  //   }
-  // }, [isCleaningUp, navigation]);
   const goBack = () => {
     navigation.goBack();
   };
@@ -362,8 +347,8 @@ const UnifiedBarcodeScanner: React.FC<UnifiedBarcodeScannerProps> = ({
                 {isCleaningUp
                   ? 'Cleaning up...'
                   : scannedCode
-                  ? 'Scan Again'
-                  : 'Resume Scanning'}
+                    ? 'Scan Again'
+                    : 'Resume Scanning'}
               </Text>
             </TouchableOpacity>
             {scannedCode && !isProcessing && !isCleaningUp && (
